@@ -78,7 +78,7 @@ class LoginOtp extends StatelessWidget {
 
                     Text.rich(
                       TextSpan(
-                        style: AppTextStyles.bs100(
+                        style: AppTextStyles.bs400(
                           context,
                           color: colors.textSecondary,
                         ),
@@ -100,7 +100,7 @@ class LoginOtp extends StatelessWidget {
                                   .add(const OnResetEvent(isPhoneChange: true)),
                               child: Text(
                                 'Change',
-                                style: AppTextStyles.bs100(
+                                style: AppTextStyles.bs400(
                                   context,
                                   weight: AppTextStyles.bold,
                                   color: colors.primary,
@@ -126,8 +126,7 @@ class LoginOtp extends StatelessWidget {
                       onCompleted: () => context
                           .read<LoginBloc>()
                           .add(OnSubmitOtpEvent()),
-                    ).animate(target: state.otpError != null ? 1 : 0)
-                        .shake(hz: 4, duration: 500.ms),
+                    ),
 
                     SizedBox(
                       height: 36,
@@ -237,6 +236,7 @@ class _StatusBanner extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
+      margin: EdgeInsets.only(top: AppSpacing.xs),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.xxs,
@@ -250,14 +250,14 @@ class _StatusBanner extends StatelessWidget {
         children: [
           Icon(
             isError ? Icons.error_outline : Icons.check_circle_outline,
-            size: 16,
+            size: 18,
             color: isError ? colors.danger : colors.success,
           ),
           const SizedBox(width: AppSpacing.xs),
           Flexible(
             child: Text(
               message,
-              style: AppTextStyles.sm200(
+              style: AppTextStyles.bs400(
                 context,
                 weight: AppTextStyles.semibold,
                 color: isError ? colors.danger : colors.success,

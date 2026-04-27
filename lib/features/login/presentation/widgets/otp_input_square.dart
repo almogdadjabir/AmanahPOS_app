@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -28,13 +29,21 @@ class OTPInputSquare extends StatefulWidget {
   State<OTPInputSquare> createState() => _OTPInputSquareState();
 }
 
-class _OTPInputSquareState extends State<OTPInputSquare> {
+class _OTPInputSquareState extends State<OTPInputSquare>
+    with SingleTickerProviderStateMixin {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
+  late final AnimationController _shakeController;
+
   String _lastReported = '';
   bool _completed = false;
 
   int get _otpLength => widget.is6Digit ? 6 : 4;
+
+  // Horizontal shake offset: sine wave over animation progress
+  double get _shakeOffset =>
+      sin(_shakeController.value * pi * 5) * 10 *
+          (1 - _shakeController.value); // dampens toward end
 
   @override
   void initState() {
@@ -43,6 +52,12 @@ class _OTPInputSquareState extends State<OTPInputSquare> {
     _lastReported = widget.state;
     _focusNode = FocusNode();
     _controller.addListener(_onInput);
+
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusNode.requestFocus();
     });
@@ -51,6 +66,12 @@ class _OTPInputSquareState extends State<OTPInputSquare> {
   @override
   void didUpdateWidget(OTPInputSquare oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // ── Shake only when error first appears, never when clearing ──
+    if (!oldWidget.hasError && widget.hasError) {
+      _shakeController.forward(from: 0);
+    }
+
     if (oldWidget.state == widget.state) return;
 
     _lastReported = widget.state;
@@ -79,12 +100,12 @@ class _OTPInputSquareState extends State<OTPInputSquare> {
     _controller.removeListener(_onInput);
     _controller.dispose();
     _focusNode.dispose();
+    _shakeController.dispose();
     super.dispose();
   }
 
   void _onInput() {
     if (!mounted) return;
-    setState(() {});
 
     final text = _controller.text;
     if (text.length < _otpLength) _completed = false;
@@ -111,17 +132,23 @@ class _OTPInputSquareState extends State<OTPInputSquare> {
   @override
   Widget build(BuildContext context) {
     return AutofillGroup(
-      child: Stack(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              _otpLength,
-                  (i) => _buildDigitBox(context, i),
+      child: AnimatedBuilder(
+        animation: _shakeController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(_shakeOffset, 0), // horizontal only, never rotates
+            child: child,
+          );
+        },
+        child: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_otpLength, (i) => _buildDigitBox(context, i)),
             ),
-          ),
-          _buildHiddenTextField(),
-        ],
+            _buildHiddenTextField(),
+          ],
+        ),
       ),
     );
   }
@@ -149,16 +176,13 @@ class _OTPInputSquareState extends State<OTPInputSquare> {
 
   Widget _buildDigitBox(BuildContext context, int index) {
     final colors = context.appColors;
-    final digit = index < _controller.text.length
-        ? _controller.text[index]
-        : '';
+    final digit =
+    index < _controller.text.length ? _controller.text[index] : '';
     final isFilled = digit.isNotEmpty;
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: widget.is6Digit
-            ? AppSpacing.xxs
-            : AppSpacing.xs,
+        horizontal: widget.is6Digit ? AppSpacing.xxs : AppSpacing.xs,
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -167,10 +191,7 @@ class _OTPInputSquareState extends State<OTPInputSquare> {
         decoration: BoxDecoration(
           color: _boxColor(colors),
           borderRadius: AppRadius.borderMd,
-          border: Border.all(
-            color: _borderColor(colors),
-            width: 1.5,
-          ),
+          border: Border.all(color: _borderColor(colors), width: 1.5),
           boxShadow: isFilled && !widget.hasError && !widget.isOTPMatched
               ? [
             BoxShadow(
