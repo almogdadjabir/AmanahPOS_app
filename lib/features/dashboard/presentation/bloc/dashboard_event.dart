@@ -30,11 +30,3 @@ class SetCartExpandedEvent extends DashboardEvent {
   @override
   List<Object?> get props => [expanded];
 }
-
-class SetMenuOpenEvent extends DashboardEvent {
-  final bool open;
-  const SetMenuOpenEvent({required this.open});
-
-  @override
-  List<Object?> get props => [open];
-}

@@ -1,10 +1,13 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
+import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
+import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
+import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/registration/domain/usecases/registration_usecase.dart';
 import 'package:amana_pos/features/registration/presentation/bloc/registration_bloc.dart';
 import 'package:amana_pos/features/splash/domain/blocs/splash_bloc.dart';
@@ -14,6 +17,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 getProviders(BuildContext context) => [
   BlocProvider(create: (context) => getIt<AuthBloc>()),
+  BlocProvider(create: (context) => getIt<NavigationBloc>()),
   BlocProvider(create: (context) => ThemeBloc(cacheStorage: getIt<CacheStorage>())),
   BlocProvider(
     create: (context) => SplashBloc(
@@ -38,5 +42,10 @@ getProviders(BuildContext context) => [
   ),
   BlocProvider(
     create: (context) => CartBloc(),
+  ),
+  BlocProvider(
+    create: (context) => BusinessBloc(
+      useCase: getIt<BusinessUseCase>(),
+    ),
   ),
 ];

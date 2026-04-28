@@ -14,7 +14,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<SetCategoryEvent>(_onSetCategory);
     on<SetSearchQueryEvent>(_onSetSearchQuery);
     on<SetCartExpandedEvent>(_onSetCartExpanded);
-    on<SetMenuOpenEvent>(_onSetMenuOpen);
   }
 
   // ── Handlers ───────────────────────────────────────────────────────
@@ -31,7 +30,4 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(state.copyWith(cartExpanded: event.expanded));
   }
 
-  void _onSetMenuOpen(SetMenuOpenEvent event, Emitter<DashboardState> emit) {
-    emit(state.copyWith(menuOpen: event.open));
-  }
 }

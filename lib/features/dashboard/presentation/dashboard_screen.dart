@@ -2,21 +2,19 @@ import 'package:amana_pos/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:amana_pos/features/dashboard/data/models/mock_data.dart';
 import 'package:amana_pos/features/dashboard/data/models/product.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:amana_pos/features/dashboard/presentation/feature_menu/feature_menu.dart';
 import 'package:amana_pos/features/dashboard/presentation/widgets/cart_sheet.dart';
 import 'package:amana_pos/features/dashboard/presentation/widgets/category_chips.dart';
-import 'package:amana_pos/features/dashboard/presentation/widgets/feature_menu.dart';
 import 'package:amana_pos/features/dashboard/presentation/widgets/pos_app_bar.dart';
 import 'package:amana_pos/features/dashboard/presentation/widgets/product_card.dart';
 import 'package:amana_pos/features/dashboard/presentation/widgets/products_empty.dart';
 import 'package:amana_pos/features/dashboard/presentation/widgets/search_row.dart';
-import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// The main Point-of-Sale screen — catalog on top, cart sheet at the bottom.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -25,7 +23,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // TextEditingController stays in the widget — pure UI state.
   final TextEditingController _search = TextEditingController();
 
   @override
@@ -78,12 +75,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // ── Main column ──────────────────────────────────────
                   Column(
                     children: [
-                      PosAppBar(
-                        onMenuTap: () => context
-                            .read<DashboardBloc>()
-                            .add(const SetMenuOpenEvent(open: true)),
-                        onNotifTap: () {},
-                      ),
                       // Matches original: fromLTRB(s4=16, s3=12, s4=16, s2=8)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
@@ -132,13 +123,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         context.read<CartBloc>().add(const ChargeCartEvent()),
                   ),
 
-                  // ── Top-down feature menu ────────────────────────────
-                  FeatureMenu(
-                    open: dashState.menuOpen,
-                    onDismiss: () => context
-                        .read<DashboardBloc>()
-                        .add(const SetMenuOpenEvent(open: false)),
-                  ),
                 ],
               ),
             ),

@@ -15,7 +15,7 @@ class LoginRepoImpl extends LoginRepository {
   @override
   Future<Either<String?, LoginResponse>> userLogin(LoginRequest request) {
     return requestHandler.handlePostRequest(
-      'auth/login/otp/',
+      'api-public/v1/auth/login/otp/',
           (data) => LoginResponse.fromJson(data as Map<String, dynamic>),
       data: request.toJson(),
     );
@@ -24,7 +24,7 @@ class LoginRepoImpl extends LoginRepository {
   @override
   Future<Either<String?, OtpVerifyResponse>> otpVerify(OtpVerifyRequest request) {
     return requestHandler.handlePostRequest(
-      'auth/login/otp/verify/',
+      'api-public/v1/auth/login/otp/verify/',
           (data) => OtpVerifyResponse.fromJson(data as Map<String, dynamic>),
       data: request.toJson(),
     );
@@ -33,7 +33,7 @@ class LoginRepoImpl extends LoginRepository {
   @override
   Future<Either<String?, OtpResendResponse>> otpResend() {
     return requestHandler.handlePostRequest(
-      'api/v1/otp/resend',
+      'api-public/v1/auth/resend-otp/',
           (data) => OtpResendResponse.fromJson(data as Map<String, dynamic>),
     );
   }
@@ -49,7 +49,7 @@ class LoginRepoImpl extends LoginRepository {
   @override
   Future<Either<String?, UserProfileDto>> getProfile() {
     return requestHandler.handleGetRequest(
-      'auth/profile/',
+      '/api/v1/auth/profile/',
           (data) => UserProfileDto.fromJson(data as Map<String, dynamic>),
     );
   }

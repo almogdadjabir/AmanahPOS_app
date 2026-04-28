@@ -132,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (state.loginStatus == LoginStatus.competed) {
         Navigator.of(context).pushNamedAndRemoveUntil(
-          RouteStrings.dashboard,
+          RouteStrings.mainScreen,
               (route) => false,
         );
         context.read<LoginBloc>().add(const OnResetEvent());

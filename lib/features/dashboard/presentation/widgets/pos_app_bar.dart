@@ -18,62 +18,54 @@ class PosAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: AppDims.appBarHeight,
-      padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
-      decoration: BoxDecoration(
-        color: context.appColors.surface,
-        border: Border(bottom: BorderSide(color: context.appColors.border)),
-      ),
-      child: Row(
-        children: [
-          _IconButton(icon: Icons.menu_rounded, onTap: onMenuTap),
-          const SizedBox(width: AppDims.s2),
-          const BrandLogo(),
-          const SizedBox(width: AppDims.s3),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'AmanaPOS',
-                  style: TextStyle(
-                    fontFamily: 'NunitoSans', fontSize: 14, fontWeight: FontWeight.w800,
-                    color: context.appColors.textPrimary, letterSpacing: -0.2,
-                  ),
-                ),
-                Text(
-                  'Khartoum · Reg #2',
-                  style: TextStyle(
-                    fontFamily: 'NunitoSans', fontSize: 10.5, fontWeight: FontWeight.w600,
-                    color: context.appColors.textSecondary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Stack(
-            clipBehavior: Clip.none,
+    return Row(
+      children: [
+        _IconButton(icon: Icons.menu_rounded, onTap: onMenuTap),
+        const SizedBox(width: AppDims.s2),
+        const BrandLogo(),
+        const SizedBox(width: AppDims.s3),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _IconButton(icon: Icons.notifications_outlined, onTap: onNotifTap),
-              if (hasNotifications)
-                Positioned(
-                  right: 8, top: 8,
-                  child: Container(
-                    width: 8, height: 8,
-                    decoration: BoxDecoration(
-                      color: context.appColors.danger,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: context.appColors.surface, width: 2),
-                    ),
-                  ),
+              Text(
+                'AmanaPOS',
+                style: TextStyle(
+                  fontFamily: 'NunitoSans', fontSize: 14, fontWeight: FontWeight.w800,
+                  color: context.appColors.textPrimary, letterSpacing: -0.2,
                 ),
+              ),
+              Text(
+                'Khartoum · Reg #2',
+                style: TextStyle(
+                  fontFamily: 'NunitoSans', fontSize: 10.5, fontWeight: FontWeight.w600,
+                  color: context.appColors.textSecondary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _IconButton(icon: Icons.notifications_outlined, onTap: onNotifTap),
+            if (hasNotifications)
+              Positioned(
+                right: 8, top: 8,
+                child: Container(
+                  width: 8, height: 8,
+                  decoration: BoxDecoration(
+                    color: context.appColors.danger,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: context.appColors.surface, width: 2),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

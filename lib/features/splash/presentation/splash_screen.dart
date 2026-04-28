@@ -1,6 +1,8 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/splash/domain/blocs/splash_bloc.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,12 +32,19 @@ class _SplashScreenState extends State<SplashScreen> {
       listener: (context, state) {
         switch (state.status) {
           case SplashStatus.authenticated:
-            Navigator.of(context).pushNamed(RouteStrings.dashboard);
+            getIt<AuthBloc>().add(OnLoadProfileEvent());
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              RouteStrings.mainScreen,
+                  (route) => false,
+            );
             break;
 
           case SplashStatus.unauthenticated:
           case SplashStatus.failure:
-          Navigator.of(context).pushNamed(RouteStrings.login);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteStrings.login,
+                (route) => false,
+          );
 
           break;
 

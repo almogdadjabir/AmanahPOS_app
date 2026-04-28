@@ -113,7 +113,7 @@ class AppInterceptors extends Interceptor {
 
     try {
       final response = await _dio.post<dynamic>(
-        'api-public/refresh-token',
+        'api-public/v1/auth/token/refresh/',
         data: {'refreshToken': refreshToken},
         options: Options(headers: {'Accept': 'application/json'}),
       );

@@ -1,7 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:amana_pos/config/router/route_strings.dart';
-import 'package:amana_pos/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
+import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -22,8 +22,8 @@ class AppRouter {
         return _buildRoute(const LoginScreen(), settings);
       case RouteStrings.registration:
         return _buildRoute(const RegistrationScreen(), settings);
-      case RouteStrings.dashboard:
-        return _buildRoute(const DashboardScreen(), settings);
+      case RouteStrings.mainScreen:
+        return _buildRoute(const MainScreen(), settings);
       default:
         return _buildRoute(const SplashScreen(), settings);
     }
