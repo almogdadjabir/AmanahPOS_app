@@ -1,6 +1,7 @@
 import 'package:amana_pos/api/network/app_interceptors.dart';
 import 'package:amana_pos/api/network/dio_client.dart';
 import 'package:amana_pos/api/request_handler.dart';
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/environment/environment.dart';
 import 'package:amana_pos/config/router/app_router.dart';
@@ -72,6 +73,10 @@ class DependenciesProvider {
         repository: getIt<DashboardRepository>(),
       ),
     );
+
+    getIt.registerLazySingleton<AuthBloc>(() => AuthBloc(
+      useCase: getIt<LoginUseCase>(),
+    ));
 
   }
 

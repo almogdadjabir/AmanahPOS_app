@@ -91,3 +91,35 @@ abstract final class AppGap {
   static const SizedBox horizontalLg = SizedBox(width: AppSpacing.lg);
   static const SizedBox horizontalXl = SizedBox(width: AppSpacing.xl);
 }
+
+/// Spacing, radii and motion durations.
+class AppDims {
+  AppDims._();
+
+  // Spacing scale (matches Tailwind-ish steps)
+  static const double s0 = 0;
+  static const double s1 = 4;
+  static const double s2 = 8;
+  static const double s3 = 12;
+  static const double s4 = 16;
+  static const double s5 = 20;
+  static const double s6 = 24;
+  static const double s8 = 32;
+
+  // Border radii
+  static const double rXs = 6;
+  static const double rSm = 10;
+  static const double rMd = 14;
+  static const double rLg = 18;
+  static const double rXl = 24;
+  static const double rXxl = 32;
+
+  // Component sizes
+  static const double appBarHeight = 56;
+  static const double cartPeekHeight = 76;
+
+  // Motion
+  static const Duration fast = Duration(milliseconds: 200);
+  static const Duration medium = Duration(milliseconds: 320);
+  static const Duration slow = Duration(milliseconds: 360);
+}

@@ -1,47 +1,39 @@
 part of 'dashboard_bloc.dart';
 
-enum DashboardStatus {
-  initial,
-  loading,
-  success,
-  failure,
-}
-
 class DashboardState extends Equatable {
-  final bool isLoading;
-  final String? responseError;
-  final DashboardStatus dashboardStatus;
+  final String activeCategory;
+  final String searchQuery;
+  final bool cartExpanded;
+  final bool menuOpen;
 
   const DashboardState({
-    this.isLoading = false,
-    this.responseError,
-    this.dashboardStatus = DashboardStatus.initial,
+    required this.activeCategory,
+    required this.searchQuery,
+    required this.cartExpanded,
+    required this.menuOpen,
   });
 
-  factory DashboardState.initial() {
-    return const DashboardState(
-      isLoading: false,
-      responseError: null,
-      dashboardStatus: DashboardStatus.initial,
-    );
-  }
+  factory DashboardState.initial() => DashboardState(
+    activeCategory: MockData.allCategoryId,
+    searchQuery: '',
+    cartExpanded: false,
+    menuOpen: false,
+  );
 
   DashboardState copyWith({
-    bool? isLoading,
-    String? responseError,
-    DashboardStatus? dashboardStatus,
+    String? activeCategory,
+    String? searchQuery,
+    bool? cartExpanded,
+    bool? menuOpen,
   }) {
     return DashboardState(
-      isLoading: isLoading ?? this.isLoading,
-      responseError: responseError,
-      dashboardStatus: dashboardStatus ?? this.dashboardStatus,
+      activeCategory: activeCategory ?? this.activeCategory,
+      searchQuery: searchQuery ?? this.searchQuery,
+      cartExpanded: cartExpanded ?? this.cartExpanded,
+      menuOpen: menuOpen ?? this.menuOpen,
     );
   }
 
   @override
-  List<Object?> get props => [
-    isLoading,
-    responseError,
-    dashboardStatus,
-  ];
+  List<Object?> get props => [activeCategory, searchQuery, cartExpanded, menuOpen];
 }

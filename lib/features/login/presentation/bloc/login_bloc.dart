@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/features/login/data/models/login_request.dart';
@@ -8,6 +9,7 @@ import 'package:amana_pos/features/login/data/models/otp_verify_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/widgets/phone_number_field.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -180,7 +182,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         return;
       }
 
-      // ── Success path — all awaits are top-level, emitter is still open ──
+      final authBloc = getIt<AuthBloc>();
+      authBloc.add(OnLoadProfileEvent(user: loginResponse?.loginData?.user));
+
       emit(state.copyWith(
         isLoading: false,
         status: PageStatus.success,

@@ -1,6 +1,7 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
-import 'package:amana_pos/features/dashboard/domain/usecases/dashboard_usecase.dart';
+import 'package:amana_pos/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
@@ -12,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 getProviders(BuildContext context) => [
-  // BlocProvider(create: (context) => getIt<AuthBloc>()),
+  BlocProvider(create: (context) => getIt<AuthBloc>()),
   BlocProvider(create: (context) => ThemeBloc(cacheStorage: getIt<CacheStorage>())),
   BlocProvider(
     create: (context) => SplashBloc(
@@ -32,7 +33,10 @@ getProviders(BuildContext context) => [
   ),
   BlocProvider(
     create: (context) => DashboardBloc(
-        useCase: getIt<DashboardUseCase>(),
+        // useCase: getIt<DashboardUseCase>(),
     ),
+  ),
+  BlocProvider(
+    create: (context) => CartBloc(),
   ),
 ];

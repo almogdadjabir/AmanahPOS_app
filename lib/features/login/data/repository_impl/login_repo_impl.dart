@@ -4,6 +4,7 @@ import 'package:amana_pos/features/login/data/models/login_response.dart';
 import 'package:amana_pos/features/login/data/models/otp_resend_response.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
+import 'package:amana_pos/features/login/data/models/user_profile_dto.dart';
 import 'package:amana_pos/features/login/domain/repository/login_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -34,6 +35,22 @@ class LoginRepoImpl extends LoginRepository {
     return requestHandler.handlePostRequest(
       'api/v1/otp/resend',
           (data) => OtpResendResponse.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<Either<String?, User>> logout() {
+    return requestHandler.handlePostRequest(
+      'auth/logout/',
+          (data) => User.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<Either<String?, UserProfileDto>> getProfile() {
+    return requestHandler.handleGetRequest(
+      'auth/profile/',
+          (data) => UserProfileDto.fromJson(data as Map<String, dynamic>),
     );
   }
 
