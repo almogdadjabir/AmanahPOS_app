@@ -1,4 +1,4 @@
-import 'package:amana_pos/features/dashboard/presentation/feature_menu/widgets/menu_sections.dart';
+import 'package:amana_pos/features/feature_menu/widgets/menu_sections.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';

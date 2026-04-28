@@ -18,6 +18,9 @@ import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc
 import 'package:amana_pos/features/registration/data/repository_impl/registration_repo_impl.dart';
 import 'package:amana_pos/features/registration/domain/repositories/registration_repository.dart';
 import 'package:amana_pos/features/registration/domain/usecases/registration_usecase.dart';
+import 'package:amana_pos/features/users/data/repository_impl/users_repo_impl.dart';
+import 'package:amana_pos/features/users/domain/repositories/users_repository.dart';
+import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -59,6 +62,10 @@ class DependenciesProvider {
           () => BusinessRepoImpl(getIt<RequestHandler>()),
     );
 
+    getIt.registerLazySingleton<UsersRepository>(
+          () => UsersRepoImpl(getIt<RequestHandler>()),
+    );
+
     ///use-cases
     // getIt.registerLazySingleton<AuthUseCase>(
     //       () => AuthUseCase(repository: getIt<AuthRepository>(), cacheStorage: getIt<CacheStorage>()),
@@ -85,6 +92,12 @@ class DependenciesProvider {
     getIt.registerLazySingleton<BusinessUseCase>(
           () => BusinessUseCase(
         repository: getIt<BusinessRepository>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<UsersUseCase>(
+          () => UsersUseCase(
+        repository: getIt<UsersRepository>(),
       ),
     );
 

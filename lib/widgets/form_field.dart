@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class AppFormField extends StatelessWidget {
   final TextEditingController controller;
-  final FocusNode focusNode;
+  final FocusNode? focusNode;
   final FocusNode? nextFocus;
   final String hint;
   final IconData prefixIcon;
@@ -16,7 +16,7 @@ class AppFormField extends StatelessWidget {
 
   const AppFormField({super.key,
     required this.controller,
-    required this.focusNode,
+    this.focusNode,
     required this.hint,
     required this.prefixIcon,
     this.nextFocus,

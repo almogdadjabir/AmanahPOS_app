@@ -5,4 +5,5 @@ class RouteStrings {
   static const String mainScreen = 'MainScreen';
   static const String businessDetailScreen = 'businessDetailScreen';
   static const String shopDetailScreen = 'shopDetailScreen';
+  static const String userDetailScreen = 'userDetailScreen';
 }

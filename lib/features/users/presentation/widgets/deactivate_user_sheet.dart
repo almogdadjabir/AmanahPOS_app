@@ -1,34 +1,34 @@
-import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
-import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
+import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
+import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/app_deactivate_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void showDeactivateBusinessSheet(
+void showDeactivateUserSheet(
     BuildContext context,
-    BusinessData business,
+    UserData user,
     ) {
   AppDeactivateBottomSheet.show(
     context: context,
     child: BlocProvider.value(
-      value: context.read<BusinessBloc>(),
-      child: BlocConsumer<BusinessBloc, BusinessState>(
+      value: context.read<UserBloc>(),
+      child: BlocConsumer<UserBloc, UserState>(
         listenWhen: (previous, current) =>
         previous.submitStatus != current.submitStatus,
         listener: (context, state) {
-          if (state.submitStatus == BusinessSubmitStatus.success) {
+          if (state.submitStatus == UserSubmitStatus.success) {
             Navigator.of(context)
               ..pop()
               ..pop();
 
             GlobalSnackBar.show(
-              message: 'Business deactivated',
-              isWarning: true,
+              message: 'User deactivated',
+              isInfo: true,
             );
           }
 
-          if (state.submitStatus == BusinessSubmitStatus.failure) {
+          if (state.submitStatus == UserSubmitStatus.failure) {
             Navigator.of(context).pop();
 
             GlobalSnackBar.show(
@@ -41,28 +41,26 @@ void showDeactivateBusinessSheet(
         buildWhen: (previous, current) =>
         previous.submitStatus != current.submitStatus,
         builder: (context, state) {
-          final isLoading =
-              state.submitStatus == BusinessSubmitStatus.loading;
+          final isLoading = state.submitStatus == UserSubmitStatus.loading;
 
           return AppDeactivateBottomSheet(
-            title: 'Deactivate Business?',
-            description: '"${business.name}" will be deactivated. '
-                'All associated shops will stop operating. '
-                'You can reactivate it later.',
+            title: 'Deactivate User?',
+            description: '"${user.fullName}" will lose access immediately. '
+                'You can reactivate them later.',
             isLoading: isLoading,
             onConfirm: () {
-              final businessId = business.id;
+              final userId = user.id;
 
-              if (businessId == null) {
+              if (userId == null) {
                 GlobalSnackBar.show(
-                  message: 'Invalid business ID',
+                  message: 'Invalid user ID',
                   isError: true,
                 );
                 return;
               }
 
-              context.read<BusinessBloc>().add(
-                OnDeactivateBusiness(businessId: businessId),
+              context.read<UserBloc>().add(
+                OnDeactivateUser(userId: userId),
               );
             },
           );

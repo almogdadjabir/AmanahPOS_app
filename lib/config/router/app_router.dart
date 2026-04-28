@@ -7,6 +7,8 @@ import 'package:amana_pos/features/login/presentation/login_screen.dart';
 import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
+import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
+import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -33,11 +35,15 @@ class AppRouter {
         return _buildRoute(BusinessDetailScreen(business: businessData), settings);
       case RouteStrings.shopDetailScreen:
         final args = settings.arguments as Map<String, dynamic>?;
-
         final String businessId = args?['businessId'] as String;
         final Shops shop = args?['shop'] as Shops;
 
         return _buildRoute(ShopDetailScreen(businessId: businessId, shop: shop), settings);
+      case RouteStrings.userDetailScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final UserData user = args?['user'] as UserData;
+
+        return _buildRoute(UserDetailScreen(user: user), settings);
       default:
         return _buildRoute(const SplashScreen(), settings);
     }

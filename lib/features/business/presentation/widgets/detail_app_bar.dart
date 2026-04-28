@@ -31,7 +31,7 @@ class DetailAppBar extends StatelessWidget {
         ),
         if (business.isActive ?? false)
           IconButton(
-            onPressed: () => showDeactivateSheet(context, business),
+            onPressed: () => showDeactivateBusinessSheet(context, business),
             icon: Icon(Icons.block_rounded,
                 color: context.appColors.danger, size: 20),
             tooltip: 'Deactivate',
