@@ -8,7 +8,7 @@ import 'package:amana_pos/features/login/data/models/login_response.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
-import 'package:amana_pos/features/login/presentation/widgets/phone_number_field.dart';
+import 'package:amana_pos/widgets/phone_number_field.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

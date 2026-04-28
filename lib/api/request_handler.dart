@@ -114,6 +114,39 @@ class RequestHandler {
     }
   }
 
+  Future<Either<String?, T>> handlePatchRequest<T>(
+      String path,
+      T Function(dynamic) fromJson, {
+        dynamic data,
+        Map<String, dynamic>? headers,
+      }) async {
+    try {
+      final options = headers != null
+          ? Options(headers: headers)
+          : Options(headers: {'Content-Type': 'application/json'});
+
+      options.extra ??= {};
+
+      if (data is FormData) {
+        options.extra!['__formDataBackup'] = await _extractFormData(data);
+      }
+
+      final response = await dioClient.patch(path, data: data, options: options);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(fromJson(response.data));
+      } else {
+        return Left(response.statusMessage);
+      }
+    } on DioException catch (e) {
+      if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
+      return Left(_handleDioError(e, 'PUT $path'));
+    } catch (e) {
+      final errorMessage = ErrorHandler.handleException(e, context: 'PUT $path');
+      return Left(errorMessage);
+    }
+  }
+
   Future<Either<String?, List<T>>> handleGetRequestList<T>(
       String path,
       T Function(dynamic) fromJson,

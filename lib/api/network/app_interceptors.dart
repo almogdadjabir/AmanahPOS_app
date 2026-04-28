@@ -114,13 +114,13 @@ class AppInterceptors extends Interceptor {
     try {
       final response = await _dio.post<dynamic>(
         'api-public/v1/auth/token/refresh/',
-        data: {'refreshToken': refreshToken},
+        data: {'refresh': refreshToken},
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
       if (response.statusCode == 200) {
-        final newAccess  = response.data['access_token']  as String?;
-        final newRefresh = response.data['refresh_token'] as String?;
+        final newAccess  = response.data['access']  as String?;
+        final newRefresh = response.data['refresh'] as String?;
 
         if (newAccess == null) return false;
 

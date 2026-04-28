@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/business/presentation/business_detail_screen.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
 import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
@@ -24,6 +26,10 @@ class AppRouter {
         return _buildRoute(const RegistrationScreen(), settings);
       case RouteStrings.mainScreen:
         return _buildRoute(const MainScreen(), settings);
+      case RouteStrings.businessDetailScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final BusinessData businessData = args?['businessData'] as BusinessData;
+        return _buildRoute(BusinessDetailScreen(business: businessData), settings);
       default:
         return _buildRoute(const SplashScreen(), settings);
     }

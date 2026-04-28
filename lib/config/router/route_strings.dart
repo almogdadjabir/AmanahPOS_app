@@ -3,4 +3,5 @@ class RouteStrings {
   static const String login = 'loginScreen';
   static const String registration = 'registrationScreen';
   static const String mainScreen = 'MainScreen';
+  static const String businessDetailScreen = 'businessDetailScreen';
 }

@@ -1,8 +1,8 @@
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
-import 'package:amana_pos/features/login/presentation/widgets/app_button.dart';
-import 'package:amana_pos/features/login/presentation/widgets/brand_logo.dart';
-import 'package:amana_pos/features/login/presentation/widgets/phone_number_field.dart';
+import 'package:amana_pos/widgets/app_button.dart';
+import 'package:amana_pos/widgets/brand_logo.dart';
+import 'package:amana_pos/widgets/phone_number_field.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -89,7 +89,7 @@ class _LoginFormState extends State<LoginForm> {
 
                     Text(
                       'Enter your mobile number to receive a 6-digit verification code.',
-                      style: AppTextStyles.bs100(context,
+                      style: AppTextStyles.bs400(context,
                           color: colors.textSecondary),
                     )
                         .animate()
@@ -100,7 +100,7 @@ class _LoginFormState extends State<LoginForm> {
 
                     Text(
                       'Mobile number',
-                      style: AppTextStyles.bs400(context,
+                      style: AppTextStyles.bs600(context,
                           weight: AppTextStyles.semibold,
                           color: colors.textSecondary),
                     ),
@@ -170,7 +170,7 @@ class _LoginFormState extends State<LoginForm> {
 
                   Text.rich(
                     TextSpan(
-                      style: AppTextStyles.sm200(context,
+                      style: AppTextStyles.bs300(context,
                           color: colors.textHint),
                       children: [
                         const TextSpan(text: 'By continuing you agree to our '),

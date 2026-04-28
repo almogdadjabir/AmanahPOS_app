@@ -2,7 +2,7 @@ import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_form.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_otp.dart';
-import 'package:amana_pos/features/login/presentation/widgets/page_dots.dart';
+import 'package:amana_pos/widgets/page_dots.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';

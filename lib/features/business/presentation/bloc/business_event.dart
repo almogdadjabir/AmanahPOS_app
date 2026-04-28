@@ -1,12 +1,54 @@
 part of 'business_bloc.dart';
 
-class BusinessEvent extends Equatable {
+abstract class BusinessEvent extends Equatable {
   const BusinessEvent();
-
-  @override
-  List<Object?> get props {
-    return [];
-  }
 }
 
-class OnBusinessInitial extends BusinessEvent {}
+class OnBusinessInitial extends BusinessEvent {
+  const OnBusinessInitial();
+  @override List<Object?> get props => [];
+}
+
+class OnEditBusiness extends BusinessEvent {
+  final String businessId;
+  final String name;
+  final String? address;
+  final String? phone;
+  final String? email;
+
+  const OnEditBusiness({
+    required this.businessId,
+    required this.name,
+    this.address,
+    this.phone,
+    this.email,
+  });
+
+  @override
+  List<Object?> get props => [businessId, name, address, phone, email];
+}
+
+class OnAddBusiness extends BusinessEvent {
+  final String name;
+  final String? address;
+  final String? phone;
+  final String? email;
+
+  const OnAddBusiness({
+    required this.name,
+    this.address,
+    this.phone,
+    this.email,
+  });
+
+  @override
+  List<Object?> get props => [name, address, phone, email];
+}
+
+class OnDeactivateBusiness extends BusinessEvent {
+  final String businessId;
+  const OnDeactivateBusiness({required this.businessId});
+
+  @override
+  List<Object?> get props => [businessId];
+}

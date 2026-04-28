@@ -1,5 +1,5 @@
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
-import 'package:amana_pos/features/login/presentation/widgets/app_button.dart';
+import 'package:amana_pos/widgets/app_button.dart';
 import 'package:amana_pos/features/login/presentation/widgets/otp_input_square.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';

@@ -1,47 +1,53 @@
 part of 'business_bloc.dart';
 
-enum BusinessStatus {
-  initial,
-  loading,
-  success,
-  failure,
-}
+enum BusinessSubmitStatus { idle, loading, success, failure }
+enum BusinessStatus { initial, loading, success, failure}
 
 class BusinessState extends Equatable {
   final bool isLoading;
   final String? responseError;
   final BusinessStatus businessStatus;
+  final List<BusinessData>? businessList;
+  final BusinessSubmitStatus submitStatus;
+  final String? submitError;
 
   const BusinessState({
     this.isLoading = false,
     this.responseError,
     this.businessStatus = BusinessStatus.initial,
+    this.businessList,
+    this.submitStatus = BusinessSubmitStatus.idle,
+    this.submitError,
   });
 
-  factory BusinessState.initial() {
-    return const BusinessState(
-      isLoading: false,
-      responseError: null,
-      businessStatus: BusinessStatus.initial,
-    );
-  }
+  factory BusinessState.initial() => const BusinessState(
+    isLoading: false,
+    businessStatus: BusinessStatus.initial,
+    businessList: [],
+    submitStatus: BusinessSubmitStatus.idle,
+  );
 
   BusinessState copyWith({
     bool? isLoading,
     String? responseError,
     BusinessStatus? businessStatus,
+    List<BusinessData>? businessList,
+    BusinessSubmitStatus? submitStatus,
+    String? submitError,
   }) {
     return BusinessState(
       isLoading: isLoading ?? this.isLoading,
       responseError: responseError,
       businessStatus: businessStatus ?? this.businessStatus,
+      businessList: businessList ?? this.businessList,
+      submitStatus: submitStatus ?? this.submitStatus,
+      submitError: submitError,
     );
   }
 
   @override
   List<Object?> get props => [
-    isLoading,
-    responseError,
-    businessStatus,
+    isLoading, responseError, businessStatus,
+    businessList, submitStatus, submitError,
   ];
 }
