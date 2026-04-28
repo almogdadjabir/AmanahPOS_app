@@ -52,3 +52,39 @@ class OnDeactivateBusiness extends BusinessEvent {
   @override
   List<Object?> get props => [businessId];
 }
+
+class OnAddShop extends BusinessEvent {
+  final String businessId;
+  final String name;
+  final String? address;
+  final String? phone;
+
+  const OnAddShop({
+    required this.businessId,
+    required this.name,
+    this.address,
+    this.phone,
+  });
+
+  @override
+  List<Object?> get props => [businessId, name, address, phone];
+}
+
+class OnEditShop extends BusinessEvent {
+  final String businessId;
+  final String shopId;
+  final String name;
+  final String? address;
+  final String? phone;
+
+  const OnEditShop({
+    required this.businessId,
+    required this.shopId,
+    required this.name,
+    this.address,
+    this.phone,
+  });
+
+  @override
+  List<Object?> get props => [businessId, shopId, name, address, phone];
+}

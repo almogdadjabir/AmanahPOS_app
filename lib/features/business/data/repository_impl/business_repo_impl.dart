@@ -1,8 +1,11 @@
 
 import 'package:amana_pos/api/request_handler.dart';
 import 'package:amana_pos/features/business/data/models/requests/add_business_request_dto.dart';
+import 'package:amana_pos/features/business/data/models/requests/add_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/requests/edit_business_request_dto.dart';
+import 'package:amana_pos/features/business/data/models/requests/edit_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/responses/add_business_response_dto.dart';
+import 'package:amana_pos/features/business/data/models/responses/add_shop_response_dto.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/domain/repositories/business_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -41,6 +44,24 @@ class BusinessRepoImpl extends BusinessRepository {
   Future<Either<String?, bool>> editBusiness(String businessId, EditBusinessRequestDto request) {
     return requestHandler.handlePatchRequest(
       'api/v1/tenants/businesses/$businessId/',
+          (_) => true,
+      data: request.toJson(),
+    );
+  }
+
+  @override
+  Future<Either<String?, AddShopResponseDto>> addShop(String businessId, AddShopRequestDto request) {
+    return requestHandler.handlePostRequest(
+      'api/v1/tenants/businesses/$businessId/shops/',
+          (data) => AddShopResponseDto.fromJson(data as Map<String, dynamic>),
+      data: request.toJson(),
+    );
+  }
+
+  @override
+  Future<Either<String?, bool>> editShop(String businessId, String shopId, EditShopRequestDto request){
+    return requestHandler.handlePatchRequest(
+      'api/v1/tenants/businesses/$businessId/shops/$shopId/',
           (_) => true,
       data: request.toJson(),
     );

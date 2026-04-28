@@ -28,7 +28,7 @@ class BusinessDetailScreen extends StatelessWidget {
                   delegate: SliverChildListDelegate([
                     InfoSection(business: b),
                     const SizedBox(height: AppDims.s5),
-                    ShopsSection(shops: b.shops ?? []),
+                    ShopsSection(shops: b.shops ?? [], businessId: b.id),
                     const SizedBox(height: AppDims.s6),
                   ]),
                 ),

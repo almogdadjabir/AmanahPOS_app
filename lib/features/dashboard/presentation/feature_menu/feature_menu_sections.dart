@@ -36,7 +36,7 @@ List<Section> buildMenuSections(BuildContext context, int currentIndex) => [
   Section('Admin', [
     SectionItem('team', 'User Management', 'Staff, roles, PINs',
         Icons.badge_rounded, const Color(0xFFDB2777)),
-    SectionItem('business', 'Branches & Devices', 'Locations',
+    SectionItem('business', 'Branches & Devices', 'Shops, Locations',
         Icons.store_mall_directory_rounded, const Color(0xFF475569),
         active: currentIndex == 1,
         onTap: () {

@@ -1,4 +1,6 @@
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/business/presentation/widgets/add_shop_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -7,7 +9,8 @@ import 'package:flutter/material.dart';
 
 class ShopsSection extends StatelessWidget {
   final List<Shops> shops;
-  const ShopsSection({super.key, required this.shops});
+  final String? businessId;
+  const ShopsSection({super.key, required this.shops, required this.businessId});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +29,7 @@ class ShopsSection extends StatelessWidget {
             ),
             const Spacer(),
             TextButton.icon(
-              onPressed: () {}, // TODO: add shop
+              onPressed: () => showAddShopSheet(context, businessId),
               style: TextButton.styleFrom(
                 foregroundColor: context.appColors.primary,
                 padding: EdgeInsets.zero,
@@ -55,7 +58,7 @@ class ShopsSection extends StatelessWidget {
             child: Column(
               children: [
                 for (var i = 0; i < shops.length; i++) ...[
-                  _ShopTile(shop: shops[i]),
+                  _ShopTile(shop: shops[i], businessId: businessId!),
                   if (i < shops.length - 1) Divider(
                     height: 1, thickness: 1,
                     indent: AppDims.s4,
@@ -72,14 +75,18 @@ class ShopsSection extends StatelessWidget {
 
 class _ShopTile extends StatelessWidget {
   final Shops shop;
-  const _ShopTile({required this.shop});
+  final String businessId;
+  const _ShopTile({required this.shop, required this.businessId});
 
   @override
   Widget build(BuildContext context) {
     final isActive = shop.isActive ?? false;
 
     return InkWell(
-      onTap: () {}, // TODO: shop detail
+      onTap: ()=> Navigator.of(context).pushNamed(
+        RouteStrings.shopDetailScreen,
+        arguments: {'businessId': businessId, 'shop': shop},
+      ),
       borderRadius: BorderRadius.circular(AppDims.rMd),
       child: Padding(
         padding: const EdgeInsets.symmetric(

@@ -1,5 +1,7 @@
 import 'package:amana_pos/features/business/data/models/requests/add_business_request_dto.dart';
+import 'package:amana_pos/features/business/data/models/requests/add_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/requests/edit_business_request_dto.dart';
+import 'package:amana_pos/features/business/data/models/requests/edit_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:equatable/equatable.dart';
@@ -21,6 +23,8 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     on<OnEditBusiness>(_editBusiness);
     on<OnAddBusiness>(_addBusiness);
     on<OnDeactivateBusiness>(_deactivateBusiness);
+    on<OnAddShop>(_addShop);
+    on<OnEditShop>(_editShop);
   }
 
   Future<void> _init(OnBusinessInitial event,
@@ -199,6 +203,121 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
               updatedAt: b.updatedAt,
             )
                 : b;
+          }).toList(),
+        )),
+      );
+    } catch (e) {
+      emit(state.copyWith(
+        submitStatus: BusinessSubmitStatus.failure,
+        submitError: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _addShop(
+      OnAddShop event,
+      Emitter<BusinessState> emit,
+      ) async {
+    emit(state.copyWith(
+      submitStatus: BusinessSubmitStatus.loading,
+      submitError: null,
+    ));
+
+    try {
+      final response = await useCase.addShop(
+        event.businessId,
+        AddShopRequestDto(
+          name: event.name,
+          address: event.address,
+          phone: event.phone,
+        ),
+      );
+
+      response.fold(
+            (error) => emit(state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: error,
+        )),
+            (newShop) => emit(state.copyWith(
+          submitStatus: BusinessSubmitStatus.success,
+          businessList: state.businessList?.map((b) {
+            if (b.id != event.businessId) return b;
+            return BusinessData(
+              id: b.id,
+              name: b.name,
+              slug: b.slug,
+              owner: b.owner,
+              logo: b.logo,
+              address: b.address,
+              phone: b.phone,
+              email: b.email,
+              isActive: b.isActive,
+              shopCount: (b.shopCount ?? 0) + 1,
+              shops: [...?b.shops, newShop.data!],
+              createdAt: b.createdAt,
+              updatedAt: b.updatedAt,
+            );
+          }).toList(),
+        )),
+      );
+    } catch (e) {
+      emit(state.copyWith(
+        submitStatus: BusinessSubmitStatus.failure,
+        submitError: e.toString(),
+      ));
+    }
+  }
+
+
+  Future<void> _editShop(
+      OnEditShop event,
+      Emitter<BusinessState> emit,
+      ) async {
+    emit(state.copyWith(
+      submitStatus: BusinessSubmitStatus.loading,
+      submitError: null,
+    ));
+
+    try {
+      final response = await useCase.editShop(
+        event.businessId,
+        event.shopId,
+        EditShopRequestDto(
+          name: event.name,
+          address: event.address,
+          phone: event.phone,
+        ),
+      );
+
+      response.fold(
+            (error) => emit(state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: error,
+        )),
+            (_) => emit(state.copyWith(
+          submitStatus: BusinessSubmitStatus.success,
+          businessList: state.businessList?.map((b) {
+            if (b.id != event.businessId) return b;
+            return BusinessData(
+              id: b.id, name: b.name, slug: b.slug, owner: b.owner,
+              logo: b.logo, address: b.address, phone: b.phone,
+              email: b.email, isActive: b.isActive,
+              shopCount: b.shopCount, createdAt: b.createdAt,
+              updatedAt: b.updatedAt,
+              shops: b.shops?.map((s) {
+                if (s.id != event.shopId) return s;
+                return Shops(
+                  id: s.id,
+                  business:  s.business,
+                  name: event.name,
+                  address: event.address,
+                  phone: event.phone,
+                  isActive:  s.isActive,
+                  createdAt: s.createdAt,
+                  updatedAt: s.updatedAt,
+                );
+              }).toList(),
+            );
           }).toList(),
         )),
       );
