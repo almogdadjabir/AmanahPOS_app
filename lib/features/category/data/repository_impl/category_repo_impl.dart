@@ -1,5 +1,8 @@
 
 import 'package:amana_pos/api/request_handler.dart';
+import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
+import 'package:amana_pos/features/category/data/models/requests/edit_category_request_dto.dart';
+import 'package:amana_pos/features/category/data/models/responses/add_category_response_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/domain/repositories/category_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -17,30 +20,33 @@ class CategoryRepoImpl extends CategoryRepository {
     );
   }
 
-  // @override
-  // Future<Either<String?, AddUserResponseDto>> addCategory(AddUserRequestDto request) {
-  //   return requestHandler.handlePostRequest(
-  //     'api/v1/products/categories/',
-  //         (data) => AddUserResponseDto.fromJson(data as Map<String, dynamic>),
-  //     data: request.toJson(),
-  //   );
-  // }
-  //
-  // @override
-  // Future<Either<String?, bool>> deactivateUser(String userId) {
-  //   return requestHandler.handleDeleteRequest(
-  //     'api/v1/users/$userId',
-  //         (_) => true,
-  //   );
-  // }
-  //
-  // @override
-  // Future<Either<String?, bool>> editCategory(String userId, EditUserRequestDto request) {
-  //   return requestHandler.handlePatchRequest(
-  //     'api/v1/users/$userId/',
-  //         (_) => true,
-  //     data: request.toJson(),
-  //   );
-  // }
+
+
+  @override
+  Future<Either<String?, AddCategoryResponseDto>> addCategory(AddCategoryRequestDto request) {
+    return requestHandler.handlePostRequest(
+      'api/v1/products/categories/',
+          (data) => AddCategoryResponseDto.fromJson(data as Map<String, dynamic>),
+      data: request.toJson(),
+    );
+  }
+
+
+  @override
+  Future<Either<String?, bool>> deleteCategory(String categoryId) {
+    return requestHandler.handleDeleteRequest(
+      'api/v1/products/categories/$categoryId/',
+          (_) => true,
+    );
+  }
+
+  @override
+  Future<Either<String?, bool>> editCategory(String categoryId, EditCategoryRequestDto request) {
+    return requestHandler.handlePatchRequest(
+      'api/v1/products/categories/$categoryId/',
+          (_) => true,
+      data: request.toJson(),
+    );
+  }
 
 }

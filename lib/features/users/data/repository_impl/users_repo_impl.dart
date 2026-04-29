@@ -31,7 +31,7 @@ class UsersRepoImpl extends UsersRepository {
   @override
   Future<Either<String?, bool>> deactivateUser(String userId) {
     return requestHandler.handleDeleteRequest(
-      'api/v1/users/$userId',
+      'api/v1/users/$userId/',
           (_) => true,
     );
   }

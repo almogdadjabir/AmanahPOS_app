@@ -48,3 +48,27 @@ class OnToggleCategoryActive extends CategoryEvent {
 
   @override List<Object?> get props => [categoryId, isActive];
 }
+
+class OnLoadCategoryProducts extends CategoryEvent {
+  final String categoryId;
+  final int page;
+
+  const OnLoadCategoryProducts({
+    required this.categoryId,
+    this.page = 1,
+  });
+
+  @override List<Object?> get props => [categoryId, page];
+}
+
+class OnLoadMoreCategoryProducts extends CategoryEvent {
+  final String categoryId;
+  const OnLoadMoreCategoryProducts({required this.categoryId});
+  @override List<Object?> get props => [categoryId];
+}
+
+class OnDeleteCategory extends CategoryEvent {
+  final String categoryId;
+  const OnDeleteCategory({required this.categoryId});
+  @override List<Object?> get props => [categoryId];
+}

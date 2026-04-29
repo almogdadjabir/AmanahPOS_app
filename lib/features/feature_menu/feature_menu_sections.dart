@@ -19,7 +19,12 @@ List<Section> buildMenuSections(BuildContext context, int currentIndex) => [
   ]),
   Section('Inventory', [
     SectionItem('prod', 'Products', 'Catalog & variants',
-        Icons.local_offer_rounded, const Color(0xFF0EA5E9)),
+        Icons.local_offer_rounded, const Color(0xFF0EA5E9),
+        active: currentIndex == 4,
+        onTap: () {
+          context.read<NavigationBloc>().add(const NavigationTabSelected(4));
+          context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
+        }),
     SectionItem('cat', 'Categories', 'Menu structure',
         Icons.layers_rounded, const Color(0xFF8B5CF6),
         active: currentIndex == 3,

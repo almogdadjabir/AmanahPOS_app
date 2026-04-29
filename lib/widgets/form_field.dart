@@ -13,17 +13,20 @@ class AppFormField extends StatelessWidget {
   final TextInputAction textInputAction;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onSubmitted;
+  final int maxLines;
 
-  const AppFormField({super.key,
+  const AppFormField({
+    super.key,
     required this.controller,
-    this.focusNode,
     required this.hint,
     required this.prefixIcon,
+    this.focusNode,
     this.nextFocus,
     this.keyboardType = TextInputType.text,
     this.textInputAction = TextInputAction.next,
     this.validator,
     this.onSubmitted,
+    this.maxLines = 1,
   });
 
   @override
@@ -34,8 +37,8 @@ class AppFormField extends StatelessWidget {
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       validator: validator,
-      onFieldSubmitted: onSubmitted ??
-              (_) => nextFocus?.requestFocus(),
+      maxLines: maxLines,
+      onFieldSubmitted: onSubmitted ?? (_) => nextFocus?.requestFocus(),
       style: AppTextStyles.bs500(context).copyWith(
         fontWeight: FontWeight.w600,
         color: context.appColors.textPrimary,
@@ -49,6 +52,14 @@ class AppFormField extends StatelessWidget {
             size: 18, color: context.appColors.textHint),
         filled: true,
         fillColor: context.appColors.surfaceSoft,
+
+        errorMaxLines: 2,
+        errorStyle: AppTextStyles.sm200(context).copyWith(
+          fontWeight: FontWeight.w600,
+          color: context.appColors.danger,
+          height: 1.3,
+        ),
+
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDims.rMd),
           borderSide: BorderSide.none,
@@ -64,17 +75,15 @@ class AppFormField extends StatelessWidget {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDims.rMd),
-          borderSide: BorderSide(color: context.appColors.danger),
+          borderSide: BorderSide(
+              color: context.appColors.danger, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDims.rMd),
           borderSide: BorderSide(
               color: context.appColors.danger, width: 1.5),
         ),
-        errorStyle: AppTextStyles.bs400(context).copyWith(
-          fontWeight: FontWeight.w600,
-          color: context.appColors.danger,
-        ),
+
         contentPadding: const EdgeInsets.symmetric(
             horizontal: AppDims.s3, vertical: AppDims.s3),
       ),

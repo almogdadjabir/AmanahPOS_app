@@ -115,7 +115,6 @@ class _LoginFormState extends State<LoginForm> {
                       onCompleted: (_) => context
                           .read<LoginBloc>()
                           .add(OnLoginSubmitEvent()),
-                      decoration: const InputDecoration(hintText: 'Phone number'),
                     )
                         .animate()
                         .fadeIn(delay: 300.ms, duration: 500.ms)

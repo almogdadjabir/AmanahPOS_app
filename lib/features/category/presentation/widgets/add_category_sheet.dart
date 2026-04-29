@@ -1,4 +1,3 @@
-import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -9,47 +8,31 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void showEditCategorySheet(BuildContext context,
-    {required CategoryData category}) {
+void showAddCategorySheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
       value: context.read<CategoryBloc>(),
-      child: _EditCategorySheet(category: category),
+      child: const _AddCategorySheet(),
     ),
   );
 }
 
-class _EditCategorySheet extends StatefulWidget {
-  final CategoryData category;
-  const _EditCategorySheet({required this.category});
+class _AddCategorySheet extends StatefulWidget {
+  const _AddCategorySheet();
 
   @override
-  State<_EditCategorySheet> createState() => _EditCategorySheetState();
+  State<_AddCategorySheet> createState() => _AddCategorySheetState();
 }
 
-class _EditCategorySheetState extends State<_EditCategorySheet> {
+class _AddCategorySheetState extends State<_AddCategorySheet> {
   final _formKey  = GlobalKey<FormState>();
-  late final TextEditingController _nameCtrl;
-  late final TextEditingController _descCtrl;
+  final _nameCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
   final _nameFocus = FocusNode();
   final _descFocus = FocusNode();
-
-  bool get _hasChanges =>
-      _nameCtrl.text.trim() != (widget.category.name ?? '') ||
-          _descCtrl.text.trim() != (widget.category.description ?? '');
-
-  @override
-  void initState() {
-    super.initState();
-    _nameCtrl = TextEditingController(text: widget.category.name ?? '');
-    _descCtrl = TextEditingController(text: widget.category.description ?? '');
-    for (final c in [_nameCtrl, _descCtrl]) {
-      c.addListener(() => setState(() {}));
-    }
-  }
 
   @override
   void dispose() {
@@ -60,11 +43,11 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    if (!_hasChanges) return;
-    context.read<CategoryBloc>().add(OnEditCategory(
-      categoryId:  widget.category.id!,
-      name:        _nameCtrl.text.trim(),
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+    context.read<CategoryBloc>().add(OnAddCategory(
+      name: _nameCtrl.text.trim(),
+      description: _descCtrl.text.trim().isEmpty
+          ? null
+          : _descCtrl.text.trim(),
     ));
   }
 
@@ -75,7 +58,10 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
       listener: (context, state) {
         if (state.submitStatus == CategorySubmitStatus.success) {
           Navigator.of(context).pop();
-          GlobalSnackBar.show(message: 'Category updated', isInfo: true);
+          GlobalSnackBar.show(
+            message: 'Category created successfully',
+            isInfo: true,
+          );
         }
         if (state.submitStatus == CategorySubmitStatus.failure) {
           GlobalSnackBar.show(
@@ -111,22 +97,12 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                     AppDims.s4, AppDims.s4, AppDims.s4, 0),
                 child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Edit Category',
-                          style: AppTextStyles.bs600(context).copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: context.appColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          widget.category.name ?? '',
-                          style: AppTextStyles.bs300(context)
-                              .copyWith(color: context.appColors.textHint),
-                        ),
-                      ],
+                    Text(
+                      'New Category',
+                      style: AppTextStyles.bs600(context).copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: context.appColors.textPrimary,
+                      ),
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -154,7 +130,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        FieldLabel(label: 'Name', required: true),
+                        FieldLabel(label: 'Category Name', required: true),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _nameCtrl,
@@ -172,7 +148,31 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: AppDims.s3),
+                        const SizedBox(height: AppDims.s4),
+
+                        Row(
+                          children: [
+                            Expanded(
+                                child: Divider(
+                                    color: context.appColors.border)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppDims.s2),
+                              child: Text(
+                                'OPTIONAL',
+                                style: AppTextStyles.bs300(context).copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: context.appColors.textHint,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                                child: Divider(
+                                    color: context.appColors.border)),
+                          ],
+                        ),
+                        const SizedBox(height: AppDims.s4),
 
                         FieldLabel(label: 'Description'),
                         const SizedBox(height: AppDims.s1),
@@ -192,12 +192,11 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                           builder: (context, state) {
                             final isLoading = state.submitStatus ==
                                 CategorySubmitStatus.loading;
-                            final canSave = _hasChanges && !isLoading;
                             return SizedBox(
                               width: double.infinity,
                               height: 50,
                               child: FilledButton(
-                                onPressed: canSave ? _submit : null,
+                                onPressed: isLoading ? null : _submit,
                                 style: FilledButton.styleFrom(
                                   backgroundColor: context.appColors.primary,
                                   disabledBackgroundColor:
@@ -216,14 +215,12 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                                   ),
                                 )
                                     : Text(
-                                  'Save Changes',
-                                  style: TextStyle(
-                                    fontFamily: 'NunitoSans',
-                                    fontSize: 15,
+                                  'Create Category',
+                                  style:
+                                  AppTextStyles.bs600(context)
+                                      .copyWith(
                                     fontWeight: FontWeight.w800,
-                                    color: canSave
-                                        ? Colors.white
-                                        : context.appColors.textHint,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),

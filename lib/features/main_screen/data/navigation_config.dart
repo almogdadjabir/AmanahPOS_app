@@ -2,6 +2,7 @@ import 'package:amana_pos/features/business/presentation/business_screen.dart';
 import 'package:amana_pos/features/category/presentation/category_screen.dart';
 import 'package:amana_pos/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:amana_pos/features/main_screen/data/navigation_model.dart';
+import 'package:amana_pos/features/products/presentation/product_screen.dart';
 import 'package:amana_pos/features/users/presentation/users_screen.dart';
 
 class NavigationConfig {
@@ -17,6 +18,9 @@ class NavigationConfig {
     ),
     NavigationModel(
       child: const CategoriesScreen(),
+    ),
+    NavigationModel(
+      child: const ProductsScreen(),
     ),
 
   ];

@@ -11,8 +11,8 @@ class PhoneNumberField extends StatefulWidget {
   final FocusNode? focusNode;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onCompleted;
-  final InputDecoration? decoration;
   final bool error;
+  final String? errorText;
 
   const PhoneNumberField({
     super.key,
@@ -20,8 +20,8 @@ class PhoneNumberField extends StatefulWidget {
     this.focusNode,
     this.onChanged,
     this.onCompleted,
-    this.decoration,
     this.error = false,
+    this.errorText,
   });
 
   @override
@@ -51,7 +51,6 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
   @override
   void didUpdateWidget(PhoneNumberField oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.error && !widget.error && widget.controller.text.isEmpty) {
       _completedFired = false;
       _hasContent.value = false;
@@ -70,23 +69,18 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
     super.dispose();
   }
 
-  void _onFocusChange() {
-    _focused.value = _focusNode.hasFocus;
-  }
+  void _onFocusChange() => _focused.value = _focusNode.hasFocus;
 
   void _onTextChanged() {
     final text = widget.controller.text;
-
     if (text == _previousText) return;
 
     final newMax = phoneMaxLength(text);
     if (newMax != _maxLength.value) _maxLength.value = newMax;
-
     if (text.length < _previousText.length) _completedFired = false;
 
     _previousText = text;
     _hasContent.value = text.isNotEmpty;
-
     widget.onChanged?.call(text);
 
     if (text.length >= _maxLength.value && !_completedFired) {
@@ -107,93 +101,109 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        if (!_focusNode.hasFocus) _focusNode.requestFocus();
-      },
-      child: ValueListenableBuilder(
-        valueListenable: _focused,
-        builder: (context, focused, _) {
-          final borderColor = widget.error
-              ? colors.danger
-              : focused
-              ? colors.primary
-              : colors.border;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (!_focusNode.hasFocus) _focusNode.requestFocus();
+          },
+          child: ValueListenableBuilder(
+            valueListenable: _focused,
+            builder: (context, focused, _) {
+              final borderColor = widget.error
+                  ? colors.danger
+                  : focused
+                  ? colors.primary
+                  : colors.border;
 
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            height: 56,
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: AppRadius.borderMd,
-              border: Border.all(color: borderColor, width: 1.5),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: AppSpacing.lg),
-
-                Text(
-                  '+249',
-                  style: AppTextStyles.bs400(context,
-                      weight: AppTextStyles.bold,
-                      color: colors.textPrimary),
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                height: 56,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: colors.surfaceSoft,
+                  borderRadius: AppRadius.borderMd,
+                  border: Border.all(color: borderColor, width: 1.5),
                 ),
-                const SizedBox(width: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    const SizedBox(width: AppSpacing.lg),
 
-                Expanded(
-                  child: ValueListenableBuilder(
-                    valueListenable: _maxLength,
-                    builder: (context, maxLen, _) {
-                      return TextField(
-                        controller: widget.controller,
-                        focusNode: _focusNode,
-                        keyboardType: TextInputType.phone,
-                        maxLength: maxLen,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(maxLen),
-                        ],
-                        style: AppTextStyles.bs400(context,
-                            weight: AppTextStyles.semibold,
-                            color: colors.textPrimary),
-                        decoration: InputDecoration(
-                          hintText: '912345678',
-                          hintStyle: AppTextStyles.bs400(
-                              context, color: colors.textHint),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          counterText: '',
-                          contentPadding: EdgeInsets.zero,
-                          isDense: true,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                    const Text('🇸🇩', style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '+249',
+                      style: AppTextStyles.bs400(context,
+                          weight: AppTextStyles.bold,
+                          color: colors.textPrimary),
+                    ),
 
-                ValueListenableBuilder(
-                  valueListenable: _hasContent,
-                  builder: (context, hasContent, _) {
-                    if (!hasContent) return const SizedBox.shrink();
-                    return GestureDetector(
-                      onTap: _clearField,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xs),
-                        child: Icon(Icons.cancel_rounded,
-                            size: 18, color: colors.textHint),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm, vertical: 10),
+                      child: VerticalDivider(
+                          width: 1, thickness: 1, color: colors.border),
+                    ),
+
+                    Expanded(
+                      child: ValueListenableBuilder(
+                        valueListenable: _maxLength,
+                        builder: (context, maxLen, _) {
+                          return TextField(
+                            controller: widget.controller,
+                            focusNode: _focusNode,
+                            keyboardType: TextInputType.phone,
+                            maxLength: maxLen,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(maxLen),
+                            ],
+                            style: AppTextStyles.bs400(context,
+                                weight: AppTextStyles.semibold,
+                                color: colors.textPrimary),
+                            decoration: InputDecoration(
+                              filled: false,
+                              hintText: '912345678',
+                              hintStyle: AppTextStyles.bs400(
+                                  context, color: colors.textHint),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              counterText: '',
+                              contentPadding: EdgeInsets.zero,
+                              isDense: true,
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+
+                    ValueListenableBuilder(
+                      valueListenable: _hasContent,
+                      builder: (context, hasContent, _) {
+                        if (!hasContent) return const SizedBox.shrink();
+                        return GestureDetector(
+                          onTap: _clearField,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs),
+                            child: Icon(Icons.cancel_rounded,
+                                size: 18, color: colors.textHint),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+
+      ],
     );
   }
 }

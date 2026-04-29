@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
+import 'package:amana_pos/widgets/phone_number_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -30,12 +31,14 @@ class _AddUserSheet extends StatefulWidget {
 }
 
 class _AddUserSheetState extends State<_AddUserSheet> {
-  final _formKey   = GlobalKey<FormState>();
-  final _nameCtrl  = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _nameFocus  = FocusNode();
+  final _nameFocus = FocusNode();
   final _phoneFocus = FocusNode();
 
+  // tracks whether phone has enough digits for validation
+  bool _phoneError = false;
   String _selectedRole = 'cashier';
 
   @override
@@ -47,10 +50,26 @@ class _AddUserSheetState extends State<_AddUserSheet> {
     super.dispose();
   }
 
+  /// Builds the full E.164 number from the local digits the user typed
+  String get _fullPhone => '+249${_phoneCtrl.text.trim()}';
+
+  bool get _isPhoneValid {
+    final digits = _phoneCtrl.text.trim();
+    return digits.length >= phoneMaxLength(digits);
+  }
+
   void _submit() {
+    // Validate name form
     if (!_formKey.currentState!.validate()) return;
+
+    // Validate phone separately (PhoneNumberField isn't inside a Form)
+    if (!_isPhoneValid) {
+      setState(() => _phoneError = true);
+      return;
+    }
+
     context.read<UserBloc>().add(OnAddUser(
-      phone: _phoneCtrl.text.trim(),
+      phone: _fullPhone,
       fullName: _nameCtrl.text.trim(),
       role: _selectedRole,
     ));
@@ -131,162 +150,179 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppDims.s4),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        FieldLabel(label: 'Full Name', required: true),
-                        const SizedBox(height: AppDims.s1),
-                        AppFormField(
-                          controller: _nameCtrl,
-                          focusNode: _nameFocus,
-                          nextFocus: _phoneFocus,
-                          hint: 'Ali Hassan',
-                          prefixIcon: Icons.person_outline_rounded,
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'Full name is required';
-                            }
-                            if (v.trim().length < 2) {
-                              return 'Name must be at least 2 characters';
-                            }
-                            return null;
-                          },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FieldLabel(label: 'Full Name', required: true),
+                            const SizedBox(height: AppDims.s1),
+                            AppFormField(
+                              controller: _nameCtrl,
+                              focusNode: _nameFocus,
+                              nextFocus: _phoneFocus,
+                              hint: 'Ali Hassan',
+                              prefixIcon: Icons.person_outline_rounded,
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'Full name is required';
+                                }
+                                if (v.trim().length < 2) {
+                                  return 'Name must be at least 2 characters';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: AppDims.s3),
+                      ),
+                      const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Phone', required: true),
-                        const SizedBox(height: AppDims.s1),
-                        AppFormField(
-                          controller: _phoneCtrl,
-                          focusNode: _phoneFocus,
-                          hint: '+249911111112',
-                          prefixIcon: Icons.phone_outlined,
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _submit(),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'Phone is required';
-                            }
-                            if (!RegExp(r'^\+?[0-9]{7,15}$')
-                                .hasMatch(v.trim())) {
-                              return 'Enter a valid phone number';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppDims.s4),
+                      FieldLabel(label: 'Phone', required: true),
+                      const SizedBox(height: AppDims.s1),
+                      PhoneNumberField(
+                        controller: _phoneCtrl,
+                        focusNode: _phoneFocus,
+                        error: _phoneError,
+                        onChanged: (_) {
+                          if (_phoneError) {
+                            setState(() => _phoneError = false);
+                          }
+                        },
+                      ),
+                      SizedBox(
+                        height: 24,
+                        child: _phoneError
+                            ? Row(
+                          children: [
+                            Icon(Icons.error_outline,
+                                size: 13,
+                                color: context.appColors.danger),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Enter a valid phone number',
+                              style: AppTextStyles.sm200(context,
+                                  color: context.appColors.danger),
+                            ),
+                          ],
+                        )
+                            : const SizedBox.shrink(),
+                      ),
 
-                        FieldLabel(label: 'Role', required: true),
-                        const SizedBox(height: AppDims.s2),
-                        Row(
-                          children: _kRoles.map((role) {
-                            final selected = _selectedRole == role;
-                            final color = switch (role) {
-                              'manager' => const Color(0xFF0EA5E9),
-                              _=> const Color(0xFF0D9488),
-                            };
-                            final isLast = role == _kRoles.last;
-                            return Expanded(
-                              child: GestureDetector(
-                                onTap: () =>
-                                    setState(() => _selectedRole = role),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  margin: EdgeInsets.only(
-                                      right: isLast ? 0 : AppDims.s2),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: AppDims.s3),
-                                  decoration: BoxDecoration(
+                      const SizedBox(height: AppDims.s3),
+
+                      FieldLabel(label: 'Role', required: true),
+                      const SizedBox(height: AppDims.s2),
+                      Row(
+                        children: _kRoles.map((role) {
+                          final selected = _selectedRole == role;
+                          final color = switch (role) {
+                            'manager' => const Color(0xFF0EA5E9),
+                            _ => const Color(0xFF0D9488),
+                          };
+                          final isLast = role == _kRoles.last;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _selectedRole = role),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                margin: EdgeInsets.only(
+                                    right: isLast ? 0 : AppDims.s2),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: AppDims.s3),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? color.withValues(alpha: 0.12)
+                                      : context.appColors.surfaceSoft,
+                                  borderRadius:
+                                  BorderRadius.circular(AppDims.rMd),
+                                  border: Border.all(
                                     color: selected
-                                        ? color.withValues(alpha: 0.12)
-                                        : context.appColors.surfaceSoft,
-                                    borderRadius:
-                                    BorderRadius.circular(AppDims.rMd),
-                                    border: Border.all(
+                                        ? color
+                                        : context.appColors.border,
+                                    width: selected ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      switch (role) {
+                                        'manager' =>
+                                        Icons.manage_accounts_outlined,
+                                        _ => Icons.point_of_sale_rounded,
+                                      },
+                                      size: 20,
                                       color: selected
                                           ? color
-                                          : context.appColors.border,
-                                      width: selected ? 1.5 : 1,
+                                          : context.appColors.textHint,
                                     ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        switch (role) {
-                                          'manager' => Icons.manage_accounts_outlined,
-                                          _ => Icons.point_of_sale_rounded,
-                                        },
-                                        size: 20,
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      role,
+                                      style:
+                                      AppTextStyles.bs200(context).copyWith(
+                                        fontWeight: FontWeight.w800,
                                         color: selected
                                             ? color
                                             : context.appColors.textHint,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        role,
-                                        style: AppTextStyles.bs200(context).copyWith(
-                                        fontWeight: FontWeight.w800,
-                                          color: selected
-                                              ? color
-                                              : context.appColors.textHint,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: AppDims.s2),
+                      _RoleHint(role: _selectedRole),
+                      const SizedBox(height: AppDims.s5),
 
-                        const SizedBox(height: AppDims.s2),
-                        _RoleHint(role: _selectedRole),
-                        const SizedBox(height: AppDims.s5),
-
-                        BlocBuilder<UserBloc, UserState>(
-                          buildWhen: (prev, curr) =>
-                          prev.submitStatus != curr.submitStatus,
-                          builder: (context, state) {
-                            final isLoading = state.submitStatus ==
-                                UserSubmitStatus.loading;
-                            return SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: FilledButton(
-                                onPressed: isLoading ? null : _submit,
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: context.appColors.primary,
-                                  disabledBackgroundColor:
-                                  context.appColors.border,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(AppDims.rMd),
-                                  ),
+                      BlocBuilder<UserBloc, UserState>(
+                        buildWhen: (prev, curr) =>
+                        prev.submitStatus != curr.submitStatus,
+                        builder: (context, state) {
+                          final isLoading =
+                              state.submitStatus == UserSubmitStatus.loading;
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: FilledButton(
+                              onPressed: isLoading ? null : _submit,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: context.appColors.primary,
+                                disabledBackgroundColor:
+                                context.appColors.border,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(AppDims.rMd),
                                 ),
-                                child: isLoading
-                                    ? const SizedBox(
-                                  width: 20, height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
-                                    : Text(
-                                  'Create User',
-                                  style: AppTextStyles.bs500(context).copyWith(
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                width: 20, height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                                  : Text(
+                                'Create User',
+                                style:
+                                AppTextStyles.bs500(context).copyWith(
                                   fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
+                                  color: Colors.white,
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -297,7 +333,6 @@ class _AddUserSheetState extends State<_AddUserSheet> {
     );
   }
 }
-
 
 class _RoleHint extends StatelessWidget {
   final String role;
@@ -340,7 +375,7 @@ class _RoleHint extends StatelessWidget {
               child: Text(
                 _hint,
                 style: AppTextStyles.bs200(context).copyWith(
-                fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                   color: color,
                   height: 1.4,
                 ),

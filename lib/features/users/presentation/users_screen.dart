@@ -1,4 +1,3 @@
-import 'package:amana_pos/features/business/presentation/widgets/add_business_sheet.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/add_user_sheet.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_card_skeleton.dart';
@@ -29,7 +28,8 @@ class _UsersScreenState extends State<UsersScreen> {
     return Scaffold(
       backgroundColor: context.appColors.background,
       body: BlocBuilder<UserBloc, UserState>(
-        buildWhen: (prev, curr) => prev.userStatus != curr.userStatus,
+        buildWhen: (prev, curr) => prev.userStatus != curr.userStatus ||
+        prev.userList != curr.userList,
         builder: (context, state) {
           return switch (state.userStatus) {
             UserStatus.initial ||

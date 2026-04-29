@@ -1,7 +1,7 @@
 enum Flavor { dev, staging, prod }
 
 const String stageBaseURL = 'https://baraka-app-api-staging.uz-pay-dev.ox.one/';
-const String devBaseURL = 'http://192.168.1.150:8080/';
+const String devBaseURL = 'http://172.16.10.52:8080/';
 const String prodBaseURL = 'https://baraka-app-api-production.uz-pay-prod.ox.one/';
 
 const String redmineURL =
