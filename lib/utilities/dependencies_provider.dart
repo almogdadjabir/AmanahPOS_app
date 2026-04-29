@@ -14,6 +14,9 @@ import 'package:amana_pos/features/category/domain/usecases/category_usecase.dar
 import 'package:amana_pos/features/dashboard/data/repository_impl/dashboard_repo_impl.dart';
 import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/dashboard_usecase.dart';
+import 'package:amana_pos/features/inventory/data/repository_impl/inventory_repo_impl.dart';
+import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
+import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/login/data/repository_impl/login_repo_impl.dart';
 import 'package:amana_pos/features/login/domain/repository/login_repository.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
@@ -78,6 +81,10 @@ class DependenciesProvider {
           () => ProductRepoImpl(getIt<RequestHandler>()),
     );
 
+    getIt.registerLazySingleton<InventoryRepository>(
+          () => InventoryRepoImpl(getIt<RequestHandler>()),
+    );
+
     ///use-cases
     // getIt.registerLazySingleton<AuthUseCase>(
     //       () => AuthUseCase(repository: getIt<AuthRepository>(), cacheStorage: getIt<CacheStorage>()),
@@ -121,6 +128,12 @@ class DependenciesProvider {
     getIt.registerLazySingleton<ProductUseCase>(
           () => ProductUseCase(
         repository: getIt<ProductRepository>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<InventoryUseCase>(
+          () => InventoryUseCase(
+        repository: getIt<InventoryRepository>(),
       ),
     );
 

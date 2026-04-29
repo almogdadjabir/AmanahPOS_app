@@ -2,7 +2,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 class StockChip extends StatelessWidget {
-  final int level;
+  final double level;
   const StockChip({super.key, required this.level});
 
   @override

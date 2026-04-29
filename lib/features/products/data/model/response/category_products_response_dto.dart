@@ -48,8 +48,8 @@ class ProductData {
   final String? unit;
   final bool? isActive;
   final bool? trackInventory;
-  final int? minStockLevel;
-  final int? stockLevel;
+  final double? minStockLevel;
+  final double? stockLevel;
   final String? createdAt;
 
   const ProductData({
@@ -75,8 +75,8 @@ class ProductData {
       unit: json['unit'],
       isActive: json['is_active'],
       trackInventory: json['track_inventory'],
-      minStockLevel: json['min_stock_level'],
-      stockLevel: json['stock_level'],
+      minStockLevel: (json['min_stock_level'] as num?)?.toDouble(),
+      stockLevel: (json['stock_level'] as num?)?.toDouble(),
       createdAt: json['created_at'],
     );
   }

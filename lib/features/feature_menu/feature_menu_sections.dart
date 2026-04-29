@@ -33,7 +33,12 @@ List<Section> buildMenuSections(BuildContext context, int currentIndex) => [
           context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
         }),
     SectionItem('stock', 'Stock Control', 'Levels & transfers',
-        Icons.inventory_2_rounded, const Color(0xFFEC4899)),
+        Icons.inventory_2_rounded, const Color(0xFFEC4899),
+        active: currentIndex == 5,
+        onTap: () {
+          context.read<NavigationBloc>().add(const NavigationTabSelected(5));
+          context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
+        }),
     SectionItem('po', 'Purchase Orders', 'Suppliers & deliveries',
         Icons.local_shipping_rounded, const Color(0xFF0891B2)),
   ]),

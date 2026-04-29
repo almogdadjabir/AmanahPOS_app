@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'widgets/menu_footer.dart';
-import 'widgets/user_header.dart';
 
 class FeatureMenu extends StatefulWidget {
   const FeatureMenu({super.key});
@@ -72,10 +71,6 @@ class _FeatureMenuState extends State<FeatureMenu> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              UserHeader(
-                                onClose: () => _closeMenu(context),
-                              ),
-
                               Flexible(
                                 child: Scrollbar(
                                   controller: _scrollController,
