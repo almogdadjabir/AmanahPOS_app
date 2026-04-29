@@ -44,11 +44,16 @@ class AppInterceptors extends Interceptor {
 
  Future<void> _addHeaders(RequestOptions options) async {
     final authToken = await _cacheStorage.getValue(Constants.authToken);
+    final xTenantID = await _cacheStorage.getValue(Constants.xTenantID);
 
     final requiresAuth = options.path.startsWith('api/') || options.path.startsWith('/api/');
 
     if (authToken != null && requiresAuth) {
       options.headers['Authorization'] = 'Bearer $authToken';
+    }
+
+    if(xTenantID != null){
+      options.headers['X-Tenant-ID'] = xTenantID;
     }
 
     final hasAccept = options.headers.keys

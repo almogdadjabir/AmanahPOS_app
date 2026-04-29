@@ -1,4 +1,6 @@
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
+import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
+import 'package:amana_pos/features/products/data/model/response/add_product_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/repositories/product_repository.dart';
@@ -27,5 +29,7 @@ class ProductUseCase {
     required int page,
     int pageSize = 20,
   }) => repository.getProductsByCategory(categoryId: categoryId, page: page, pageSize: pageSize);
+
+  Future<Either<String?, AddProductResponseDto>> addProduct(AddProductRequestDto request) => repository.addProduct(request);
 
 }

@@ -27,7 +27,7 @@ class DioClient {
           };
           // Config the client.
           client.findProxy = (uri) {
-            return 'PROXY 172.16.10.52:9099';
+            return 'PROXY 192.168.1.150:9099';
           };
            return client;
         },

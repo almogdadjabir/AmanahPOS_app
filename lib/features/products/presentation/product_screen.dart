@@ -1,12 +1,11 @@
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
+import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/category_filter.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
-import 'package:amana_pos/features/products/presentation/widgets/product_grid_skeleton.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/products_app_bar.dart';
 import 'package:amana_pos/features/products/presentation/widgets/products_body.dart';
-import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,7 +81,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {}, // TODO: showAddProductSheet
+        onPressed: () => showAddProductSheet(context),
         backgroundColor: context.appColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: const Text(

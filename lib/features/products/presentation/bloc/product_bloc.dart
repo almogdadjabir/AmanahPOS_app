@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
+import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
@@ -16,15 +17,18 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<OnProductCategorySelected>(_onCategorySelected);
     on<OnLoadMoreProducts>(_loadMore);
     on<OnToggleProductLayout>(_toggleLayout);
+    on<OnAddProduct>(_addProduct);
+
   }
 
-  // ── Init: load categories + first page of products in parallel ────────────
   Future<void> _init(
       OnProductInitial event,
       Emitter<ProductState> emit,
       ) async {
     if (state.productStatus == ProductStatus.loading ||
-        state.productStatus == ProductStatus.success) return;
+        state.productStatus == ProductStatus.success) {
+      return;
+    }
 
     emit(state.copyWith(productStatus: ProductStatus.loading));
 
@@ -177,5 +181,44 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   void _toggleLayout(OnToggleProductLayout event, Emitter<ProductState> emit) {
     emit(state.copyWith(isGrid: !state.isGrid));
+  }
+
+  Future<void> _addProduct(
+      OnAddProduct event,
+      Emitter<ProductState> emit,
+      ) async {
+    emit(state.copyWith(
+      submitStatus: ProductSubmitStatus.loading,
+      submitError: null,
+    ));
+
+    try {
+      final response = await useCase.addProduct(event.dto);
+
+      final error   = response.getLeft().toNullable();
+      final product = response.getRight().toNullable();
+
+      if (error != null) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError:  error,
+        ));
+        return;
+      }
+
+      if (product != null && !emit.isDone) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.success,
+          products: [product.data!, ...state.products],
+        ));
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError:  e.toString(),
+        ));
+      }
+    }
   }
 }

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:amana_pos/api/request_handler.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
+import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
+import 'package:amana_pos/features/products/data/model/response/add_product_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/repositories/product_repository.dart';
@@ -52,6 +54,15 @@ class ProductRepoImpl extends ProductRepository {
     return requestHandler.handleGetRequest(
       'api/v1/products/categories/$categoryId/products/?page=$page&page_size=$pageSize',
           (data) => CategoryProductsResponseDto.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<Either<String?, AddProductResponseDto>> addProduct(AddProductRequestDto request) {
+    return requestHandler.handlePostRequest(
+      'api/v1/products/',
+          (data) => AddProductResponseDto.fromJson(data as Map<String, dynamic>),
+      data: request.toJson(),
     );
   }
 

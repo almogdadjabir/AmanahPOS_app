@@ -25,3 +25,8 @@ class OnToggleProductLayout extends ProductEvent {
   const OnToggleProductLayout();
   @override List<Object?> get props => [];
 }
+class OnAddProduct extends ProductEvent {
+  final AddProductRequestDto dto;
+  const OnAddProduct({required this.dto});
+  @override List<Object?> get props => [dto];
+}

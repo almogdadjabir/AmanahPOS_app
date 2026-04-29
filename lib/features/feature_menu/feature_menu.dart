@@ -25,7 +25,7 @@ class _FeatureMenuState extends State<FeatureMenu> {
   }
 
   void _closeMenu(BuildContext context) =>
-      context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
+      context.read<NavigationBloc>().add(const SetMenuOpenEvent());
 
   @override
   Widget build(BuildContext context) {

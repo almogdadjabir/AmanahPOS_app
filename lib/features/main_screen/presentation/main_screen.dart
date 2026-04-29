@@ -1,4 +1,4 @@
-import 'package:amana_pos/features/dashboard/presentation/widgets/pos_app_bar.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
 import 'package:amana_pos/features/feature_menu/feature_menu.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -17,7 +17,7 @@ class MainScreen extends StatelessWidget {
         title: PosAppBar(
           onMenuTap: () => context
               .read<NavigationBloc>()
-              .add(const SetMenuOpenEvent(open: true)),
+              .add(const SetMenuOpenEvent()),
           onNotifTap: () {},
         ),
       ),

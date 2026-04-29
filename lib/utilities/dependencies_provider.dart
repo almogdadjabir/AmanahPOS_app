@@ -129,6 +129,7 @@ class DependenciesProvider {
 
     getIt.registerLazySingleton<AuthBloc>(() => AuthBloc(
       useCase: getIt<LoginUseCase>(),
+      businessUseCase: getIt<BusinessUseCase>(),
     ));
 
     getIt.registerLazySingleton<NavigationBloc>(() => NavigationBloc());

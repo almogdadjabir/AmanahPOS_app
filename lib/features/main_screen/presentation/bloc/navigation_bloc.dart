@@ -23,6 +23,6 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
 
   void _onSetMenuOpen(SetMenuOpenEvent event, Emitter<NavigationState> emit) {
-    emit(state.copyWith(menuOpen: event.open));
+    emit(state.copyWith(menuOpen: event.open ?? !state.menuOpen));
   }
 }

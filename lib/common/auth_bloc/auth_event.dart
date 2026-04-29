@@ -6,6 +6,8 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class OnLoadBusinessEvent extends AuthEvent {}
+
 class OnLoadProfileEvent extends AuthEvent {
   final User? user;
   const OnLoadProfileEvent({this.user});

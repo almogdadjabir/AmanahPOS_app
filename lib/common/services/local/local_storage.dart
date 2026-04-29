@@ -143,6 +143,7 @@ class CacheStorage {
     try {
       for (final key in [
         Constants.authToken,
+        Constants.xTenantID,
         Constants.refreshToken,
         Constants.cachedProfile,
       ]) {
@@ -194,6 +195,7 @@ class CacheStorage {
 
       await Future.wait([
         storage.delete(key: Constants.authToken),
+        storage.delete(key: Constants.xTenantID),
         storage.delete(key: Constants.refreshToken),
         storage.delete(key: Constants.cachedProfile),
       ]);

@@ -1,5 +1,7 @@
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:equatable/equatable.dart';
@@ -10,11 +12,14 @@ part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase useCase;
+  final BusinessUseCase businessUseCase;
+
 
   String? _currentUserPinfl;
 
-  AuthBloc({required this.useCase}) : super(AuthState.initial()) {
+  AuthBloc({required this.useCase, required this.businessUseCase,}) : super(AuthState.initial()) {
     on<OnLoadProfileEvent>(_onLoadProfile);
+    on<OnLoadBusinessEvent>(_onLoadBusinessEvent);
     on<OnLogoutEvent>(_onLogout);
   }
 
@@ -26,6 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if(event.user != null){
         _emitProfileLoaded(emit, event.user!);
+        add(OnLoadBusinessEvent());
         return;
       }
 
@@ -65,6 +71,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         if (cached == null) _emitFailure(emit, error);
       }
+      add(OnLoadBusinessEvent());
     } catch (e) {
       if (state.profile == null) _emitFailure(emit, e.toString());
     }
@@ -79,6 +86,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final authToken    = await useCase.cacheStorage.getValue(Constants.authToken);
 
       // Wipe tokens first — session checks see no active session immediately.
+      await useCase.cacheStorage.save(Constants.xTenantID, null);
       await useCase.cacheStorage.save(Constants.authToken, null);
       await useCase.cacheStorage.save(Constants.refreshToken, null);
 
@@ -126,7 +134,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _emitProfileLoaded(Emitter<AuthState> emit, User p) {
     emit(state.copyWith(AuthStateUpdate(
-      profile:    p,
+      profile: p,
       isLoggedIn: true,
       authStatus: AuthStatus.success,
     )));
@@ -134,10 +142,57 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _emitFailure(Emitter<AuthState> emit, String? error) {
     emit(state.copyWith(AuthStateUpdate(
-      authStatus:    AuthStatus.failure,
+      authStatus: AuthStatus.failure,
       responseError: error,
     )));
   }
+
+  Future<void> _onLoadBusinessEvent(
+      OnLoadBusinessEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    if (state.businessStatus == BusinessStatus.loading ||
+        state.businessStatus == BusinessStatus.success) return;
+
+    emit(state.copyWith(AuthStateUpdate(
+      businessStatus: BusinessStatus.loading,
+    )));
+
+    try {
+      final response = await businessUseCase.getBusinessList();
+
+      final error = response.getLeft().toNullable();
+      final business = response.getRight().toNullable();
+
+      if (error != null) {
+        emit(state.copyWith(AuthStateUpdate(
+          businessStatus: BusinessStatus.failure,
+        )));
+        return;
+      }
+
+      if (business != null) {
+        await useCase.cacheStorage.save(
+          Constants.xTenantID,
+          business.data?.first.id,
+        );
+
+        if (!emit.isDone) {
+          emit(state.copyWith(AuthStateUpdate(
+            defaultBusiness: business.data?.first,
+            businessStatus:  BusinessStatus.success,
+          )));
+        }
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(state.copyWith(AuthStateUpdate(
+          businessStatus: BusinessStatus.failure,
+        )));
+      }
+    }
+  }
+
 
   @override
   Future<void> close() {

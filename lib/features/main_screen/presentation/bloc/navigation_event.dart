@@ -18,6 +18,6 @@ class NavigationTabSelected extends NavigationEvent {
 
 
 class SetMenuOpenEvent extends NavigationEvent {
-  final bool open;
-  const SetMenuOpenEvent({required this.open});
+  final bool? open;
+  const SetMenuOpenEvent({this.open});
 }

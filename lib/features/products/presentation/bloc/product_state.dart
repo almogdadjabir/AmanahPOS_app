@@ -1,6 +1,8 @@
 part of 'product_bloc.dart';
 
 enum ProductStatus { initial, loading, loadingMore, success, failure }
+enum ProductSubmitStatus { idle, loading, success, failure }
+
 
 class ProductState extends Equatable {
   final ProductStatus productStatus;
@@ -11,6 +13,8 @@ class ProductState extends Equatable {
   final int totalPages;
   final String? responseError;
   final bool isGrid;
+  final ProductSubmitStatus submitStatus;
+  final String? submitError;
 
   const ProductState({
     this.productStatus = ProductStatus.initial,
@@ -21,6 +25,8 @@ class ProductState extends Equatable {
     this.totalPages = 1,
     this.responseError,
     this.isGrid = true,
+    this.submitStatus = ProductSubmitStatus.idle,
+    this.submitError,
   });
 
   factory ProductState.initial() => const ProductState();
@@ -37,6 +43,8 @@ class ProductState extends Equatable {
     int? totalPages,
     String? responseError,
     bool? isGrid,
+    ProductSubmitStatus? submitStatus,
+    String? submitError,
   }) {
     return ProductState(
       productStatus: productStatus ?? this.productStatus,
@@ -49,6 +57,8 @@ class ProductState extends Equatable {
       totalPages: totalPages ?? this.totalPages,
       responseError: responseError,
       isGrid: isGrid ?? this.isGrid,
+      submitStatus: submitStatus ?? this.submitStatus,
+      submitError: submitError,
     );
   }
 
@@ -56,6 +66,6 @@ class ProductState extends Equatable {
   List<Object?> get props => [
     productStatus, products, categories,
     selectedCategoryId, currentPage, totalPages,
-    responseError, isGrid,
+    responseError, isGrid, submitStatus, submitError,
   ];
 }
