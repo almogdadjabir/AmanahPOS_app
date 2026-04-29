@@ -21,7 +21,12 @@ List<Section> buildMenuSections(BuildContext context, int currentIndex) => [
     SectionItem('prod', 'Products', 'Catalog & variants',
         Icons.local_offer_rounded, const Color(0xFF0EA5E9)),
     SectionItem('cat', 'Categories', 'Menu structure',
-        Icons.layers_rounded, const Color(0xFF8B5CF6)),
+        Icons.layers_rounded, const Color(0xFF8B5CF6),
+        active: currentIndex == 3,
+        onTap: () {
+          context.read<NavigationBloc>().add(const NavigationTabSelected(3));
+          context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
+        }),
     SectionItem('stock', 'Stock Control', 'Levels & transfers',
         Icons.inventory_2_rounded, const Color(0xFFEC4899)),
     SectionItem('po', 'Purchase Orders', 'Suppliers & deliveries',

@@ -8,6 +8,9 @@ import 'package:amana_pos/config/router/app_router.dart';
 import 'package:amana_pos/features/business/data/repository_impl/business_repo_impl.dart';
 import 'package:amana_pos/features/business/domain/repositories/business_repository.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
+import 'package:amana_pos/features/category/data/repository_impl/category_repo_impl.dart';
+import 'package:amana_pos/features/category/domain/repositories/category_repository.dart';
+import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/dashboard/data/repository_impl/dashboard_repo_impl.dart';
 import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/dashboard_usecase.dart';
@@ -65,6 +68,9 @@ class DependenciesProvider {
     getIt.registerLazySingleton<UsersRepository>(
           () => UsersRepoImpl(getIt<RequestHandler>()),
     );
+    getIt.registerLazySingleton<CategoryRepository>(
+          () => CategoryRepoImpl(getIt<RequestHandler>()),
+    );
 
     ///use-cases
     // getIt.registerLazySingleton<AuthUseCase>(
@@ -98,6 +104,12 @@ class DependenciesProvider {
     getIt.registerLazySingleton<UsersUseCase>(
           () => UsersUseCase(
         repository: getIt<UsersRepository>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<CategoryUseCase>(
+          () => CategoryUseCase(
+        repository: getIt<CategoryRepository>(),
       ),
     );
 
