@@ -7,6 +7,8 @@ class PosState extends Equatable {
   final String? selectedCategoryId;
   final String paymentMethod;
   final List<PosCartItem> items;
+  final Map<String, int> lastSoldQuantities;
+  final bool cartExpanded;
   final PosSubmitStatus submitStatus;
   final String? submitError;
 
@@ -15,6 +17,8 @@ class PosState extends Equatable {
     required this.selectedCategoryId,
     required this.paymentMethod,
     required this.items,
+    required this.lastSoldQuantities,
+    required this.cartExpanded,
     required this.submitStatus,
     this.submitError,
   });
@@ -25,31 +29,53 @@ class PosState extends Equatable {
       selectedCategoryId: null,
       paymentMethod: 'cash',
       items: [],
+      lastSoldQuantities: {},
+      cartExpanded: false,
       submitStatus: PosSubmitStatus.idle,
     );
   }
 
   bool get isEmpty => items.isEmpty;
 
-  int get itemCount => items.fold<int>(
-    0,
-        (sum, item) => sum + item.quantity,
-  );
+  int get itemCount {
+    return items.fold<int>(
+      0,
+          (sum, item) => sum + item.quantity,
+    );
+  }
 
-  double get subtotal => items.fold<double>(
-    0,
-        (sum, item) => sum + item.lineTotal,
-  );
+  double get subtotal {
+    return items.fold<double>(
+      0,
+          (sum, item) => sum + item.lineTotal,
+    );
+  }
 
   double get total => subtotal;
 
   int quantityOf(String? productId) {
     if (productId == null) return 0;
 
-    final index = items.indexWhere((item) => item.product.id == productId);
+    final index = items.indexWhere(
+          (item) => item.product.id == productId,
+    );
+
     if (index == -1) return 0;
 
     return items[index].quantity;
+  }
+
+  Map<String, int> get currentSoldQuantities {
+    final result = <String, int>{};
+
+    for (final item in items) {
+      final productId = item.product.id;
+      if (productId == null) continue;
+
+      result[productId] = (result[productId] ?? 0) + item.quantity;
+    }
+
+    return result;
   }
 
   PosState copyWith({
@@ -58,6 +84,8 @@ class PosState extends Equatable {
     bool clearSelectedCategory = false,
     String? paymentMethod,
     List<PosCartItem>? items,
+    Map<String, int>? lastSoldQuantities,
+    bool? cartExpanded,
     PosSubmitStatus? submitStatus,
     String? submitError,
   }) {
@@ -68,6 +96,8 @@ class PosState extends Equatable {
           : selectedCategoryId ?? this.selectedCategoryId,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       items: items ?? this.items,
+      lastSoldQuantities: lastSoldQuantities ?? this.lastSoldQuantities,
+      cartExpanded: cartExpanded ?? this.cartExpanded,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: submitError,
     );
@@ -79,6 +109,8 @@ class PosState extends Equatable {
     selectedCategoryId,
     paymentMethod,
     items,
+    lastSoldQuantities,
+    cartExpanded,
     submitStatus,
     submitError,
   ];

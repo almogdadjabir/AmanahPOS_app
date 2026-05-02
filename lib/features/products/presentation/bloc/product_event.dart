@@ -55,3 +55,14 @@ class OnDeleteProduct extends ProductEvent {
   @override
   List<Object?> get props => [productId];
 }
+
+class OnProductsSoldLocally extends ProductEvent {
+  final Map<String, int> soldQuantities;
+
+  const OnProductsSoldLocally({
+    required this.soldQuantities,
+  });
+
+  @override
+  List<Object?> get props => [soldQuantities];
+}

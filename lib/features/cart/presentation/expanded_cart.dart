@@ -47,6 +47,7 @@ class ExpandedCart extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   context.read<PosBloc>().add(const PosClearCart());
+                  context.read<PosBloc>().add(const PosCartExpandedChanged(false));
                 },
                 child: const Text('Clear'),
               ),

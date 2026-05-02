@@ -3,12 +3,14 @@ import 'package:amana_pos/features/cart/presentation/cart_sheet.dart';
 import 'package:amana_pos/features/cart/presentation/products_empty.dart';
 import 'package:amana_pos/features/cart/presentation/products_error.dart';
 import 'package:amana_pos/features/cart/presentation/products_loading_grid.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_bar.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/pos_search_section.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/product_grid.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
+import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
@@ -61,18 +63,31 @@ class _PosScreenState extends State<PosScreen> {
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == PosSubmitStatus.success) {
+          context.read<ProductBloc>().add(
+            OnProductsSoldLocally(
+              soldQuantities: state.lastSoldQuantities,
+            ),
+          );
+
+          context.read<ProductBloc>().add(const OnProductInitial());
+
           GlobalSnackBar.show(
             message: 'Sale completed successfully',
             isInfo: true,
           );
 
-          context.read<ProductBloc>().add(const OnProductInitial());
           context.read<PosBloc>().add(const PosAcknowledgeSubmit());
         }
 
         if (state.submitStatus == PosSubmitStatus.failure) {
+          final raw = state.submitError ?? 'Failed to complete sale';
+
+          final message = raw.contains('BANKAK_ACCOUNT_REQUIRED')
+              ? 'Please add your Bankak account number in Settings before accepting Bankak payments.'
+              : raw;
+
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Failed to complete sale',
+            message: message,
             isError: true,
             isAutoDismiss: false,
           );
@@ -84,96 +99,106 @@ class _PosScreenState extends State<PosScreen> {
         backgroundColor: context.appColors.background,
         body: SafeArea(
           bottom: false,
-          child: RefreshIndicator(
-            color: context.appColors.primary,
-            onRefresh: () async {
-              context.read<ProductBloc>().add(const OnProductInitial());
-              context.read<BusinessBloc>().add(OnBusinessInitial());
+          child: BlocBuilder<PosBloc, PosState>(
+            buildWhen: (prev, curr) => prev.cartExpanded != curr.cartExpanded,
+            builder: (context, posState) {
+              return RefreshIndicator(
+                color: context.appColors.primary,
+                notificationPredicate: (_) => !posState.cartExpanded,
+                onRefresh: posState.cartExpanded
+                    ? () async {}
+                    : () async {
+                  context.read<ProductBloc>().add(const OnProductInitial());
+                  context.read<BusinessBloc>().add(OnBusinessInitial());
 
-              // Optional: keep cart, but reset filters/search for clean refresh
-              _searchCtrl.clear();
-              context.read<PosBloc>().add(const PosSearchChanged(''));
-              context.read<PosBloc>().add(const PosCategoryChanged(null));
+                  _searchCtrl.clear();
+                  context.read<PosBloc>().add(const PosSearchChanged(''));
+                  context.read<PosBloc>().add(const PosCategoryChanged(null));
 
-              // Give RefreshIndicator enough time to show smoothly.
-              await Future<void>.delayed(const Duration(milliseconds: 450));
-            },
-            child: Stack(
-              children: [
-                Column(
+                  await Future<void>.delayed(
+                    const Duration(milliseconds: 450),
+                  );
+                },
+                child: Stack(
                   children: [
-                    PosSearchSection(searchCtrl: _searchCtrl),
-                    const CategoryBar(),
-                    Expanded(
-                      child: BlocBuilder<ProductBloc, ProductState>(
-                        buildWhen: (prev, curr) =>
-                        prev.productStatus != curr.productStatus ||
-                            prev.products != curr.products ||
-                            prev.categories != curr.categories,
-                        builder: (context, productState) {
-                          if (productState.productStatus == ProductStatus.loading ||
-                              productState.productStatus == ProductStatus.initial) {
-                            return const ProductsLoadingGrid();
-                          }
-
-                          if (productState.productStatus == ProductStatus.failure) {
-                            return PosProductsError(
-                              message: productState.responseError,
-                              onRetry: () {
-                                context.read<ProductBloc>().add(
-                                  const OnProductInitial(),
-                                );
-                              },
-                            );
-                          }
-
-                          return BlocBuilder<PosBloc, PosState>(
+                    Column(
+                      children: [
+                        PosSearchSection(searchCtrl: _searchCtrl),
+                        const CategoryBar(),
+                        Expanded(
+                          child: BlocBuilder<ProductBloc, ProductState>(
                             buildWhen: (prev, curr) =>
-                            prev.searchQuery != curr.searchQuery ||
-                                prev.selectedCategoryId != curr.selectedCategoryId,
-                            builder: (context, posState) {
-                              final products = _filterProducts(
-                                productState.products,
-                                posState,
-                              );
-
-                              if (products.isEmpty) {
-                                return ProductsEmpty(query: posState.searchQuery);
+                            prev.productStatus != curr.productStatus ||
+                                prev.products != curr.products ||
+                                prev.categories != curr.categories,
+                            builder: (context, productState) {
+                              if (productState.productStatus == ProductStatus.loading ||
+                                  productState.productStatus == ProductStatus.initial) {
+                                return const ProductsLoadingGrid();
                               }
 
-                              return ProductGrid(products: products);
+                              if (productState.productStatus == ProductStatus.failure) {
+                                return ProductErrorView(
+                                  message: productState.responseError,
+                                  // onRetry: () {
+                                  //   context.read<ProductBloc>().add(
+                                  //     const OnProductInitial(),
+                                  //   );
+                                  // },
+                                );
+                              }
+
+                              return BlocBuilder<PosBloc, PosState>(
+                                buildWhen: (prev, curr) =>
+                                prev.searchQuery != curr.searchQuery ||
+                                    prev.selectedCategoryId != curr.selectedCategoryId,
+                                builder: (context, posState) {
+                                  final products = _filterProducts(
+                                    productState.products,
+                                    posState,
+                                  );
+
+                                  if (products.isEmpty) {
+                                    return ProductsEmpty(
+                                      query: posState.searchQuery,
+                                    );
+                                  }
+
+                                  return ProductGrid(products: products);
+                                },
+                              );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        BlocBuilder<PosBloc, PosState>(
+                          buildWhen: (prev, curr) => prev.isEmpty != curr.isEmpty,
+                          builder: (context, state) {
+                            return SizedBox(height: state.isEmpty ? 0 : 88);
+                          },
+                        ),
+                      ],
                     ),
-                    BlocBuilder<PosBloc, PosState>(
-                      buildWhen: (prev, curr) => prev.isEmpty != curr.isEmpty,
-                      builder: (context, state) {
-                        return SizedBox(height: state.isEmpty ? 0 : 86);
+                    CartSheet(
+                      onCheckout: () {
+                        final shopId = _defaultShopId(context);
+
+                        if (shopId == null) {
+                          GlobalSnackBar.show(
+                            message: 'Please create/select a shop first',
+                            isError: true,
+                          );
+                          return;
+                        }
+
+                        context.read<PosBloc>().add(
+                          PosCheckoutSubmitted(shopId: shopId),
+                        );
                       },
                     ),
                   ],
                 ),
-                CartSheet(
-                  onCheckout: () {
-                    final shopId = _defaultShopId(context);
-
-                    if (shopId == null) {
-                      GlobalSnackBar.show(
-                        message: 'Please create/select a shop first',
-                        isError: true,
-                      );
-                      return;
-                    }
-
-                    context.read<PosBloc>().add(
-                      PosCheckoutSubmitted(shopId: shopId),
-                    );
-                  },
-                ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartPanel extends StatefulWidget {
   final PosState state;
@@ -50,13 +51,19 @@ class _CartPanelState extends State<CartPanel> {
         child: _expanded
             ? ExpandedCart(
           key: const ValueKey('expanded_cart'),
-          onCollapse: () => setState(() => _expanded = false),
+          onCollapse: () {
+            setState(() => _expanded = false);
+            context.read<PosBloc>().add(const PosCartExpandedChanged(false));
+          },
           onCheckout: widget.onCheckout,
         )
             : CartPeek(
           key: const ValueKey('peek_cart'),
           state: widget.state,
-          onTap: () => setState(() => _expanded = true),
+          onTap: () {
+            setState(() => _expanded = true);
+            context.read<PosBloc>().add(const PosCartExpandedChanged(true));
+          },
         ),
       ),
     );

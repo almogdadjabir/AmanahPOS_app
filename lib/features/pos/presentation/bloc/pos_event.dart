@@ -90,3 +90,11 @@ class PosCheckoutSubmitted extends PosEvent {
 class PosAcknowledgeSubmit extends PosEvent {
   const PosAcknowledgeSubmit();
 }
+class PosCartExpandedChanged extends PosEvent {
+  final bool expanded;
+
+  const PosCartExpandedChanged(this.expanded);
+
+  @override
+  List<Object?> get props => [expanded];
+}

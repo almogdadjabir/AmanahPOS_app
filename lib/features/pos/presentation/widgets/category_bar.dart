@@ -19,11 +19,17 @@ class CategoryBar extends StatelessWidget {
           (bloc) => bloc.state.selectedCategoryId,
     );
 
-    return SizedBox(
-      height: 52,
+    if (categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      height: 54,
+      alignment: Alignment.centerLeft,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(
           AppDims.s4,
           AppDims.s2,
@@ -33,15 +39,16 @@ class CategoryBar extends StatelessWidget {
         itemCount: categories.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: AppDims.s2),
         itemBuilder: (context, index) {
-          final isAll = index == 0;
-
-          if (isAll) {
+          if (index == 0) {
             return CategoryChip(
-              key: const ValueKey('category_all'),
+              key: const ValueKey('pos_category_all'),
               label: 'All',
+              icon: Icons.grid_view_rounded,
               selected: selectedCategoryId == null,
               onTap: () {
-                context.read<PosBloc>().add(const PosCategoryChanged(null));
+                context.read<PosBloc>().add(
+                  const PosCategoryChanged(null),
+                );
               },
             );
           }
@@ -50,11 +57,16 @@ class CategoryBar extends StatelessWidget {
           final categoryId = category.id;
 
           return CategoryChip(
-            key: ValueKey('category_$categoryId'),
-            label: category.name ?? 'Category',
+            key: ValueKey('pos_category_${categoryId ?? index}'),
+            label: category.name?.trim().isNotEmpty == true
+                ? category.name!.trim()
+                : 'Category',
+            icon: Icons.layers_rounded,
             selected: selectedCategoryId == categoryId,
             onTap: () {
-              context.read<PosBloc>().add(PosCategoryChanged(categoryId));
+              context.read<PosBloc>().add(
+                PosCategoryChanged(categoryId),
+              );
             },
           );
         },

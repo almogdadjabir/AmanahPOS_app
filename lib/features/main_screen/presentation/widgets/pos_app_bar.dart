@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/brand_logo.dart';
@@ -124,30 +125,36 @@ class _BusinessInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          business?.name ?? 'AmanaPOS',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs400(context).copyWith(
-            fontWeight: FontWeight.w800,
-            color: context.appColors.textPrimary,
-            letterSpacing: -0.2,
+    return GestureDetector(
+      onTap: (){
+        context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
+        Navigator.of(context).pushNamed(RouteStrings.settingsScreen);
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            business?.name ?? 'AmanaPOS',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bs400(context).copyWith(
+              fontWeight: FontWeight.w800,
+              color: context.appColors.textPrimary,
+              letterSpacing: -0.2,
+            ),
           ),
-        ),
-        Text(
-          business?.address ?? 'Your business will show here',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs100(context).copyWith(
-            fontWeight: FontWeight.w600,
-            color: context.appColors.textSecondary,
+          Text(
+            business?.address ?? 'Your business will show here',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bs100(context).copyWith(
+              fontWeight: FontWeight.w600,
+              color: context.appColors.textSecondary,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

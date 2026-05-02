@@ -9,6 +9,7 @@ import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/product_detail_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
+import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
@@ -62,6 +63,10 @@ class AppRouter {
           builder: (_) => ProductDetailScreen(
             product: args['product'] as ProductData,
           ),
+        );
+      case RouteStrings.settingsScreen:
+        return MaterialPageRoute(
+          builder: (_) => SettingsScreen(),
         );
       default:
         return _buildRoute(const SplashScreen(), settings);

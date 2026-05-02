@@ -21,61 +21,52 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<OnAddProduct>(_addProduct);
     on<OnUpdateProduct>(_updateProduct);
     on<OnDeleteProduct>(_deleteProduct);
+    on<OnProductsSoldLocally>(_productsSoldLocally);
   }
 
   Future<void> _init(
       OnProductInitial event,
       Emitter<ProductState> emit,
       ) async {
-    if (state.productStatus == ProductStatus.loading ||
-        state.productStatus == ProductStatus.success) {
-      return;
-    }
+    if (state.productStatus == ProductStatus.loading) return;
 
-    emit(state.copyWith(productStatus: ProductStatus.loading));
+    emit(state.copyWith(
+      productStatus: ProductStatus.loading,
+      currentPage: 1,
+      totalPages: 1,
+      products: [],
+      responseError: null,
+    ));
 
     try {
-      final results = await Future.wait([
-        useCase.getCategories(),
-        useCase.getProducts(page: 1),
-      ]);
+      final response = await useCase.getProducts(page: 1);
+      final error = response.getLeft().toNullable();
+      final result = response.getRight().toNullable();
 
-      final categoriesResult = results[0] as dynamic;
-      final productsResult   = results[1] as dynamic;
-
-      List<CategoryData> categories = [];
-      List<ProductData>  products   = [];
-      int totalPages = 1;
-
-      categoriesResult.fold(
-            (error) {},
-            (result) => categories = (result as CategoryResponseDto).data ?? [],
-      );
-
-      productsResult.fold(
-            (error) => emit(state.copyWith(
+      if (error != null) {
+        emit(state.copyWith(
           productStatus: ProductStatus.failure,
           responseError: error,
-        )),
-            (result) {
-          final r = result as ProductListResponseDto;
-          products   = r.results   ?? [];
-          totalPages = r.totalPages ?? 1;
-        },
-      );
+        ));
+        return;
+      }
 
-      emit(state.copyWith(
-        productStatus: ProductStatus.success,
-        categories:    categories,
-        products:      products,
-        currentPage:   1,
-        totalPages:    totalPages,
-      ));
+      if (result != null && !emit.isDone) {
+        emit(state.copyWith(
+          productStatus: ProductStatus.success,
+          products: result.results ?? [],
+          currentPage: result.currentPage ?? 1,
+          totalPages: result.totalPages ?? 1,
+          responseError: null,
+        ));
+      }
     } catch (e) {
-      emit(state.copyWith(
-        productStatus: ProductStatus.failure,
-        responseError: e.toString(),
-      ));
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          productStatus: ProductStatus.failure,
+          responseError: e.toString(),
+        ));
+      }
     }
   }
 
@@ -312,5 +303,29 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         ));
       }
     }
+  }
+
+  void _productsSoldLocally(
+      OnProductsSoldLocally event,
+      Emitter<ProductState> emit,
+      ) {
+    if (event.soldQuantities.isEmpty) return;
+
+    final updatedProducts = state.products.map((product) {
+      final productId = product.id;
+      if (productId == null) return product;
+
+      final soldQty = event.soldQuantities[productId];
+      if (soldQty == null || soldQty <= 0) return product;
+
+      final currentStock = product.stockLevel ?? 0;
+      final nextStock = currentStock - soldQty;
+
+      return product.copyWith(
+        stockLevel: nextStock < 0 ? 0 : nextStock,
+      );
+    }).toList(growable: false);
+
+    emit(state.copyWith(products: updatedProducts));
   }
 }

@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 
 class CategoryChip extends StatelessWidget {
   final String label;
+  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
   const CategoryChip({
     super.key,
     required this.label,
+    required this.icon,
     required this.selected,
     required this.onTap,
   });
@@ -19,9 +21,18 @@ class CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final Color backgroundColor =
+    selected ? colors.primary : colors.surface;
+
+    final Color borderColor =
+    selected ? colors.primary : colors.border;
+
+    final Color contentColor =
+    selected ? Colors.white : colors.textSecondary;
+
     return RepaintBoundary(
       child: Material(
-        color: Colors.transparent,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
         child: InkWell(
           onTap: onTap,
@@ -29,33 +40,54 @@ class CategoryChip extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             curve: Curves.easeOutCubic,
-            height: 36,
+            height: 38,
             constraints: const BoxConstraints(
-              minWidth: 62,
-              maxWidth: 150,
+              minWidth: 48,
+              maxWidth: 180,
             ),
             padding: const EdgeInsets.symmetric(
               horizontal: AppDims.s3,
             ),
-            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: selected ? colors.primary : colors.surface,
+              color: backgroundColor,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: selected ? colors.primary : colors.border,
+                color: borderColor,
                 width: selected ? 1.4 : 1,
               ),
+              boxShadow: selected
+                  ? [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: 0.18),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+                  : null,
             ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bs300(context).copyWith(
-                color: selected ? Colors.white : colors.textSecondary,
-                fontWeight: FontWeight.w900,
-                height: 1,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
+                  color: contentColor,
+                ),
+                const SizedBox(width: AppDims.s1),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bs300(context).copyWith(
+                      color: contentColor,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

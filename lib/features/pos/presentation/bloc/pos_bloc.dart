@@ -24,6 +24,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosClearCart>(_onClearCart);
     on<PosCheckoutSubmitted>(_onCheckoutSubmitted);
     on<PosAcknowledgeSubmit>(_onAcknowledgeSubmit);
+    on<PosCartExpandedChanged>(_onCartExpandedChanged);
   }
 
   void _onSearchChanged(
@@ -157,6 +158,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             .toList(),
       );
 
+      final soldQuantities = state.currentSoldQuantities;
       final response = await useCase.createSale(dto);
       final error = response.getLeft().toNullable();
 
@@ -168,11 +170,15 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         return;
       }
 
-      emit(state.copyWith(
-        items: [],
-        submitStatus: PosSubmitStatus.success,
-        submitError: null,
-      ));
+      emit(
+        state.copyWith(
+          items: [],
+          lastSoldQuantities: soldQuantities,
+          cartExpanded: false,
+          submitStatus: PosSubmitStatus.success,
+          submitError: null,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(
         submitStatus: PosSubmitStatus.failure,
@@ -185,9 +191,18 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       PosAcknowledgeSubmit event,
       Emitter<PosState> emit,
       ) {
-    emit(state.copyWith(
-      submitStatus: PosSubmitStatus.idle,
-      submitError: null,
-    ));
+    emit(
+      state.copyWith(
+        submitStatus: PosSubmitStatus.idle,
+        submitError: null,
+      ),
+    );
+  }
+
+  void _onCartExpandedChanged(
+      PosCartExpandedChanged event,
+      Emitter<PosState> emit,
+      ) {
+    emit(state.copyWith(cartExpanded: event.expanded));
   }
 }

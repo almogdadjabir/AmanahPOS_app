@@ -80,4 +80,28 @@ class ProductData {
       createdAt: json['created_at'],
     );
   }
+
+
+  ProductData copyWith({
+    double? stockLevel,
+  }) {
+    return ProductData(
+      id: id,
+      category: category,
+      categoryName: categoryName,
+      name: name,
+      description: description,
+      sku: sku,
+      barcode: barcode,
+      price: price,
+      costPrice: costPrice,
+      image: image,
+      unit: unit,
+      isActive: isActive,
+      trackInventory: trackInventory,
+      minStockLevel: minStockLevel,
+      stockLevel: stockLevel ?? this.stockLevel,
+      createdAt: createdAt,
+    );
+  }
 }

@@ -56,6 +56,8 @@ class User {
   bool? hasPassword;
   String? createdAt;
   String? lastLoginAt;
+  BankakAccountDto? bankakAccount;
+
 
   User(
       {this.id,
@@ -66,7 +68,8 @@ class User {
         this.isVerified,
         this.hasPassword,
         this.createdAt,
-        this.lastLoginAt});
+        this.lastLoginAt,
+        this.bankakAccount,});
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -78,6 +81,11 @@ class User {
     hasPassword = json['has_password'];
     createdAt = json['created_at'];
     lastLoginAt = json['last_login_at'];
+    bankakAccount = json['bankak_account'] is Map<String, dynamic>
+        ? BankakAccountDto.fromJson(
+      json['bankak_account'] as Map<String, dynamic>,
+    )
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -92,5 +100,31 @@ class User {
     data['created_at'] = createdAt;
     data['last_login_at'] = lastLoginAt;
     return data;
+  }
+}
+
+class BankakAccountDto {
+  final String? id;
+  final String? accountNumber;
+  final bool? isDefault;
+  final bool? isActive;
+  final String? createdAt;
+
+  const BankakAccountDto({
+    this.id,
+    this.accountNumber,
+    this.isDefault,
+    this.isActive,
+    this.createdAt,
+  });
+
+  factory BankakAccountDto.fromJson(Map<String, dynamic> json) {
+    return BankakAccountDto(
+      id: json['id']?.toString(),
+      accountNumber: json['account_number']?.toString(),
+      isDefault: json['is_default'] as bool?,
+      isActive: json['is_active'] as bool?,
+      createdAt: json['created_at']?.toString(),
+    );
   }
 }

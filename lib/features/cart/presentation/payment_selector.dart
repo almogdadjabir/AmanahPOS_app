@@ -37,12 +37,12 @@ class PaymentSelector extends StatelessWidget {
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: PaymentButton(
-              icon: Icons.credit_card_rounded,
-              label: 'Card',
-              selected: paymentMethod == 'card',
+              icon: Icons.account_balance_wallet_outlined,
+              label: 'Bankak',
+              selected: paymentMethod == 'bankak',
               onTap: () {
                 context.read<PosBloc>().add(
-                  const PosPaymentMethodChanged('card'),
+                  const PosPaymentMethodChanged('bankak'),
                 );
               },
             ),

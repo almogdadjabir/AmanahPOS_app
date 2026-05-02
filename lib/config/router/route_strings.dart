@@ -8,4 +8,5 @@ class RouteStrings {
   static const String userDetailScreen = 'userDetailScreen';
   static const String shopManagementScreen = 'shopManagementScreen';
   static const String productDetailScreen = 'productDetailScreen';
+  static const String settingsScreen = 'settingsScreen';
 }
