@@ -3,14 +3,18 @@ import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/business_detail_screen.dart';
 import 'package:amana_pos/features/business/presentation/shop_detail_screen.dart';
+import 'package:amana_pos/features/business/presentation/shop_management_screen.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
 import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
+import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
+import 'package:amana_pos/features/products/presentation/product_detail_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 
 class AppRouter {
   static const _defaultTransitionDuration = Duration(milliseconds: 300);
@@ -44,6 +48,21 @@ class AppRouter {
         final UserData user = args?['user'] as UserData;
 
         return _buildRoute(UserDetailScreen(user: user), settings);
+
+      case RouteStrings.shopManagementScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => ShopManagementScreen(
+            business: args['businessData'] as BusinessData,
+          ),
+        );
+      case RouteStrings.productDetailScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => ProductDetailScreen(
+            product: args['product'] as ProductData,
+          ),
+        );
       default:
         return _buildRoute(const SplashScreen(), settings);
     }

@@ -12,10 +12,13 @@ class ProductsAppBar extends StatelessWidget {
     return SliverAppBar(
       automaticallyImplyLeading: false,
       pinned: true,
+      elevation: 0,
+      backgroundColor: context.appColors.background,
+      surfaceTintColor: Colors.transparent,
       title: Text(
         'Products',
         style: AppTextStyles.bs600(context).copyWith(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w900,
           color: context.appColors.textPrimary,
         ),
       ),
@@ -24,9 +27,12 @@ class ProductsAppBar extends StatelessWidget {
           buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
           builder: (context, state) {
             return IconButton(
-              onPressed: () => context
-                  .read<ProductBloc>()
-                  .add(const OnToggleProductLayout()),
+              tooltip: state.isGrid ? 'Show list' : 'Show grid',
+              onPressed: () {
+                context.read<ProductBloc>().add(
+                  const OnToggleProductLayout(),
+                );
+              },
               icon: Icon(
                 state.isGrid
                     ? Icons.view_list_rounded

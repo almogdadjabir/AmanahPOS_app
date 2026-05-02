@@ -1,3 +1,4 @@
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/placeholder_image.dart';
 import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart';
@@ -8,88 +9,138 @@ import 'package:flutter/material.dart';
 
 class ProductGridCard extends StatelessWidget {
   final ProductData product;
-  const ProductGridCard({super.key, required this.product});
+
+  const ProductGridCard({
+    super.key,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final isActive = product.isActive ?? false;
 
     return Material(
-      color: context.appColors.surface,
-      borderRadius: BorderRadius.circular(AppDims.rMd),
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(AppDims.rLg),
       child: InkWell(
-        onTap: () {}, // TODO: product detail
-        borderRadius: BorderRadius.circular(AppDims.rMd),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppDims.rMd)),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: product.image != null
-                      ? Image.network(product.image!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          PlaceholderImage())
-                      : PlaceholderImage(),
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            RouteStrings.productDetailScreen,
+            arguments: {'product': product},
+          );
+        },
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(color: colors.border),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: product.image?.trim().isNotEmpty == true
+                          ? Image.network(
+                        product.image!.trim(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                        const PlaceholderImage(),
+                      )
+                          : const PlaceholderImage(),
+                    ),
+
+                    if (!isActive)
+                      Positioned(
+                        top: AppDims.s2,
+                        left: AppDims.s2,
+                        child: _InactivePill(),
+                      ),
+                  ],
                 ),
               ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(AppDims.s2),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    product.name ?? '—',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bs200(context).copyWith(
-                    fontWeight: FontWeight.w800,
-                      color: context.appColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppDims.s1),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '\$${product.price ?? '0.00'}',
-                          style: AppTextStyles.bs300(context).copyWith(
-                          fontWeight: FontWeight.w800,
-                            color: context.appColors.primary,
-                          ),
-                        ),
+              Padding(
+                padding: const EdgeInsets.all(AppDims.s2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name ?? 'Product',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs300(context).copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: colors.textPrimary,
+                        height: 1.15,
                       ),
-                      if (!isActive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: context.appColors.surfaceSoft,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                    ),
+                    const SizedBox(height: AppDims.s1),
+                    Text(
+                      product.categoryName?.trim().isNotEmpty == true
+                          ? product.categoryName!.trim()
+                          : 'No category',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs100(context).copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colors.textHint,
+                      ),
+                    ),
+                    const SizedBox(height: AppDims.s2),
+                    Row(
+                      children: [
+                        Expanded(
                           child: Text(
-                            'Off',
+                            _formatPrice(product.price),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bs300(context).copyWith(
-                            fontWeight: FontWeight.w800,
-                              color: context.appColors.textHint,
+                              fontWeight: FontWeight.w900,
+                              color: colors.primary,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  StockChip(level: product.stockLevel ?? 0),
-                ],
+                        StockChip(level: product.stockLevel ?? 0),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatPrice(dynamic value) {
+    if (value == null) return '0.00';
+    return '$value';
+  }
+}
+
+class _InactivePill extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDims.s2,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        'Inactive',
+        style: AppTextStyles.bs100(context).copyWith(
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
         ),
       ),
     );

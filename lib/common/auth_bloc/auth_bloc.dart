@@ -180,7 +180,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (!emit.isDone) {
           emit(state.copyWith(AuthStateUpdate(
             defaultBusiness: business.data?.first,
-            businessStatus:  BusinessStatus.success,
+            businessStatus: BusinessStatus.success,
           )));
         }
       }

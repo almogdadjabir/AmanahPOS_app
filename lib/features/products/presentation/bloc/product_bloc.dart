@@ -1,5 +1,6 @@
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
+import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
@@ -18,7 +19,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<OnLoadMoreProducts>(_loadMore);
     on<OnToggleProductLayout>(_toggleLayout);
     on<OnAddProduct>(_addProduct);
-
+    on<OnUpdateProduct>(_updateProduct);
+    on<OnDeleteProduct>(_deleteProduct);
   }
 
   Future<void> _init(
@@ -217,6 +219,96 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(state.copyWith(
           submitStatus: ProductSubmitStatus.failure,
           submitError:  e.toString(),
+        ));
+      }
+    }
+  }
+
+  Future<void> _updateProduct(
+      OnUpdateProduct event,
+      Emitter<ProductState> emit,
+      ) async {
+    emit(state.copyWith(
+      submitStatus: ProductSubmitStatus.loading,
+      submitError: null,
+    ));
+
+    try {
+      final response = await useCase.editProduct(
+        event.productId,
+        event.dto,
+      );
+
+      final error = response.getLeft().toNullable();
+
+      if (error != null) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError: error,
+        ));
+        return;
+      }
+
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.success,
+          submitError: null,
+          productStatus: ProductStatus.initial,
+          products: [],
+        ));
+
+        add(const OnProductInitial());
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError: e.toString(),
+        ));
+      }
+    }
+  }
+
+  Future<void> _deleteProduct(
+      OnDeleteProduct event,
+      Emitter<ProductState> emit,
+      ) async {
+    emit(state.copyWith(
+      submitStatus: ProductSubmitStatus.loading,
+      submitError: null,
+    ));
+
+    try {
+      final response = await useCase.deactivateProduct(event.productId,);
+
+      final error = response.getLeft().toNullable();
+
+      if (error != null) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError: error,
+        ));
+        return;
+      }
+
+      final updatedProducts = state.products
+          .where((product) => product.id != event.productId)
+          .toList();
+
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.success,
+          submitError: null,
+          products: updatedProducts,
+        ));
+
+        add(const OnProductInitial());
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError: e.toString(),
         ));
       }
     }

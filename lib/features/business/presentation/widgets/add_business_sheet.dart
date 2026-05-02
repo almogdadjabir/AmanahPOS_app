@@ -1,3 +1,5 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
@@ -66,10 +68,15 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == BusinessSubmitStatus.success) {
+          context.read<AuthBloc>().add(OnLoadBusinessEvent());
           Navigator.of(context).pop();
           GlobalSnackBar.show(
             message: 'Business added successfully',
             isInfo: true,);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteStrings.mainScreen,
+                (route) => false,
+          );
         }
 
         if (state.submitStatus == BusinessSubmitStatus.failure) {
@@ -157,6 +164,26 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                             return null;
                           },
                         ),
+                        const SizedBox(height: AppDims.s3),
+
+                        FieldLabel(label: 'Address'),
+                        const SizedBox(height: AppDims.s1),
+                        AppFormField(
+                          controller: _addressCtrl,
+                          focusNode: _addressFocus,
+                          nextFocus: _phoneFocus,
+                          hint: 'Khartoum, Sudan',
+                          prefixIcon: Icons.location_on_outlined,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Address is required';
+                            }
+                            if (v.trim().length < 2) {
+                              return 'Address must be at least 2 characters';
+                            }
+                            return null;
+                          },
+                        ),
                         const SizedBox(height: AppDims.s4),
 
                         Row(
@@ -177,17 +204,6 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                           ],
                         ),
                         const SizedBox(height: AppDims.s4),
-
-                        FieldLabel(label: 'Address'),
-                        const SizedBox(height: AppDims.s1),
-                        AppFormField(
-                          controller: _addressCtrl,
-                          focusNode: _addressFocus,
-                          nextFocus: _phoneFocus,
-                          hint: 'Khartoum, Sudan',
-                          prefixIcon: Icons.location_on_outlined,
-                        ),
-                        const SizedBox(height: AppDims.s3),
 
                         FieldLabel(label: 'Phone'),
                         const SizedBox(height: AppDims.s1),

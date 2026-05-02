@@ -1,6 +1,7 @@
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
+import 'package:amana_pos/features/products/presentation/widgets/product_inventory_alerts_section.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -40,6 +41,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   final _descCtrl = TextEditingController();
   final _skuCtrl = TextEditingController();
   final _barcodeCtrl = TextEditingController();
+  final _minStockCtrl = TextEditingController();
+  final _expiryAlertCtrl = TextEditingController();
 
   final _nameFocus = FocusNode();
   final _priceFocus = FocusNode();
@@ -47,6 +50,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   final _descFocus = FocusNode();
   final _skuFocus = FocusNode();
   final _barcodeFocus = FocusNode();
+  final _minStockFocus = FocusNode();
+  final _expiryAlertFocus = FocusNode();
 
   CategoryData? _selectedCategory;
   String _selectedUnit = 'pcs';
@@ -58,6 +63,10 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _descCtrl.dispose(); _skuCtrl.dispose(); _barcodeCtrl.dispose();
     _nameFocus.dispose(); _priceFocus.dispose(); _costFocus.dispose();
     _descFocus.dispose(); _skuFocus.dispose(); _barcodeFocus.dispose();
+    _minStockCtrl.dispose();
+    _expiryAlertCtrl.dispose();
+    _minStockFocus.dispose();
+    _expiryAlertFocus.dispose();
     super.dispose();
   }
 
@@ -90,6 +99,9 @@ class _AddProductSheetState extends State<_AddProductSheet> {
         barcode: _barcodeCtrl.text.trim().isEmpty
             ? null
             : _barcodeCtrl.text.trim(),
+        minStockLevel: _minStockCtrl.text.trim().isEmpty
+            ? null
+            : _minStockCtrl.text.trim(),
       ),
     ));
   }
@@ -380,6 +392,16 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                           value:     _trackInventory,
                           onChanged: (v) =>
                               setState(() => _trackInventory = v),
+                        ),
+
+                        const SizedBox(height: AppDims.s3),
+
+                        ProductInventoryAlertsSection(
+                          minStockCtrl: _minStockCtrl,
+                          expiryAlertCtrl: _expiryAlertCtrl,
+                          minStockFocus: _minStockFocus,
+                          expiryAlertFocus: _expiryAlertFocus,
+                          enabled: _trackInventory,
                         ),
                         const SizedBox(height: AppDims.s5),
 

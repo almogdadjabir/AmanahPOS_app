@@ -1,5 +1,7 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/brand_logo.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/animated_menu_icon.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -7,7 +9,6 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../dashboard/presentation/widgets/brand_logo.dart';
 
 class PosAppBar extends StatelessWidget {
   final VoidCallback onMenuTap;
@@ -51,16 +52,19 @@ class PosAppBar extends StatelessWidget {
         const SizedBox(width: AppDims.s3),
 
         Expanded(
-          child: BlocSelector<AuthBloc, AuthState, ({BusinessData? business, BusinessStatus status})>(
-            selector: (state) => (
-            business: state.defaultBusiness,
-            status:   state.businessStatus,
-            ),
+          child: BlocConsumer<AuthBloc, AuthState>(
+            buildWhen: (prev, curr) =>
+            prev.businessStatus != curr.businessStatus ||
+                prev.defaultBusiness != curr.defaultBusiness,
+            listenWhen: (prev, curr) =>
+            prev.businessStatus != curr.businessStatus ||
+                prev.defaultBusiness != curr.defaultBusiness,
+            listener: _handleStateChange,
             builder: (context, s) {
-              return switch (s.status) {
+              return switch (s.businessStatus) {
                 BusinessStatus.loading ||
                 BusinessStatus.initial => const _BusinessSkeleton(),
-                BusinessStatus.success => _BusinessInfo(business: s.business),
+                BusinessStatus.success => _BusinessInfo(business: s.defaultBusiness),
                 BusinessStatus.failure => _BusinessInfo(business: null),
               };
             },
@@ -89,6 +93,28 @@ class PosAppBar extends StatelessWidget {
       ],
     );
   }
+
+  void _handleStateChange(BuildContext context, AuthState state) {
+    debugPrint(
+      '_handleStateChange: businessStatus: ${state.businessStatus} '
+          '|| defaultBusiness: ${state.defaultBusiness}',
+    );
+
+    final hasNoBusiness = state.defaultBusiness == null;
+
+    final shouldShowRequiredBusinessSheet =
+        hasNoBusiness &&
+            (state.businessStatus == BusinessStatus.success ||
+                state.businessStatus == BusinessStatus.failure);
+
+    if (!shouldShowRequiredBusinessSheet) return;
+    if (FancyBusinessBottomSheet.isShowing) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      FancyBusinessBottomSheet.show(context);
+    });
+  }
 }
 
 
@@ -113,7 +139,7 @@ class _BusinessInfo extends StatelessWidget {
           ),
         ),
         Text(
-          business?.address ?? '—',
+          business?.address ?? 'Your business will show here',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.bs100(context).copyWith(
@@ -203,3 +229,4 @@ class _ShimmerBar extends StatelessWidget {
     );
   }
 }
+

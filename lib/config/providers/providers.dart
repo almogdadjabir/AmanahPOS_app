@@ -3,15 +3,15 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
-import 'package:amana_pos/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
-import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
+import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
+import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/registration/domain/usecases/registration_usecase.dart';
@@ -43,14 +43,13 @@ getProviders(BuildContext context) => [
       cacheStorage: getIt<CacheStorage>()
     ),
   ),
+
   BlocProvider(
-    create: (context) => DashboardBloc(
-        // useCase: getIt<DashboardUseCase>(),
+    create: (context) => PosBloc(
+        useCase: getIt<PosUseCase>(),
     ),
   ),
-  BlocProvider(
-    create: (context) => CartBloc(),
-  ),
+
   BlocProvider(
     create: (context) => BusinessBloc(
       useCase: getIt<BusinessUseCase>(),

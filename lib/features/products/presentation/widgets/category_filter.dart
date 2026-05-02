@@ -5,18 +5,32 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
   @override
-  double get minExtent => 56;
+  double get minExtent => 58;
+
   @override
-  double get maxExtent => 56;
+  double get maxExtent => 58;
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: context.appColors.background,
+      BuildContext context,
+      double shrinkOffset,
+      bool overlapsContent,
+      ) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.appColors.background,
+        boxShadow: overlapsContent
+            ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ]
+            : null,
+      ),
       child: BlocBuilder<ProductBloc, ProductState>(
         buildWhen: (prev, curr) =>
         prev.categories != curr.categories ||
@@ -27,25 +41,29 @@ class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
           return ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDims.s4, vertical: AppDims.s2),
-            itemCount: categories.length + 1,  // +1 for "All"
-            separatorBuilder: (_, __) =>
-            const SizedBox(width: AppDims.s2),
+              horizontal: AppDims.s4,
+              vertical: AppDims.s2,
+            ),
+            itemCount: categories.length + 1,
+            separatorBuilder: (_, __) => const SizedBox(width: AppDims.s2),
             itemBuilder: (context, i) {
-              // index 0 = "All"
               final isAll = i == 0;
               final category = isAll ? null : categories[i - 1];
+
               final isSelected = isAll
                   ? state.selectedCategoryId == null
-                  : state.selectedCategoryId == category!.id;
+                  : state.selectedCategoryId == category?.id;
 
               return CategoryChip(
-                label: isAll ? 'All' : category!.name ?? '',
+                label: isAll ? 'All Products' : category?.name ?? '—',
                 isSelected: isSelected,
-                onTap: () => context.read<ProductBloc>().add(
-                  OnProductCategorySelected(
-                      categoryId: isAll ? null : category!.id),
-                ),
+                onTap: () {
+                  context.read<ProductBloc>().add(
+                    OnProductCategorySelected(
+                      categoryId: isAll ? null : category?.id,
+                    ),
+                  );
+                },
               );
             },
           );
@@ -55,7 +73,7 @@ class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(CategoryFilterDelegate _) => false;
+  bool shouldRebuild(covariant CategoryFilterDelegate oldDelegate) => true;
 }
 
 class CategoryChip extends StatelessWidget {
@@ -63,7 +81,8 @@ class CategoryChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const CategoryChip({super.key,
+  const CategoryChip({
+    super.key,
     required this.label,
     required this.isSelected,
     required this.onTap,
@@ -71,28 +90,33 @@ class CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(AppDims.s2),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDims.s3,
+          vertical: AppDims.s2,
+        ),
         decoration: BoxDecoration(
-          color: isSelected
-              ? context.appColors.primary
-              : context.appColors.surface,
+          color: isSelected ? colors.primary : colors.surface,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected
-                ? context.appColors.primary
-                : context.appColors.border,
+            color: isSelected ? colors.primary : colors.border,
           ),
         ),
         child: Center(
           child: Text(
             label,
-            style: AppTextStyles.bs400(context).copyWith(
-            fontWeight: FontWeight.w800,
-              color: isSelected ? Colors.white : context.appColors.textSecondary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bs300(context).copyWith(
+              fontWeight: FontWeight.w900,
+              color: isSelected ? Colors.white : colors.textSecondary,
             ),
           ),
         ),

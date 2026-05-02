@@ -42,6 +42,7 @@ class _StockActionSheet extends StatefulWidget {
 
 class _StockActionSheetState extends State<_StockActionSheet> {
   _Tab _tab = _Tab.add;
+  MovementType _movementType = MovementType.in_;
 
   // ── Add stock ─────────────────────────────────────────────────────────
   final _addFormKey   = GlobalKey<FormState>();

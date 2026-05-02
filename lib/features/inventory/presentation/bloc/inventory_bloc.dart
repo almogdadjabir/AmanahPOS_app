@@ -26,8 +26,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       OnInventoryInitial event,
       Emitter<InventoryState> emit,
       ) async {
-    if (state.status == InventoryStatus.loading ||
-        state.status == InventoryStatus.success) return;
+    if (state.status == InventoryStatus.loading) return;
 
     emit(state.copyWith(status: InventoryStatus.loading));
 

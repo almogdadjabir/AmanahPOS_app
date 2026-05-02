@@ -21,18 +21,16 @@ class MainScreen extends StatelessWidget {
           onNotifTap: () {},
         ),
       ),
-      body: SafeArea(
-        child: BlocBuilder<NavigationBloc, NavigationState>(
-          buildWhen: (prev, curr) => prev.selectedIndex != curr.selectedIndex,
-          builder: (context, state) {
-            return Stack(
-              children: [
-                state.screens[state.selectedIndex].child,
-                const FeatureMenu(),
-              ],
-            );
-          },
-        ),
+      body: BlocBuilder<NavigationBloc, NavigationState>(
+        buildWhen: (prev, curr) => prev.selectedIndex != curr.selectedIndex,
+        builder: (context, state) {
+          return Stack(
+            children: [
+              state.screens[state.selectedIndex].child,
+              const FeatureMenu(),
+            ],
+          );
+        },
       ),
     );
   }
