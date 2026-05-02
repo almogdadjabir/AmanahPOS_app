@@ -11,7 +11,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class CartLine extends StatelessWidget {
   final PosCartItem item;
 
-  const CartLine({super.key,
+  const CartLine({
+    super.key,
     required this.item,
   });
 
@@ -27,99 +28,113 @@ class CartLine extends StatelessWidget {
         AppDims.s3,
         AppDims.s3,
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: colors.surfaceSoft,
-              borderRadius: BorderRadius.circular(AppDims.rSm),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: item.product.image?.trim().isNotEmpty == true
-                ? Image.network(
-              item.product.image!.trim(),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.local_offer_outlined,
-                size: 18,
-              ),
-            )
-                : Icon(
-              Icons.local_offer_outlined,
-              size: 18,
-              color: colors.textHint,
-            ),
-          ),
-          const SizedBox(width: AppDims.s3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.product.name ?? 'Product',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs300(context).copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                  ),
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: colors.surfaceSoft,
+                  borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  '${money(item.price)} × ${item.quantity}',
-                  style: AppTextStyles.bs100(context).copyWith(
+                clipBehavior: Clip.antiAlias,
+                child: item.product.image?.trim().isNotEmpty == true
+                    ? Image.network(
+                  item.product.image!.trim(),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Icon(
+                    Icons.local_offer_outlined,
+                    size: 20,
                     color: colors.textHint,
-                    fontWeight: FontWeight.w700,
                   ),
+                )
+                    : Icon(
+                  Icons.local_offer_outlined,
+                  size: 20,
+                  color: colors.textHint,
                 ),
-              ],
-            ),
-          ),
-          QtyStepper(
-            qty: item.quantity,
-            onMinus: productId == null
-                ? null
-                : () {
-              context.read<PosBloc>().add(
-                PosDecrementItem(productId),
-              );
-            },
-            onPlus: productId == null
-                ? null
-                : () {
-              context.read<PosBloc>().add(
-                PosIncrementItem(productId),
-              );
-            },
-          ),
-          const SizedBox(width: AppDims.s2),
-          SizedBox(
-            width: 70,
-            child: Text(
-              money(item.lineTotal),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              style: AppTextStyles.bs300(context).copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w900,
               ),
-            ),
+              const SizedBox(width: AppDims.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.product.name ?? 'Product',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs300(context).copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        height: 1.15,
+                      ),
+                    ),
+                    const SizedBox(height: AppDims.s1),
+                    Text(
+                      '${money(item.price)} each',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs100(context).copyWith(
+                        color: colors.textHint,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: productId == null
+                    ? null
+                    : () {
+                  context.read<PosBloc>().add(
+                    PosRemoveItem(productId),
+                  );
+                },
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: Color(0xFFDC2626),
+                  size: 20,
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            onPressed: productId == null
-                ? null
-                : () {
-              context.read<PosBloc>().add(PosRemoveItem(productId));
-            },
-            icon: const Icon(
-              Icons.close_rounded,
-              color: Color(0xFFDC2626),
-              size: 19,
-            ),
+
+          const SizedBox(height: AppDims.s3),
+
+          Row(
+            children: [
+              QtyStepper(
+                qty: item.quantity,
+                onMinus: productId == null
+                    ? null
+                    : () {
+                  context.read<PosBloc>().add(
+                    PosDecrementItem(productId),
+                  );
+                },
+                onPlus: productId == null
+                    ? null
+                    : () {
+                  context.read<PosBloc>().add(
+                    PosIncrementItem(productId),
+                  );
+                },
+              ),
+              const Spacer(),
+              Text(
+                money(item.lineTotal),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: AppTextStyles.bs500(context).copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
         ],
       ),

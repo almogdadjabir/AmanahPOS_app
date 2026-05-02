@@ -1,4 +1,3 @@
-import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/main_screen/data/section.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:flutter/material.dart';
@@ -33,8 +32,8 @@ List<Section> buildMenuSections(BuildContext context, int currentIndex) => [
       'Profiles and loyalty',
       Icons.people_alt_rounded,
       const Color(0xFFEC4899),
-      // active: currentIndex == CUSTOMERS_INDEX,
-      // onTap: () => _goToTab(context, CUSTOMERS_INDEX),
+      active: currentIndex == 6,
+      onTap: () => _goToTab(context, 6),
     ),
     SectionItem(
       'reports',

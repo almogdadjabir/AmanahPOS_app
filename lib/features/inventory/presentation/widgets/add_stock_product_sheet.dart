@@ -13,7 +13,11 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void showAddStockProductSheet(BuildContext context) {
+void showAddStockProductSheet(
+    BuildContext context, {
+      ProductData? initialProduct,
+      Shops? initialShop,
+    }) {
   final inventoryBloc = context.read<InventoryBloc>();
   final productBloc = context.read<ProductBloc>();
   final businessBloc = context.read<BusinessBloc>();
@@ -28,13 +32,22 @@ void showAddStockProductSheet(BuildContext context) {
         BlocProvider.value(value: productBloc),
         BlocProvider.value(value: businessBloc),
       ],
-      child: const _AddStockProductSheet(),
+      child: _AddStockProductSheet(
+        initialProduct: initialProduct,
+        initialShop: initialShop,
+      ),
     ),
   );
 }
 
 class _AddStockProductSheet extends StatefulWidget {
-  const _AddStockProductSheet();
+  final ProductData? initialProduct;
+  final Shops? initialShop;
+
+  const _AddStockProductSheet({
+    this.initialProduct,
+    this.initialShop,
+  });
 
   @override
   State<_AddStockProductSheet> createState() => _AddStockProductSheetState();
@@ -58,10 +71,26 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
   void initState() {
     super.initState();
 
+    _selectedProduct = widget.initialProduct;
+
+    final shops = _shopsFromBusiness(context);
+    _selectedShop = widget.initialShop ?? _firstValidShop(shops);
+
     final productState = context.read<ProductBloc>().state;
-    if (productState.products.isEmpty) {
+    if (_selectedProduct == null && productState.products.isEmpty) {
       context.read<ProductBloc>().add(const OnProductInitial());
     }
+  }
+
+  Shops? _firstValidShop(List<Shops> shops) {
+    for (final shop in shops) {
+      final id = shop.id;
+      if (id != null && id.trim().isNotEmpty) {
+        return shop;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -205,7 +234,9 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
                             ),
                           ),
                           Text(
-                            'Select a product and assign quantity to a shop.',
+                            _selectedProduct == null
+                                ? 'Select a product and assign quantity to a shop.'
+                                : 'Add stock for this product.',
                             style: AppTextStyles.bs200(context).copyWith(
                               fontWeight: FontWeight.w600,
                               color: colors.textSecondary,
@@ -246,7 +277,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
                     children: [
                       _SelectedProductBanner(
                         product: _selectedProduct,
-                        onClear: _selectedProduct == null
+                        onClear: widget.initialProduct != null || _selectedProduct == null
                             ? null
                             : () {
                           setState(() {
@@ -274,6 +305,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
                           refFocus: _refFocus,
                           shops: _shopsFromBusiness(context),
                           selectedShop: _selectedShop,
+                          lockShop: widget.initialProduct != null,
                           movementType: _movementType,
                           onShopChanged: (shop) {
                             setState(() => _selectedShop = shop);
@@ -622,6 +654,7 @@ class _StockForm extends StatelessWidget {
   final ValueChanged<Shops> onShopChanged;
   final ValueChanged<MovementType> onMovementChanged;
   final VoidCallback onSubmit;
+  final bool lockShop;
 
   const _StockForm({
     required this.formKey,
@@ -635,6 +668,7 @@ class _StockForm extends StatelessWidget {
     required this.onShopChanged,
     required this.onMovementChanged,
     required this.onSubmit,
+    required this.lockShop,
   });
 
   static const _movementTypes = [
@@ -688,53 +722,94 @@ class _StockForm extends StatelessWidget {
         children: [
           FieldLabel(label: 'Shop', required: true),
           const SizedBox(height: AppDims.s1),
-          ...shops.map((shop) {
-            final selected = selectedShop?.id == shop.id;
 
-            return GestureDetector(
-              onTap: () => onShopChanged(shop),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                margin: const EdgeInsets.only(bottom: AppDims.s2),
-                padding: const EdgeInsets.all(AppDims.s3),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? colors.primary.withValues(alpha: 0.08)
-                      : colors.surfaceSoft,
-                  borderRadius: BorderRadius.circular(AppDims.rMd),
-                  border: Border.all(
-                    color: selected ? colors.primary : colors.border,
-                    width: selected ? 1.5 : 1,
+          if (lockShop && selectedShop != null)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: AppDims.s2),
+              padding: const EdgeInsets.all(AppDims.s3),
+              decoration: BoxDecoration(
+                color: colors.surfaceSoft,
+                borderRadius: BorderRadius.circular(AppDims.rMd),
+                border: Border.all(color: colors.border),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.lock_outline_rounded,
+                    size: 18,
+                    color: colors.textHint,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.storefront_outlined,
-                      size: 18,
-                      color: selected ? colors.primary : colors.textHint,
+                  const SizedBox(width: AppDims.s2),
+                  Expanded(
+                    child: Text(
+                      selectedShop?.name ?? 'Shop',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs300(context).copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                    const SizedBox(width: AppDims.s2),
-                    Expanded(
-                      child: Text(
-                        shop.name ?? 'Shop',
-                        style: AppTextStyles.bs300(context).copyWith(
-                          color: selected ? colors.primary : colors.textPrimary,
-                          fontWeight: FontWeight.w800,
+                  ),
+                  Text(
+                    'Default',
+                    style: AppTextStyles.bs100(context).copyWith(
+                      color: colors.textHint,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...shops.map((shop) {
+              final selected = selectedShop?.id == shop.id;
+
+              return GestureDetector(
+                onTap: () => onShopChanged(shop),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  margin: const EdgeInsets.only(bottom: AppDims.s2),
+                  padding: const EdgeInsets.all(AppDims.s3),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? colors.primary.withValues(alpha: 0.08)
+                        : colors.surfaceSoft,
+                    borderRadius: BorderRadius.circular(AppDims.rMd),
+                    border: Border.all(
+                      color: selected ? colors.primary : colors.border,
+                      width: selected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.storefront_outlined,
+                        size: 18,
+                        color: selected ? colors.primary : colors.textHint,
+                      ),
+                      const SizedBox(width: AppDims.s2),
+                      Expanded(
+                        child: Text(
+                          shop.name ?? 'Shop',
+                          style: AppTextStyles.bs300(context).copyWith(
+                            color: selected ? colors.primary : colors.textPrimary,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                    ),
-                    if (selected)
-                      Icon(
-                        Icons.check_circle_rounded,
-                        size: 18,
-                        color: colors.primary,
-                      ),
-                  ],
+                      if (selected)
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 18,
+                          color: colors.primary,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
           const SizedBox(height: AppDims.s3),
           FieldLabel(label: 'Movement Type', required: true),
           const SizedBox(height: AppDims.s2),

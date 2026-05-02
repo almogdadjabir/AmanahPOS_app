@@ -432,7 +432,10 @@ class _ProductActions extends StatelessWidget {
             label: 'Add Stock',
             color: const Color(0xFF16A34A),
             onTap: () {
-              showAddStockProductSheet(context);
+              showAddStockProductSheet(
+                context,
+                initialProduct: product,
+              );
             },
           ),
         ),
@@ -526,7 +529,10 @@ class _ProductStockSection extends StatelessWidget {
 
         if (productStock.isEmpty) {
           return _NoProductStockCard(
-            onAddStock: () => showAddStockProductSheet(context),
+            onAddStock: () => showAddStockProductSheet(
+              context,
+              initialProduct: product,
+            ),
           );
         }
 

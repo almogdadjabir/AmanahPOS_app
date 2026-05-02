@@ -65,6 +65,34 @@ class _EditProductSheetState extends State<_EditProductSheet> {
   String _selectedUnit = 'pcs';
   bool _trackInventory = true;
 
+  String? get _effectiveCategoryId {
+    final selectedId = _selectedCategory?.id;
+    if (selectedId != null && selectedId.trim().isNotEmpty) {
+      return selectedId;
+    }
+
+    final productCategoryId = widget.product.category;
+    if (productCategoryId != null && productCategoryId.trim().isNotEmpty) {
+      return productCategoryId;
+    }
+
+    return null;
+  }
+
+  String? get _effectiveCategoryName {
+    final selectedName = _selectedCategory?.name;
+    if (selectedName != null && selectedName.trim().isNotEmpty) {
+      return selectedName;
+    }
+
+    final productCategoryName = widget.product.categoryName;
+    if (productCategoryName != null && productCategoryName.trim().isNotEmpty) {
+      return productCategoryName;
+    }
+
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -88,10 +116,11 @@ class _EditProductSheetState extends State<_EditProductSheet> {
 
 
     final categories = context.read<ProductBloc>().state.categories;
-    _selectedCategory = categories
+    final matchedCategories = categories
         .where((c) => c.id == p.category)
-        .cast<CategoryData?>()
-        .firstOrNull;
+        .toList(growable: false);
+
+    _selectedCategory = matchedCategories.isEmpty ? null : matchedCategories.first;
   }
 
   @override
@@ -130,7 +159,9 @@ class _EditProductSheetState extends State<_EditProductSheet> {
 
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedCategory == null) {
+    final categoryId = _effectiveCategoryId;
+
+    if (categoryId == null || categoryId.trim().isEmpty) {
       GlobalSnackBar.show(
         message: 'Please select a category',
         isError: true,
@@ -147,7 +178,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
           costPrice: _costCtrl.text.trim().isEmpty
               ? null
               : _costCtrl.text.trim(),
-          category: _selectedCategory!.id,
+          category: categoryId,
           unit: _selectedUnit,
           trackInventory: _trackInventory,
           description: _descCtrl.text.trim().isEmpty
@@ -345,12 +376,13 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                         FieldLabel(label: 'Category', required: true),
                         const SizedBox(height: AppDims.s1),
                         BlocBuilder<ProductBloc, ProductState>(
-                          buildWhen: (prev, curr) =>
-                          prev.categories != curr.categories,
+                          buildWhen: (prev, curr) => prev.categories != curr.categories,
                           builder: (context, state) {
                             return _EditCategoryPicker(
                               categories: state.categories,
                               selected: _selectedCategory,
+                              fallbackSelectedId: _effectiveCategoryId,
+                              fallbackSelectedName: _effectiveCategoryName,
                               onSelected: (category) {
                                 setState(() {
                                   _selectedCategory = category;
@@ -533,164 +565,72 @@ class _EditProductSheetState extends State<_EditProductSheet> {
 class _EditCategoryPicker extends StatelessWidget {
   final List<CategoryData> categories;
   final CategoryData? selected;
+  final String? fallbackSelectedId;
+  final String? fallbackSelectedName;
   final ValueChanged<CategoryData> onSelected;
 
   const _EditCategoryPicker({
     required this.categories,
     required this.selected,
+    required this.fallbackSelectedId,
+    required this.fallbackSelectedName,
     required this.onSelected,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showPicker(context),
-      child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
-        decoration: BoxDecoration(
-          color: context.appColors.surfaceSoft,
-          borderRadius: BorderRadius.circular(AppDims.rMd),
-          border: Border.all(color: context.appColors.border),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.layers_rounded,
-              size: 18,
-              color: context.appColors.textHint,
-            ),
-            const SizedBox(width: AppDims.s2),
-            Expanded(
-              child: Text(
-                selected?.name ?? 'Select a category',
-                style: AppTextStyles.bs500(context).copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: selected != null
-                      ? context.appColors.textPrimary
-                      : context.appColors.textHint,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 20,
-              color: context.appColors.textHint,
-            ),
-          ],
-        ),
-      ),
-    );
+  String? get _selectedName {
+    final selectedName = selected?.name;
+    if (selectedName != null && selectedName.trim().isNotEmpty) {
+      return selectedName;
+    }
+
+    if (fallbackSelectedName != null &&
+        fallbackSelectedName!.trim().isNotEmpty) {
+      return fallbackSelectedName;
+    }
+
+    return null;
   }
 
-  void _showPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return Container(
-          decoration: BoxDecoration(
-            color: context.appColors.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppDims.rXl),
+  @override
+  Widget build(BuildContext context) {
+    final selectedName = _selectedName;
+
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+      decoration: BoxDecoration(
+        color: context.appColors.surfaceSoft.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(AppDims.rMd),
+        border: Border.all(color: context.appColors.border),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.lock_outline_rounded,
+            size: 18,
+            color: context.appColors.textHint,
+          ),
+          const SizedBox(width: AppDims.s2),
+          Expanded(
+            child: Text(
+              selectedName ?? 'Category locked',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bs500(context).copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.appColors.textSecondary,
+              ),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: AppDims.s3),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(AppDims.s4),
-                child: Text(
-                  'Select Category',
-                  style: AppTextStyles.bs600(context).copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: context.appColors.textPrimary,
-                  ),
-                ),
-              ),
-              if (categories.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(AppDims.s5),
-                  child: Text(
-                    'No categories available',
-                    style: TextStyle(color: context.appColors.textHint),
-                  ),
-                )
-              else
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.fromLTRB(
-                      AppDims.s4,
-                      0,
-                      AppDims.s4,
-                      AppDims.s5,
-                    ),
-                    itemCount: categories.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 1,
-                      color: context.appColors.border,
-                    ),
-                    itemBuilder: (_, i) {
-                      final cat = categories[i];
-                      final isSelected = cat.id == selected?.id;
-
-                      return ListTile(
-                        onTap: () {
-                          onSelected(cat);
-                          Navigator.of(context).pop();
-                        },
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: context.appColors.primaryContainer,
-                            borderRadius: BorderRadius.circular(AppDims.rSm),
-                          ),
-                          child: Icon(
-                            Icons.layers_rounded,
-                            size: 18,
-                            color: context.appColors.primary,
-                          ),
-                        ),
-                        title: Text(
-                          cat.name ?? '',
-                          style: TextStyle(
-                            fontFamily: 'NunitoSans',
-                            fontSize: 14,
-                            fontWeight: isSelected
-                                ? FontWeight.w800
-                                : FontWeight.w600,
-                            color: isSelected
-                                ? context.appColors.primary
-                                : context.appColors.textPrimary,
-                          ),
-                        ),
-                        trailing: isSelected
-                            ? Icon(
-                          Icons.check_circle_rounded,
-                          color: context.appColors.primary,
-                          size: 20,
-                        )
-                            : null,
-                      );
-                    },
-                  ),
-                ),
-            ],
+          Text(
+            'Locked',
+            style: AppTextStyles.bs100(context).copyWith(
+              color: context.appColors.textHint,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

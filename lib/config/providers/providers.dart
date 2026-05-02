@@ -5,6 +5,8 @@ import 'package:amana_pos/features/business/domain/usecases/business_usecase.dar
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
+import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
+import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
@@ -80,6 +82,11 @@ getProviders(BuildContext context) => [
   BlocProvider(
     create: (context) => SettingsBloc(
       useCase: getIt<LoginUseCase>(),
+    ),
+  ),
+  BlocProvider(
+    create: (context) => CustomersBloc(
+      useCase: getIt<CustomerUseCase>(),
     ),
   ),
 ];

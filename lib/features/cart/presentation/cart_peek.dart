@@ -79,13 +79,16 @@ class CartPeek extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(width: AppDims.s3),
+
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${state.itemCount} item${state.itemCount == 1 ? '' : 's'} in cart',
+                        'Current sale • ${state.itemCount} item${state.itemCount == 1 ? '' : 's'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bs200(context).copyWith(
                           color: colors.textSecondary,
                           fontWeight: FontWeight.w700,
@@ -94,6 +97,8 @@ class CartPeek extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         money(state.total),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bs600(context).copyWith(
                           color: colors.textPrimary,
                           fontWeight: FontWeight.w900,
@@ -102,6 +107,7 @@ class CartPeek extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDims.s4,
@@ -111,12 +117,23 @@ class CartPeek extends StatelessWidget {
                     color: colors.primary,
                     borderRadius: BorderRadius.circular(AppDims.rMd),
                   ),
-                  child: Text(
-                    'Checkout',
-                    style: AppTextStyles.bs300(context).copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Review',
+                        style: AppTextStyles.bs300(context).copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(width: AppDims.s1),
+                      const Icon(
+                        Icons.keyboard_arrow_up_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ],
                   ),
                 ),
               ],
