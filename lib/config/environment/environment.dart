@@ -1,7 +1,7 @@
 enum Flavor { dev, prod }
 
-const String devBaseURL = 'http://192.168.1.150:8080/';
-const String prodBaseURL = 'https://baraka-app-api-production.uz-pay-prod.ox.one/';
+const String devBaseURL = 'http://192.168.1.158:8080/';
+const String prodBaseURL = 'https://api.amanapos.com/';
 
 const double mobileHeight = 932.0;
 const double mobileWidth = 430.0;

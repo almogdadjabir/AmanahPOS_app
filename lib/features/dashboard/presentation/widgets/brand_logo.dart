@@ -33,7 +33,6 @@ class BrandLogo extends StatelessWidget {
           Text(
             'A',
             style: TextStyle(
-              fontFamily: 'NunitoSans',
               fontWeight: FontWeight.w800,
               color: Colors.white,
               fontSize: size * 0.48,

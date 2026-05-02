@@ -9,12 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void showAddBusinessSheet(BuildContext context) {
+  final bloc = context.read<BusinessBloc>();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => BlocProvider.value(
-      value: context.read<BusinessBloc>(),
+    builder: (_) => BlocProvider.value(value: bloc,
       child: const _AddBusinessSheet(),
     ),
   );

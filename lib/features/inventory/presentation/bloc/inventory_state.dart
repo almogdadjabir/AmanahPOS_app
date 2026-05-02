@@ -3,6 +3,8 @@ part of 'inventory_bloc.dart';
 enum InventoryStatus { initial, loading, loadingMore, success, failure }
 
 enum StockFilter { all, lowStock, outOfStock }
+enum InventorySubmitStatus { idle, loading, success, failure }
+
 
 class InventoryState extends Equatable {
   final InventoryStatus status;
@@ -11,6 +13,8 @@ class InventoryState extends Equatable {
   final int currentPage;
   final int totalPages;
   final String? responseError;
+  final InventorySubmitStatus submitStatus;
+  final String? submitError;
 
   const InventoryState({
     this.status = InventoryStatus.initial,
@@ -19,6 +23,8 @@ class InventoryState extends Equatable {
     this.currentPage = 1,
     this.totalPages = 1,
     this.responseError,
+    this.submitStatus = InventorySubmitStatus.idle,
+    this.submitError,
   });
 
   factory InventoryState.initial() => const InventoryState();
@@ -38,6 +44,8 @@ class InventoryState extends Equatable {
     int? currentPage,
     int? totalPages,
     String? responseError,
+    InventorySubmitStatus? submitStatus,
+    String? submitError,
   }) {
     return InventoryState(
       status: status ?? this.status,
@@ -46,6 +54,8 @@ class InventoryState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       responseError: responseError,
+      submitStatus: submitStatus ?? this.submitStatus,
+      submitError:  submitError,
     );
   }
 
@@ -53,5 +63,6 @@ class InventoryState extends Equatable {
   List<Object?> get props => [
     status, stockList, filter,
     currentPage, totalPages, responseError,
+    submitStatus, submitError,
   ];
 }

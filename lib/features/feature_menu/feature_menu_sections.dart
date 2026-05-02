@@ -39,8 +39,6 @@ List<Section> buildMenuSections(BuildContext context, int currentIndex) => [
           context.read<NavigationBloc>().add(const NavigationTabSelected(5));
           context.read<NavigationBloc>().add(const SetMenuOpenEvent(open: false));
         }),
-    SectionItem('po', 'Purchase Orders', 'Suppliers & deliveries',
-        Icons.local_shipping_rounded, const Color(0xFF0891B2)),
   ]),
   Section('Insights', [
     SectionItem('rep', 'Reports', 'Sales & tax reports',

@@ -1,5 +1,6 @@
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/widgets/stock_action_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -450,7 +451,14 @@ class _StockCard extends StatelessWidget {
       color: context.appColors.surface,
       borderRadius: BorderRadius.circular(AppDims.rMd),
       child: InkWell(
-        onTap: () {}, // TODO: stock detail / adjust
+        onTap: () {
+          final allStock = context.read<InventoryBloc>().state.stockList;
+          showStockActionSheet(
+            context,
+            stock:    item,
+            allStock: allStock,
+          );
+        },
         borderRadius: BorderRadius.circular(AppDims.rMd),
         child: Padding(
           padding: const EdgeInsets.all(AppDims.s3),
