@@ -4,6 +4,7 @@ import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_prod
 import 'package:amana_pos/features/inventory/presentation/widgets/stock_action_sheet.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
+import 'package:amana_pos/features/products/presentation/utils/product_image_url.dart';
 import 'package:amana_pos/features/products/presentation/widgets/delete_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/edit_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/placeholder_image.dart';
@@ -124,6 +125,7 @@ class _ProductDetailAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final imageUrl = product.detailImageUrl;
 
     return SliverAppBar(
       pinned: true,
@@ -142,13 +144,20 @@ class _ProductDetailAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            product.image?.trim().isNotEmpty == true
-                ? Image.network(
-              product.image!.trim(),
+            // product.image?.trim().isNotEmpty == true
+            //     ? Image.network(
+            //   product.image!.trim(),
+            //   fit: BoxFit.cover,
+            //   errorBuilder: (_, __, ___) => const PlaceholderImage(),
+            // )
+            //     : const PlaceholderImage(),
+            imageUrl == null
+                ? const PlaceholderImage()
+                : Image.network(
+              imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const PlaceholderImage(),
-            )
-                : const PlaceholderImage(),
+            ),
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(

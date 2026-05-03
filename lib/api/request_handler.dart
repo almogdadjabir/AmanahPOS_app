@@ -49,8 +49,14 @@ class RequestHandler {
       }) async {
     try {
 
+      final isMultipart = data is FormData;
+
       final options = Options(
-        headers: headers ?? {'Content-Type': 'application/json'},
+        headers: headers ??
+            {
+              if (!isMultipart) 'Content-Type': 'application/json',
+            },
+        contentType: isMultipart ? 'multipart/form-data' : null,
         responseType: responseType ?? ResponseType.json,
       );
 
@@ -88,9 +94,15 @@ class RequestHandler {
         Map<String, dynamic>? headers,
       }) async {
     try {
-      final options = headers != null
-          ? Options(headers: headers)
-          : Options(headers: {'Content-Type': 'application/json'});
+      final isMultipart = data is FormData;
+
+      final options = Options(
+        headers: headers ??
+            {
+              if (!isMultipart) 'Content-Type': 'application/json',
+            },
+        contentType: isMultipart ? 'multipart/form-data' : null,
+      );
 
       options.extra ??= {};
 
@@ -121,10 +133,15 @@ class RequestHandler {
         Map<String, dynamic>? headers,
       }) async {
     try {
-      final options = headers != null
-          ? Options(headers: headers)
-          : Options(headers: {'Content-Type': 'application/json'});
+      final isMultipart = data is FormData;
 
+      final options = Options(
+        headers: headers ??
+            {
+              if (!isMultipart) 'Content-Type': 'application/json',
+            },
+        contentType: isMultipart ? 'multipart/form-data' : null,
+      );
       options.extra ??= {};
 
       if (data is FormData) {

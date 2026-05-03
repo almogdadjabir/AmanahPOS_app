@@ -1,3 +1,5 @@
+import 'package:amana_pos/common/services/image/app_image_picker.dart';
+import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
@@ -56,6 +58,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   CategoryData? _selectedCategory;
   String _selectedUnit = 'pcs';
   bool _trackInventory  = true;
+  PickedAppImage? _pickedImage;
 
   @override
   void dispose() {
@@ -80,30 +83,56 @@ class _AddProductSheetState extends State<_AddProductSheet> {
       return;
     }
 
-    context.read<ProductBloc>().add(OnAddProduct(
-      dto: AddProductRequestDto(
-        name: _nameCtrl.text.trim(),
-        price: _priceCtrl.text.trim(),
-        costPrice: _costCtrl.text.trim().isEmpty
-            ? null
-            : _costCtrl.text.trim(),
-        category: _selectedCategory!.id!,
-        unit: _selectedUnit,
-        trackInventory: _trackInventory,
-        description: _descCtrl.text.trim().isEmpty
-            ? null
-            : _descCtrl.text.trim(),
-        sku: _skuCtrl.text.trim().isEmpty
-            ? null
-            : _skuCtrl.text.trim(),
-        barcode: _barcodeCtrl.text.trim().isEmpty
-            ? null
-            : _barcodeCtrl.text.trim(),
-        minStockLevel: _minStockCtrl.text.trim().isEmpty
-            ? null
-            : _minStockCtrl.text.trim(),
+    // context.read<ProductBloc>().add(OnAddProduct(
+    //   dto: AddProductRequestDto(
+    //     name: _nameCtrl.text.trim(),
+    //     price: _priceCtrl.text.trim(),
+    //     costPrice: _costCtrl.text.trim().isEmpty
+    //         ? null
+    //         : _costCtrl.text.trim(),
+    //     category: _selectedCategory!.id!,
+    //     unit: _selectedUnit,
+    //     trackInventory: _trackInventory,
+    //     description: _descCtrl.text.trim().isEmpty
+    //         ? null
+    //         : _descCtrl.text.trim(),
+    //     sku: _skuCtrl.text.trim().isEmpty
+    //         ? null
+    //         : _skuCtrl.text.trim(),
+    //     barcode: _barcodeCtrl.text.trim().isEmpty
+    //         ? null
+    //         : _barcodeCtrl.text.trim(),
+    //     minStockLevel: _minStockCtrl.text.trim().isEmpty
+    //         ? null
+    //         : _minStockCtrl.text.trim(),
+    //   ),
+    // ));
+
+    context.read<ProductBloc>().add(
+      OnAddProduct(
+        dto: AddProductRequestDto(
+          name: _nameCtrl.text.trim(),
+          price: _priceCtrl.text.trim(),
+          costPrice: _costCtrl.text.trim().isEmpty
+              ? null
+              : _costCtrl.text.trim(),
+          category: _selectedCategory!.id!,
+          unit: _selectedUnit,
+          trackInventory: _trackInventory,
+          minStockLevel: _minStockCtrl.text.trim().isEmpty
+              ? null
+              : _minStockCtrl.text.trim(),
+          description: _descCtrl.text.trim().isEmpty
+              ? null
+              : _descCtrl.text.trim(),
+          sku: _skuCtrl.text.trim().isEmpty ? null : _skuCtrl.text.trim(),
+          barcode: _barcodeCtrl.text.trim().isEmpty
+              ? null
+              : _barcodeCtrl.text.trim(),
+          imageUpload: _pickedImage,
+        ),
       ),
-    ));
+    );
   }
 
   @override
@@ -188,6 +217,17 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+
+                        ImageUploadBox(
+                          pickedImage: _pickedImage,
+                          imageUrl: null,
+                          title: 'Add product photo',
+                          subtitle: 'Use a clear image for faster cashier selection',
+                          onChanged: (image) {
+                            setState(() => _pickedImage = image);
+                          },
+                        ),
+                        const SizedBox(height: AppDims.s3),
 
 
                         FieldLabel(label: 'Product Name', required: true),

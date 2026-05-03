@@ -9,6 +9,8 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/repositories/product_repository.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:amana_pos/common/network/multipart_image_helper.dart';
+import 'package:dio/dio.dart';
 
 class ProductRepoImpl extends ProductRepository {
   final RequestHandler requestHandler;
@@ -59,28 +61,69 @@ class ProductRepoImpl extends ProductRepository {
   }
 
   @override
-  Future<Either<String?, AddProductResponseDto>> addProduct(AddProductRequestDto request) {
+  Future<Either<String?, AddProductResponseDto>> addProduct(
+      AddProductRequestDto request,
+      ) async {
+    final imageFile = await MultipartImageHelper.toMultipartFile(
+      request.imageUpload,
+    );
+
+    if (imageFile == null) {
+      return requestHandler.handlePostRequest(
+        'api/v1/products/',
+            (data) => AddProductResponseDto.fromJson(data as Map<String, dynamic>),
+        data: request.toJson(),
+      );
+    }
+
+    final formData = FormData.fromMap({
+      ...request.toJson(),
+      'image_upload': imageFile,
+    });
+
     return requestHandler.handlePostRequest(
       'api/v1/products/',
           (data) => AddProductResponseDto.fromJson(data as Map<String, dynamic>),
-      data: request.toJson(),
+      data: formData,
     );
   }
+
+  @override
+  Future<Either<String?, bool>> editProduct(
+      String productId,
+      UpdateProductRequestDto request,
+      ) async {
+    final imageFile = await MultipartImageHelper.toMultipartFile(
+      request.imageUpload,
+    );
+
+    if (imageFile == null) {
+      return requestHandler.handlePatchRequest(
+        'api/v1/products/$productId/',
+            (_) => true,
+        data: request.toJson(),
+      );
+    }
+
+    final formData = FormData.fromMap({
+      ...request.toJson(),
+      'image_upload': imageFile,
+    });
+
+    return requestHandler.handlePatchRequest(
+      'api/v1/products/$productId/',
+          (_) => true,
+      data: formData,
+    );
+  }
+
+
 
   @override
   Future<Either<String?, bool>> deactivateProduct(String productId) {
     return requestHandler.handleDeleteRequest(
       'api/v1/products/$productId/',
           (_) => true,
-    );
-  }
-
-  @override
-  Future<Either<String?, bool>> editProduct(String productId, UpdateProductRequestDto request) {
-    return requestHandler.handlePatchRequest(
-      'api/v1/products/$productId/',
-          (_) => true,
-      data: request.toJson(),
     );
   }
 

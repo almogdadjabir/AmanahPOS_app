@@ -6,6 +6,7 @@ import 'package:amana_pos/features/products/data/model/response/product_response
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
 
 part 'product_event.dart';
 part 'product_state.dart';
@@ -39,24 +40,35 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     ));
 
     try {
-      final response = await useCase.getProducts(page: 1);
-      final error = response.getLeft().toNullable();
-      final result = response.getRight().toNullable();
+      final responses = await Future.wait([
+        useCase.getProducts(page: 1),
+        useCase.getCategories(),
+      ]);
 
-      if (error != null) {
+      final productsResponse = responses[0] as Either<String?, ProductListResponseDto>;
+      final categoriesResponse = responses[1] as Either<String?, CategoryResponseDto>;
+
+      final productsError = productsResponse.getLeft().toNullable();
+      final categoriesError = categoriesResponse.getLeft().toNullable();
+
+      if (productsError != null || categoriesError != null) {
         emit(state.copyWith(
           productStatus: ProductStatus.failure,
-          responseError: error,
+          responseError: productsError ?? categoriesError,
         ));
         return;
       }
 
-      if (result != null && !emit.isDone) {
+      final productsResult = productsResponse.getRight().toNullable();
+      final categoriesResult = categoriesResponse.getRight().toNullable();
+
+      if (!emit.isDone) {
         emit(state.copyWith(
           productStatus: ProductStatus.success,
-          products: result.results ?? [],
-          currentPage: result.currentPage ?? 1,
-          totalPages: result.totalPages ?? 1,
+          products: productsResult?.results ?? [],
+          categories: categoriesResult?.data ?? [],
+          currentPage: productsResult?.currentPage ?? 1,
+          totalPages: productsResult?.totalPages ?? 1,
           responseError: null,
         ));
       }

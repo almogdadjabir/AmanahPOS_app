@@ -21,6 +21,7 @@ class CategoryData {
   final String? name;
   final String? description;
   final String? image;
+  final String? thumbnailUrl;
   final bool? isActive;
   final int? sortOrder;
   final List<CategoryData>? children;
@@ -34,6 +35,7 @@ class CategoryData {
     this.name,
     this.description,
     this.image,
+    this.thumbnailUrl,
     this.isActive,
     this.sortOrder,
     this.children,
@@ -48,7 +50,8 @@ class CategoryData {
       parent:      json['parent'],
       name:        json['name'],
       description: json['description'],
-      image:       json['image'],
+      image: json['image']?.toString(),
+      thumbnailUrl: json['thumbnail_url']?.toString(),
       isActive:    json['is_active'],
       sortOrder:   json['sort_order'],
       children:    (json['children'] as List?)
@@ -73,6 +76,7 @@ class CategoryData {
       name:        name        ?? this.name,
       description: description ?? this.description,
       image:       image,
+      thumbnailUrl: thumbnailUrl,
       isActive:    isActive    ?? this.isActive,
       sortOrder:   sortOrder   ?? this.sortOrder,
       children:    children    ?? this.children,

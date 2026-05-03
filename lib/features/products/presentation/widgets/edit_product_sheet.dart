@@ -1,3 +1,5 @@
+import 'package:amana_pos/common/services/image/app_image_picker.dart';
+import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -51,6 +53,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
   late final TextEditingController _barcodeCtrl;
   late final TextEditingController _minStockCtrl;
   late final TextEditingController _expiryAlertCtrl;
+  PickedAppImage? _pickedImage;
 
   final _nameFocus = FocusNode();
   final _priceFocus = FocusNode();
@@ -191,6 +194,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
           minStockLevel: _minStockCtrl.text.trim().isEmpty
               ? null
               : _minStockCtrl.text.trim(),
+          imageUpload: _pickedImage,
         ),
       ),
     );
@@ -287,6 +291,16 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        ImageUploadBox(
+                          pickedImage: _pickedImage,
+                          imageUrl: widget.product.image,
+                          title: 'Product photo',
+                          subtitle: 'Tap to change product image',
+                          onChanged: (image) {
+                            setState(() => _pickedImage = image);
+                          },
+                        ),
+                        const SizedBox(height: AppDims.s3),
                         FieldLabel(label: 'Product Name', required: true),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(

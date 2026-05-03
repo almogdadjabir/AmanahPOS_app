@@ -51,13 +51,14 @@ class ProductData {
   final double? minStockLevel;
   final double? stockLevel;
   final String? createdAt;
+  final String? thumbnailUrl;
 
   const ProductData({
     this.id, this.category, this.categoryName, this.name,
     this.description, this.sku, this.barcode, this.price,
     this.costPrice, this.image, this.unit, this.isActive,
     this.trackInventory, this.minStockLevel, this.stockLevel,
-    this.createdAt,
+    this.createdAt, this.thumbnailUrl,
   });
 
   factory ProductData.fromJson(Map<String, dynamic> json) {
@@ -78,12 +79,15 @@ class ProductData {
       minStockLevel: (json['min_stock_level'] as num?)?.toDouble(),
       stockLevel: (json['stock_level'] as num?)?.toDouble(),
       createdAt: json['created_at'],
+      thumbnailUrl: json['thumbnail_url']?.toString(),
     );
   }
 
 
   ProductData copyWith({
     double? stockLevel,
+    String? image,
+    String? thumbnailUrl,
   }) {
     return ProductData(
       id: id,
@@ -95,13 +99,14 @@ class ProductData {
       barcode: barcode,
       price: price,
       costPrice: costPrice,
-      image: image,
       unit: unit,
       isActive: isActive,
       trackInventory: trackInventory,
       minStockLevel: minStockLevel,
       stockLevel: stockLevel ?? this.stockLevel,
       createdAt: createdAt,
+      image: image ?? this.image,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
     );
   }
 }

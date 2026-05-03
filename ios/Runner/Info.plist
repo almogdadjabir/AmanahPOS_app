@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>AmanaPOS needs access to your photos so you can upload product and category images.</string>
+
+    <key>NSCameraUsageDescription</key>
+    <string>AmanaPOS needs camera access so you can take product and category photos.</string>
 </dict>
 </plist>

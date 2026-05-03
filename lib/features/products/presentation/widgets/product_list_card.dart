@@ -1,5 +1,6 @@
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
+import 'package:amana_pos/features/products/presentation/utils/product_image_url.dart';
 import 'package:amana_pos/features/products/presentation/widgets/placeholder_image.dart';
 import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -40,7 +41,7 @@ class ProductListCard extends StatelessWidget {
           child: Row(
             children: [
               _ProductImage(
-                image: product.image,
+                product: product,
                 size: 66,
               ),
               const SizedBox(width: AppDims.s3),
@@ -118,11 +119,11 @@ class ProductListCard extends StatelessWidget {
 }
 
 class _ProductImage extends StatelessWidget {
-  final String? image;
+  final ProductData? product;
   final double size;
 
   const _ProductImage({
-    required this.image,
+    required this.product,
     required this.size,
   });
 
@@ -136,13 +137,21 @@ class _ProductImage extends StatelessWidget {
         width: size,
         height: size,
         color: colors.surfaceSoft,
-        child: image?.trim().isNotEmpty == true
-            ? Image.network(
-          image!.trim(),
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const PlaceholderImage(),
-        )
-            : const PlaceholderImage(),
+        child: Builder(
+          builder: (_) {
+            final imageUrl = product?.listImageUrl;
+
+            if (imageUrl == null) {
+              return const PlaceholderImage();
+            }
+
+            return Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const PlaceholderImage(),
+            );
+          },
+        ),
       ),
     );
   }
