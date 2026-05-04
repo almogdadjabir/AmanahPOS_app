@@ -1,5 +1,5 @@
 import 'package:amana_pos/features/cart/presentation/qty_stepper.dart';
-import 'package:amana_pos/features/pos/data/models/pos_cart_item.dart';
+import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
 import 'package:amana_pos/theme/app_spacing.dart';

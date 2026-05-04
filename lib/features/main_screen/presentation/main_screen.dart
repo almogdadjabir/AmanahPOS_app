@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/main_screen/presentation/offline_preparation_listener.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
 import 'package:amana_pos/features/feature_menu/feature_menu.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
@@ -10,27 +11,29 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        toolbarHeight: AppDims.appBarHeight,
-        title: PosAppBar(
-          onMenuTap: () => context
-              .read<NavigationBloc>()
-              .add(const SetMenuOpenEvent()),
-          onNotifTap: () {},
+    return OfflinePreparationListener(
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          toolbarHeight: AppDims.appBarHeight,
+          title: PosAppBar(
+            onMenuTap: () => context
+                .read<NavigationBloc>()
+                .add(const SetMenuOpenEvent()),
+            onNotifTap: () {},
+          ),
         ),
-      ),
-      body: BlocBuilder<NavigationBloc, NavigationState>(
-        buildWhen: (prev, curr) => prev.selectedIndex != curr.selectedIndex,
-        builder: (context, state) {
-          return Stack(
-            children: [
-              state.screens[state.selectedIndex].child,
-              const FeatureMenu(),
-            ],
-          );
-        },
+        body: BlocBuilder<NavigationBloc, NavigationState>(
+          buildWhen: (prev, curr) => prev.selectedIndex != curr.selectedIndex,
+          builder: (context, state) {
+            return Stack(
+              children: [
+                state.screens[state.selectedIndex].child,
+                const FeatureMenu(),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

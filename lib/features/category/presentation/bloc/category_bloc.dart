@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
 import 'package:amana_pos/features/category/data/models/requests/edit_category_request_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
@@ -13,8 +16,13 @@ part 'category_state.dart';
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   final CategoryUseCase useCase;
   final ProductUseCase productUseCase;
+  final OfflineLocalCache offlineLocalCache;
 
-  CategoryBloc({required this.useCase, required this.productUseCase}) : super(CategoryState.initial()) {
+  CategoryBloc({
+    required this.useCase,
+    required this.productUseCase,
+    required this.offlineLocalCache,
+  }) : super(CategoryState.initial()) {
     on<OnCategoryInitial>(_init);
     on<OnAddCategory>(_addCategory);
     on<OnEditCategory>(_editCategory);
@@ -28,28 +36,88 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       OnCategoryInitial event,
       Emitter<CategoryState> emit,
       ) async {
-    if (state.categoryStatus == CategoryStatus.loading ||
-        state.categoryStatus == CategoryStatus.success) return;
+    if (state.categoryStatus == CategoryStatus.loading) return;
 
-    emit(state.copyWith(categoryStatus: CategoryStatus.loading));
+    var emittedCachedData = false;
 
     try {
+      final cachedCategories = await offlineLocalCache.getCategories();
+
+      if (cachedCategories.isNotEmpty) {
+        emittedCachedData = true;
+
+        emit(
+          state.copyWith(
+            categoryStatus: CategoryStatus.success,
+            categoryList: cachedCategories,
+            isFromCache: true,
+            clearResponseError: true,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            categoryStatus: CategoryStatus.loading,
+            categoryList: [],
+            isFromCache: false,
+            clearResponseError: true,
+          ),
+        );
+      }
+
       final response = await useCase.getCategories();
+
       response.fold(
-            (error) => emit(state.copyWith(
-          categoryStatus: CategoryStatus.failure,
-          responseError: error,
-        )),
-            (result) => emit(state.copyWith(
-          categoryStatus: CategoryStatus.success,
-          categoryList: result.data ?? [],
-        )),
+            (error) {
+          if (emittedCachedData) {
+            emit(
+              state.copyWith(
+                categoryStatus: CategoryStatus.success,
+                responseError: error,
+                isFromCache: true,
+              ),
+            );
+            return;
+          }
+
+          emit(
+            state.copyWith(
+              categoryStatus: CategoryStatus.failure,
+              responseError: error,
+              isFromCache: false,
+            ),
+          );
+        },
+            (result) {
+          emit(
+            state.copyWith(
+              categoryStatus: CategoryStatus.success,
+              categoryList: result.data ?? [],
+              isFromCache: false,
+              clearResponseError: true,
+            ),
+          );
+        },
       );
     } catch (e) {
-      emit(state.copyWith(
-        categoryStatus: CategoryStatus.failure,
-        responseError: e.toString(),
-      ));
+      if (emittedCachedData) {
+        emit(
+          state.copyWith(
+            categoryStatus: CategoryStatus.success,
+            responseError: e.toString(),
+            isFromCache: true,
+          ),
+        );
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          categoryStatus: CategoryStatus.failure,
+          responseError: e.toString(),
+          isFromCache: false,
+        ),
+      );
     }
   }
 
@@ -57,46 +125,63 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       OnAddCategory event,
       Emitter<CategoryState> emit,
       ) async {
-    emit(state.copyWith(
-        submitStatus: CategorySubmitStatus.loading, submitError: null));
+    emit(
+      state.copyWith(
+        submitStatus: CategorySubmitStatus.loading,
+        clearSubmitError: true,
+      ),
+    );
 
     try {
       final payload = AddCategoryRequestDto(
         name: event.name,
         description: event.description,
       );
+
       final response = await useCase.addCategory(payload);
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: CategorySubmitStatus.failure,
-          submitError: error,
-        )),
+            (error) => emit(
+          state.copyWith(
+            submitStatus: CategorySubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
             (newCategory) {
-          // If it's a subcategory, append into parent's children
+          if (newCategory.data == null) return;
+
           if (event.parentId != null) {
-            final updated = state.categoryList.map((c) {
-              if (c.id != event.parentId) return c;
-              return c.copyWith(
-                  children: [...?c.children, newCategory.data!]);
+            final updated = state.categoryList.map((category) {
+              if (category.id != event.parentId) return category;
+
+              return category.copyWith(
+                children: [...?category.children, newCategory.data!],
+              );
             }).toList();
-            emit(state.copyWith(
-              submitStatus: CategorySubmitStatus.success,
-              categoryList: updated,
-            ));
+
+            emit(
+              state.copyWith(
+                submitStatus: CategorySubmitStatus.success,
+                categoryList: updated,
+              ),
+            );
           } else {
-            emit(state.copyWith(
-              submitStatus: CategorySubmitStatus.success,
-              categoryList: [...state.categoryList, newCategory.data!],
-            ));
+            emit(
+              state.copyWith(
+                submitStatus: CategorySubmitStatus.success,
+                categoryList: [...state.categoryList, newCategory.data!],
+              ),
+            );
           }
         },
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: CategorySubmitStatus.failure,
-        submitError: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: CategorySubmitStatus.failure,
+          submitError: e.toString(),
+        ),
+      );
     }
   }
 
@@ -104,40 +189,52 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       OnEditCategory event,
       Emitter<CategoryState> emit,
       ) async {
-    emit(state.copyWith(
-        submitStatus: CategorySubmitStatus.loading, submitError: null));
+    emit(
+      state.copyWith(
+        submitStatus: CategorySubmitStatus.loading,
+        clearSubmitError: true,
+      ),
+    );
 
     try {
       final payload = EditCategoryRequestDto(
         name: event.name,
         description: event.description,
       );
+
       final response = await useCase.editCategory(
         event.categoryId,
         payload,
       );
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: CategorySubmitStatus.failure,
-          submitError: error,
-        )),
-            (_) => emit(state.copyWith(
-          submitStatus: CategorySubmitStatus.success,
-          // Patch in top-level and inside children
-          categoryList: _patchCategory(
-            state.categoryList,
-            event.categoryId,
-                (c) => c.copyWith(
-                name: event.name, description: event.description),
+            (error) => emit(
+          state.copyWith(
+            submitStatus: CategorySubmitStatus.failure,
+            submitError: error,
           ),
-        )),
+        ),
+            (_) => emit(
+          state.copyWith(
+            submitStatus: CategorySubmitStatus.success,
+            categoryList: _patchCategory(
+              state.categoryList,
+              event.categoryId,
+                  (category) => category.copyWith(
+                name: event.name,
+                description: event.description,
+              ),
+            ),
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: CategorySubmitStatus.failure,
-        submitError: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: CategorySubmitStatus.failure,
+          submitError: e.toString(),
+        ),
+      );
     }
   }
 
@@ -145,48 +242,24 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       OnToggleCategoryActive event,
       Emitter<CategoryState> emit,
       ) async {
-    emit(state.copyWith(
-        submitStatus: CategorySubmitStatus.loading, submitError: null));
-
-    // try {
-    //   final response = await useCase.toggleCategoryActive(
-    //       event.categoryId, event.isActive);
-    //
-    //   response.fold(
-    //         (error) => emit(state.copyWith(
-    //       submitStatus: CategorySubmitStatus.failure,
-    //       submitError: error,
-    //     )),
-    //         (_) => emit(state.copyWith(
-    //       submitStatus: CategorySubmitStatus.success,
-    //       categoryList: _patchCategory(
-    //         state.categoryList,
-    //         event.categoryId,
-    //             (c) => c.copyWith(isActive: event.isActive),
-    //       ),
-    //     )),
-    //   );
-    // } catch (e) {
-    //   emit(state.copyWith(
-    //     submitStatus: CategorySubmitStatus.failure,
-    //     submitError: e.toString(),
-    //   ));
-    // }
+    // MVP: category active toggle disabled.
   }
 
-  // ── Recursively patch a category by id anywhere in the tree ────────────────
   List<CategoryData> _patchCategory(
       List<CategoryData> list,
       String id,
       CategoryData Function(CategoryData) patch,
       ) {
-    return list.map((c) {
-      if (c.id == id) return patch(c);
-      if (c.children != null && c.children!.isNotEmpty) {
-        return c.copyWith(
-            children: _patchCategory(c.children!, id, patch));
+    return list.map((category) {
+      if (category.id == id) return patch(category);
+
+      if (category.children != null && category.children!.isNotEmpty) {
+        return category.copyWith(
+          children: _patchCategory(category.children!, id, patch),
+        );
       }
-      return c;
+
+      return category;
     }).toList();
   }
 
@@ -194,15 +267,39 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       OnLoadCategoryProducts event,
       Emitter<CategoryState> emit,
       ) async {
-    // Reset list when loading page 1 fresh
-    emit(state.copyWith(
-      productsStatus: CategoryProductsStatus.loading,
-      products: [],
-      currentPage: 1,
-      productsError: null,
-    ));
+    var emittedCachedData = false;
 
     try {
+      final cachedProducts = await offlineLocalCache.getProducts(
+        categoryId: event.categoryId,
+      );
+
+      if (cachedProducts.isNotEmpty) {
+        emittedCachedData = true;
+
+        emit(
+          state.copyWith(
+            productsStatus: CategoryProductsStatus.success,
+            products: cachedProducts,
+            currentPage: 1,
+            totalPages: 1,
+            productsFromCache: true,
+            clearProductsError: true,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            productsStatus: CategoryProductsStatus.loading,
+            products: [],
+            currentPage: 1,
+            totalPages: 1,
+            productsFromCache: false,
+            clearProductsError: true,
+          ),
+        );
+      }
+
       final response = await productUseCase.getCategoryProducts(
         categoryId: event.categoryId,
         page: 1,
@@ -210,22 +307,58 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       );
 
       response.fold(
-            (error) => emit(state.copyWith(
-          productsStatus: CategoryProductsStatus.failure,
-          productsError: error,
-        )),
-            (result) => emit(state.copyWith(
-          productsStatus: CategoryProductsStatus.success,
-          products:    result.products ?? [],
-          currentPage: result.currentPage ?? 1,
-          totalPages:  result.totalPages ?? 1,
-        )),
+            (error) {
+          if (emittedCachedData) {
+            emit(
+              state.copyWith(
+                productsStatus: CategoryProductsStatus.success,
+                productsError: error,
+                productsFromCache: true,
+              ),
+            );
+            return;
+          }
+
+          emit(
+            state.copyWith(
+              productsStatus: CategoryProductsStatus.failure,
+              productsError: error,
+              productsFromCache: false,
+            ),
+          );
+        },
+            (result) {
+          emit(
+            state.copyWith(
+              productsStatus: CategoryProductsStatus.success,
+              products: result.products ?? [],
+              currentPage: result.currentPage ?? 1,
+              totalPages: result.totalPages ?? 1,
+              productsFromCache: false,
+              clearProductsError: true,
+            ),
+          );
+        },
       );
     } catch (e) {
-      emit(state.copyWith(
-        productsStatus: CategoryProductsStatus.failure,
-        productsError: e.toString(),
-      ));
+      if (emittedCachedData) {
+        emit(
+          state.copyWith(
+            productsStatus: CategoryProductsStatus.success,
+            productsError: e.toString(),
+            productsFromCache: true,
+          ),
+        );
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          productsStatus: CategoryProductsStatus.failure,
+          productsError: e.toString(),
+          productsFromCache: false,
+        ),
+      );
     }
   }
 
@@ -233,14 +366,19 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       OnLoadMoreCategoryProducts event,
       Emitter<CategoryState> emit,
       ) async {
+    if (state.productsFromCache) return;
     if (!state.hasMorePages) return;
     if (state.productsStatus == CategoryProductsStatus.loadingMore) return;
 
-    emit(state.copyWith(
-        productsStatus: CategoryProductsStatus.loadingMore));
+    emit(
+      state.copyWith(
+        productsStatus: CategoryProductsStatus.loadingMore,
+      ),
+    );
 
     try {
       final nextPage = state.currentPage + 1;
+
       final response = await productUseCase.getCategoryProducts(
         categoryId: event.categoryId,
         page: nextPage,
@@ -248,57 +386,70 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       );
 
       response.fold(
-            (error) => emit(state.copyWith(
-          productsStatus: CategoryProductsStatus.failure,
-          productsError: error,
-        )),
-            (result) => emit(state.copyWith(
-          productsStatus: CategoryProductsStatus.success,
-          // Append to existing list
-          products:    [...state.products, ...?result.products],
-          currentPage: result.currentPage ?? nextPage,
-          totalPages:  result.totalPages  ?? state.totalPages,
-        )),
+            (error) => emit(
+          state.copyWith(
+            productsStatus: CategoryProductsStatus.failure,
+            productsError: error,
+          ),
+        ),
+            (result) => emit(
+          state.copyWith(
+            productsStatus: CategoryProductsStatus.success,
+            products: [...state.products, ...?result.products],
+            currentPage: result.currentPage ?? nextPage,
+            totalPages: result.totalPages ?? state.totalPages,
+            productsFromCache: false,
+            clearProductsError: true,
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        productsStatus: CategoryProductsStatus.failure,
-        productsError: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          productsStatus: CategoryProductsStatus.failure,
+          productsError: e.toString(),
+        ),
+      );
     }
   }
-
-
 
   Future<void> _deleteCategory(
       OnDeleteCategory event,
       Emitter<CategoryState> emit,
       ) async {
-    emit(state.copyWith(
-      submitStatus: CategorySubmitStatus.loading,
-      submitError: null,
-    ));
+    emit(
+      state.copyWith(
+        submitStatus: CategorySubmitStatus.loading,
+        clearSubmitError: true,
+      ),
+    );
 
     try {
       final response = await useCase.deleteCategory(event.categoryId);
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: CategorySubmitStatus.failure,
-          submitError: error,
-        )),
-            (_) => emit(state.copyWith(
-          submitStatus: CategorySubmitStatus.success,
-          categoryList: state.categoryList
-              .where((c) => c.id != event.categoryId)
-              .toList(),
-        )),
+            (error) => emit(
+          state.copyWith(
+            submitStatus: CategorySubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
+            (_) => emit(
+          state.copyWith(
+            submitStatus: CategorySubmitStatus.success,
+            categoryList: state.categoryList
+                .where((category) => category.id != event.categoryId)
+                .toList(),
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: CategorySubmitStatus.failure,
-        submitError: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: CategorySubmitStatus.failure,
+          submitError: e.toString(),
+        ),
+      );
     }
   }
 }

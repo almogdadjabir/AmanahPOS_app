@@ -1,5 +1,7 @@
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
@@ -13,16 +15,21 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase useCase;
   final BusinessUseCase businessUseCase;
+  final OfflineLocalCache offlineLocalCache;
+  final OfflineStatusBloc offlineStatusBloc;
 
+  String? _currentUserXTenantID;
 
-  String? _currentUserPinfl;
-
-  AuthBloc({required this.useCase, required this.businessUseCase,}) : super(AuthState.initial()) {
+  AuthBloc({
+    required this.useCase,
+    required this.businessUseCase,
+    required this.offlineLocalCache,
+    required this.offlineStatusBloc,
+  }) : super(AuthState.initial()) {
     on<OnLoadProfileEvent>(_onLoadProfile);
     on<OnLoadBusinessEvent>(_onLoadBusinessEvent);
     on<OnLogoutEvent>(_onLogout);
   }
-
   Future<void> _onLoadProfile(
       OnLoadProfileEvent event,
       Emitter<AuthState> emit,
@@ -50,11 +57,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (cached != null) {
         final cachedId = _userIdFrom(cached);
-        if (_currentUserPinfl != null && _currentUserPinfl != cachedId) {
+        if (_currentUserXTenantID != null && _currentUserXTenantID != cachedId) {
           // Different account — discard stale cache.
           await useCase.cacheStorage.save(Constants.cachedProfile, null);
         } else {
-          _currentUserPinfl = cachedId;
+          _currentUserXTenantID = cachedId;
           _emitProfileLoaded(emit, cached);
         }
       }
@@ -65,7 +72,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final error  = result.getLeft().toNullable();
 
       if (fresh != null) {
-        _currentUserPinfl = _userIdFrom(fresh.user!);
+        _currentUserXTenantID = _userIdFrom(fresh.user!);
         useCase.cacheStorage.saveObject(Constants.cachedProfile, fresh.toJson());
         _emitProfileLoaded(emit, fresh.user!);
       } else {
@@ -92,7 +99,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       _navigateToWelcome();
 
-      _currentUserPinfl = null;
+      _currentUserXTenantID = null;
       emit(AuthState.initial());
 
       // Background: call logout API then clear remaining cached data.
@@ -151,12 +158,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       OnLoadBusinessEvent event,
       Emitter<AuthState> emit,
       ) async {
-    if (state.businessStatus == BusinessStatus.loading ||
-        state.businessStatus == BusinessStatus.success) return;
+    if (state.businessStatus == BusinessStatus.loading) return;
 
     emit(state.copyWith(AuthStateUpdate(
       businessStatus: BusinessStatus.loading,
     )));
+
+    BusinessData? cachedBusiness;
+
+    try {
+      final cachedBusinesses = await offlineLocalCache.getBusinesses();
+
+      if (cachedBusinesses.isNotEmpty) {
+        cachedBusiness = cachedBusinesses.first;
+
+        await useCase.cacheStorage.save(
+          Constants.xTenantID,
+          cachedBusiness.id,
+        );
+
+        if (!emit.isDone) {
+          emit(state.copyWith(AuthStateUpdate(
+            defaultBusiness: cachedBusiness,
+            businessStatus: BusinessStatus.success,
+          )));
+        }
+
+        offlineStatusBloc.add(const OnOfflineStatusStarted());
+      }
+    } catch (_) {
+      // Cache read failure should not block API fallback.
+    }
 
     try {
       final response = await businessUseCase.getBusinessList();
@@ -165,26 +197,65 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final business = response.getRight().toNullable();
 
       if (error != null) {
-        emit(state.copyWith(AuthStateUpdate(
-          businessStatus: BusinessStatus.failure,
-        )));
-        return;
-      }
-
-      if (business != null) {
-        await useCase.cacheStorage.save(
-          Constants.xTenantID,
-          business.data?.first.id,
-        );
+        if (cachedBusiness != null) {
+          // We already have cached business, so keep app usable offline.
+          if (!emit.isDone) {
+            emit(state.copyWith(AuthStateUpdate(
+              defaultBusiness: cachedBusiness,
+              businessStatus: BusinessStatus.success,
+            )));
+          }
+          return;
+        }
 
         if (!emit.isDone) {
           emit(state.copyWith(AuthStateUpdate(
-            defaultBusiness: business.data?.first,
+            businessStatus: BusinessStatus.failure,
+          )));
+        }
+        return;
+      }
+
+      final businessList = business?.data ?? [];
+
+      if (businessList.isEmpty) {
+        if (!emit.isDone) {
+          emit(state.copyWith(AuthStateUpdate(
+            defaultBusiness: null,
             businessStatus: BusinessStatus.success,
           )));
         }
+        return;
       }
+
+      final defaultBusiness = businessList.first;
+
+      await useCase.cacheStorage.save(
+        Constants.xTenantID,
+        defaultBusiness.id,
+      );
+
+      if (!emit.isDone) {
+        emit(state.copyWith(AuthStateUpdate(
+          defaultBusiness: defaultBusiness,
+          businessStatus: BusinessStatus.success,
+        )));
+      }
+
+      offlineStatusBloc.add(const OnOfflineStatusStarted());
     } catch (e) {
+      if (cachedBusiness != null) {
+        if (!emit.isDone) {
+          emit(state.copyWith(AuthStateUpdate(
+            defaultBusiness: cachedBusiness,
+            businessStatus: BusinessStatus.success,
+          )));
+        }
+
+        offlineStatusBloc.add(const OnOfflineStatusStarted());
+        return;
+      }
+
       if (!emit.isDone) {
         emit(state.copyWith(AuthStateUpdate(
           businessStatus: BusinessStatus.failure,
@@ -196,7 +267,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   @override
   Future<void> close() {
-    _currentUserPinfl = null;
+    _currentUserXTenantID = null;
     return super.close();
   }
 }

@@ -17,6 +17,9 @@ class CategoryState extends Equatable {
   final int totalPages;
   final String? productsError;
 
+  final bool isFromCache;
+  final bool productsFromCache;
+
   const CategoryState({
     this.categoryStatus = CategoryStatus.initial,
     this.submitStatus = CategorySubmitStatus.idle,
@@ -28,9 +31,11 @@ class CategoryState extends Equatable {
     this.currentPage = 1,
     this.totalPages = 1,
     this.productsError,
+    this.isFromCache = false,
+    this.productsFromCache = false,
   });
 
-  bool get hasMorePages => currentPage < totalPages;
+  bool get hasMorePages => !productsFromCache && currentPage < totalPages;
 
   factory CategoryState.initial() => const CategoryState();
 
@@ -39,31 +44,47 @@ class CategoryState extends Equatable {
     CategorySubmitStatus? submitStatus,
     List<CategoryData>? categoryList,
     String? responseError,
+    bool clearResponseError = false,
     String? submitError,
+    bool clearSubmitError = false,
     CategoryProductsStatus? productsStatus,
     List<ProductData>? products,
     int? currentPage,
     int? totalPages,
     String? productsError,
+    bool clearProductsError = false,
+    bool? isFromCache,
+    bool? productsFromCache,
   }) {
     return CategoryState(
-      categoryStatus: categoryStatus  ?? this.categoryStatus,
+      categoryStatus: categoryStatus ?? this.categoryStatus,
       submitStatus: submitStatus ?? this.submitStatus,
       categoryList: categoryList ?? this.categoryList,
-      responseError: responseError,
-      submitError: submitError,
+      responseError: clearResponseError ? null : responseError,
+      submitError: clearSubmitError ? null : submitError,
       productsStatus: productsStatus ?? this.productsStatus,
       products: products ?? this.products,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
-      productsError: productsError,
+      productsError: clearProductsError ? null : productsError,
+      isFromCache: isFromCache ?? this.isFromCache,
+      productsFromCache: productsFromCache ?? this.productsFromCache,
     );
   }
 
   @override
   List<Object?> get props => [
-    categoryStatus, submitStatus, categoryList,
-    responseError, submitError, productsStatus,
-    products, currentPage, totalPages, productsError,
+    categoryStatus,
+    submitStatus,
+    categoryList,
+    responseError,
+    submitError,
+    productsStatus,
+    products,
+    currentPage,
+    totalPages,
+    productsError,
+    isFromCache,
+    productsFromCache,
   ];
 }

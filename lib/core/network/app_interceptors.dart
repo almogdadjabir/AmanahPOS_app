@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:amana_pos/api/network/multipart_file_extended.dart';
+import 'package:amana_pos/core/network/multipart_file_extended.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';

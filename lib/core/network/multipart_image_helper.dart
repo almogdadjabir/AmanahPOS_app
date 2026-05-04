@@ -1,4 +1,4 @@
-import 'package:amana_pos/api/network/multipart_file_extended.dart';
+import 'package:amana_pos/core/network/multipart_file_extended.dart';
 import 'package:amana_pos/common/services/image/app_image_picker.dart';
 import 'package:dio/dio.dart';
 

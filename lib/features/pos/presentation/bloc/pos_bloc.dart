@@ -1,5 +1,4 @@
-import 'package:amana_pos/features/pos/data/models/pos_cart_item.dart';
-import 'package:amana_pos/features/pos/data/models/requests/create_sale_request_dto.dart';
+import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:equatable/equatable.dart';
@@ -129,61 +128,62 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     emit(state.copyWith(items: []));
   }
 
+
   Future<void> _onCheckoutSubmitted(
       PosCheckoutSubmitted event,
       Emitter<PosState> emit,
       ) async {
     if (state.items.isEmpty) return;
 
-    emit(state.copyWith(
-      submitStatus: PosSubmitStatus.loading,
-      submitError: null,
-    ));
+    emit(
+      state.copyWith(
+        submitStatus: PosSubmitStatus.loading,
+        submitError: null,
+      ),
+    );
 
     try {
-      final dto = CreateSaleRequestDto(
-        shop: event.shopId,
-        customer: event.customerId,
+      final soldQuantities = state.currentSoldQuantities;
+
+      final response = await useCase.submitSale(
+        shopId: event.shopId,
+        customerId: event.customerId,
         paymentMethod: state.paymentMethod,
+        items: state.items,
         discountAmount: '0',
         taxAmount: '0',
-        items: state.items
-            .where((item) => item.product.id != null)
-            .map(
-              (item) => CreateSaleItemDto(
-            productId: item.product.id!,
-            quantity: item.quantity.toString(),
-          ),
-        )
-            .toList(),
       );
 
-      final soldQuantities = state.currentSoldQuantities;
-      final response = await useCase.createSale(dto);
-      final error = response.getLeft().toNullable();
-
-      if (error != null) {
-        emit(state.copyWith(
-          submitStatus: PosSubmitStatus.failure,
-          submitError: error,
-        ));
-        return;
-      }
-
-      emit(
-        state.copyWith(
-          items: [],
-          lastSoldQuantities: soldQuantities,
-          cartExpanded: false,
-          submitStatus: PosSubmitStatus.success,
-          submitError: null,
-        ),
+      response.fold(
+            (error) {
+          emit(
+            state.copyWith(
+              submitStatus: PosSubmitStatus.failure,
+              submitError: error ?? 'Failed to submit sale',
+            ),
+          );
+        },
+            (result) {
+          emit(
+            state.copyWith(
+              items: [],
+              lastSoldQuantities: soldQuantities,
+              cartExpanded: false,
+              submitStatus: PosSubmitStatus.success,
+              submitError: result.queued
+                  ? 'Sale saved offline. It will sync automatically when internet is back.'
+                  : null,
+            ),
+          );
+        },
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: PosSubmitStatus.failure,
-        submitError: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: PosSubmitStatus.failure,
+          submitError: e.toString(),
+        ),
+      );
     }
   }
 

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:amana_pos/api/request_handler.dart';
+import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
@@ -9,7 +9,7 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/repositories/product_repository.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:amana_pos/common/network/multipart_image_helper.dart';
+import 'package:amana_pos/core/network/multipart_image_helper.dart';
 import 'package:dio/dio.dart';
 
 class ProductRepoImpl extends ProductRepository {

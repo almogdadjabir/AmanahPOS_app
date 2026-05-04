@@ -1,7 +1,7 @@
-import 'package:amana_pos/api/network/app_interceptors.dart';
-import 'package:amana_pos/api/network/dio_client.dart';
-import 'package:amana_pos/api/network/error_handler.dart';
-import 'package:amana_pos/api/network/multipart_file_extended.dart';
+import 'package:amana_pos/core/network/app_interceptors.dart';
+import 'package:amana_pos/core/network/dio_client.dart';
+import 'package:amana_pos/core/network/error_handler.dart';
+import 'package:amana_pos/core/network/multipart_file_extended.dart';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 

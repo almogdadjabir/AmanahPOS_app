@@ -1,9 +1,10 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/cart/presentation/cart_sheet.dart';
 import 'package:amana_pos/features/cart/presentation/products_empty.dart';
-import 'package:amana_pos/features/cart/presentation/products_error.dart';
 import 'package:amana_pos/features/cart/presentation/products_loading_grid.dart';
-import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_bar.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/pos_search_section.dart';
@@ -12,6 +13,7 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +27,8 @@ class PosScreen extends StatefulWidget {
 
 class _PosScreenState extends State<PosScreen> {
   final _searchCtrl = TextEditingController();
+
+  bool _checkoutResolvingShop = false;
 
   @override
   void initState() {
@@ -47,14 +51,93 @@ class _PosScreenState extends State<PosScreen> {
     super.dispose();
   }
 
-  String? _defaultShopId(BuildContext context) {
-    final businesses = context.read<BusinessBloc>().state.businessList;
+  Future<String?> _defaultShopId() async {
+    final fromBusinessBloc = _shopFromBusinessList(
+      context.read<BusinessBloc>().state.businessList,
+    );
+
+    if (fromBusinessBloc != null) return fromBusinessBloc;
+
+    final fromAuthBloc = _shopFromBusiness(
+      context.read<AuthBloc>().state.defaultBusiness,
+    );
+
+    if (fromAuthBloc != null) return fromAuthBloc;
+
+    try {
+      final cache = getIt<OfflineLocalCache>();
+
+      final cachedShops = await cache.getShops();
+      if (cachedShops.isNotEmpty) {
+        final shopId = cachedShops.first.id;
+        if (shopId != null && shopId.isNotEmpty) return shopId;
+      }
+
+      final cachedBusinesses = await cache.getBusinesses();
+      final fromCachedBusinesses = _shopFromBusinessList(cachedBusinesses);
+
+      if (fromCachedBusinesses != null) return fromCachedBusinesses;
+    } catch (_) {
+      // Do not block checkout UI if cache read fails.
+    }
+
+    return null;
+  }
+
+  String? _shopFromBusinessList(List<BusinessData>? businesses) {
     if (businesses == null || businesses.isEmpty) return null;
 
-    final shops = businesses.first.shops;
+    for (final business in businesses) {
+      final shopId = _shopFromBusiness(business);
+      if (shopId != null) return shopId;
+    }
+
+    return null;
+  }
+
+  String? _shopFromBusiness(BusinessData? business) {
+    if (business == null) return null;
+
+    final shops = business.shops;
     if (shops == null || shops.isEmpty) return null;
 
-    return shops.first.id;
+    for (final shop in shops) {
+      final shopId = shop.id;
+      final isActive = shop.isActive ?? true;
+
+      if (shopId != null && shopId.isNotEmpty && isActive) {
+        return shopId;
+      }
+    }
+
+    return null;
+  }
+
+  Future<void> _handleCheckout() async {
+    if (_checkoutResolvingShop) return;
+
+    _checkoutResolvingShop = true;
+
+    try {
+      final shopId = await _defaultShopId();
+
+      if (!mounted) return;
+
+      if (shopId == null || shopId.isEmpty) {
+        GlobalSnackBar.show(
+          message: 'No shop found on this device. Please connect once to refresh your business data.',
+          isError: true,
+          isAutoDismiss: false,
+        );
+        return;
+      }
+
+      context.read<PosBloc>().add(
+        PosCheckoutSubmitted(shopId: shopId),
+      );
+    } finally {
+      _checkoutResolvingShop = false;
+    }
   }
 
   @override
@@ -71,8 +154,12 @@ class _PosScreenState extends State<PosScreen> {
 
           context.read<ProductBloc>().add(const OnProductInitial());
 
+          final message = state.submitError?.isNotEmpty == true
+              ? state.submitError!
+              : 'Sale completed successfully';
+
           GlobalSnackBar.show(
-            message: 'Sale completed successfully',
+            message: message,
             isInfo: true,
           );
 
@@ -140,11 +227,6 @@ class _PosScreenState extends State<PosScreen> {
                               if (productState.productStatus == ProductStatus.failure) {
                                 return ProductErrorView(
                                   message: productState.responseError,
-                                  // onRetry: () {
-                                  //   context.read<ProductBloc>().add(
-                                  //     const OnProductInitial(),
-                                  //   );
-                                  // },
                                 );
                               }
 
@@ -179,21 +261,7 @@ class _PosScreenState extends State<PosScreen> {
                       ],
                     ),
                     CartSheet(
-                      onCheckout: () {
-                        final shopId = _defaultShopId(context);
-
-                        if (shopId == null) {
-                          GlobalSnackBar.show(
-                            message: 'Please create/select a shop first',
-                            isError: true,
-                          );
-                          return;
-                        }
-
-                        context.read<PosBloc>().add(
-                          PosCheckoutSubmitted(shopId: shopId),
-                        );
-                      },
+                      onCheckout: _handleCheckout,
                     ),
                   ],
                 ),
@@ -227,7 +295,6 @@ class _PosScreenState extends State<PosScreen> {
     }).toList();
   }
 }
-
 
 String money(double value) {
   return value.toStringAsFixed(2);

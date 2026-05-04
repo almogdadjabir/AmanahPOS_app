@@ -1,5 +1,5 @@
 
-import 'package:amana_pos/api/request_handler.dart';
+import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';

@@ -1,5 +1,5 @@
 
-import 'package:amana_pos/api/request_handler.dart';
+import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
 import 'package:amana_pos/features/category/data/models/requests/edit_category_request_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/add_category_response_dto.dart';
