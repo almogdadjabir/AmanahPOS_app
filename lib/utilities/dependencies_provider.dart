@@ -8,7 +8,7 @@ import 'package:amana_pos/core/network/dio_client.dart';
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/data/offline_remote_data_source.dart';
-import 'package:amana_pos/core/offline/offline_catalog_cache.dart';
+import 'package:amana_pos/core/offline/offline_asset_downloader.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
@@ -90,6 +90,13 @@ class DependenciesProvider {
           () => OfflineLocalCache(getIt<OfflineDb>()),
     );
 
+    getIt.registerLazySingleton<OfflineAssetDownloader>(
+          () => OfflineAssetDownloader(
+        dio: getIt<Dio>(),
+        localCache: getIt<OfflineLocalCache>(),
+      ),
+    );
+
     getIt.registerLazySingleton<OfflineRemoteDataSource>(
           () => OfflineRemoteDataSource(getIt<RequestHandler>()),
     );
@@ -121,6 +128,7 @@ class DependenciesProvider {
         localCache: getIt<OfflineLocalCache>(),
         remoteDataSource: getIt<OfflineRemoteDataSource>(),
         syncManager: getIt<SyncManager>(),
+        assetDownloader: getIt<OfflineAssetDownloader>(),
       ),
     );
 

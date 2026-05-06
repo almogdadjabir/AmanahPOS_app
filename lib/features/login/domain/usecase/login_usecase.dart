@@ -27,6 +27,6 @@ class LoginUseCase {
 
   Future<Either<String?, UserProfileDto>> updateProfile(UpdateProfileRequestDto request) => repository.updateProfile(request);
   Future<Either<String?, bool>> setPassword(SetPasswordRequestDto request) => repository.setPassword(request);
-  Future<Either<String?, User>> logout() => repository.logout();
+  Future<Either<String?, User>> logout(dynamic request) => repository.logout(request);
 
 }

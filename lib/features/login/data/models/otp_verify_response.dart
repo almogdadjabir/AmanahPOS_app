@@ -127,4 +127,14 @@ class BankakAccountDto {
       createdAt: json['created_at']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'account_number': accountNumber,
+      'is_default': isDefault,
+      'is_active': isActive,
+      'created_at': createdAt,
+    };
+  }
 }

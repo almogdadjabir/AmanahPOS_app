@@ -164,17 +164,17 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           );
         },
             (result) {
-          emit(
-            state.copyWith(
-              items: [],
-              lastSoldQuantities: soldQuantities,
-              cartExpanded: false,
-              submitStatus: PosSubmitStatus.success,
-              submitError: result.queued
-                  ? 'Sale saved offline. It will sync automatically when internet is back.'
-                  : null,
-            ),
-          );
+              emit(
+                state.copyWith(
+                  items: [],
+                  lastSoldQuantities: soldQuantities,
+                  cartExpanded: false,
+                  submitStatus: PosSubmitStatus.success,
+                  submitError: result.queued
+                      ? 'Sale saved offline. It will sync automatically when internet is back.'
+                      : null,
+                ),
+              );
         },
       );
     } catch (e) {

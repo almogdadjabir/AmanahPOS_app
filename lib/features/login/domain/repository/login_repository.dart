@@ -13,7 +13,7 @@ abstract class LoginRepository {
   Future<Either<String?, OtpVerifyResponse>> otpVerify(OtpVerifyRequest request);
   Future<Either<String?, OtpResendResponse>> otpResend();
   Future<Either<String?, UserProfileDto>> getProfile();
-  Future<Either<String?, User>> logout();
+  Future<Either<String?, User>> logout(dynamic request);
   Future<Either<String?, UserProfileDto>> updateProfile(UpdateProfileRequestDto request);
   Future<Either<String?, bool>> setPassword(SetPasswordRequestDto request);
 }

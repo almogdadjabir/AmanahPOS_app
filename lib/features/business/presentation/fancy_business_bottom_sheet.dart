@@ -1,6 +1,6 @@
 import 'package:amana_pos/features/business/presentation/widgets/add_business_sheet.dart';
 import 'package:amana_pos/features/business/presentation/widgets/feature_slider.dart';
-import 'package:amana_pos/features/business/presentation/widgets/floating_store_hero.dart';
+import 'package:amana_pos/features/business/presentation/widgets/shop/floating_store_hero.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';

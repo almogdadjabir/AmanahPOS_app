@@ -15,6 +15,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   final OfflineLocalCache localCache;
   final OfflineFirstManager offlineFirstManager;
   final SyncManager syncManager;
+  int _logoutVersion = 0;
 
   StreamSubscription<bool>? _connectionSubscription;
 
@@ -29,6 +30,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
     on<OnOfflineStatusSyncSalesRequested>(_onSyncSalesRequested);
     on<OnOfflineConnectionChanged>(_onConnectionChanged);
     on<OnOfflinePendingSalesCountChanged>(_onPendingSalesCountChanged);
+    on<OnOfflineStatusResetRequested>(_onResetRequested);
   }
 
   Future<void> _onStarted(
@@ -238,11 +240,16 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   }
 
   Future<void> _backgroundRefresh() async {
+    final version = _logoutVersion;
+
     try {
       final isOnline = await networkMonitor.isOnline;
       if (!isOnline) return;
+      if (version != _logoutVersion) return;
 
       await offlineFirstManager.refreshBootstrap();
+
+      if (version != _logoutVersion) return;
 
       add(const OnOfflineStatusRefreshRequested());
     } catch (_) {
@@ -251,17 +258,46 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   }
 
   Future<void> _backgroundSyncSales() async {
+    final version = _logoutVersion;
+
     try {
       final isOnline = await networkMonitor.isOnline;
       if (!isOnline) return;
+      if (version != _logoutVersion) return;
 
       await syncManager.syncPendingSales();
+
+      if (version != _logoutVersion) return;
+
       final count = await syncManager.pendingSalesCount();
+
+      if (version != _logoutVersion) return;
 
       add(OnOfflinePendingSalesCountChanged(count: count));
     } catch (_) {
       // Silent background sync failure.
     }
+  }
+
+
+  Future<void> _onResetRequested(
+      OnOfflineStatusResetRequested event,
+      Emitter<OfflineStatusState> emit,
+      ) async {
+    _logoutVersion++;
+
+    await _connectionSubscription?.cancel();
+    _connectionSubscription = null;
+
+    emit(OfflineStatusState.initial());
+  }
+
+  Future<bool> get isDeviceOnline async {
+    return networkMonitor.isOnline;
+  }
+
+  Future<int> get pendingOfflineSalesCount async {
+    return syncManager.pendingSalesCount();
   }
 
   @override

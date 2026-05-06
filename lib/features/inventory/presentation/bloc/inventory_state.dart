@@ -5,7 +5,6 @@ enum InventoryStatus { initial, loading, loadingMore, success, failure }
 enum StockFilter { all, lowStock, outOfStock }
 enum InventorySubmitStatus { idle, loading, success, failure }
 
-
 class InventoryState extends Equatable {
   final InventoryStatus status;
   final List<StockData> stockList;
@@ -16,6 +15,9 @@ class InventoryState extends Equatable {
   final InventorySubmitStatus submitStatus;
   final String? submitError;
 
+  /// True when stock came from SQLite cache.
+  final bool isFromCache;
+
   const InventoryState({
     this.status = InventoryStatus.initial,
     this.stockList = const [],
@@ -25,11 +27,12 @@ class InventoryState extends Equatable {
     this.responseError,
     this.submitStatus = InventorySubmitStatus.idle,
     this.submitError,
+    this.isFromCache = false,
   });
 
   factory InventoryState.initial() => const InventoryState();
 
-  bool get hasMorePages => currentPage < totalPages;
+  bool get hasMorePages => !isFromCache && currentPage < totalPages;
 
   List<StockData> get filtered => switch (filter) {
     StockFilter.lowStock => stockList.where((s) => s.isLowStock ?? false).toList(),
@@ -44,8 +47,11 @@ class InventoryState extends Equatable {
     int? currentPage,
     int? totalPages,
     String? responseError,
+    bool clearResponseError = false,
     InventorySubmitStatus? submitStatus,
     String? submitError,
+    bool clearSubmitError = false,
+    bool? isFromCache,
   }) {
     return InventoryState(
       status: status ?? this.status,
@@ -53,16 +59,26 @@ class InventoryState extends Equatable {
       filter: filter ?? this.filter,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
-      responseError: responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
       submitStatus: submitStatus ?? this.submitStatus,
-      submitError:  submitError,
+      submitError: clearSubmitError
+          ? null
+          : submitError ?? this.submitError,
+      isFromCache: isFromCache ?? this.isFromCache,
     );
   }
-
   @override
   List<Object?> get props => [
-    status, stockList, filter,
-    currentPage, totalPages, responseError,
-    submitStatus, submitError,
+    status,
+    stockList,
+    filter,
+    currentPage,
+    totalPages,
+    responseError,
+    submitStatus,
+    submitError,
+    isFromCache,
   ];
 }

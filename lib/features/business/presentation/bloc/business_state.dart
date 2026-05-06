@@ -30,18 +30,24 @@ class BusinessState extends Equatable {
   BusinessState copyWith({
     bool? isLoading,
     String? responseError,
+    bool clearResponseError = false,
     BusinessStatus? businessStatus,
     List<BusinessData>? businessList,
     BusinessSubmitStatus? submitStatus,
     String? submitError,
+    bool clearSubmitError = false,
   }) {
     return BusinessState(
       isLoading: isLoading ?? this.isLoading,
-      responseError: responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
       businessStatus: businessStatus ?? this.businessStatus,
       businessList: businessList ?? this.businessList,
       submitStatus: submitStatus ?? this.submitStatus,
-      submitError: submitError,
+      submitError: clearSubmitError
+          ? null
+          : submitError ?? this.submitError,
     );
   }
 

@@ -54,26 +54,17 @@ class OfflineSalesQueue {
             'quantity': item.quantity,
             'unit_price': item.unitPrice,
             'line_total': item.lineTotal,
-            'product_snapshot_json': jsonEncode(_productSnapshotToJson(item.productSnapshot)),
+            'product_snapshot_json': jsonEncode(
+              _productSnapshotToJson(item.productSnapshot),
+            ),
           },
         );
 
-        await txn.rawUpdate(
-          '''
-          UPDATE stock
-          SET quantity = MAX(quantity - ?, 0)
-          WHERE product_id = ? AND shop_id = ?
-          ''',
-          [item.quantity, item.productId, sale.shopId],
-        );
-
-        await txn.rawUpdate(
-          '''
-          UPDATE products
-          SET stock_level = MAX(COALESCE(stock_level, 0) - ?, 0)
-          WHERE id = ?
-          ''',
-          [item.quantity, item.productId],
+        await _deductStockInsideTransaction(
+          txn: txn,
+          productId: item.productId,
+          shopId: sale.shopId,
+          soldQuantity: item.quantity,
         );
       }
     });
@@ -221,5 +212,78 @@ class OfflineSalesQueue {
       'created_at': data.createdAt,
       'thumbnail_url': data.thumbnailUrl,
     };
+  }
+
+  Future<void> _deductStockInsideTransaction({
+    required Transaction txn,
+    required String productId,
+    required String shopId,
+    required double soldQuantity,
+  }) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final stockRows = await txn.query(
+      'stock',
+      where: 'product_id = ? AND shop_id = ?',
+      whereArgs: [productId, shopId],
+      limit: 1,
+    );
+
+    if (stockRows.isNotEmpty) {
+      final currentQty =
+          (stockRows.first['quantity'] as num?)?.toDouble() ?? 0;
+
+      final nextQty = currentQty - soldQuantity;
+      final safeQty = nextQty < 0 ? 0 : nextQty;
+
+      final rawJson = stockRows.first['json'] as String;
+      final jsonMap = jsonDecode(rawJson) as Map<String, dynamic>;
+
+      jsonMap['quantity'] = safeQty;
+      jsonMap['is_out_of_stock'] = safeQty <= 0;
+      jsonMap['updated_at'] = now;
+
+      await txn.update(
+        'stock',
+        {
+          'quantity': safeQty,
+          'json': jsonEncode(jsonMap),
+          'updated_at': now,
+        },
+        where: 'product_id = ? AND shop_id = ?',
+        whereArgs: [productId, shopId],
+      );
+    }
+
+    final productRows = await txn.query(
+      'products',
+      where: 'id = ?',
+      whereArgs: [productId],
+      limit: 1,
+    );
+
+    if (productRows.isNotEmpty) {
+      final currentStock =
+          (productRows.first['stock_level'] as num?)?.toDouble() ?? 0;
+
+      final nextStock = currentStock - soldQuantity;
+      final safeStock = nextStock < 0 ? 0 : nextStock;
+
+      final rawJson = productRows.first['json'] as String;
+      final jsonMap = jsonDecode(rawJson) as Map<String, dynamic>;
+
+      jsonMap['stock_level'] = safeStock;
+
+      await txn.update(
+        'products',
+        {
+          'stock_level': safeStock,
+          'json': jsonEncode(jsonMap),
+          'updated_at': now,
+        },
+        where: 'id = ?',
+        whereArgs: [productId],
+      );
+    }
   }
 }

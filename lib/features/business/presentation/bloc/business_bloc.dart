@@ -4,21 +4,22 @@ import 'package:amana_pos/features/business/data/models/requests/edit_business_r
 import 'package:amana_pos/features/business/data/models/requests/edit_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
+import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'business_event.dart';
 part 'business_state.dart';
 
+
 class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
-  BusinessUseCase useCase;
+  final BusinessUseCase useCase;
+  final OfflineLocalCache offlineLocalCache;
 
-  BusinessBloc({required this.useCase})
-      : super(BusinessState.initial()) {
-    _registerEventHandlers();
-  }
-
-  void _registerEventHandlers() {
+  BusinessBloc({
+    required this.useCase,
+    required this.offlineLocalCache,
+  }) : super(BusinessState.initial()) {
     on<OnBusinessInitial>(_init);
     on<OnEditBusiness>(_editBusiness);
     on<OnAddBusiness>(_addBusiness);
@@ -27,50 +28,113 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     on<OnEditShop>(_editShop);
   }
 
-  Future<void> _init(OnBusinessInitial event,
-      Emitter<BusinessState> emit) async {
-    emit(state.copyWith(businessStatus: BusinessStatus.initial));
-    await Future.wait([
-      // _loadCardColors(emit),
-      _loadBusiness(emit),
-    ]);
+  Future<void> _init(
+      OnBusinessInitial event,
+      Emitter<BusinessState> emit,
+      ) async {
+    await _loadBusiness(emit);
   }
 
 
   Future<void> _loadBusiness(Emitter<BusinessState> emit) async {
+    if (state.businessStatus == BusinessStatus.loading) return;
 
-    if (state.businessStatus == BusinessStatus.loading ||
-        state.businessStatus == BusinessStatus.success) {
-      return;
-    }
-
-    emit(state.copyWith(
-      isLoading: true,
-      businessStatus: BusinessStatus.loading,
-    ));
+    var emittedCache = false;
 
     try {
+      final cachedBusinesses = await offlineLocalCache.getBusinesses();
+
+      if (emit.isDone) return;
+
+      if (cachedBusinesses.isNotEmpty) {
+        emittedCache = true;
+
+        emit(
+          state.copyWith(
+            isLoading: false,
+            businessStatus: BusinessStatus.success,
+            businessList: cachedBusinesses,
+            clearResponseError: true,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            isLoading: true,
+            businessStatus: BusinessStatus.loading,
+            clearResponseError: true,
+          ),
+        );
+      }
+
       final response = await useCase.getBusinessList();
 
-      response.fold(
-            (error) => emit(state.copyWith(
-              isLoading: false,
-              responseError: error,
-              businessStatus: BusinessStatus.failure,
-            )),
-            (business) => emit(state.copyWith(
-              isLoading: false,
-              businessList: business.data,
-              businessStatus: BusinessStatus.success,
-            ))
-      );
+      if (emit.isDone) return;
 
+      final error = response.getLeft().toNullable();
+      final business = response.getRight().toNullable();
+
+      if (error != null) {
+        if (emittedCache) {
+          emit(
+            state.copyWith(
+              isLoading: false,
+              businessStatus: BusinessStatus.success,
+              responseError: error,
+            ),
+          );
+          return;
+        }
+
+        emit(
+          state.copyWith(
+            isLoading: false,
+            responseError: error,
+            businessStatus: BusinessStatus.failure,
+          ),
+        );
+        return;
+      }
+
+      final freshBusinesses = business?.data ?? [];
+
+      await offlineLocalCache.saveBusinessesToCache(freshBusinesses);
+
+      if (emit.isDone) return;
+
+      final normalizedBusinesses = await offlineLocalCache.getBusinesses();
+
+      if (emit.isDone) return;
+
+      emit(
+        state.copyWith(
+          isLoading: false,
+          businessList: normalizedBusinesses,
+          businessStatus: BusinessStatus.success,
+          clearResponseError: true,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        responseError: e.toString(),
-        businessStatus: BusinessStatus.failure,
-      ));
+      if (emit.isDone) return;
+
+      if (emittedCache) {
+        emit(
+          state.copyWith(
+            isLoading: false,
+            businessStatus: BusinessStatus.success,
+            responseError: e.toString(),
+          ),
+        );
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          isLoading: false,
+          responseError: e.toString(),
+          businessStatus: BusinessStatus.failure,
+        ),
+      );
     }
   }
 

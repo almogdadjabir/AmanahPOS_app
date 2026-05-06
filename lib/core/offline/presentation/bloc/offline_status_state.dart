@@ -1,43 +1,21 @@
 part of 'offline_status_bloc.dart';
 
-enum OfflineConnectionStatus {
-  unknown,
-  online,
-  offline,
-}
+enum OfflineConnectionStatus { unknown, online, offline, }
 
-enum OfflineBootstrapStatus {
-  initial,
-  loading,
-  success,
-  failure,
-}
+enum OfflineBootstrapStatus { initial, loading, success, failure, }
 
-enum OfflineAssetStatus {
-  initial,
-  loading,
-  success,
-  failure,
-}
+enum OfflineAssetStatus { initial, loading, success, failure, }
 
-enum OfflineSalesSyncStatus {
-  idle,
-  syncing,
-  success,
-  failure,
-}
+enum OfflineSalesSyncStatus { idle, syncing, success, failure, }
 
 class OfflineStatusState extends Equatable {
   final OfflineConnectionStatus connectionStatus;
   final OfflineBootstrapStatus bootstrapStatus;
   final OfflineAssetStatus assetStatus;
   final OfflineSalesSyncStatus salesSyncStatus;
-
   final bool hasCache;
   final bool canUseAppOffline;
-
   final int pendingSalesCount;
-
   final DateTime? lastBootstrapSyncAt;
   final DateTime? lastAssetSyncAt;
   final DateTime? lastSalesSyncAt;

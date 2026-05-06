@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/data/offline_remote_data_source.dart';
+import 'package:amana_pos/core/offline/offline_asset_downloader.dart';
 import 'package:amana_pos/core/sync/sync_manager.dart';
 
 enum OfflineFirstStatus {
@@ -40,15 +41,18 @@ class OfflineFirstManager {
     required OfflineLocalCache localCache,
     required OfflineRemoteDataSource remoteDataSource,
     required SyncManager syncManager,
+    required OfflineAssetDownloader assetDownloader,
   })  : _networkMonitor = networkMonitor,
         _localCache = localCache,
         _remoteDataSource = remoteDataSource,
-        _syncManager = syncManager;
+        _syncManager = syncManager,
+        _assetDownloader = assetDownloader;
 
   final NetworkMonitor _networkMonitor;
   final OfflineLocalCache _localCache;
   final OfflineRemoteDataSource _remoteDataSource;
   final SyncManager _syncManager;
+  final OfflineAssetDownloader _assetDownloader;
 
   bool _started = false;
   bool _refreshingBootstrap = false;
@@ -137,6 +141,7 @@ class OfflineFirstManager {
     if (_refreshingAssets) return;
 
     _refreshingAssets = true;
+
     try {
       final dto = await _remoteDataSource.getAssetManifest();
 
@@ -144,7 +149,14 @@ class OfflineFirstManager {
         throw Exception('Asset manifest failed');
       }
 
-      await _localCache.saveAssetManifest(dto);
+      await _localCache.saveAssetManifestPreservingDownloads(dto);
+
+      await _assetDownloader.downloadMissingAssets(
+        batchSize: 40,
+        onProgress: (progress) {
+          // Later we can expose progress in OfflineStatusBloc if needed.
+        },
+      );
     } catch (e) {
       if (!silent) rethrow;
     } finally {

@@ -41,7 +41,7 @@ class LoginRepoImpl extends LoginRepository {
   }
 
   @override
-  Future<Either<String?, User>> logout() {
+  Future<Either<String?, User>> logout(dynamic request) {
     return requestHandler.handlePostRequest(
       'auth/logout/',
           (data) => User.fromJson(data as Map<String, dynamic>),

@@ -110,12 +110,21 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final productsResult = productsResponse.getRight().toNullable();
       final categoriesResult = categoriesResponse.getRight().toNullable();
 
+      final freshProducts = productsResult?.results ?? [];
+      final freshCategories = categoriesResult?.data ?? [];
+
+      await offlineLocalCache.saveProductsToCache(freshProducts);
+      await offlineLocalCache.saveCategoriesToCache(freshCategories);
+
+      final normalizedProducts = await offlineLocalCache.getProducts();
+      final normalizedCategories = await offlineLocalCache.getCategories();
+
       if (!emit.isDone) {
         emit(
           state.copyWith(
             productStatus: ProductStatus.success,
-            products: productsResult?.results ?? [],
-            categories: categoriesResult?.data ?? [],
+            products: normalizedProducts,
+            categories: normalizedCategories,
             currentPage: productsResult?.currentPage ?? 1,
             totalPages: productsResult?.totalPages ?? 1,
             isFromCache: false,
@@ -196,9 +205,11 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         page: 1,
       );
 
-      response.fold(
-            (error) {
-          if (emittedCachedData) {
+      final error = response.getLeft().toNullable();
+
+      if (error != null) {
+        if (emittedCachedData) {
+          if (!emit.isDone) {
             emit(
               state.copyWith(
                 productStatus: ProductStatus.success,
@@ -206,9 +217,11 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
                 isFromCache: true,
               ),
             );
-            return;
           }
+          return;
+        }
 
+        if (!emit.isDone) {
           emit(
             state.copyWith(
               productStatus: ProductStatus.failure,
@@ -216,56 +229,79 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
               isFromCache: false,
             ),
           );
-        },
-            (result) {
-          if (categoryId == null) {
-            final r = result as ProductListResponseDto;
-
-            emit(
-              state.copyWith(
-                productStatus: ProductStatus.success,
-                products: r.results ?? [],
-                currentPage: r.currentPage ?? 1,
-                totalPages: r.totalPages ?? 1,
-                isFromCache: false,
-                clearResponseError: true,
-              ),
-            );
-          } else {
-            final r = result as CategoryProductsResponseDto;
-
-            emit(
-              state.copyWith(
-                productStatus: ProductStatus.success,
-                products: r.products ?? [],
-                currentPage: r.currentPage ?? 1,
-                totalPages: r.totalPages ?? 1,
-                isFromCache: false,
-                clearResponseError: true,
-              ),
-            );
-          }
-        },
-      );
-    } catch (e) {
-      if (emittedCachedData) {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.success,
-            responseError: e.toString(),
-            isFromCache: true,
-          ),
-        );
+        }
         return;
       }
 
-      emit(
-        state.copyWith(
-          productStatus: ProductStatus.failure,
-          responseError: e.toString(),
-          isFromCache: false,
-        ),
-      );
+      final result = response.getRight().toNullable();
+      if (result == null) return;
+
+      if (categoryId == null) {
+        final r = result as ProductListResponseDto;
+        final freshProducts = r.results ?? [];
+
+        await offlineLocalCache.saveProductsToCache(freshProducts);
+
+        final normalizedProducts = await offlineLocalCache.getProducts();
+
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              productStatus: ProductStatus.success,
+              products: normalizedProducts,
+              currentPage: r.currentPage ?? 1,
+              totalPages: r.totalPages ?? 1,
+              isFromCache: false,
+              clearResponseError: true,
+            ),
+          );
+        }
+      } else {
+        final r = result as CategoryProductsResponseDto;
+        final freshProducts = r.products ?? [];
+
+        await offlineLocalCache.saveProductsToCache(freshProducts);
+
+        final normalizedProducts = await offlineLocalCache.getProducts(
+          categoryId: categoryId,
+        );
+
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              productStatus: ProductStatus.success,
+              products: normalizedProducts,
+              currentPage: r.currentPage ?? 1,
+              totalPages: r.totalPages ?? 1,
+              isFromCache: false,
+              clearResponseError: true,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (emittedCachedData) {
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              productStatus: ProductStatus.success,
+              responseError: e.toString(),
+              isFromCache: true,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            productStatus: ProductStatus.failure,
+            responseError: e.toString(),
+            isFromCache: false,
+          ),
+        );
+      }
     }
   }
 
@@ -289,50 +325,75 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         page: nextPage,
       );
 
-      response.fold(
-            (error) => emit(
+      final error = response.getLeft().toNullable();
+
+      if (error != null) {
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              productStatus: ProductStatus.failure,
+              responseError: error,
+            ),
+          );
+        }
+        return;
+      }
+
+      final result = response.getRight().toNullable();
+      if (result == null) return;
+
+      if (state.selectedCategoryId == null) {
+        final r = result as ProductListResponseDto;
+        final freshProducts = r.results ?? [];
+
+        await offlineLocalCache.saveProductsToCache(freshProducts);
+
+        final normalizedProducts = await offlineLocalCache.getProducts();
+
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              productStatus: ProductStatus.success,
+              products: normalizedProducts,
+              currentPage: r.currentPage ?? nextPage,
+              totalPages: r.totalPages ?? state.totalPages,
+              isFromCache: false,
+              clearResponseError: true,
+            ),
+          );
+        }
+      } else {
+        final r = result as CategoryProductsResponseDto;
+        final freshProducts = r.products ?? [];
+
+        await offlineLocalCache.saveProductsToCache(freshProducts);
+
+        final normalizedProducts = await offlineLocalCache.getProducts(
+          categoryId: state.selectedCategoryId,
+        );
+
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              productStatus: ProductStatus.success,
+              products: normalizedProducts,
+              currentPage: r.currentPage ?? nextPage,
+              totalPages: r.totalPages ?? state.totalPages,
+              isFromCache: false,
+              clearResponseError: true,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(
           state.copyWith(
             productStatus: ProductStatus.failure,
-            responseError: error,
+            responseError: e.toString(),
           ),
-        ),
-            (result) {
-          if (state.selectedCategoryId == null) {
-            final r = result as ProductListResponseDto;
-
-            emit(
-              state.copyWith(
-                productStatus: ProductStatus.success,
-                products: [...state.products, ...?r.results],
-                currentPage: r.currentPage ?? nextPage,
-                totalPages: r.totalPages ?? state.totalPages,
-                isFromCache: false,
-                clearResponseError: true,
-              ),
-            );
-          } else {
-            final r = result as CategoryProductsResponseDto;
-
-            emit(
-              state.copyWith(
-                productStatus: ProductStatus.success,
-                products: [...state.products, ...?r.products],
-                currentPage: r.currentPage ?? nextPage,
-                totalPages: r.totalPages ?? state.totalPages,
-                isFromCache: false,
-                clearResponseError: true,
-              ),
-            );
-          }
-        },
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          productStatus: ProductStatus.failure,
-          responseError: e.toString(),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -424,9 +485,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           state.copyWith(
             submitStatus: ProductSubmitStatus.success,
             clearSubmitError: true,
-            productStatus: ProductStatus.initial,
-            products: [],
-            isFromCache: false,
           ),
         );
 

@@ -36,3 +36,10 @@ class OnOfflinePendingSalesCountChanged extends OfflineStatusEvent {
   @override
   List<Object?> get props => [count];
 }
+
+class OnOfflineStatusResetRequested extends OfflineStatusEvent {
+  const OnOfflineStatusResetRequested();
+
+  @override
+  List<Object?> get props => [];
+}

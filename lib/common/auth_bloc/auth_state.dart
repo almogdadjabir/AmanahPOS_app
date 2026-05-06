@@ -63,6 +63,24 @@ class AuthState extends Equatable {
     );
   }
 
+  UserRole get userRole => UserRole.fromString(profile?.role);
+
+  bool get isOwner => userRole == UserRole.owner;
+
+  bool get isManager => userRole == UserRole.manager;
+
+  bool get isCashier => userRole == UserRole.cashier;
+
+  bool get isOwnerOrManager => isOwner || isManager;
+
+  bool get canManageBusiness => isOwner || isManager;
+
+  bool get canManageUsers => isOwner;
+
+  bool get canViewReports => isOwner || isManager;
+
+  bool get canSell => isOwner || isManager || isCashier;
+
   @override
   List<Object?> get props => [
     isLoggedIn, isLoading, profile, authStatus, responseError, hideBalance,

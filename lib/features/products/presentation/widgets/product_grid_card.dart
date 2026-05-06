@@ -1,7 +1,6 @@
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
-import 'package:amana_pos/features/products/presentation/utils/product_image_url.dart';
-import 'package:amana_pos/features/products/presentation/widgets/placeholder_image.dart';
 import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -37,7 +36,7 @@ class ProductGridCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDims.rLg),
             border: Border.all(color: colors.border),
           ),
-          clipBehavior: Clip.antiAlias,
+          clipBehavior: Clip.antiAliasWithSaveLayer,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -45,21 +44,10 @@ class ProductGridCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Builder(
-                        builder: (_) {
-                          final imageUrl = product.listImageUrl;
-
-                          if (imageUrl == null) {
-                            return const PlaceholderImage();
-                          }
-
-                          return Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const PlaceholderImage(),
-                          );
-                        },
-                      ),
+                      child: OfflineCachedImage(
+                        imageUrl: product.thumbnailUrl ?? product.image,
+                        fit: BoxFit.cover,
+                      )
                     ),
 
                     if (!isActive)

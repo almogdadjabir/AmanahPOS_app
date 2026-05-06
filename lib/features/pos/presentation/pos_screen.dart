@@ -152,8 +152,6 @@ class _PosScreenState extends State<PosScreen> {
             ),
           );
 
-          context.read<ProductBloc>().add(const OnProductInitial());
-
           final message = state.submitError?.isNotEmpty == true
               ? state.submitError!
               : 'Sale completed successfully';
@@ -183,7 +181,6 @@ class _PosScreenState extends State<PosScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: context.appColors.background,
         body: SafeArea(
           bottom: false,
           child: BlocBuilder<PosBloc, PosState>(

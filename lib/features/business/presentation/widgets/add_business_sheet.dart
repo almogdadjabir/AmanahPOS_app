@@ -1,6 +1,8 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
+import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -73,6 +75,7 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
           GlobalSnackBar.show(
             message: 'Business added successfully',
             isInfo: true,);
+          getIt<NavigationBloc>().add(NavigationTabSelected(1));
           Navigator.of(context).pushNamedAndRemoveUntil(
             RouteStrings.mainScreen,
                 (route) => false,

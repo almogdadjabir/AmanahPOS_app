@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
@@ -49,7 +52,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(state.copyWith(const AuthStateUpdate(authStatus: AuthStatus.loading)));
 
-      // 1. Serve cached profile immediately for fast perceived load.
       final cached = await useCase.cacheStorage.getTypedObject<User>(
         Constants.cachedProfile,
             (json) => User.fromJson(json),
@@ -58,7 +60,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (cached != null) {
         final cachedId = _userIdFrom(cached);
         if (_currentUserXTenantID != null && _currentUserXTenantID != cachedId) {
-          // Different account — discard stale cache.
           await useCase.cacheStorage.save(Constants.cachedProfile, null);
         } else {
           _currentUserXTenantID = cachedId;
@@ -68,8 +69,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // 2. Fetch fresh profile from API.
       final result = await useCase.getProfile();
-      final fresh  = result.getRight().toNullable();
-      final error  = result.getLeft().toNullable();
+      final fresh = result.getRight().toNullable();
+      final error = result.getLeft().toNullable();
 
       if (fresh != null) {
         _currentUserXTenantID = _userIdFrom(fresh.user!);
@@ -89,47 +90,105 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       Emitter<AuthState> emit,
       ) async {
     try {
-      final refreshToken = await useCase.cacheStorage.getValue(Constants.refreshToken);
-      final authToken    = await useCase.cacheStorage.getValue(Constants.authToken);
+      if (state.authStatus == AuthStatus.loading) return;
 
-      // Wipe tokens first — session checks see no active session immediately.
+      emit(state.copyWith(
+        const AuthStateUpdate(authStatus: AuthStatus.loading),
+      ));
+
+      // 1. Block logout completely if device is offline.
+      final isOnline = await offlineStatusBloc.isDeviceOnline;
+
+      if (!isOnline) {
+        emit(state.copyWith(
+          const AuthStateUpdate(
+            authStatus: AuthStatus.failure,
+            responseError:
+            'Sorry, you are offline. Please connect to the internet and sync all sales before logout.',
+          ),
+        ));
+        return;
+      }
+
+      // 2. Block logout completely if there are unsynced sales.
+      final pendingSalesCount = await offlineStatusBloc.pendingOfflineSalesCount;
+
+      if (pendingSalesCount > 0) {
+        emit(state.copyWith(
+          AuthStateUpdate(
+            authStatus: AuthStatus.failure,
+            responseError:
+            'Sorry, you need to sync all sales first before logout. Pending sales: $pendingSalesCount',
+          ),
+        ));
+        return;
+      }
+
+      // 3. Now it is safe to delete local data.
+      final refreshToken =
+      await useCase.cacheStorage.getValue(Constants.refreshToken);
+      final authToken =
+      await useCase.cacheStorage.getValue(Constants.authToken);
+
+      await offlineLocalCache.clearAllOnLogout();
+
       await useCase.cacheStorage.save(Constants.xTenantID, null);
       await useCase.cacheStorage.save(Constants.authToken, null);
       await useCase.cacheStorage.save(Constants.refreshToken, null);
+      await useCase.cacheStorage.save(Constants.cachedProfile, null);
 
-      _navigateToWelcome();
+      try {
+        await useCase.cacheStorage.clearOnLogout();
+      } catch (_) {
+        // Do not block logout because of secondary cache cleanup.
+      }
 
       _currentUserXTenantID = null;
+
       emit(AuthState.initial());
 
-      // Background: call logout API then clear remaining cached data.
-      _backgroundLogout(refreshToken, authToken);
+      // 4. Navigate only after successful delete.
+      _navigateToWelcome();
+
+      // 5. Server logout is non-blocking.
+      // unawaited(_backgroundLogout(refreshToken, authToken));
     } catch (e) {
-      if (state.profile == null) _emitFailure(emit, e.toString());
+      emit(state.copyWith(
+        AuthStateUpdate(
+          authStatus: AuthStatus.failure,
+          responseError:
+          'Logout failed. Please try again while connected to the internet.',
+        ),
+      ));
     }
   }
 
-  Future<void> _backgroundLogout(String? refreshToken, String? authToken) async {
-    // try {
-    //   if (refreshToken == null || refreshToken.isEmpty) return;
-    //
-    //   String? freshToken;
-    //   try {
-    //     final r = await useCase.refreshTokenSilently(refreshToken);
-    //     freshToken = r.getRight().toNullable()?.accessToken;
-    //   } catch (_) {
-    //     freshToken = authToken;
-    //   }
-    //
-    //   try {
-    //     await useCase.logout({'refreshToken': refreshToken}, freshToken ?? authToken);
-    //   } catch (_) {
-    //     // Server session will expire on its own.
-    //   }
-    // } finally {
-    //   await useCase.cacheStorage.clearOnLogout();
-    // }
-  }
+  // Future<void> _backgroundLogout(String? refreshToken, String? authToken) async {
+  //   try {
+  //     if (refreshToken == null || refreshToken.isEmpty) return;
+  //
+  //     String? accessToken = authToken;
+  //
+  //     try {
+  //       final result = await useCase.refreshTokenSilently(refreshToken);
+  //       accessToken = result.getRight().toNullable()?.accessToken ?? authToken;
+  //     } catch (_) {
+  //       accessToken = authToken;
+  //     }
+  //
+  //     try {
+  //       await useCase.logout(
+  //         {'refresh': refreshToken},
+  //         accessToken,
+  //       );
+  //     } catch (_) {
+  //       // Server session will expire by itself.
+  //       // Local logout is already completed.
+  //     }
+  //   } catch (_) {
+  //     // Never crash logout flow.
+  //   }
+  // }
 
 
   String? _userIdFrom(User u) => u.id;

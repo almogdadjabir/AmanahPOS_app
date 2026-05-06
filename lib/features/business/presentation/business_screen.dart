@@ -2,7 +2,7 @@ import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart
 import 'package:amana_pos/features/business/presentation/widgets/business_card_skeleton.dart';
 import 'package:amana_pos/features/business/presentation/widgets/business_empty_view.dart';
 import 'package:amana_pos/features/business/presentation/widgets/business_error_view.dart';
-import 'package:amana_pos/features/business/presentation/widgets/single_business_workspace.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/single_business_workspace.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,7 +18,11 @@ class _BusinessScreenState extends State<BusinessScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<BusinessBloc>().add(OnBusinessInitial());
+
+    final state = context.read<BusinessBloc>().state;
+    if (state.businessList == null || state.businessList!.isEmpty) {
+      context.read<BusinessBloc>().add(OnBusinessInitial());
+    }
   }
 
   @override
@@ -27,20 +31,29 @@ class _BusinessScreenState extends State<BusinessScreen> {
       body: BlocBuilder<BusinessBloc, BusinessState>(
         buildWhen: (prev, curr) =>
         prev.businessStatus != curr.businessStatus ||
-            prev.businessList != curr.businessList,
+            prev.businessList != curr.businessList ||
+            prev.responseError != curr.responseError,
         builder: (context, state) {
-          return switch (state.businessStatus) {
-            BusinessStatus.initial ||
-            BusinessStatus.loading => const _LoadingView(),
+          final businesses = state.businessList ?? [];
 
-            BusinessStatus.failure => BusinessErrorView(
+          if (state.businessStatus == BusinessStatus.loading ||
+              state.businessStatus == BusinessStatus.initial) {
+            return const _LoadingView();
+          }
+
+          if (state.businessStatus == BusinessStatus.failure) {
+            return BusinessErrorView(
               message: state.responseError,
-            ),
+            );
+          }
 
-            BusinessStatus.success => state.businessList?.isEmpty ?? true
-                ? const BusinessEmptyView()
-                : SingleBusinessWorkspace(data: state.businessList!.first),
-          };
+          if (businesses.isEmpty) {
+            return const BusinessEmptyView();
+          }
+
+          return SingleBusinessWorkspace(
+            data: businesses.first,
+          );
         },
       ),
     );

@@ -2,7 +2,7 @@ import 'package:amana_pos/features/business/data/models/responses/business_respo
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/business/presentation/widgets/detail_app_bar.dart';
 import 'package:amana_pos/features/business/presentation/widgets/info_section.dart';
-import 'package:amana_pos/features/business/presentation/widgets/shops_section.dart';
+import 'package:amana_pos/features/business/presentation/widgets/shop/shops_section.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';

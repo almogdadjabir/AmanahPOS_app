@@ -1,7 +1,7 @@
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
-import 'package:amana_pos/features/business/presentation/widgets/add_shop_sheet.dart';
+import 'package:amana_pos/features/business/presentation/widgets/shop/add_shop_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
