@@ -1,6 +1,6 @@
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
-import 'package:amana_pos/features/business/presentation/widgets/workspace/business_summary_card.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/business_overview_card.dart';
 import 'package:amana_pos/features/business/presentation/widgets/workspace/workspace_action_card.dart';
 import 'package:amana_pos/features/business/presentation/widgets/workspace/workspace_header.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -12,10 +12,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 class SingleBusinessWorkspace extends StatelessWidget {
   final BusinessData data;
 
-  const SingleBusinessWorkspace({
-    super.key,
-    required this.data,
-  });
+  const SingleBusinessWorkspace({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +25,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s4,
-              AppDims.s4,
-              AppDims.s2,
+              AppDims.s4, AppDims.s4, AppDims.s4, AppDims.s2,
             ),
             sliver: SliverToBoxAdapter(
               child: WorkspaceHeader(data: data, isActive: isActive)
@@ -43,13 +37,10 @@ class SingleBusinessWorkspace extends StatelessWidget {
 
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s3,
-              AppDims.s4,
-              0,
+              AppDims.s4, AppDims.s2, AppDims.s4, 0,
             ),
             sliver: SliverToBoxAdapter(
-              child: BusinessSummaryCard(data: data)
+              child: BusinessOverviewCard(data: data)
                   .animate()
                   .fadeIn(delay: 90.ms, duration: 350.ms)
                   .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
@@ -58,10 +49,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
 
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s4,
-              AppDims.s4,
-              0,
+              AppDims.s4, AppDims.s4, AppDims.s4, 0,
             ),
             sliver: SliverToBoxAdapter(
               child: Text(
@@ -76,10 +64,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
 
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s3,
-              AppDims.s4,
-              0,
+              AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s6,
             ),
             sliver: SliverGrid(
               delegate: SliverChildListDelegate.fixed([
@@ -87,36 +72,28 @@ class SingleBusinessWorkspace extends StatelessWidget {
                   icon: Icons.store_mall_directory_rounded,
                   title: 'Shops',
                   subtitle: 'Manage locations',
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      RouteStrings.shopManagementScreen,
-                      arguments: {'businessData': data},
-                    );
-                  },
+                  onTap: () => Navigator.of(context).pushNamed(
+                    RouteStrings.shopManagementScreen,
+                    arguments: {'businessData': data},
+                  ),
                 ),
                 WorkspaceActionCard(
                   icon: Icons.inventory_2_rounded,
                   title: 'Products',
                   subtitle: 'Catalog & stock',
-                  onTap: () {
-                    // TODO: replace with your products route.
-                  },
+                  onTap: () => Navigator.of(context).pushNamed(RouteStrings.productScreen),
                 ),
                 WorkspaceActionCard(
                   icon: Icons.point_of_sale_rounded,
                   title: 'Cashiers',
                   subtitle: 'Team access',
-                  onTap: () {
-                    // TODO: replace with your users/cashiers route.
-                  },
+                  onTap: () {},
                 ),
                 WorkspaceActionCard(
                   icon: Icons.bar_chart_rounded,
                   title: 'Reports',
                   subtitle: 'Sales insights',
-                  onTap: () {
-                    // TODO: replace with your reports route.
-                  },
+                  onTap: () {},
                 ),
               ]),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -127,10 +104,8 @@ class SingleBusinessWorkspace extends StatelessWidget {
               ),
             ),
           ),
-
         ],
       ),
     );
   }
 }
-

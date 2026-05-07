@@ -1,3 +1,5 @@
+
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/pos_product_card.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -8,25 +10,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ProductGrid extends StatelessWidget {
   final List<ProductData> products;
 
-  const ProductGrid({
-    super.key,
-    required this.products,
-  });
+  const ProductGrid({super.key, required this.products});
 
   @override
   Widget build(BuildContext context) {
+    // Resolved once per build — never changes within a session.
+    final isRestaurant =
+        context.read<AuthBloc>().state.permissions.isRestaurant;
+
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
       padding: const EdgeInsets.fromLTRB(
-        AppDims.s4,
-        AppDims.s3,
-        AppDims.s4,
-        AppDims.s4,
+        AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s4,
       ),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount:  2,
         mainAxisSpacing: AppDims.s3,
         crossAxisSpacing: AppDims.s3,
         childAspectRatio: 0.80,
@@ -34,8 +34,9 @@ class ProductGrid extends StatelessWidget {
       itemCount: products.length,
       itemBuilder: (_, index) {
         return _ProductGridItem(
-          key: ValueKey(products[index].id ?? index),
-          product: products[index],
+          key:          ValueKey(products[index].id ?? index),
+          product:      products[index],
+          isRestaurant: isRestaurant,
         );
       },
     );
@@ -44,10 +45,12 @@ class ProductGrid extends StatelessWidget {
 
 class _ProductGridItem extends StatelessWidget {
   final ProductData product;
+  final bool        isRestaurant;
 
   const _ProductGridItem({
     super.key,
     required this.product,
+    required this.isRestaurant,
   });
 
   @override
@@ -58,11 +61,10 @@ class _ProductGridItem extends StatelessWidget {
 
     return RepaintBoundary(
       child: PosProductCard(
-        product: product,
+        product:       product,
         quantityInCart: quantityInCart,
-        onTap: () {
-          context.read<PosBloc>().add(PosAddProduct(product));
-        },
+        isRestaurant:  isRestaurant,
+        onTap: () => context.read<PosBloc>().add(PosAddProduct(product)),
       ),
     );
   }

@@ -17,18 +17,19 @@ class MainScreen extends StatelessWidget {
           automaticallyImplyLeading: false,
           toolbarHeight: AppDims.appBarHeight,
           title: PosAppBar(
-            onMenuTap: () => context
-                .read<NavigationBloc>()
-                .add(const SetMenuOpenEvent()),
+            onMenuTap: () =>
+                context.read<NavigationBloc>().add(const SetMenuOpenEvent()),
             onNotifTap: () {},
           ),
         ),
         body: BlocBuilder<NavigationBloc, NavigationState>(
-          buildWhen: (prev, curr) => prev.selectedIndex != curr.selectedIndex,
+          // Only rebuild when the active screen changes.
+          buildWhen: (prev, curr) =>
+          prev.currentFeature != curr.currentFeature,
           builder: (context, state) {
             return Stack(
               children: [
-                state.screens[state.selectedIndex].child,
+                state.currentScreen,
                 const FeatureMenu(),
               ],
             );
@@ -38,3 +39,4 @@ class MainScreen extends StatelessWidget {
     );
   }
 }
+

@@ -1,14 +1,17 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductsHeaderView extends StatelessWidget {
   final List<ProductData> products;
   final int categoryCount;
 
-  const ProductsHeaderView({super.key,
+  const ProductsHeaderView({
+    super.key,
     required this.products,
     required this.categoryCount,
   });
@@ -16,10 +19,10 @@ class ProductsHeaderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final isRestaurant = context.read<AuthBloc>().state.permissions.isRestaurant;
 
     final activeCount = products.where((p) => p.isActive == true).length;
-    final outOfStockCount =
-        products.where((p) => (p.stockLevel ?? 0) <= 0).length;
+    final outOfStockCount  = products.where((p) => (p.stockLevel ?? 0) <= 0).length;
 
     return Container(
       width: double.infinity,
@@ -41,7 +44,7 @@ class ProductsHeaderView extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 58,
+                width:  58,
                 height: 58,
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: 0.10),
@@ -69,7 +72,9 @@ class ProductsHeaderView extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Manage items, prices, categories and stock availability.',
+                      isRestaurant
+                          ? 'Manage menu items, prices and categories.'
+                          : 'Manage items, prices, categories and stock availability.',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs300(context).copyWith(
@@ -89,8 +94,7 @@ class ProductsHeaderView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: productMiniStat(
-                  context: context,
+                child: _MiniStat(
                   label: 'Products',
                   value: '${products.length}',
                   icon: Icons.inventory_2_outlined,
@@ -98,29 +102,29 @@ class ProductsHeaderView extends StatelessWidget {
               ),
               const SizedBox(width: AppDims.s2),
               Expanded(
-                child: productMiniStat(
-                  context: context,
+                child: _MiniStat(
                   label: 'Active',
                   value: '$activeCount',
                   icon: Icons.check_circle_outline_rounded,
                 ),
               ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: productMiniStat(
-                  context: context,
-                  label: 'Out',
-                  value: '$outOfStockCount',
-                  icon: Icons.warning_amber_rounded,
+              // Out-of-stock stat — shops only
+              if (!isRestaurant) ...[
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: _MiniStat(
+                    label: 'Out',
+                    value: '$outOfStockCount',
+                    icon: Icons.warning_amber_rounded,
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(width: AppDims.s2),
               Expanded(
-                child: productMiniStat(
-                  context: context,
+                child: _MiniStat(
                   label: 'Cats',
                   value: '$categoryCount',
-                  icon: Icons.layers_outlined,
+                  icon:  Icons.layers_outlined,
                 ),
               ),
             ],
@@ -129,29 +133,40 @@ class ProductsHeaderView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget productMiniStat({
-    required BuildContext context,
-    required String label,
-    required String  value,
-    required IconData icon}){
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDims.s2,
         vertical: AppDims.s2,
       ),
       decoration: BoxDecoration(
-        color: context.appColors.surfaceSoft,
+        color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(AppDims.rMd),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 18, color: context.appColors.primary),
+          Icon(icon, size: 18, color: colors.primary),
           const SizedBox(height: 4),
           Text(
             value,
             style: AppTextStyles.bs300(context).copyWith(
-              color: context.appColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -160,7 +175,7 @@ class ProductsHeaderView extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bs100(context).copyWith(
-              color: context.appColors.textHint,
+              color: colors.textHint,
               fontWeight: FontWeight.w700,
             ),
           ),

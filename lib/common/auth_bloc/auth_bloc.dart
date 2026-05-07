@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:amana_pos/config/constants.dart';
-import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final OfflineStatusBloc offlineStatusBloc;
 
   String? _currentUserXTenantID;
+  bool _loggedOut = false;
 
   AuthBloc({
     required this.useCase,
@@ -33,14 +34,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<OnLoadBusinessEvent>(_onLoadBusinessEvent);
     on<OnLogoutEvent>(_onLogout);
   }
+
   Future<void> _onLoadProfile(
       OnLoadProfileEvent event,
       Emitter<AuthState> emit,
       ) async {
     try {
-
-      if(event.user != null){
-        _emitProfileLoaded(emit, event.user!);
+      if (event.user != null) {
+        _emitProfileLoaded(emit, event.user!, userSwitched: false);
         add(OnLoadBusinessEvent());
         return;
       }
@@ -63,22 +64,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await useCase.cacheStorage.save(Constants.cachedProfile, null);
         } else {
           _currentUserXTenantID = cachedId;
-          _emitProfileLoaded(emit, cached);
+          // Same user from cache — do NOT bump sessionId.
+          _emitProfileLoaded(emit, cached, userSwitched: false);
         }
       }
 
-      // 2. Fetch fresh profile from API.
       final result = await useCase.getProfile();
       final fresh = result.getRight().toNullable();
       final error = result.getLeft().toNullable();
 
       if (fresh != null) {
-        _currentUserXTenantID = _userIdFrom(fresh.user!);
-        useCase.cacheStorage.saveObject(Constants.cachedProfile, fresh.toJson());
-        _emitProfileLoaded(emit, fresh.user!);
+        final incomingId = _userIdFrom(fresh.user!);
+
+        final isDifferentUser = _loggedOut ||
+            (_currentUserXTenantID != null && _currentUserXTenantID != incomingId);
+        _loggedOut = false;
+
+
+        if (isDifferentUser) {
+          // Wipe the DB so old user's data is gone before the new session starts.
+          await offlineLocalCache.clearAllOnLogout();
+        }
+
+        _currentUserXTenantID = incomingId;
+        await useCase.cacheStorage.saveObject(
+          Constants.cachedProfile,
+          fresh.toJson(),
+        );
+
+        // Only bump sessionId when a different user logs in.
+        // Same user re-logging in must NOT trigger bloc resets.
+        _emitProfileLoaded(emit, fresh.user!, userSwitched: isDifferentUser);
       } else {
         if (cached == null) _emitFailure(emit, error);
       }
+
       add(OnLoadBusinessEvent());
     } catch (e) {
       if (state.profile == null) _emitFailure(emit, e.toString());
@@ -96,42 +116,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         const AuthStateUpdate(authStatus: AuthStatus.loading),
       ));
 
-      // 1. Block logout completely if device is offline.
       final isOnline = await offlineStatusBloc.isDeviceOnline;
-
       if (!isOnline) {
-        emit(state.copyWith(
-          const AuthStateUpdate(
-            authStatus: AuthStatus.failure,
-            responseError:
-            'Sorry, you are offline. Please connect to the internet and sync all sales before logout.',
-          ),
-        ));
+        emit(state.copyWith(const AuthStateUpdate(
+          authStatus: AuthStatus.failure,
+          responseError:
+          'Sorry, you are offline. Please connect to the internet and sync all sales before logout.',
+        )));
         return;
       }
 
-      // 2. Block logout completely if there are unsynced sales.
-      final pendingSalesCount = await offlineStatusBloc.pendingOfflineSalesCount;
-
+      final pendingSalesCount =
+      await offlineStatusBloc.pendingOfflineSalesCount;
       if (pendingSalesCount > 0) {
-        emit(state.copyWith(
-          AuthStateUpdate(
-            authStatus: AuthStatus.failure,
-            responseError:
-            'Sorry, you need to sync all sales first before logout. Pending sales: $pendingSalesCount',
-          ),
-        ));
+        emit(state.copyWith(AuthStateUpdate(
+          authStatus: AuthStatus.failure,
+          responseError:
+          'Sorry, you need to sync all sales first before logout. Pending sales: $pendingSalesCount',
+        )));
         return;
       }
-
-      // 3. Now it is safe to delete local data.
-      final refreshToken =
-      await useCase.cacheStorage.getValue(Constants.refreshToken);
-      final authToken =
-      await useCase.cacheStorage.getValue(Constants.authToken);
 
       await offlineLocalCache.clearAllOnLogout();
-
       await useCase.cacheStorage.save(Constants.xTenantID, null);
       await useCase.cacheStorage.save(Constants.authToken, null);
       await useCase.cacheStorage.save(Constants.refreshToken, null);
@@ -139,78 +145,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       try {
         await useCase.cacheStorage.clearOnLogout();
-      } catch (_) {
-        // Do not block logout because of secondary cache cleanup.
-      }
+      } catch (_) {}
 
       _currentUserXTenantID = null;
+      _loggedOut = true;
 
       emit(AuthState.initial());
-
-      // 4. Navigate only after successful delete.
       _navigateToWelcome();
-
-      // 5. Server logout is non-blocking.
-      // unawaited(_backgroundLogout(refreshToken, authToken));
     } catch (e) {
-      emit(state.copyWith(
-        AuthStateUpdate(
-          authStatus: AuthStatus.failure,
-          responseError:
-          'Logout failed. Please try again while connected to the internet.',
-        ),
-      ));
+      emit(state.copyWith(const AuthStateUpdate(
+        authStatus: AuthStatus.failure,
+        responseError:
+        'Logout failed. Please try again while connected to the internet.',
+      )));
     }
-  }
-
-  // Future<void> _backgroundLogout(String? refreshToken, String? authToken) async {
-  //   try {
-  //     if (refreshToken == null || refreshToken.isEmpty) return;
-  //
-  //     String? accessToken = authToken;
-  //
-  //     try {
-  //       final result = await useCase.refreshTokenSilently(refreshToken);
-  //       accessToken = result.getRight().toNullable()?.accessToken ?? authToken;
-  //     } catch (_) {
-  //       accessToken = authToken;
-  //     }
-  //
-  //     try {
-  //       await useCase.logout(
-  //         {'refresh': refreshToken},
-  //         accessToken,
-  //       );
-  //     } catch (_) {
-  //       // Server session will expire by itself.
-  //       // Local logout is already completed.
-  //     }
-  //   } catch (_) {
-  //     // Never crash logout flow.
-  //   }
-  // }
-
-
-  String? _userIdFrom(User u) => u.id;
-
-  void _navigateToWelcome() {
-    Constants.navigatorKey.currentState
-        ?.pushNamedAndRemoveUntil(RouteStrings.splash, (_) => false);
-  }
-
-  void _emitProfileLoaded(Emitter<AuthState> emit, User p) {
-    emit(state.copyWith(AuthStateUpdate(
-      profile: p,
-      isLoggedIn: true,
-      authStatus: AuthStatus.success,
-    )));
-  }
-
-  void _emitFailure(Emitter<AuthState> emit, String? error) {
-    emit(state.copyWith(AuthStateUpdate(
-      authStatus: AuthStatus.failure,
-      responseError: error,
-    )));
   }
 
   Future<void> _onLoadBusinessEvent(
@@ -219,7 +167,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ) async {
     if (state.businessStatus == BusinessStatus.loading) return;
 
-    emit(state.copyWith(AuthStateUpdate(
+    emit(state.copyWith(const AuthStateUpdate(
       businessStatus: BusinessStatus.loading,
     )));
 
@@ -227,37 +175,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final cachedBusinesses = await offlineLocalCache.getBusinesses();
-
       if (cachedBusinesses.isNotEmpty) {
         cachedBusiness = cachedBusinesses.first;
-
-        await useCase.cacheStorage.save(
-          Constants.xTenantID,
-          cachedBusiness.id,
-        );
-
+        await useCase.cacheStorage.save(Constants.xTenantID, cachedBusiness.id);
         if (!emit.isDone) {
           emit(state.copyWith(AuthStateUpdate(
             defaultBusiness: cachedBusiness,
             businessStatus: BusinessStatus.success,
           )));
         }
-
         offlineStatusBloc.add(const OnOfflineStatusStarted());
       }
-    } catch (_) {
-      // Cache read failure should not block API fallback.
-    }
+    } catch (_) {}
 
     try {
       final response = await businessUseCase.getBusinessList();
-
       final error = response.getLeft().toNullable();
       final business = response.getRight().toNullable();
 
       if (error != null) {
         if (cachedBusiness != null) {
-          // We already have cached business, so keep app usable offline.
           if (!emit.isDone) {
             emit(state.copyWith(AuthStateUpdate(
               defaultBusiness: cachedBusiness,
@@ -266,9 +203,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           }
           return;
         }
-
         if (!emit.isDone) {
-          emit(state.copyWith(AuthStateUpdate(
+          emit(state.copyWith(const AuthStateUpdate(
             businessStatus: BusinessStatus.failure,
           )));
         }
@@ -276,11 +212,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       final businessList = business?.data ?? [];
-
       if (businessList.isEmpty) {
         if (!emit.isDone) {
-          emit(state.copyWith(AuthStateUpdate(
-            defaultBusiness: null,
+          emit(state.copyWith(const AuthStateUpdate(
             businessStatus: BusinessStatus.success,
           )));
         }
@@ -288,11 +222,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       final defaultBusiness = businessList.first;
-
-      await useCase.cacheStorage.save(
-        Constants.xTenantID,
-        defaultBusiness.id,
-      );
+      await useCase.cacheStorage.save(Constants.xTenantID, defaultBusiness.id);
 
       if (!emit.isDone) {
         emit(state.copyWith(AuthStateUpdate(
@@ -310,22 +240,49 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             businessStatus: BusinessStatus.success,
           )));
         }
-
         offlineStatusBloc.add(const OnOfflineStatusStarted());
         return;
       }
-
       if (!emit.isDone) {
-        emit(state.copyWith(AuthStateUpdate(
+        emit(state.copyWith(const AuthStateUpdate(
           businessStatus: BusinessStatus.failure,
         )));
       }
     }
   }
 
+  String? _userIdFrom(User u) => u.id;
+
+  void _navigateToWelcome() {
+    Constants.navigatorKey.currentState
+        ?.pushNamedAndRemoveUntil(RouteStrings.splash, (_) => false);
+  }
+
+  /// [userSwitched] = true only when a confirmed DIFFERENT user is logging in.
+  /// This is the only time we bump sessionId, which triggers data bloc resets.
+  void _emitProfileLoaded(
+      Emitter<AuthState> emit,
+      User p, {
+        required bool userSwitched,
+      }) {
+    emit(state.copyWith(AuthStateUpdate(
+      profile: p,
+      isLoggedIn: true,
+      authStatus: AuthStatus.success,
+      sessionId: userSwitched ? state.sessionId + 1 : state.sessionId,
+    )));
+  }
+
+  void _emitFailure(Emitter<AuthState> emit, String? error) {
+    emit(state.copyWith(AuthStateUpdate(
+      authStatus: AuthStatus.failure,
+      responseError: error,
+    )));
+  }
 
   @override
   Future<void> close() {
+    _loggedOut = false;
     _currentUserXTenantID = null;
     return super.close();
   }

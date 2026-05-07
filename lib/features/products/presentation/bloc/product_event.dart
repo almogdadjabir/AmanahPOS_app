@@ -5,7 +5,8 @@ abstract class ProductEvent extends Equatable {
 }
 
 class OnProductInitial extends ProductEvent {
-  const OnProductInitial();
+  final bool force;
+  const OnProductInitial({this.force = false});
   @override List<Object?> get props => [];
 }
 
@@ -65,4 +66,11 @@ class OnProductsSoldLocally extends ProductEvent {
 
   @override
   List<Object?> get props => [soldQuantities];
+}
+
+class OnProductReset extends ProductEvent {
+  const OnProductReset();
+
+  @override
+  List<Object?> get props => throw UnimplementedError();
 }

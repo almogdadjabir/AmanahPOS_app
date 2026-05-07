@@ -12,7 +12,7 @@ class MenuSections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = buildMenuSections(context, state.selectedIndex);
+    final sections = buildMenuSections(context, state);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

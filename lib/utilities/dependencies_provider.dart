@@ -246,10 +246,6 @@ class DependenciesProvider {
       offlineStatusBloc: getIt<OfflineStatusBloc>(),
     ));
 
-    getIt.registerLazySingleton<NavigationBloc>(
-          () => NavigationBloc(),
-    );
-
 
   }
 

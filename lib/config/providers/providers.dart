@@ -3,6 +3,7 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
@@ -30,7 +31,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 getProviders(BuildContext context) => [
   BlocProvider(create: (context) => getIt<AuthBloc>()),
-  BlocProvider(create: (context) => getIt<NavigationBloc>()),
+  BlocProvider(
+    create: (context) => NavigationBloc(
+      authBloc: getIt<AuthBloc>(),
+    ),
+  ),
+
   BlocProvider(create: (context) => getIt<OfflineStatusBloc>()),
   BlocProvider(create: (context) => ThemeBloc(cacheStorage: getIt<CacheStorage>())),
   BlocProvider(

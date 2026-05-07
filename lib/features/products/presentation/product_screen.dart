@@ -18,7 +18,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+  final bool isWithAppbar;
+  const ProductsScreen({super.key, this.isWithAppbar = false});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
@@ -33,7 +34,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ProductBloc>().add(const OnProductInitial());
+    context.read<ProductBloc>().add(const OnProductInitial(force: true));
     _scrollCtrl.addListener(_onScroll);
   }
 
@@ -106,6 +107,51 @@ class _ProductsScreenState extends State<ProductsScreen> {
         final hasProducts = _hasProducts(state);
 
         return Scaffold(
+          appBar: widget.isWithAppbar
+          ? AppBar(
+            elevation: 0,
+            backgroundColor: context.appColors.surface,
+            surfaceTintColor: Colors.transparent,
+            leading: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: context.appColors.textPrimary,
+              ),
+            ),
+            title: Text(
+              'Products Management',
+              style: AppTextStyles.bs500(context).copyWith(
+                color: context.appColors.textPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: AppDims.s2),
+                child: BlocBuilder<ProductBloc, ProductState>(
+                  buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
+                  builder: (context, state) {
+                    return IconButton(
+                      tooltip: state.isGrid ? 'Show list' : 'Show grid',
+                      onPressed: () {
+                        context.read<ProductBloc>().add(
+                          const OnToggleProductLayout(),
+                        );
+                      },
+                      icon: Icon(
+                        state.isGrid
+                            ? Icons.view_list_rounded
+                            : Icons.grid_view_rounded,
+                        color: context.appColors.textPrimary,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          )
+          : null,
           body: RefreshIndicator(
             color: context.appColors.primary,
             onRefresh: _refreshProducts,
@@ -123,6 +169,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   ? _ProductsContent(
                 scrollController: _scrollCtrl,
                 state: state,
+                isWithAppbar: widget.isWithAppbar,
               )
                   : _ProductsEmptyContent(
                 state: state,
@@ -151,12 +198,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
 }
 
 class _ProductsContent extends StatelessWidget {
+  final bool isWithAppbar;
   final ScrollController scrollController;
   final ProductState state;
 
   const _ProductsContent({
     required this.scrollController,
     required this.state,
+    required this.isWithAppbar,
   });
 
   @override
@@ -168,6 +217,7 @@ class _ProductsContent extends StatelessWidget {
       ),
       headerSliverBuilder: (context, _) {
         return [
+          if(isWithAppbar == false)
           const ProductsAppBar(),
 
           SliverPadding(

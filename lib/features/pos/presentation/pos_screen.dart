@@ -12,6 +12,7 @@ import 'package:amana_pos/features/pos/presentation/widgets/product_grid.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
+import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
@@ -115,26 +116,50 @@ class _PosScreenState extends State<PosScreen> {
 
   Future<void> _handleCheckout() async {
     if (_checkoutResolvingShop) return;
-
     _checkoutResolvingShop = true;
 
     try {
+      final posState = context.read<PosBloc>().state;
+
+      if (posState.paymentMethod == 'bankak') {
+        String? bankakAccount;
+        try {
+          bankakAccount = context
+              .read<SettingsBloc>()
+              .state
+              .profile
+              ?.bankakAccount
+              ?.accountNumber
+              ?.trim();
+        } catch (_) {}
+
+        if (bankakAccount == null || bankakAccount.isEmpty) {
+          GlobalSnackBar.show(
+            message:
+            'Bankak account is not set up. Go to Settings and add your account number first.',
+            isError: true,
+            isAutoDismiss: false,
+          );
+          return; // ← never reaches the API or offline queue
+        }
+      }
+
+      // ── Resolve shop ────────────────────────────────────────────────────────
       final shopId = await _defaultShopId();
 
       if (!mounted) return;
 
       if (shopId == null || shopId.isEmpty) {
         GlobalSnackBar.show(
-          message: 'No shop found on this device. Please connect once to refresh your business data.',
+          message:
+          'No shop found on this device. Please connect once to refresh your business data.',
           isError: true,
           isAutoDismiss: false,
         );
         return;
       }
 
-      context.read<PosBloc>().add(
-        PosCheckoutSubmitted(shopId: shopId),
-      );
+      context.read<PosBloc>().add(PosCheckoutSubmitted(shopId: shopId));
     } finally {
       _checkoutResolvingShop = false;
     }
@@ -192,7 +217,7 @@ class _PosScreenState extends State<PosScreen> {
                 onRefresh: posState.cartExpanded
                     ? () async {}
                     : () async {
-                  context.read<ProductBloc>().add(const OnProductInitial());
+                  context.read<ProductBloc>().add(const OnProductInitial(force: true));
                   context.read<BusinessBloc>().add(OnBusinessInitial());
 
                   _searchCtrl.clear();

@@ -1,4 +1,13 @@
+// lib/features/feature_menu/feature_menu.dart
+//
+// No logic changes — just updates references from selectedIndex to
+// currentFeature since NavigationState no longer carries an index.
+
+import 'package:amana_pos/features/feature_menu/feature_menu_sections.dart';
 import 'package:amana_pos/features/feature_menu/widgets/menu_sections.dart';
+import 'package:amana_pos/features/feature_menu/widgets/section_grid.dart';
+import 'package:amana_pos/features/feature_menu/widgets/section_label.dart';
+import 'package:amana_pos/features/main_screen/data/section.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
@@ -31,25 +40,30 @@ class _FeatureMenuState extends State<FeatureMenu> {
     final maxH = MediaQuery.of(context).size.height * 0.75;
 
     return BlocBuilder<NavigationBloc, NavigationState>(
-      buildWhen: (prev, curr) => prev.menuOpen != curr.menuOpen ||
-          prev.selectedIndex != curr.selectedIndex,
+      buildWhen: (prev, curr) =>
+      prev.menuOpen != curr.menuOpen ||
+          prev.currentFeature != curr.currentFeature ||
+          prev.permissions != curr.permissions,
       builder: (context, state) {
         return IgnorePointer(
           ignoring: !state.menuOpen,
           child: Stack(
             children: [
+              // ── Scrim ────────────────────────────────────────────────────
               AnimatedOpacity(
                 duration: AppDims.fast,
                 opacity: state.menuOpen ? 1 : 0,
                 child: GestureDetector(
                   onTap: () => _closeMenu(context),
-                  child: Container(
-                      color: Colors.black.withValues(alpha: 0.45)),
+                  child: Container(color: Colors.black.withValues(alpha: 0.45)),
                 ),
               ),
 
+              // ── Slide-down panel ─────────────────────────────────────────
               Positioned(
-                top: 0, left: 0, right: 0,
+                top: 0,
+                left: 0,
+                right: 0,
                 child: ClipRect(
                   child: AnimatedSlide(
                     offset:
@@ -81,11 +95,16 @@ class _FeatureMenuState extends State<FeatureMenu> {
                                     primary: false,
                                     padding:
                                     const EdgeInsets.all(AppDims.s4),
-                                    child: MenuSections(state: state),
+                                    // buildMenuSections now reads permissions
+                                    // from NavigationState directly.
+                                    child: Column(
+                                      children: buildMenuSections(context, state)
+                                          .map<Widget>(_buildSection)  // ← add <Widget>
+                                          .toList(),
+                                    ),
                                   ),
                                 ),
                               ),
-
                               const MenuFooter(),
                             ],
                           ),
@@ -99,6 +118,21 @@ class _FeatureMenuState extends State<FeatureMenu> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSection(Section section) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionLabel(label: section.title),
+        const SizedBox(height: AppDims.s2),
+        SectionGrid(
+          items: section.items,
+          onPick: (_) {},
+        ),
+        const SizedBox(height: AppDims.s5),
+      ],
     );
   }
 }

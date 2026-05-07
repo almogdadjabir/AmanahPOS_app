@@ -5,7 +5,8 @@ abstract class CategoryEvent extends Equatable {
 }
 
 class OnCategoryInitial extends CategoryEvent {
-  const OnCategoryInitial();
+  final bool force;
+  const OnCategoryInitial({this.force = false});
   @override List<Object?> get props => [];
 }
 
@@ -71,4 +72,11 @@ class OnDeleteCategory extends CategoryEvent {
   final String categoryId;
   const OnDeleteCategory({required this.categoryId});
   @override List<Object?> get props => [categoryId];
+}
+
+class OnCategoryReset extends CategoryEvent {
+  const OnCategoryReset();
+
+  @override
+  List<Object?> get props => throw UnimplementedError();
 }

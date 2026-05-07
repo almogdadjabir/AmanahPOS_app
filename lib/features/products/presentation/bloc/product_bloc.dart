@@ -30,13 +30,23 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<OnUpdateProduct>(_updateProduct);
     on<OnDeleteProduct>(_deleteProduct);
     on<OnProductsSoldLocally>(_productsSoldLocally);
+    on<OnProductReset>(_reset);
   }
 
   Future<void> _init(
       OnProductInitial event,
       Emitter<ProductState> emit,
       ) async {
+    // Block concurrent loads.
     if (state.productStatus == ProductStatus.loading) return;
+
+    // Block redundant auto-inits when fresh live data is already in memory.
+    // Pull-to-refresh passes force: true to bypass this.
+    if (!event.force &&
+        state.productStatus == ProductStatus.success &&
+        !state.isFromCache) {
+      return;
+    }
 
     var emittedCachedData = false;
 
@@ -46,30 +56,25 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
       if (cachedProducts.isNotEmpty || cachedCategories.isNotEmpty) {
         emittedCachedData = true;
-
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.success,
-            products: cachedProducts,
-            categories: cachedCategories,
-            currentPage: 1,
-            totalPages: 1,
-            isFromCache: true,
-            clearResponseError: true,
-          ),
-        );
+        emit(state.copyWith(
+          productStatus: ProductStatus.success,
+          products: cachedProducts,
+          categories: cachedCategories,
+          currentPage: 1,
+          totalPages: 1,
+          isFromCache: true,
+          clearResponseError: true,
+        ));
       } else {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.loading,
-            currentPage: 1,
-            totalPages: 1,
-            products: [],
-            categories: [],
-            isFromCache: false,
-            clearResponseError: true,
-          ),
-        );
+        emit(state.copyWith(
+          productStatus: ProductStatus.loading,
+          currentPage: 1,
+          totalPages: 1,
+          products: [],
+          categories: [],
+          isFromCache: false,
+          clearResponseError: true,
+        ));
       }
 
       final responses = await Future.wait([
@@ -77,33 +82,26 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         useCase.getCategories(),
       ]);
 
-      final productsResponse =
-      responses[0] as Either<String?, ProductListResponseDto>;
-      final categoriesResponse =
-      responses[1] as Either<String?, CategoryResponseDto>;
+      final productsResponse = responses[0] as Either<String?, ProductListResponseDto>;
+      final categoriesResponse = responses[1] as Either<String?, CategoryResponseDto>;
 
       final productsError = productsResponse.getLeft().toNullable();
       final categoriesError = categoriesResponse.getLeft().toNullable();
 
       if (productsError != null || categoriesError != null) {
         if (emittedCachedData) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.success,
-              responseError: productsError ?? categoriesError,
-              isFromCache: true,
-            ),
-          );
+          emit(state.copyWith(
+            productStatus: ProductStatus.success,
+            responseError: productsError ?? categoriesError,
+            isFromCache: true,
+          ));
           return;
         }
-
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.failure,
-            responseError: productsError ?? categoriesError,
-            isFromCache: false,
-          ),
-        );
+        emit(state.copyWith(
+          productStatus: ProductStatus.failure,
+          responseError: productsError ?? categoriesError,
+          isFromCache: false,
+        ));
         return;
       }
 
@@ -120,38 +118,31 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final normalizedCategories = await offlineLocalCache.getCategories();
 
       if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.success,
-            products: normalizedProducts,
-            categories: normalizedCategories,
-            currentPage: productsResult?.currentPage ?? 1,
-            totalPages: productsResult?.totalPages ?? 1,
-            isFromCache: false,
-            clearResponseError: true,
-          ),
-        );
+        emit(state.copyWith(
+          productStatus: ProductStatus.success,
+          products: normalizedProducts,
+          categories: normalizedCategories,
+          currentPage: productsResult?.currentPage ?? 1,
+          totalPages: productsResult?.totalPages ?? 1,
+          isFromCache: false,
+          clearResponseError: true,
+        ));
       }
     } catch (e) {
       if (emittedCachedData) {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.success,
-            responseError: e.toString(),
-            isFromCache: true,
-          ),
-        );
+        emit(state.copyWith(
+          productStatus: ProductStatus.success,
+          responseError: e.toString(),
+          isFromCache: true,
+        ));
         return;
       }
-
       if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.failure,
-            responseError: e.toString(),
-            isFromCache: false,
-          ),
-        );
+        emit(state.copyWith(
+          productStatus: ProductStatus.failure,
+          responseError: e.toString(),
+          isFromCache: false,
+        ));
       }
     }
   }
@@ -488,7 +479,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         );
 
-        add(const OnProductInitial());
+        add(const OnProductInitial(force: true));
       }
     } catch (e) {
       if (!emit.isDone) {
@@ -541,7 +532,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         );
 
-        add(const OnProductInitial());
+        add(const OnProductInitial(force: true));
       }
     } catch (e) {
       if (!emit.isDone) {
@@ -578,4 +569,16 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     emit(state.copyWith(products: updatedProducts));
   }
+
+  Future<void> _reset(
+      OnProductReset event,
+      Emitter<ProductState> emit,
+      ) async {
+    // Emit initial state first so the UI shows the loading skeleton
+    // rather than the previous user's data for even a single frame.
+    emit(ProductState.initial());
+    // Then immediately kick off a fresh load.
+    add(const OnProductInitial());
+  }
+
 }

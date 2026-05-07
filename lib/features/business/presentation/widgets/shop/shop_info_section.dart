@@ -65,12 +65,12 @@ class ShopInfoSection extends StatelessWidget {
           horizontal: AppDims.s4, vertical: AppDims.s3),
       child: Row(
         children: [
-          Icon(icon, size: 16,
+          Icon(icon, size: 24,
               color: iconColor ?? context.appColors.textHint),
           const SizedBox(width: AppDims.s3),
           Text(
             label,
-            style: AppTextStyles.bs200(context).copyWith(
+            style: AppTextStyles.bs500(context).copyWith(
             fontWeight: FontWeight.w600,
               color: context.appColors.textSecondary,
             ),
@@ -82,7 +82,7 @@ class ShopInfoSection extends StatelessWidget {
               maxLines: 2,
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bs300(context).copyWith(
+              style: AppTextStyles.bs500(context).copyWith(
               fontWeight: FontWeight.w700,
                 color: context.appColors.textPrimary,
               ),

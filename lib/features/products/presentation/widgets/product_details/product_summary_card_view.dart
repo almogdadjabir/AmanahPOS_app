@@ -7,39 +7,42 @@ import 'package:flutter/material.dart';
 
 class ProductSummaryCardView extends StatelessWidget {
   final ProductData product;
+  final bool showStock;
 
-  const ProductSummaryCardView({super.key,
+  const ProductSummaryCardView({
+    super.key,
     required this.product,
+    required this.showStock,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final stock = product.stockLevel ?? 0;
+    final stock  = product.stockLevel ?? 0;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDims.s4),
       decoration: BoxDecoration(
-        color: colors.surface,
+        color:        colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(color: colors.border),
+        border:       Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color:      Colors.black.withValues(alpha: 0.04),
             blurRadius: 22,
-            offset: const Offset(0, 12),
+            offset:     const Offset(0, 12),
           ),
         ],
       ),
       child: Column(
         children: [
+          // ── Row 1: Price + Category ────────────────────────────────────
           Row(
             children: [
               Expanded(
-                child: infoTile(
-                  context: context,
-                  icon: Icons.payments_outlined,
+                child: _InfoTile(
+                  icon:  Icons.payments_outlined,
                   label: 'Price',
                   value: _formatPrice(product.price),
                   color: colors.primary,
@@ -47,23 +50,8 @@ class ProductSummaryCardView extends StatelessWidget {
               ),
               const SizedBox(width: AppDims.s2),
               Expanded(
-                child: infoTile(
-                  context: context,
-                  icon: Icons.inventory_2_outlined,
-                  label: 'Stock',
-                  value: _formatQty(stock),
-                  color: _stockColor(stock),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDims.s2),
-          Row(
-            children: [
-              Expanded(
-                child: infoTile(
-                  context: context,
-                  icon: Icons.layers_outlined,
+                child: _InfoTile(
+                  icon:  Icons.layers_outlined,
                   label: 'Category',
                   value: product.categoryName?.trim().isNotEmpty == true
                       ? product.categoryName!.trim()
@@ -71,29 +59,52 @@ class ProductSummaryCardView extends StatelessWidget {
                   color: const Color(0xFF8B5CF6),
                 ),
               ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: infoTile(
-                  context: context,
-                  icon: product.isActive == false
-                      ? Icons.pause_circle_outline_rounded
-                      : Icons.check_circle_outline_rounded,
-                  label: 'Status',
-                  value: product.isActive == false ? 'Inactive' : 'Active',
-                  color: product.isActive == false
-                      ? context.appColors.textHint
-                      : const Color(0xFF16A34A),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: AppDims.s3),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: StockChip(level: stock),
-          ),
+
+          const SizedBox(height: AppDims.s2),
+
+          // ── Row 2: Stock + Status  OR  Status full-width ───────────────
+          if (showStock)
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoTile(
+                    icon:  Icons.inventory_2_outlined,
+                    label: 'Stock',
+                    value: _formatQty(stock),
+                    color: _stockColor(stock),
+                  ),
+                ),
+                const SizedBox(width: AppDims.s2),
+                Expanded(child: _statusTile(context)),
+              ],
+            )
+          else
+            _statusTile(context),
+
+          // ── Stock chip (shops only) ────────────────────────────────────
+          if (showStock) ...[
+            const SizedBox(height: AppDims.s3),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: StockChip(level: stock),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _statusTile(BuildContext context) {
+    final isActive = product.isActive != false;
+    return _InfoTile(
+      icon:  isActive
+          ? Icons.check_circle_outline_rounded
+          : Icons.pause_circle_outline_rounded,
+      label: 'Status',
+      value: isActive ? 'Active' : 'Inactive',
+      color: isActive ? const Color(0xFF16A34A) : context.appColors.textHint,
     );
   }
 
@@ -112,18 +123,29 @@ class ProductSummaryCardView extends StatelessWidget {
     if (value % 1 == 0) return value.toInt().toString();
     return value.toStringAsFixed(2);
   }
+}
 
-  Widget infoTile({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-}){
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String   label;
+  final String   value;
+  final Color    color;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(AppDims.s3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color:        color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDims.rMd),
       ),
       child: Row(
@@ -139,7 +161,7 @@ class ProductSummaryCardView extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bs300(context).copyWith(
-                    color: context.appColors.textPrimary,
+                    color:      colors.textPrimary,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -149,7 +171,7 @@ class ProductSummaryCardView extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bs100(context).copyWith(
-                    color: context.appColors.textHint,
+                    color:      colors.textHint,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

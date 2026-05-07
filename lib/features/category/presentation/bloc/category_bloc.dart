@@ -30,13 +30,22 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     on<OnLoadCategoryProducts>(_loadProducts);
     on<OnLoadMoreCategoryProducts>(_loadMoreProducts);
     on<OnDeleteCategory>(_deleteCategory);
+    on<OnCategoryReset>(_reset);
   }
 
   Future<void> _init(
       OnCategoryInitial event,
       Emitter<CategoryState> emit,
       ) async {
+    // Block concurrent loads.
     if (state.categoryStatus == CategoryStatus.loading) return;
+
+    // Block redundant auto-inits when fresh live data is already in memory.
+    if (!event.force &&
+        state.categoryStatus == CategoryStatus.success &&
+        !state.isFromCache) {
+      return;
+    }
 
     var emittedCachedData = false;
 
@@ -45,24 +54,19 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
 
       if (cachedCategories.isNotEmpty) {
         emittedCachedData = true;
-
-        emit(
-          state.copyWith(
-            categoryStatus: CategoryStatus.success,
-            categoryList: cachedCategories,
-            isFromCache: true,
-            clearResponseError: true,
-          ),
-        );
+        emit(state.copyWith(
+          categoryStatus: CategoryStatus.success,
+          categoryList: cachedCategories,
+          isFromCache: true,
+          clearResponseError: true,
+        ));
       } else {
-        emit(
-          state.copyWith(
-            categoryStatus: CategoryStatus.loading,
-            categoryList: [],
-            isFromCache: false,
-            clearResponseError: true,
-          ),
-        );
+        emit(state.copyWith(
+          categoryStatus: CategoryStatus.loading,
+          categoryList: [],
+          isFromCache: false,
+          clearResponseError: true,
+        ));
       }
 
       final response = await useCase.getCategories();
@@ -70,54 +74,42 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       response.fold(
             (error) {
           if (emittedCachedData) {
-            emit(
-              state.copyWith(
-                categoryStatus: CategoryStatus.success,
-                responseError: error,
-                isFromCache: true,
-              ),
-            );
+            emit(state.copyWith(
+              categoryStatus: CategoryStatus.success,
+              responseError: error,
+              isFromCache: true,
+            ));
             return;
           }
-
-          emit(
-            state.copyWith(
-              categoryStatus: CategoryStatus.failure,
-              responseError: error,
-              isFromCache: false,
-            ),
-          );
+          emit(state.copyWith(
+            categoryStatus: CategoryStatus.failure,
+            responseError: error,
+            isFromCache: false,
+          ));
         },
             (result) {
-          emit(
-            state.copyWith(
-              categoryStatus: CategoryStatus.success,
-              categoryList: result.data ?? [],
-              isFromCache: false,
-              clearResponseError: true,
-            ),
-          );
+          emit(state.copyWith(
+            categoryStatus: CategoryStatus.success,
+            categoryList: result.data ?? [],
+            isFromCache: false,
+            clearResponseError: true,
+          ));
         },
       );
     } catch (e) {
       if (emittedCachedData) {
-        emit(
-          state.copyWith(
-            categoryStatus: CategoryStatus.success,
-            responseError: e.toString(),
-            isFromCache: true,
-          ),
-        );
+        emit(state.copyWith(
+          categoryStatus: CategoryStatus.success,
+          responseError: e.toString(),
+          isFromCache: true,
+        ));
         return;
       }
-
-      emit(
-        state.copyWith(
-          categoryStatus: CategoryStatus.failure,
-          responseError: e.toString(),
-          isFromCache: false,
-        ),
-      );
+      emit(state.copyWith(
+        categoryStatus: CategoryStatus.failure,
+        responseError: e.toString(),
+        isFromCache: false,
+      ));
     }
   }
 
@@ -452,4 +444,12 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       );
     }
   }
+
+Future<void> _reset(
+  OnCategoryReset event,
+  Emitter<CategoryState> emit,
+) async {
+  emit(CategoryState.initial());
+  add(const OnCategoryInitial());
+}
 }

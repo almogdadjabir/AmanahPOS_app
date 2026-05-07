@@ -1,3 +1,4 @@
+
 import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/delete_product_sheet.dart';
@@ -9,48 +10,54 @@ import 'package:flutter/material.dart';
 
 class ProductActionsView extends StatelessWidget {
   final ProductData product;
+  final bool        showStock;
 
-  const ProductActionsView({super.key,
+  const ProductActionsView({
+    super.key,
     required this.product,
+    required this.showStock,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Row(
       children: [
+        // Edit — always visible
         Expanded(
           child: _ActionButton(
-            icon: Icons.edit_outlined,
+            icon:  Icons.edit_outlined,
             label: 'Edit',
-            color: context.appColors.primary,
-            onTap: () {
-              showEditProductSheet(context, product: product);
-            },
+            color: colors.primary,
+            onTap: () => showEditProductSheet(context, product: product),
           ),
         ),
-        const SizedBox(width: AppDims.s2),
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.inventory_2_outlined,
-            label: 'Add Stock',
-            color: const Color(0xFF16A34A),
-            onTap: () {
-              showAddStockProductSheet(
+
+        // Add Stock — shops only
+        if (showStock) ...[
+          const SizedBox(width: AppDims.s2),
+          Expanded(
+            child: _ActionButton(
+              icon:  Icons.inventory_2_outlined,
+              label: 'Add Stock',
+              color: const Color(0xFF16A34A),
+              onTap: () => showAddStockProductSheet(
                 context,
                 initialProduct: product,
-              );
-            },
+              ),
+            ),
           ),
-        ),
+        ],
+
+        // Delete — always visible
         const SizedBox(width: AppDims.s2),
         Expanded(
           child: _ActionButton(
-            icon: Icons.delete_outline_rounded,
+            icon:  Icons.delete_outline_rounded,
             label: 'Delete',
             color: const Color(0xFFDC2626),
-            onTap: () {
-              showDeleteProductSheet(context, product: product);
-            },
+            onTap: () => showDeleteProductSheet(context, product: product),
           ),
         ),
       ],
@@ -59,9 +66,9 @@ class ProductActionsView extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
+  final IconData     icon;
+  final String       label;
+  final Color        color;
   final VoidCallback onTap;
 
   const _ActionButton({
@@ -76,16 +83,16 @@ class _ActionButton extends StatelessWidget {
     final colors = context.appColors;
 
     return Material(
-      color: colors.surface,
+      color:        colors.surface,
       borderRadius: BorderRadius.circular(AppDims.rMd),
       child: InkWell(
-        onTap: onTap,
+        onTap:        onTap,
         borderRadius: BorderRadius.circular(AppDims.rMd),
         child: Container(
-          height: 72,
+          height:  72,
           padding: const EdgeInsets.all(AppDims.s2),
           decoration: BoxDecoration(
-            border: Border.all(color: colors.border),
+            border:       Border.all(color: colors.border),
             borderRadius: BorderRadius.circular(AppDims.rMd),
           ),
           child: Column(
@@ -98,7 +105,7 @@ class _ActionButton extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bs200(context).copyWith(
-                  color: colors.textPrimary,
+                  color:      colors.textPrimary,
                   fontWeight: FontWeight.w900,
                 ),
               ),

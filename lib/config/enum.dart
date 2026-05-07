@@ -29,3 +29,6 @@ enum UserRole {
     }
   }
 }
+
+const kUnitsShop = ['pcs', 'kg', 'g', 'l', 'ml', 'box', 'pack'];
+const kUnitsRestaurant = ['pcs', 'portion', 'plate', 'bowl', 'glass', 'bottle'];

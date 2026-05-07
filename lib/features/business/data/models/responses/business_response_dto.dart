@@ -28,12 +28,13 @@ class BusinessData {
   String? id;
   String? name;
   String? slug;
+  String? businessType;
   Owner? owner;
-  String? logo;
+  Null? logo;
   String? address;
   String? phone;
   String? email;
-  Null? subscriptionPlan;
+  ActiveSubscription? activeSubscription;
   bool? isActive;
   int? shopCount;
   List<Shops>? shops;
@@ -44,12 +45,13 @@ class BusinessData {
       {this.id,
         this.name,
         this.slug,
+        this.businessType,
         this.owner,
         this.logo,
         this.address,
         this.phone,
         this.email,
-        this.subscriptionPlan,
+        this.activeSubscription,
         this.isActive,
         this.shopCount,
         this.shops,
@@ -60,18 +62,21 @@ class BusinessData {
     id = json['id'];
     name = json['name'];
     slug = json['slug'];
-    owner = json['owner'] != null ? Owner.fromJson(json['owner']) : null;
+    businessType = json['business_type'];
+    owner = json['owner'] != null ? new Owner.fromJson(json['owner']) : null;
     logo = json['logo'];
     address = json['address'];
     phone = json['phone'];
     email = json['email'];
-    subscriptionPlan = json['subscription_plan'];
+    activeSubscription = json['active_subscription'] != null
+        ? new ActiveSubscription.fromJson(json['active_subscription'])
+        : null;
     isActive = json['is_active'];
     shopCount = json['shop_count'];
     if (json['shops'] != null) {
       shops = <Shops>[];
       json['shops'].forEach((v) {
-        shops!.add(Shops.fromJson(v));
+        shops!.add(new Shops.fromJson(v));
       });
     }
     createdAt = json['created_at'];
@@ -83,6 +88,7 @@ class BusinessData {
     data['id'] = id;
     data['name'] = name;
     data['slug'] = slug;
+    data['business_type'] = businessType;
     if (owner != null) {
       data['owner'] = owner!.toJson();
     }
@@ -90,7 +96,9 @@ class BusinessData {
     data['address'] = address;
     data['phone'] = phone;
     data['email'] = email;
-    data['subscription_plan'] = subscriptionPlan;
+    if (activeSubscription != null) {
+      data['active_subscription'] = activeSubscription!.toJson();
+    }
     data['is_active'] = isActive;
     data['shop_count'] = shopCount;
     if (shops != null) {
@@ -192,6 +200,104 @@ class Shops {
     data['is_active'] = isActive;
     data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
+    return data;
+  }
+}
+
+class ActiveSubscription {
+  String? id;
+  String? name;
+  int? maxShops;
+  int? maxProducts;
+  int? maxUsers;
+  Features? features;
+  bool? isFree;
+  String? price;
+  String? currency;
+  String? endDate;
+  int? daysRemaining;
+
+  ActiveSubscription(
+      {this.id,
+        this.name,
+        this.maxShops,
+        this.maxProducts,
+        this.maxUsers,
+        this.features,
+        this.isFree,
+        this.price,
+        this.currency,
+        this.endDate,
+        this.daysRemaining});
+
+  ActiveSubscription.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    maxShops = json['max_shops'];
+    maxProducts = json['max_products'];
+    maxUsers = json['max_users'];
+    features = json['features'] != null
+        ? new Features.fromJson(json['features'])
+        : null;
+    isFree = json['is_free'];
+    price = json['price'];
+    currency = json['currency'];
+    endDate = json['end_date'];
+    daysRemaining = json['days_remaining'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['max_shops'] = maxShops;
+    data['max_products'] = maxProducts;
+    data['max_users'] = maxUsers;
+    if (features != null) {
+      data['features'] = features!.toJson();
+    }
+    data['is_free'] = isFree;
+    data['price'] = price;
+    data['currency'] = currency;
+    data['end_date'] = endDate;
+    data['days_remaining'] = daysRemaining;
+    return data;
+  }
+}
+
+class Features {
+  bool? pos;
+  bool? reports;
+  bool? customers;
+  bool? inventory;
+  bool? apiAccess;
+  bool? staffManagement;
+
+  Features(
+      {this.pos,
+        this.reports,
+        this.customers,
+        this.inventory,
+        this.apiAccess,
+        this.staffManagement});
+
+  Features.fromJson(Map<String, dynamic> json) {
+    pos = json['pos'];
+    reports = json['reports'];
+    customers = json['customers'];
+    inventory = json['inventory'];
+    apiAccess = json['api_access'];
+    staffManagement = json['staff_management'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['pos'] = pos;
+    data['reports'] = reports;
+    data['customers'] = customers;
+    data['inventory'] = inventory;
+    data['api_access'] = apiAccess;
+    data['staff_management'] = staffManagement;
     return data;
   }
 }

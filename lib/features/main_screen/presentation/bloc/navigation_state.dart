@@ -1,33 +1,32 @@
 part of 'navigation_bloc.dart';
 
 class NavigationState extends Equatable {
-  final int selectedIndex;
-  final List<NavigationModel> screens;
-  final bool menuOpen;
+  final AppFeature     currentFeature;
+  final AppPermissions permissions;
+  final bool           menuOpen;
 
+  const NavigationState({
+    this.currentFeature = AppFeature.pos,
+    this.permissions    = AppPermissions.none,
+    this.menuOpen       = false,
+  });
 
-  NavigationState({
-    this.selectedIndex = 0,
-    List<NavigationModel>? screens,
-    this.menuOpen = false,
-  }) : screens = screens ?? NavigationConfig.screens;
+  factory NavigationState.initial() => const NavigationState();
+
+  Widget get currentScreen => NavigationConfig.screenFor(currentFeature);
 
   NavigationState copyWith({
-    int? selectedIndex,
-    List<NavigationModel>? screens,
-    bool? menuOpen,
+    AppFeature?     currentFeature,
+    AppPermissions? permissions,
+    bool?           menuOpen,
   }) {
     return NavigationState(
-      selectedIndex: selectedIndex ?? this.selectedIndex,
-      screens: screens ?? this.screens,
-      menuOpen: menuOpen ?? this.menuOpen,
+      currentFeature: currentFeature ?? this.currentFeature,
+      permissions:    permissions    ?? this.permissions,
+      menuOpen:       menuOpen       ?? this.menuOpen,
     );
   }
 
   @override
-  List<Object?> get props => [
-    selectedIndex,
-    screens,
-    menuOpen,
-  ];
+  List<Object?> get props => [currentFeature, permissions, menuOpen];
 }
