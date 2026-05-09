@@ -8,7 +8,7 @@ class OfflineBootstrapDto {
   final bool success;
   final String? serverTime;
   final List<BusinessData> businesses;
-  final List<Shops> shops;
+  final List<ShopData> shops;
   final List<CategoryData> categories;
   final List<ProductData> products;
   final List<CustomerData> customers;
@@ -37,7 +37,7 @@ class OfflineBootstrapDto {
           .toList(),
       shops: (map['shops'] as List<dynamic>? ?? const [])
           .whereType<Map<String, dynamic>>()
-          .map(Shops.fromJson)
+          .map(ShopData.fromJson)
           .toList(),
       categories: (map['categories'] as List<dynamic>? ?? const [])
           .whereType<Map<String, dynamic>>()

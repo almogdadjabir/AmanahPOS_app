@@ -95,6 +95,8 @@ getProviders(BuildContext context) => [
   BlocProvider(
     create: (context) => SettingsBloc(
       useCase: getIt<LoginUseCase>(),
+          authBloc: getIt<AuthBloc>(),
+
     ),
   ),
   BlocProvider(

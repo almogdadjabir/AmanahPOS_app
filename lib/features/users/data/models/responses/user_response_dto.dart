@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 class UserResponseDto {
   final bool? success;
   final List<UserData>? data;
@@ -14,54 +16,50 @@ class UserResponseDto {
   }
 }
 
-class UserData {
-  final String? id;
-  final String? phone;
-  final String? fullName;
-  final String? role;
-  final bool? isVerified;
-  final bool? isActive;
-  final String? lastLoginAt;
-  final String? createdAt;
+class UserData extends Equatable {
+  final String?  id;
+  final String?  phone;
+  final String?  email;
+  final String?  fullName;
+  final String?  role;
+  final bool?    isActive;
+  final bool?    isVerified;
+  final String?  defaultShopId;    // MULTI-SHOP
+  final String?  defaultShopName;  // MULTI-SHOP
+  final String?  createdAt;
+  final String?  lastLoginAt;
 
   const UserData({
     this.id,
     this.phone,
+    this.email,
     this.fullName,
     this.role,
-    this.isVerified,
     this.isActive,
-    this.lastLoginAt,
+    this.isVerified,
+    this.defaultShopId,
+    this.defaultShopName,
     this.createdAt,
+    this.lastLoginAt,
   });
 
-  factory UserData.fromJson(Map<String, dynamic> json) {
-    return UserData(
-      id: json['id'],
-      phone: json['phone'],
-      fullName: json['full_name'],
-      role: json['role'],
-      isVerified: json['is_verified'],
-      isActive: json['is_active'],
-      lastLoginAt: json['last_login_at'],
-      createdAt: json['created_at'],
-    );
-  }
+  factory UserData.fromJson(Map<String, dynamic> json) => UserData(
+    id:              json['id']               as String?,
+    phone:           json['phone']            as String?,
+    email:           json['email']            as String?,
+    fullName:        json['full_name']        as String?,
+    role:            json['role']             as String?,
+    isActive:        json['is_active']        as bool?,
+    isVerified:      json['is_verified']      as bool?,
+    defaultShopId:   json['default_shop_id']   as String?,  // M4
+    defaultShopName: json['default_shop_name']  as String?, // M4
+    createdAt:       json['created_at']        as String?,
+    lastLoginAt:       json['lastLoginAt']        as String?,
+  );
 
-  UserData copyWith({
-    String? fullName,
-    String? role,
-    bool? isActive,
-  }) {
-    return UserData(
-      id: id,
-      phone: phone,
-      fullName: fullName ?? this.fullName,
-      role: role ?? this.role,
-      isVerified:  isVerified,
-      isActive: isActive ?? this.isActive,
-      lastLoginAt: lastLoginAt,
-      createdAt: createdAt,
-    );
-  }
+  @override
+  List<Object?> get props => [
+    id, phone, email, fullName, role, isActive, isVerified,
+    defaultShopId, defaultShopName, createdAt, lastLoginAt,
+  ];
 }

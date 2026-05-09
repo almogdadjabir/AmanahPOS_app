@@ -3,115 +3,87 @@ part of 'pos_bloc.dart';
 enum PosSubmitStatus { idle, loading, success, failure }
 
 class PosState extends Equatable {
+  final List<PosCartItem> items;
   final String searchQuery;
   final String? selectedCategoryId;
   final String paymentMethod;
-  final List<PosCartItem> items;
-  final Map<String, int> lastSoldQuantities;
-  final bool cartExpanded;
   final PosSubmitStatus submitStatus;
   final String? submitError;
+  final bool cartExpanded;
+  final Map<String, int> lastSoldQuantities;
+
+  final String? selectedShopId;
+  final String? selectedShopName;
 
   const PosState({
-    required this.searchQuery,
-    required this.selectedCategoryId,
-    required this.paymentMethod,
-    required this.items,
-    required this.lastSoldQuantities,
-    required this.cartExpanded,
-    required this.submitStatus,
+    this.items = const [],
+    this.searchQuery = '',
+    this.selectedCategoryId,
+    this.paymentMethod = 'cash',
+    this.submitStatus = PosSubmitStatus.idle,
     this.submitError,
+    this.cartExpanded = false,
+    this.lastSoldQuantities = const {},
+    this.selectedShopId,
+    this.selectedShopName,
   });
 
-  factory PosState.initial() {
-    return const PosState(
-      searchQuery: '',
-      selectedCategoryId: null,
-      paymentMethod: 'cash',
-      items: [],
-      lastSoldQuantities: {},
-      cartExpanded: false,
-      submitStatus: PosSubmitStatus.idle,
-    );
-  }
+  factory PosState.initial() => const PosState();
 
   bool get isEmpty => items.isEmpty;
+  bool get isNotEmpty => items.isNotEmpty;
+  int  get itemCount => items.fold(0, (sum, i) => sum + i.quantity);
 
-  int get itemCount {
-    return items.fold<int>(
-      0,
-          (sum, item) => sum + item.quantity,
-    );
-  }
-
-  double get subtotal {
-    return items.fold<double>(
-      0,
-          (sum, item) => sum + item.lineTotal,
-    );
-  }
+  double get subtotal =>
+      items.fold(0, (sum, i) => sum + i.lineTotal);
 
   double get total => subtotal;
 
   int quantityOf(String? productId) {
     if (productId == null) return 0;
-
-    final index = items.indexWhere(
-          (item) => item.product.id == productId,
-    );
-
-    if (index == -1) return 0;
-
-    return items[index].quantity;
+    final match = items.where((i) => i.product.id == productId);
+    return match.isEmpty ? 0 : match.first.quantity;
   }
 
-  Map<String, int> get currentSoldQuantities {
-    final result = <String, int>{};
-
-    for (final item in items) {
-      final productId = item.product.id;
-      if (productId == null) continue;
-
-      result[productId] = (result[productId] ?? 0) + item.quantity;
-    }
-
-    return result;
-  }
+  Map<String, int> get currentSoldQuantities => {
+    for (final item in items)
+      if (item.product.id != null) item.product.id!: item.quantity,
+  };
 
   PosState copyWith({
+    List<PosCartItem>? items,
     String? searchQuery,
     String? selectedCategoryId,
     bool clearSelectedCategory = false,
     String? paymentMethod,
-    List<PosCartItem>? items,
-    Map<String, int>? lastSoldQuantities,
-    bool? cartExpanded,
-    PosSubmitStatus? submitStatus,
+    PosSubmitStatus?   submitStatus,
     String? submitError,
+    bool? cartExpanded,
+    Map<String, int>?  lastSoldQuantities,
+    String? selectedShopId,
+    String? selectedShopName,
+    bool clearShop = false,
   }) {
     return PosState(
+      items: items ?? this.items,
       searchQuery: searchQuery ?? this.searchQuery,
       selectedCategoryId: clearSelectedCategory
           ? null
-          : selectedCategoryId ?? this.selectedCategoryId,
+          : (selectedCategoryId  ?? this.selectedCategoryId),
       paymentMethod: paymentMethod ?? this.paymentMethod,
-      items: items ?? this.items,
-      lastSoldQuantities: lastSoldQuantities ?? this.lastSoldQuantities,
-      cartExpanded: cartExpanded ?? this.cartExpanded,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: submitError,
+      cartExpanded: cartExpanded ?? this.cartExpanded,
+      lastSoldQuantities: lastSoldQuantities ?? this.lastSoldQuantities,
+      selectedShopId: clearShop ? null : (selectedShopId  ?? this.selectedShopId),
+      selectedShopName: clearShop ? null : (selectedShopName ?? this.selectedShopName),
     );
   }
 
   @override
   List<Object?> get props => [
-    searchQuery,
-    selectedCategoryId,
-    paymentMethod,
-    items,
-    lastSoldQuantities,
-    cartExpanded,
-    submitStatus,
-    submitError,
+    items, searchQuery, selectedCategoryId, paymentMethod,
+    submitStatus, submitError, cartExpanded, lastSoldQuantities,
+    selectedShopId, selectedShopName,
   ];
 }

@@ -40,7 +40,7 @@ class UserErrorView extends StatelessWidget {
             const SizedBox(height: AppDims.s4),
             OutlinedButton.icon(
               onPressed: () =>
-                  context.read<UserBloc>().add(const OnUserInitial()),
+                  context.read<UserBloc>().add(OnUserInitial()),
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: const Text('Retry'),
             ),

@@ -87,7 +87,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
                   icon: Icons.point_of_sale_rounded,
                   title: 'Cashiers',
                   subtitle: 'Team access',
-                  onTap: () {},
+                  onTap: () => Navigator.of(context).pushNamed(RouteStrings.cashiersScreen),
                 ),
                 WorkspaceActionCard(
                   icon: Icons.bar_chart_rounded,

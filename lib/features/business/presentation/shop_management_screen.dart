@@ -30,7 +30,7 @@ class ShopManagementScreen extends StatelessWidget {
       },
       builder: (context, currentBusiness) {
         final data = currentBusiness ?? business;
-        final shops = data.shops ?? const <Shops>[];
+        final shops = data.shops ?? const <ShopData>[];
 
         return Scaffold(
           body: CustomScrollView(

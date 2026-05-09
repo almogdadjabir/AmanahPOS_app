@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class ShopManagementCard extends StatelessWidget {
-  final Shops shop;
+  final ShopData shop;
   final String? businessId;
 
   const ShopManagementCard({super.key,

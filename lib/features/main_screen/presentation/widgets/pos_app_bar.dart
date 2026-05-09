@@ -7,6 +7,7 @@ import 'package:amana_pos/features/main_screen/presentation/widgets/brand_logo.d
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/amana_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -49,7 +50,7 @@ class PosAppBar extends StatelessWidget {
         ),
 
         const SizedBox(width: AppDims.s2),
-        const BrandLogo(),
+        const AmanaPosLogoMark(isInAppBar: true),
         const SizedBox(width: AppDims.s3),
 
         Expanded(

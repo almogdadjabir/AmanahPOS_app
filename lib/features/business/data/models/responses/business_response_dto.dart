@@ -37,7 +37,7 @@ class BusinessData {
   ActiveSubscription? activeSubscription;
   bool? isActive;
   int? shopCount;
-  List<Shops>? shops;
+  List<ShopData>? shops;
   String? createdAt;
   String? updatedAt;
 
@@ -74,9 +74,9 @@ class BusinessData {
     isActive = json['is_active'];
     shopCount = json['shop_count'];
     if (json['shops'] != null) {
-      shops = <Shops>[];
+      shops = <ShopData>[];
       json['shops'].forEach((v) {
-        shops!.add(new Shops.fromJson(v));
+        shops!.add(new ShopData.fromJson(v));
       });
     }
     createdAt = json['created_at'];
@@ -159,7 +159,7 @@ class Owner {
   }
 }
 
-class Shops {
+class ShopData {
   String? id;
   String? business;
   String? name;
@@ -169,7 +169,7 @@ class Shops {
   String? createdAt;
   String? updatedAt;
 
-  Shops(
+  ShopData(
       {this.id,
         this.business,
         this.name,
@@ -179,7 +179,7 @@ class Shops {
         this.createdAt,
         this.updatedAt});
 
-  Shops.fromJson(Map<String, dynamic> json) {
+  ShopData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     business = json['business'];
     name = json['name'];

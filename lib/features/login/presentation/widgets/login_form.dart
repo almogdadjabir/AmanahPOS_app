@@ -1,5 +1,6 @@
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
+import 'package:amana_pos/widgets/amana_logo.dart';
 import 'package:amana_pos/widgets/app_button.dart';
 import 'package:amana_pos/widgets/brand_logo.dart';
 import 'package:amana_pos/widgets/phone_number_field.dart';
@@ -68,7 +69,7 @@ class _LoginFormState extends State<LoginForm> {
                   children: [
                     const SizedBox(height: AppSpacing.xl),
 
-                    const BrandLogo(size: 56)
+                    const AmanaPosLogo()
                         .animate()
                         .fadeIn(delay: 100.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),

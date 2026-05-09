@@ -59,7 +59,7 @@ class AppFormField extends StatelessWidget {
         filled: true,
         fillColor: context.appColors.surfaceSoft,
         errorMaxLines: 2,
-        errorStyle: AppTextStyles.sm200(context).copyWith(
+        errorStyle: AppTextStyles.bs300(context).copyWith(
           fontWeight: FontWeight.w600,
           color: context.appColors.danger,
           height: 1.3,

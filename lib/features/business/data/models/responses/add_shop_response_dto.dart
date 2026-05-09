@@ -3,14 +3,14 @@ import 'package:amana_pos/features/business/data/models/responses/business_respo
 class AddShopResponseDto {
   bool? success;
   String? message;
-  Shops? data;
+  ShopData? data;
 
   AddShopResponseDto({this.success, this.message, this.data});
 
   AddShopResponseDto.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
-    data = json['data'] != null ? Shops.fromJson(json['data']) : null;
+    data = json['data'] != null ? ShopData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {

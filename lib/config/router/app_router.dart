@@ -14,6 +14,7 @@ import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
+import 'package:amana_pos/features/users/presentation/users_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class AppRouter {
       case RouteStrings.shopDetailScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final String businessId = args?['businessId'] as String;
-        final Shops shop = args?['shop'] as Shops;
+        final ShopData shop = args?['shop'] as ShopData;
 
         return _buildRoute(ShopDetailScreen(businessId: businessId, shop: shop), settings);
       case RouteStrings.userDetailScreen:
@@ -53,6 +54,11 @@ class AppRouter {
       case RouteStrings.productScreen:
         return MaterialPageRoute(
           builder: (_) => ProductsScreen(isWithAppbar: true),
+        );
+
+      case RouteStrings.cashiersScreen:
+        return MaterialPageRoute(
+          builder: (_) => UsersScreen(isWithAppbar: true),
         );
       case RouteStrings.shopManagementScreen:
         final args = settings.arguments as Map<String, dynamic>;

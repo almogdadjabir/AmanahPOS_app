@@ -16,7 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void showAddStockProductSheet(
     BuildContext context, {
       ProductData? initialProduct,
-      Shops? initialShop,
+      ShopData? initialShop,
     }) {
   final inventoryBloc = context.read<InventoryBloc>();
   final productBloc = context.read<ProductBloc>();
@@ -42,7 +42,7 @@ void showAddStockProductSheet(
 
 class _AddStockProductSheet extends StatefulWidget {
   final ProductData? initialProduct;
-  final Shops? initialShop;
+  final ShopData? initialShop;
 
   const _AddStockProductSheet({
     this.initialProduct,
@@ -64,7 +64,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
   final _refFocus = FocusNode();
 
   ProductData? _selectedProduct;
-  Shops? _selectedShop;
+  ShopData? _selectedShop;
   MovementType _movementType = MovementType.opening;
 
   @override
@@ -82,7 +82,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
     }
   }
 
-  Shops? _firstValidShop(List<Shops> shops) {
+  ShopData? _firstValidShop(List<ShopData> shops) {
     for (final shop in shops) {
       final id = shop.id;
       if (id != null && id.trim().isNotEmpty) {
@@ -103,7 +103,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
     super.dispose();
   }
 
-  List<Shops> _shopsFromBusiness(BuildContext context) {
+  List<ShopData> _shopsFromBusiness(BuildContext context) {
     final businessState = context.read<BusinessBloc>().state;
 
     final businesses = businessState.businessList;
@@ -648,10 +648,10 @@ class _StockForm extends StatelessWidget {
   final TextEditingController refCtrl;
   final FocusNode qtyFocus;
   final FocusNode refFocus;
-  final List<Shops> shops;
-  final Shops? selectedShop;
+  final List<ShopData> shops;
+  final ShopData? selectedShop;
   final MovementType movementType;
-  final ValueChanged<Shops> onShopChanged;
+  final ValueChanged<ShopData> onShopChanged;
   final ValueChanged<MovementType> onMovementChanged;
   final VoidCallback onSubmit;
   final bool lockShop;

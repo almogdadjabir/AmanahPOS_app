@@ -5,7 +5,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class ShopQuickStats extends StatelessWidget {
-  final List<Shops> shops;
+  final List<ShopData> shops;
 
   const ShopQuickStats({super.key,
     required this.shops,

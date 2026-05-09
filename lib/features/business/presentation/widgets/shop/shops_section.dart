@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 
 class ShopsSection extends StatelessWidget {
-  final List<Shops> shops;
+  final List<ShopData> shops;
   final String? businessId;
   const ShopsSection({super.key, required this.shops, required this.businessId});
 
@@ -74,7 +74,7 @@ class ShopsSection extends StatelessWidget {
 }
 
 class _ShopTile extends StatelessWidget {
-  final Shops shop;
+  final ShopData shop;
   final String businessId;
   const _ShopTile({required this.shop, required this.businessId});
 

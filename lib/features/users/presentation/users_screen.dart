@@ -13,7 +13,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class UsersScreen extends StatefulWidget {
-  const UsersScreen({super.key});
+  final bool isWithAppbar;
+  const UsersScreen({super.key, this.isWithAppbar = false});
 
   @override
   State<UsersScreen> createState() => _UsersScreenState();
@@ -23,13 +24,53 @@ class _UsersScreenState extends State<UsersScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<UserBloc>().add(const OnUserInitial());
+    context.read<UserBloc>().add(OnUserInitial());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.appColors.background,
+      appBar: widget.isWithAppbar
+          ? AppBar(
+        elevation: 0,
+        backgroundColor: context.appColors.surface,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: context.appColors.textPrimary,
+          ),
+        ),
+        title: Text(
+          'Cashiers Management',
+          style: AppTextStyles.bs500(context).copyWith(
+            color: context.appColors.textPrimary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppDims.s2),
+            child: TextButton.icon(
+              onPressed: () => showAddUserSheet(context),
+              style: TextButton.styleFrom(
+                foregroundColor: context.appColors.primary,
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 34),
+              ),
+              icon: const Icon(Icons.person_add_rounded, size: 17),
+              label: Text(
+                'Add Cashier',
+                style: AppTextStyles.bs300(context).copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+        ],
+      )
+          : null,
       body: BlocBuilder<UserBloc, UserState>(
         buildWhen: (prev, curr) =>
         prev.userStatus != curr.userStatus ||
@@ -45,23 +86,9 @@ class _UsersScreenState extends State<UsersScreen> {
 
             UserStatus.success => state.userList.isEmpty
                 ? const UserEmptyView()
-                : _CashierManagementContent(users: state.userList),
+                : _CashierManagementContent(users: state.userList, isWithAppbar: widget.isWithAppbar),
           };
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showAddUserSheet(context),
-        backgroundColor: context.appColors.primary,
-        icon: const Icon(Icons.person_add_rounded, color: Colors.white),
-        label: const Text(
-          'Add Cashier',
-          style: TextStyle(
-            fontFamily: 'NunitoSans',
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
       ),
     );
   }
@@ -69,9 +96,11 @@ class _UsersScreenState extends State<UsersScreen> {
 
 class _CashierManagementContent extends StatelessWidget {
   final List<UserData> users;
+  final bool isWithAppbar;
 
   const _CashierManagementContent({
     required this.users,
+    required this.isWithAppbar,
   });
 
   @override
@@ -79,13 +108,14 @@ class _CashierManagementContent extends StatelessWidget {
     return RefreshIndicator(
       color: context.appColors.primary,
       onRefresh: () async {
-        context.read<UserBloc>().add(const OnUserInitial());
+        context.read<UserBloc>().add(OnUserInitial());
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
         slivers: [
+          if(isWithAppbar == false)
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppDims.s4,
@@ -124,7 +154,8 @@ class _CashierManagementContent extends StatelessWidget {
             ),
           ),
 
-          SliverPadding(
+          if(isWithAppbar == false)
+            SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppDims.s4,
               AppDims.s5,
@@ -163,8 +194,11 @@ class _CashierManagementContent extends StatelessWidget {
             ),
           ),
 
-          SliverToBoxAdapter(
-            child: UserList(users: users),
+          SliverPadding(
+            padding: const EdgeInsets.only(top: AppDims.s5),
+            sliver:  SliverToBoxAdapter(
+              child: UserList(users: users),
+            ),
           ),
 
           const SliverToBoxAdapter(

@@ -10,12 +10,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductSheetShell extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final Widget body;
   final double maxHeightFactor;
 
   const ProductSheetShell({
     super.key,
     required this.title,
+    this.subtitle,
     required this.body,
     this.maxHeightFactor = 1.0,
   });
@@ -65,6 +67,11 @@ class ProductSheetShell extends StatelessWidget {
                       color: colors.textPrimary,
                     ),
                   ),
+                if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(subtitle!, style: AppTextStyles.bs300(context)
+                    .copyWith(color: colors.textHint)),
+              ],
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),

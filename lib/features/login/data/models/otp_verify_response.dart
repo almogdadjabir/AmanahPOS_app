@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 class OtpVerifyResponse {
   bool? success;
   String? message;
@@ -46,78 +48,100 @@ class LoginData {
   }
 }
 
-class User {
-  String? id;
-  String? phone;
-  String? email;
-  String? fullName;
-  String? role;
-  bool? isVerified;
-  bool? hasPassword;
-  String? createdAt;
-  String? lastLoginAt;
-  BankakAccount? bankakAccount;
+class User extends Equatable {
+  final String? id;
+  final String? phone;
+  final String? email;
+  final String? fullName;
+  final String? role;
+  final bool? isStaff;
+  final bool? isVerified;
+  final bool? hasPassword;
+  final String? businessId;
+  final String? defaultShopId;
+  final String? defaultShopName;
+  final BankakAccount? bankakAccount;
+  final String? createdAt;
+  final String? lastLoginAt;
 
+  const User({
+    this.id,
+    this.phone,
+    this.email,
+    this.fullName,
+    this.role,
+    this.isStaff,
+    this.isVerified,
+    this.hasPassword,
+    this.businessId,
+    this.defaultShopId,
+    this.defaultShopName,
+    this.bankakAccount,
+    this.createdAt,
+    this.lastLoginAt,
+  });
 
-  User(
-      {this.id,
-        this.phone,
-        this.email,
-        this.fullName,
-        this.role,
-        this.isVerified,
-        this.hasPassword,
-        this.createdAt,
-        this.lastLoginAt,
-        this.bankakAccount,});
-
-  User.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    phone = json['phone'];
-    email = json['email'];
-    fullName = json['full_name'];
-    role = json['role'];
-    isVerified = json['is_verified'];
-    hasPassword = json['has_password'];
-    createdAt = json['created_at'];
-    lastLoginAt = json['last_login_at'];
-    bankakAccount = json['bankak_account'] is Map<String, dynamic>
+  factory User.fromJson(Map<String, dynamic> json) => User(
+    id: json['id'] as String?,
+    phone: json['phone'] as String?,
+    email: json['email'] as String?,
+    fullName: json['full_name'] as String?,
+    role: json['role'] as String?,
+    isStaff: json['is_staff'] as bool?,
+    isVerified: json['is_verified'] as bool?,
+    hasPassword: json['has_password'] as bool?,
+    businessId: json['business_id'] as String?,
+    defaultShopId: json['default_shop_id'] as String?,
+    defaultShopName: json['default_shop_name'] as String?,
+    bankakAccount: json['bankak_account'] != null
         ? BankakAccount.fromJson(
-      json['bankak_account'] as Map<String, dynamic>,
-    )
-        : null;
-  }
+        json['bankak_account'] as Map<String, dynamic>)
+        : null,
+    createdAt: json['created_at'] as String?,
+    lastLoginAt: json['last_login_at'] as String?,
+  );
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['id'] = id;
-    data['phone'] = phone;
-    data['email'] = email;
-    data['full_name'] = fullName;
-    data['role'] = role;
-    data['is_verified'] = isVerified;
-    data['has_password'] = hasPassword;
-    data['created_at'] = createdAt;
-    data['last_login_at'] = lastLoginAt;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'phone': phone,
+    'email': email,
+    'full_name': fullName,
+    'role': role,
+    'is_staff': isStaff,
+    'is_verified': isVerified,
+    'has_password': hasPassword,
+    'business_id': businessId,
+    'default_shop_id': defaultShopId,
+    'default_shop_name': defaultShopName,
+    'bankak_account': bankakAccount?.toJson(),
+    'created_at': createdAt,
+    'last_login_at': lastLoginAt,
+  };
+
+  @override
+  List<Object?> get props => [
+    id, phone, email, fullName, role, isStaff, isVerified,
+    hasPassword, businessId, defaultShopId, defaultShopName,
+    bankakAccount, createdAt, lastLoginAt,
+  ];
 }
 
-class BankakAccount {
-  String? id;
-  String? accountNumber;
+class BankakAccount extends Equatable {
+  final String? id;
+  final String? accountNumber;
 
-  BankakAccount({this.id, this.accountNumber});
+  const BankakAccount({this.id, this.accountNumber});
 
-  BankakAccount.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    accountNumber = json['account_number'];
-  }
+  factory BankakAccount.fromJson(Map<String, dynamic> json) => BankakAccount(
+    id: json['id'] as String?,
+    accountNumber: json['account_number'] as String?,
+  );
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['id'] = id;
-    data['account_number'] = accountNumber;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'account_number': accountNumber,
+  };
+
+  @override
+  List<Object?> get props => [id, accountNumber];
 }

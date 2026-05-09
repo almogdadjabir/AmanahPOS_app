@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ShopDetailScreen extends StatelessWidget {
   final String businessId;
-  final Shops shop;
+  final ShopData shop;
 
   const ShopDetailScreen({
     super.key,
@@ -19,7 +19,7 @@ class ShopDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<BusinessBloc, BusinessState, Shops?>(
+    return BlocSelector<BusinessBloc, BusinessState, ShopData?>(
       selector: (state) => state.businessList
           ?.firstWhere((b) => b.id == businessId,
           orElse: () => BusinessData())

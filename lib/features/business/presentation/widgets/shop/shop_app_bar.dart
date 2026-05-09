@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 class ShopAppBar extends StatelessWidget {
   final String businessId;
-  final Shops shop;
+  final ShopData shop;
   const ShopAppBar({super.key, required this.businessId, required this.shop});
 
   @override

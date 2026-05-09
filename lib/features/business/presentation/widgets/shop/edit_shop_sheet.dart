@@ -12,7 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void showEditShopSheet(
     BuildContext context, {
       required String businessId,
-      required Shops shop,
+      required ShopData shop,
     }) {
   showModalBottomSheet(
     context: context,
@@ -27,7 +27,7 @@ void showEditShopSheet(
 
 class _EditShopSheet extends StatefulWidget {
   final String businessId;
-  final Shops shop;
+  final ShopData shop;
   const _EditShopSheet({required this.businessId, required this.shop});
 
   @override

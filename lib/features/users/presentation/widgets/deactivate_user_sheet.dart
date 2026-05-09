@@ -60,7 +60,7 @@ void showDeactivateUserSheet(
               }
 
               context.read<UserBloc>().add(
-                OnDeactivateUser(userId: userId),
+                OnDeactivateUser(userId),
               );
             },
           );

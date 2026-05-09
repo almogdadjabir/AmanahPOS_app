@@ -12,7 +12,8 @@ import 'package:amana_pos/features/pos/presentation/widgets/product_grid.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
-import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:amana_pos/theme/app_spacing.dart';
+import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
@@ -28,8 +29,7 @@ class PosScreen extends StatefulWidget {
 
 class _PosScreenState extends State<PosScreen> {
   final _searchCtrl = TextEditingController();
-
-  bool _checkoutResolvingShop = false;
+  bool  _checkoutResolvingShop = false;
 
   @override
   void initState() {
@@ -41,9 +41,12 @@ class _PosScreenState extends State<PosScreen> {
     }
 
     final businessState = context.read<BusinessBloc>().state;
-    if (businessState.businessList == null || businessState.businessList!.isEmpty) {
+    if (businessState.businessList == null ||
+        businessState.businessList!.isEmpty) {
       context.read<BusinessBloc>().add(OnBusinessInitial());
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _autoSelectShop());
   }
 
   @override
@@ -52,66 +55,56 @@ class _PosScreenState extends State<PosScreen> {
     super.dispose();
   }
 
-  Future<String?> _defaultShopId() async {
-    final fromBusinessBloc = _shopFromBusinessList(
-      context.read<BusinessBloc>().state.businessList,
-    );
 
-    if (fromBusinessBloc != null) return fromBusinessBloc;
+  void _autoSelectShop() {
+    if (!mounted) return;
 
-    final fromAuthBloc = _shopFromBusiness(
-      context.read<AuthBloc>().state.defaultBusiness,
-    );
+    final posState = context.read<PosBloc>().state;
+    if (posState.selectedShopId != null) return;
 
-    if (fromAuthBloc != null) return fromAuthBloc;
+    final permissions = context.read<AuthBloc>().state.permissions;
 
-    try {
-      final cache = getIt<OfflineLocalCache>();
-
-      final cachedShops = await cache.getShops();
-      if (cachedShops.isNotEmpty) {
-        final shopId = cachedShops.first.id;
-        if (shopId != null && shopId.isNotEmpty) return shopId;
+    if (permissions.isCashier) {
+      final assignedId = context.read<AuthBloc>().state.profile?.defaultShopId;
+      if (assignedId != null && assignedId.isNotEmpty) {
+        context.read<PosBloc>().add(PosShopSelected(
+          shopId:   assignedId,
+          shopName: context.read<AuthBloc>().state.profile?.defaultShopName ??
+              'Your shop',
+        ));
       }
-
-      final cachedBusinesses = await cache.getBusinesses();
-      final fromCachedBusinesses = _shopFromBusinessList(cachedBusinesses);
-
-      if (fromCachedBusinesses != null) return fromCachedBusinesses;
-    } catch (_) {
-      // Do not block checkout UI if cache read fails.
+      return;
     }
 
-    return null;
+    final shops = _activeShops();
+    if (shops.isNotEmpty) {
+      final first = shops.first;
+      context.read<PosBloc>().add(PosShopSelected(
+        shopId: first.id!,
+        shopName: first.name ?? 'Shop',
+      ));
+    }
   }
 
-  String? _shopFromBusinessList(List<BusinessData>? businesses) {
-    if (businesses == null || businesses.isEmpty) return null;
+  List<ShopData> _activeShops() {
+    final fromBusiness = context
+        .read<BusinessBloc>()
+        .state
+        .businessList
+        ?.expand((b) => b.shops ?? <ShopData>[])
+        .where((s) => s.id != null && (s.isActive ?? true))
+        .toList();
 
-    for (final business in businesses) {
-      final shopId = _shopFromBusiness(business);
-      if (shopId != null) return shopId;
-    }
+    if (fromBusiness != null && fromBusiness.isNotEmpty) return fromBusiness;
 
-    return null;
-  }
-
-  String? _shopFromBusiness(BusinessData? business) {
-    if (business == null) return null;
-
-    final shops = business.shops;
-    if (shops == null || shops.isEmpty) return null;
-
-    for (final shop in shops) {
-      final shopId = shop.id;
-      final isActive = shop.isActive ?? true;
-
-      if (shopId != null && shopId.isNotEmpty && isActive) {
-        return shopId;
-      }
-    }
-
-    return null;
+    return context
+        .read<AuthBloc>()
+        .state
+        .defaultBusiness
+        ?.shops
+        ?.where((s) => s.id != null && (s.isActive ?? true))
+        .toList() ??
+        [];
   }
 
   Future<void> _handleCheckout() async {
@@ -120,12 +113,11 @@ class _PosScreenState extends State<PosScreen> {
 
     try {
       final posState = context.read<PosBloc>().state;
-
       if (posState.paymentMethod == 'bankak') {
         String? bankakAccount;
         try {
           bankakAccount = context
-              .read<SettingsBloc>()
+              .read<AuthBloc>()
               .state
               .profile
               ?.bankakAccount
@@ -137,25 +129,39 @@ class _PosScreenState extends State<PosScreen> {
           GlobalSnackBar.show(
             message:
             'Bankak account is not set up. Go to Settings and add your account number first.',
-            isError: true,
+            isError:       true,
             isAutoDismiss: false,
           );
-          return; // ← never reaches the API or offline queue
+          return;
         }
       }
 
-      // ── Resolve shop ────────────────────────────────────────────────────────
-      final shopId = await _defaultShopId();
-
-      if (!mounted) return;
+      final shopId = posState.selectedShopId;
 
       if (shopId == null || shopId.isEmpty) {
-        GlobalSnackBar.show(
-          message:
-          'No shop found on this device. Please connect once to refresh your business data.',
-          isError: true,
-          isAutoDismiss: false,
-        );
+        final fallback = await _shopFromCache();
+        if (!mounted) return;
+
+        if (fallback == null) {
+          final permissions = context.read<AuthBloc>().state.permissions;
+          final message = permissions.isCashier
+              ? 'You are not assigned to a shop. Contact your manager.'
+              : 'No shop found. Please refresh and try again.';
+          GlobalSnackBar.show(
+            message: message,
+            isError: true,
+            isAutoDismiss: false,
+          );
+          return;
+        }
+
+        context.read<PosBloc>().add(PosShopSelected(
+          shopId: fallback,
+          shopName: 'Shop',
+        ));
+        context
+            .read<PosBloc>()
+            .add(PosCheckoutSubmitted(shopId: fallback));
         return;
       }
 
@@ -164,6 +170,19 @@ class _PosScreenState extends State<PosScreen> {
       _checkoutResolvingShop = false;
     }
   }
+
+  Future<String?> _shopFromCache() async {
+    try {
+      final cache = getIt<OfflineLocalCache>();
+      final cachedShops = await cache.getShops();
+      if (cachedShops.isNotEmpty) {
+        final id = cachedShops.first.id;
+        if (id != null && id.isNotEmpty) return id;
+      }
+    } catch (_) {}
+    return null;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -181,19 +200,18 @@ class _PosScreenState extends State<PosScreen> {
               ? state.submitError!
               : 'Sale completed successfully';
 
-          GlobalSnackBar.show(
-            message: message,
-            isInfo: true,
-          );
-
+          GlobalSnackBar.show(message: message, isInfo: true);
           context.read<PosBloc>().add(const PosAcknowledgeSubmit());
+
+          _autoSelectShop();
         }
 
         if (state.submitStatus == PosSubmitStatus.failure) {
           final raw = state.submitError ?? 'Failed to complete sale';
-
           final message = raw.contains('BANKAK_ACCOUNT_REQUIRED')
-              ? 'Please add your Bankak account number in Settings before accepting Bankak payments.'
+              ? 'Please add your Bankak account number in Settings.'
+              : raw.contains('SHOP_MISMATCH')
+              ? 'You are not assigned to this shop. Contact your manager.'
               : raw;
 
           GlobalSnackBar.show(
@@ -201,7 +219,6 @@ class _PosScreenState extends State<PosScreen> {
             isError: true,
             isAutoDismiss: false,
           );
-
           context.read<PosBloc>().add(const PosAcknowledgeSubmit());
         }
       },
@@ -217,36 +234,50 @@ class _PosScreenState extends State<PosScreen> {
                 onRefresh: posState.cartExpanded
                     ? () async {}
                     : () async {
-                  context.read<ProductBloc>().add(const OnProductInitial(force: true));
-                  context.read<BusinessBloc>().add(OnBusinessInitial());
-
+                  context
+                      .read<ProductBloc>()
+                      .add(const OnProductInitial(force: true));
+                  context
+                      .read<BusinessBloc>()
+                      .add(OnBusinessInitial());
                   _searchCtrl.clear();
-                  context.read<PosBloc>().add(const PosSearchChanged(''));
-                  context.read<PosBloc>().add(const PosCategoryChanged(null));
-
+                  context
+                      .read<PosBloc>()
+                      .add(const PosSearchChanged(''));
+                  context
+                      .read<PosBloc>()
+                      .add(const PosCategoryChanged(null));
                   await Future<void>.delayed(
-                    const Duration(milliseconds: 450),
-                  );
+                      const Duration(milliseconds: 450));
+                  _autoSelectShop();
                 },
                 child: Stack(
                   children: [
                     Column(
                       children: [
+                        if(context.read<AuthBloc>().state.permissions.isOwner)
+                        _ShopSwitcherBar(
+                          activeShops: _activeShops(),
+                        ),
+
                         PosSearchSection(searchCtrl: _searchCtrl),
                         const CategoryBar(),
                         Expanded(
                           child: BlocBuilder<ProductBloc, ProductState>(
                             buildWhen: (prev, curr) =>
                             prev.productStatus != curr.productStatus ||
-                                prev.products != curr.products ||
-                                prev.categories != curr.categories,
+                                prev.products    != curr.products ||
+                                prev.categories  != curr.categories,
                             builder: (context, productState) {
-                              if (productState.productStatus == ProductStatus.loading ||
-                                  productState.productStatus == ProductStatus.initial) {
+                              if (productState.productStatus ==
+                                  ProductStatus.loading ||
+                                  productState.productStatus ==
+                                      ProductStatus.initial) {
                                 return const ProductsLoadingGrid();
                               }
 
-                              if (productState.productStatus == ProductStatus.failure) {
+                              if (productState.productStatus ==
+                                  ProductStatus.failure) {
                                 return ProductErrorView(
                                   message: productState.responseError,
                                 );
@@ -254,20 +285,16 @@ class _PosScreenState extends State<PosScreen> {
 
                               return BlocBuilder<PosBloc, PosState>(
                                 buildWhen: (prev, curr) =>
-                                prev.searchQuery != curr.searchQuery ||
-                                    prev.selectedCategoryId != curr.selectedCategoryId,
+                                prev.searchQuery        != curr.searchQuery ||
+                                    prev.selectedCategoryId !=
+                                        curr.selectedCategoryId,
                                 builder: (context, posState) {
                                   final products = _filterProducts(
-                                    productState.products,
-                                    posState,
-                                  );
-
+                                      productState.products, posState);
                                   if (products.isEmpty) {
                                     return ProductsEmpty(
-                                      query: posState.searchQuery,
-                                    );
+                                        query: posState.searchQuery);
                                   }
-
                                   return ProductGrid(products: products);
                                 },
                               );
@@ -275,16 +302,14 @@ class _PosScreenState extends State<PosScreen> {
                           ),
                         ),
                         BlocBuilder<PosBloc, PosState>(
-                          buildWhen: (prev, curr) => prev.isEmpty != curr.isEmpty,
-                          builder: (context, state) {
-                            return SizedBox(height: state.isEmpty ? 0 : 88);
-                          },
+                          buildWhen: (prev, curr) =>
+                          prev.isEmpty != curr.isEmpty,
+                          builder: (context, state) =>
+                              SizedBox(height: state.isEmpty ? 0 : 88),
                         ),
                       ],
                     ),
-                    CartSheet(
-                      onCheckout: _handleCheckout,
-                    ),
+                    CartSheet(onCheckout: _handleCheckout),
                   ],
                 ),
               );
@@ -296,28 +321,110 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   List<ProductData> _filterProducts(
-      List<ProductData> products,
-      PosState state,
-      ) {
+      List<ProductData> products, PosState state) {
     final query = state.searchQuery.trim().toLowerCase();
-
     return products.where((product) {
-      final active = product.isActive ?? true;
-      if (!active) return false;
-
+      if (!(product.isActive ?? true)) return false;
       final matchesCategory = state.selectedCategoryId == null ||
           product.category == state.selectedCategoryId;
-
       final matchesSearch = query.isEmpty ||
-          (product.name?.toLowerCase().contains(query) ?? false) ||
-          (product.sku?.toLowerCase().contains(query) ?? false) ||
+          (product.name?.toLowerCase().contains(query)    ?? false) ||
+          (product.sku?.toLowerCase().contains(query)     ?? false) ||
           (product.barcode?.toLowerCase().contains(query) ?? false);
-
       return matchesCategory && matchesSearch;
     }).toList();
   }
 }
 
-String money(double value) {
-  return value.toStringAsFixed(2);
+class _ShopSwitcherBar extends StatelessWidget {
+  final List<ShopData> activeShops;
+
+  const _ShopSwitcherBar({required this.activeShops});
+
+  @override
+  Widget build(BuildContext context) {
+    final permissions = context.read<AuthBloc>().state.permissions;
+
+    // Cashiers and single-shop owners: render nothing
+    if (permissions.isCashier || activeShops.length < 2) {
+      return const SizedBox.shrink();
+    }
+
+    return BlocBuilder<PosBloc, PosState>(
+      buildWhen: (prev, curr) => prev.selectedShopId != curr.selectedShopId,
+      builder: (context, posState) {
+        final colors       = context.appColors;
+        final selectedName = posState.selectedShopName ?? 'Select shop';
+
+        return Container(
+          width:   double.infinity,
+          padding: const EdgeInsets.fromLTRB(
+              AppDims.s4, AppDims.s2, AppDims.s4, AppDims.s1),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: activeShops.map((shop) {
+                final isSelected = shop.id == posState.selectedShopId;
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppDims.s2),
+                  child: GestureDetector(
+                    onTap: isSelected
+                        ? null
+                        : () {
+                      context.read<PosBloc>().add(PosShopSelected(
+                        shopId:   shop.id!,
+                        shopName: shop.name ?? 'Shop',
+                      ));
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDims.s3, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? colors.primary
+                            : colors.surfaceSoft,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: isSelected
+                              ? colors.primary
+                              : colors.border,
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.storefront_rounded,
+                            size:  14,
+                            color: isSelected
+                                ? Colors.white
+                                : colors.textSecondary,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            shop.name ?? 'Shop',
+                            style: AppTextStyles.bs200(context).copyWith(
+                              color: isSelected
+                                  ? Colors.white
+                                  : colors.textSecondary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
+
+String money(double value) => value.toStringAsFixed(2);

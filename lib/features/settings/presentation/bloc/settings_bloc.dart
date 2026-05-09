@@ -1,4 +1,4 @@
-import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/settings/data/models/set_password_request_dto.dart';
 import 'package:amana_pos/features/settings/data/models/update_profile_request_dto.dart';
@@ -10,111 +10,81 @@ part 'settings_state.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final LoginUseCase useCase;
+  final AuthBloc     authBloc; // single source of truth for profile
 
   SettingsBloc({
     required this.useCase,
+    required this.authBloc,
   }) : super(SettingsState.initial()) {
-    on<OnSettingsInitial>(_initial);
     on<OnUpdateProfile>(_updateProfile);
     on<OnSetPassword>(_setPassword);
-  }
-
-  Future<void> _initial(
-      OnSettingsInitial event,
-      Emitter<SettingsState> emit,
-      ) async {
-    emit(state.copyWith(status: SettingsStatus.loading, responseError: null));
-
-    try {
-      final response = await useCase.getProfile();
-      final error = response.getLeft().toNullable();
-      final result = response.getRight().toNullable();
-
-      if (error != null) {
-        emit(state.copyWith(
-          status: SettingsStatus.failure,
-          responseError: error,
-        ));
-        return;
-      }
-
-      emit(state.copyWith(
-        status: SettingsStatus.success,
-        profile: result?.user!,
-        responseError: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: SettingsStatus.failure,
-        responseError: e.toString(),
-      ));
-    }
+    // OnSettingsInitial removed — profile comes from AuthBloc
   }
 
   Future<void> _updateProfile(
-      OnUpdateProfile event,
+      OnUpdateProfile       event,
       Emitter<SettingsState> emit,
       ) async {
     emit(state.copyWith(
       submitStatus: SettingsSubmitStatus.loading,
-      submitError: null,
+      submitError:  null,
     ));
 
     try {
       final response = await useCase.updateProfile(event.dto);
-      final error = response.getLeft().toNullable();
-      final result = response.getRight().toNullable();
+      final error    = response.getLeft().toNullable();
+      final result   = response.getRight().toNullable();
 
       if (error != null) {
         emit(state.copyWith(
           submitStatus: SettingsSubmitStatus.failure,
-          submitError: error,
+          submitError:  error,
         ));
         return;
       }
 
-      emit(state.copyWith(
-        profile: result?.user ?? state.profile,
-        submitStatus: SettingsSubmitStatus.success,
-        submitError: null,
-      ));
+      // Push updated profile to AuthBloc — single source of truth.
+      // AuthBloc._onProfileUpdated emits the new profile without
+      // reloading business data or bumping sessionId.
+      if (result?.user != null) {
+        authBloc.add(OnProfileUpdated(result!.user!));
+      }
+
+      emit(state.copyWith(submitStatus: SettingsSubmitStatus.success));
     } catch (e) {
       emit(state.copyWith(
         submitStatus: SettingsSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError:  e.toString(),
       ));
     }
   }
 
   Future<void> _setPassword(
-      OnSetPassword event,
+      OnSetPassword         event,
       Emitter<SettingsState> emit,
       ) async {
     emit(state.copyWith(
       passwordStatus: SettingsSubmitStatus.loading,
-      passwordError: null,
+      passwordError:  null,
     ));
 
     try {
       final response = await useCase.setPassword(event.dto);
-      final error = response.getLeft().toNullable();
+      final error    = response.getLeft().toNullable();
 
       if (error != null) {
         emit(state.copyWith(
           passwordStatus: SettingsSubmitStatus.failure,
-          passwordError: error,
+          passwordError:  error,
         ));
         return;
       }
 
-      emit(state.copyWith(
-        passwordStatus: SettingsSubmitStatus.success,
-        passwordError: null,
-      ));
+      emit(state.copyWith(passwordStatus: SettingsSubmitStatus.success));
     } catch (e) {
       emit(state.copyWith(
         passwordStatus: SettingsSubmitStatus.failure,
-        passwordError: e.toString(),
+        passwordError:  e.toString(),
       ));
     }
   }

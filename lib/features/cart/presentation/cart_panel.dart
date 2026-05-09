@@ -1,10 +1,10 @@
 import 'package:amana_pos/features/cart/presentation/cart_peek.dart';
-import 'package:amana_pos/features/cart/presentation/expanded_cart.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/features/cart/presentation/expanded_cart.dart';
 
 class CartPanel extends StatefulWidget {
   final PosState state;

@@ -65,7 +65,7 @@ class OfflineLocalCache {
       }
 
       for (final business in dto.businesses) {
-        for (final shop in business.shops ?? const <Shops>[]) {
+        for (final shop in business.shops ?? const <ShopData>[]) {
           final id = shop.id;
           if (id == null || id.isEmpty) continue;
 
@@ -264,9 +264,9 @@ class OfflineLocalCache {
     return rows.map(BusinessData.fromJson).toList();
   }
 
-  Future<List<Shops>> getShops() async {
+  Future<List<ShopData>> getShops() async {
     final rows = await _db.getJsonList(OfflineConstants.shopsTable);
-    return rows.map(Shops.fromJson).toList();
+    return rows.map(ShopData.fromJson).toList();
   }
 
   Future<List<CategoryData>> getCategories() async {
@@ -1003,7 +1003,7 @@ class OfflineLocalCache {
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
-        for (final shop in business.shops ?? const <Shops>[]) {
+        for (final shop in business.shops ?? const <ShopData>[]) {
           final shopId = shop.id;
           if (shopId == null || shopId.isEmpty) continue;
 

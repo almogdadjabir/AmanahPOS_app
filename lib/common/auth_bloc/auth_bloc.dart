@@ -32,6 +32,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }) : super(AuthState.initial()) {
     on<OnLoadProfileEvent>(_onLoadProfile);
     on<OnLoadBusinessEvent>(_onLoadBusinessEvent);
+    on<OnProfileUpdated>(_onProfileUpdated);
     on<OnLogoutEvent>(_onLogout);
   }
 
@@ -278,6 +279,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       authStatus: AuthStatus.failure,
       responseError: error,
     )));
+  }
+
+  void _onProfileUpdated(OnProfileUpdated event, Emitter<AuthState> emit) {
+    // Targeted in-place profile update.
+    // Does not reload business, does not bump sessionId.
+    emit(state.copyWith(AuthStateUpdate(profile: event.user)));
   }
 
   @override

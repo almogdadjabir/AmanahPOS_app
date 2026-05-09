@@ -370,7 +370,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
               updatedAt: b.updatedAt,
               shops: b.shops?.map((s) {
                 if (s.id != event.shopId) return s;
-                return Shops(
+                return ShopData(
                   id: s.id,
                   business:  s.business,
                   name: event.name,

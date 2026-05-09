@@ -5,7 +5,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class ShopInfoSection extends StatelessWidget {
-  final Shops shop;
+  final ShopData shop;
   const ShopInfoSection({super.key, required this.shop});
 
   @override
