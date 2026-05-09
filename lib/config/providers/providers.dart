@@ -84,6 +84,7 @@ getProviders(BuildContext context) => [
     create: (context) => ProductBloc(
       useCase: getIt<ProductUseCase>(),
       offlineLocalCache: getIt<OfflineLocalCache>(),
+      categoryUseCase: getIt<CategoryUseCase>(),
     ),
   ),
   BlocProvider(

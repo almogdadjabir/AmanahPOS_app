@@ -42,7 +42,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ) async {
     try {
       if (event.user != null) {
-        _emitProfileLoaded(emit, event.user!, userSwitched: false);
+        final incomingId = _userIdFrom(event.user!);
+        final isDifferentUser = _loggedOut ||
+            (_currentUserXTenantID != null && _currentUserXTenantID != incomingId);
+        _loggedOut = false;
+
+        if (isDifferentUser) {
+          await offlineLocalCache.clearAllOnLogout();
+        }
+
+        _currentUserXTenantID = incomingId;
+        _emitProfileLoaded(emit, event.user!, userSwitched: isDifferentUser);
         add(OnLoadBusinessEvent());
         return;
       }

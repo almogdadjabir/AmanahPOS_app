@@ -11,6 +11,8 @@ import 'package:amana_pos/features/products/presentation/widgets/product_sheet_s
 import 'package:amana_pos/features/products/presentation/widgets/track_inventory_toggle.dart';
 import 'package:amana_pos/features/products/presentation/widgets/unit_picker.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
+import 'package:amana_pos/theme/app_text_styles.dart';
+import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
@@ -88,26 +90,28 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
+
+    final dto = AddProductRequestDto(
+      name: _nameCtrl.text.trim(),
+      price: _priceCtrl.text.trim(),
+      costPrice: _costCtrl.text.trim().isEmpty ? null : _costCtrl.text.trim(),
+      category: _selectedCategory?.id ?? '',
+      unit: _selectedUnit,
+      trackInventory: !widget.isRestaurant && _trackInventory,
+      minStockLevel: (!widget.isRestaurant && _minStockCtrl.text.trim().isNotEmpty)
+          ? _minStockCtrl.text.trim()
+          : null,
+      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+      sku: _skuCtrl.text.trim().isEmpty ? null : _skuCtrl.text.trim(),
+      barcode: _barcodeCtrl.text.trim().isEmpty ? null : _barcodeCtrl.text.trim(),
+      imageUpload: _pickedImage,
+    );
+
     if (_selectedCategory == null) {
-      GlobalSnackBar.show(message: 'Please select a category', isError: true);
-      return;
+      context.read<ProductBloc>().add(OnAddProductWithAutoCategory(dto: dto));
+    } else {
+      context.read<ProductBloc>().add(OnAddProduct(dto: dto));
     }
-    context.read<ProductBloc>().add(OnAddProduct(
-      dto: AddProductRequestDto(
-        name: _nameCtrl.text.trim(),
-        price: _priceCtrl.text.trim(),
-        costPrice: _costCtrl.text.trim().isEmpty ? null : _costCtrl.text.trim(),
-        category: _selectedCategory!.id!,
-        unit: _selectedUnit,
-        trackInventory: !widget.isRestaurant && _trackInventory,
-        minStockLevel: (!widget.isRestaurant && _minStockCtrl.text.trim().isNotEmpty)
-            ? _minStockCtrl.text.trim() : null,
-        description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-        sku: _skuCtrl.text.trim().isEmpty ? null : _skuCtrl.text.trim(),
-        barcode: _barcodeCtrl.text.trim().isEmpty ? null : _barcodeCtrl.text.trim(),
-        imageUpload: _pickedImage,
-      ),
-    ));
   }
 
   @override
@@ -159,15 +163,26 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               ),
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Category', required: true),
-              const SizedBox(height: AppDims.s1),
               BlocBuilder<ProductBloc, ProductState>(
                 buildWhen: (prev, curr) => prev.categories != curr.categories,
-                builder: (context, state) => CategoryPicker(
-                  categories: state.categories,
-                  selected: _selectedCategory,
-                  onSelected: (c) => setState(() => _selectedCategory = c),
-                ),
+                builder: (context, state) {
+                  final hasCategories = state.categories.isNotEmpty;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FieldLabel(label: 'Category', required: hasCategories),
+                      const SizedBox(height: AppDims.s1),
+                      if (hasCategories)
+                        CategoryPicker(
+                          categories: state.categories,
+                          selected: _selectedCategory,
+                          onSelected: (c) => setState(() => _selectedCategory = c),
+                        )
+                      else
+                        const _AutoCategoryInfo(),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: AppDims.s3),
 
@@ -216,6 +231,54 @@ class _AddProductSheetState extends State<_AddProductSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AutoCategoryInfo extends StatelessWidget {
+  const _AutoCategoryInfo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(AppDims.rMd),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome_rounded, size: 18, color: colors.primary),
+          const SizedBox(width: AppDims.s2),
+          Expanded(
+            child: Text(
+              'General',
+              style: AppTextStyles.bs100(context).copyWith(
+                fontWeight: FontWeight.w700,
+                color: colors.primary,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppDims.s2, vertical: 3),
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'Auto-created',
+              style: AppTextStyles.sm200(context).copyWith(
+                fontWeight: FontWeight.w800,
+                color: colors.primary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

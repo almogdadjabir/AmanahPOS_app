@@ -26,6 +26,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     on<OnDeactivateBusiness>(_deactivateBusiness);
     on<OnAddShop>(_addShop);
     on<OnEditShop>(_editShop);
+    on<OnBusinessReset>(_reset);
   }
 
   Future<void> _init(
@@ -332,6 +333,14 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     }
   }
 
+
+  Future<void> _reset(
+    OnBusinessReset event,
+    Emitter<BusinessState> emit,
+  ) async {
+    emit(BusinessState.initial());
+    add(const OnBusinessInitial());
+  }
 
   Future<void> _editShop(
       OnEditShop event,

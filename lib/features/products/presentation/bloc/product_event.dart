@@ -33,6 +33,12 @@ class OnAddProduct extends ProductEvent {
   @override List<Object?> get props => [dto];
 }
 
+class OnAddProductWithAutoCategory extends ProductEvent {
+  final AddProductRequestDto dto;
+  const OnAddProductWithAutoCategory({required this.dto});
+  @override List<Object?> get props => [dto];
+}
+
 class OnUpdateProduct extends ProductEvent {
   final String productId;
   final UpdateProductRequestDto dto;

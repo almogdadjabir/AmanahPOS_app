@@ -3,15 +3,44 @@ import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dar
 import 'package:amana_pos/core/offline/presentation/preparing_offline_screen.dart';
 import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
 import 'package:amana_pos/features/business/presentation/subscription_expired_screen.dart';
+import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart' hide BusinessStatus;
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class OfflinePreparationListener extends StatelessWidget {
+class OfflinePreparationListener extends StatefulWidget {
   const OfflinePreparationListener({super.key, required this.child});
 
   final Widget child;
+
+  @override
+  State<OfflinePreparationListener> createState() =>
+      _OfflinePreparationListenerState();
+}
+
+class _OfflinePreparationListenerState
+    extends State<OfflinePreparationListener> {
+  // Tracks the last sessionId we acted on so we never miss a bump that
+  // happened before this widget was mounted (e.g. during login).
+  int _lastSessionId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncSession(context.read<AuthBloc>().state.sessionId);
+    });
+  }
+
+  void _syncSession(int sessionId) {
+    if (sessionId == _lastSessionId) return;
+    _lastSessionId = sessionId;
+    context.read<ProductBloc>().add(const OnProductReset());
+    context.read<CategoryBloc>().add(const OnCategoryReset());
+    context.read<BusinessBloc>().add(const OnBusinessReset());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +49,11 @@ class OfflinePreparationListener extends StatelessWidget {
 
         // ── 1. Session switch → reset data blocs ──────────────────────────
         // sessionId bumps when AuthBloc detects a different user logged in.
-        // NavigationBloc handles its own reset via its AuthBloc subscription.
+        // _syncSession also runs on mount to catch bumps that happened before
+        // this widget was in the tree (e.g. sessionId already changed during login).
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (prev, curr) => prev.sessionId != curr.sessionId,
-          listener: (context, _) {
-            context.read<ProductBloc>().add(const OnProductReset());
-            context.read<CategoryBloc>().add(const OnCategoryReset());
-          },
+          listener: (context, state) => _syncSession(state.sessionId),
         ),
 
         // ── 2. Business availability → "no business" sheet ────────────────
@@ -54,8 +81,21 @@ class OfflinePreparationListener extends StatelessWidget {
           listener: _handleSubscriptionState,
         ),
 
+        // ── 5. Back online with no business → retry business load ─────────
+        BlocListener<OfflineStatusBloc, OfflineStatusState>(
+          listenWhen: (prev, curr) =>
+              prev.connectionStatus != curr.connectionStatus &&
+              curr.connectionStatus == OfflineConnectionStatus.online,
+          listener: (context, _) {
+            final authState = context.read<AuthBloc>().state;
+            if (authState.defaultBusiness == null && authState.isLoggedIn) {
+              context.read<AuthBloc>().add(OnLoadBusinessEvent());
+            }
+          },
+        ),
+
       ],
-      child: child,
+      child: widget.child,
     );
   }
 

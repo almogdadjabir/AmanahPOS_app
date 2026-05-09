@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:amana_pos/features/category/presentation/widgets/add_category_sheet.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/category_filter.dart';
@@ -84,12 +83,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return state.products.isNotEmpty;
   }
 
-  void _openEmptyAction(ProductState state) {
-    if (state.categories.isEmpty) {
-      showAddCategorySheet(context);
-      return;
-    }
-
+  void _openEmptyAction() {
     showAddProductSheet(context);
   }
 
@@ -172,8 +166,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 isWithAppbar: widget.isWithAppbar,
               )
                   : _ProductsEmptyContent(
-                state: state,
-                onActionPressed: () => _openEmptyAction(state),
+                onActionPressed: _openEmptyAction,
               ),
             },
           ),
@@ -259,50 +252,48 @@ class _ProductsContent extends StatelessWidget {
 }
 
 class _ProductsEmptyContent extends StatelessWidget {
-  final ProductState state;
   final VoidCallback onActionPressed;
 
   const _ProductsEmptyContent({
-    required this.state,
     required this.onActionPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasCategories = state.categories.isNotEmpty;
+    final colors = context.appColors;
 
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.55],
+          colors: [
+            colors.primaryContainer.withValues(alpha: 0.18),
+            colors.background.withValues(alpha: 0),
+          ],
+        ),
       ),
-      slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppDims.s4,
-                AppDims.s4,
-                AppDims.s4,
-                AppDims.s6,
-              ),
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: SafeArea(
               child: ProductEmptyView(
-                hasCategories: hasCategories,
-                title: hasCategories
-                    ? 'No products yet'
-                    : 'Create a category first',
-                message: hasCategories
-                    ? 'Add your first product to start building your catalog and begin selling.'
-                    : 'Before adding products, create at least one category. This keeps your catalog organized and makes checkout faster.',
-                primaryActionText: hasCategories
-                    ? 'Add Product'
-                    : 'Add Category',
+                hasCategories: true,
+                title: 'No products yet',
+                message:
+                    'Add your first product to start building your catalog and begin selling.',
+                primaryActionText: 'Add Product',
                 onPrimaryAction: onActionPressed,
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

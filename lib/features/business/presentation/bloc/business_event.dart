@@ -88,3 +88,10 @@ class OnEditShop extends BusinessEvent {
   @override
   List<Object?> get props => [businessId, shopId, name, address, phone];
 }
+
+class OnBusinessReset extends BusinessEvent {
+  const OnBusinessReset();
+
+  @override
+  List<Object?> get props => throw UnimplementedError();
+}

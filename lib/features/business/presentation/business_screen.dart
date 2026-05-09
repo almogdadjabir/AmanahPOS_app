@@ -18,11 +18,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
   @override
   void initState() {
     super.initState();
-
-    final state = context.read<BusinessBloc>().state;
-    if (state.businessList == null || state.businessList!.isEmpty) {
-      context.read<BusinessBloc>().add(OnBusinessInitial());
-    }
+    context.read<BusinessBloc>().add(OnBusinessInitial());
   }
 
   @override

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
+import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -17,16 +19,19 @@ part 'product_state.dart';
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductUseCase useCase;
   final OfflineLocalCache offlineLocalCache;
+  final CategoryUseCase categoryUseCase;
 
   ProductBloc({
     required this.useCase,
     required this.offlineLocalCache,
+    required this.categoryUseCase,
   }) : super(ProductState.initial()) {
     on<OnProductInitial>(_init);
     on<OnProductCategorySelected>(_onCategorySelected);
     on<OnLoadMoreProducts>(_loadMore);
     on<OnToggleProductLayout>(_toggleLayout);
     on<OnAddProduct>(_addProduct);
+    on<OnAddProductWithAutoCategory>(_addProductWithAutoCategory);
     on<OnUpdateProduct>(_updateProduct);
     on<OnDeleteProduct>(_deleteProduct);
     on<OnProductsSoldLocally>(_productsSoldLocally);
@@ -427,6 +432,94 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           state.copyWith(
             submitStatus: ProductSubmitStatus.success,
             products: [product!.data!, ...state.products],
+          ),
+        );
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            submitStatus: ProductSubmitStatus.failure,
+            submitError: e.toString(),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _addProductWithAutoCategory(
+    OnAddProductWithAutoCategory event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        submitStatus: ProductSubmitStatus.loading,
+        clearSubmitError: true,
+      ),
+    );
+
+    try {
+      final categoryPayload = AddCategoryRequestDto(
+        name: 'General',
+        description: null,
+      );
+
+      final categoryResponse = await categoryUseCase.addCategory(categoryPayload);
+
+      final categoryError = categoryResponse.getLeft().toNullable();
+      final newCategory = categoryResponse.getRight().toNullable();
+
+      if (categoryError != null || newCategory?.data == null) {
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              submitStatus: ProductSubmitStatus.failure,
+              submitError: categoryError ?? 'Failed to create default category',
+            ),
+          );
+        }
+        return;
+      }
+
+      final createdCategory = newCategory!.data!;
+
+      final productDto = AddProductRequestDto(
+        name: event.dto.name,
+        price: event.dto.price,
+        costPrice: event.dto.costPrice,
+        category: createdCategory.id!,
+        unit: event.dto.unit,
+        trackInventory: event.dto.trackInventory,
+        minStockLevel: event.dto.minStockLevel,
+        description: event.dto.description,
+        sku: event.dto.sku,
+        barcode: event.dto.barcode,
+        imageUpload: event.dto.imageUpload,
+      );
+
+      final productResponse = await useCase.addProduct(productDto);
+
+      final productError = productResponse.getLeft().toNullable();
+      final product = productResponse.getRight().toNullable();
+
+      if (productError != null) {
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              submitStatus: ProductSubmitStatus.failure,
+              submitError: productError,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (product?.data != null && !emit.isDone) {
+        emit(
+          state.copyWith(
+            submitStatus: ProductSubmitStatus.success,
+            products: [product!.data!, ...state.products],
+            categories: [...state.categories, createdCategory],
           ),
         );
       }
