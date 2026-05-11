@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "266105140472",
+    "project_id": "amanapos",
+    "storage_bucket": "amanapos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266105140472:android:8a0088976bf56e3314b70d",
+        "android_client_info": {
+          "package_name": "com.amanapos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxJ7NXtN_2abqA5ukBSdjeXUALV4Tomlw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

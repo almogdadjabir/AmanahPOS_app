@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
+import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/config/environment/environment.dart';
 import 'package:amana_pos/config/router/app_router.dart';
 import 'package:amana_pos/core/api/request_handler.dart';
@@ -129,6 +130,13 @@ class DependenciesProvider {
         remoteDataSource: getIt<OfflineRemoteDataSource>(),
         syncManager: getIt<SyncManager>(),
         assetDownloader: getIt<OfflineAssetDownloader>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<FcmTokenService>(
+          () => FcmTokenService(
+        cacheStorage: getIt<CacheStorage>(),
+        requestHandler: getIt<RequestHandler>(),
       ),
     );
 

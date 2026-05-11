@@ -34,7 +34,7 @@ class App extends StatelessWidget {
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             // themeMode: themeState.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-            themeMode: ThemeMode.light,
+            themeMode: ThemeMode.dark,
           );
         },
       ),
