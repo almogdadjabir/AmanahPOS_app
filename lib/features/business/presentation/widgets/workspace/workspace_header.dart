@@ -24,7 +24,7 @@ class WorkspaceHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Business Workspace',
+                'Workspace',
                 style: AppTextStyles.lg200(context).copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,

@@ -21,9 +21,10 @@ class OfflinePreparationListener extends StatefulWidget {
 
 class _OfflinePreparationListenerState
     extends State<OfflinePreparationListener> {
-  // Tracks the last sessionId we acted on so we never miss a bump that
-  // happened before this widget was mounted (e.g. during login).
   int _lastSessionId = 0;
+
+  bool _pendingShow = false;
+  bool _pendingClose = false;
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _OfflinePreparationListenerState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _syncSession(context.read<AuthBloc>().state.sessionId);
+      _handleSubscriptionState(context, context.read<AuthBloc>().state);
     });
   }
 
@@ -47,16 +49,12 @@ class _OfflinePreparationListenerState
     return MultiBlocListener(
       listeners: [
 
-        // ── 1. Session switch → reset data blocs ──────────────────────────
-        // sessionId bumps when AuthBloc detects a different user logged in.
-        // _syncSession also runs on mount to catch bumps that happened before
-        // this widget was in the tree (e.g. sessionId already changed during login).
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (prev, curr) => prev.sessionId != curr.sessionId,
           listener: (context, state) => _syncSession(state.sessionId),
         ),
 
-        // ── 2. Business availability → "no business" sheet ────────────────
+
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (prev, curr) =>
           prev.businessStatus != curr.businessStatus ||
@@ -64,7 +62,7 @@ class _OfflinePreparationListenerState
           listener: _handleBusinessStateChange,
         ),
 
-        // ── 3. Offline bootstrap / asset sync ─────────────────────────────
+
         BlocListener<OfflineStatusBloc, OfflineStatusState>(
           listenWhen: (prev, curr) =>
           prev.bootstrapStatus != curr.bootstrapStatus ||
@@ -73,15 +71,18 @@ class _OfflinePreparationListenerState
           listener: _handleOfflineStateChange,
         ),
 
-        // ── 4. Subscription expiry blocker ────────────────────────────────
+
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (prev, curr) =>
-          prev.defaultBusiness?.activeSubscription?.daysRemaining !=
-              curr.defaultBusiness?.activeSubscription?.daysRemaining,
+
+              prev.defaultBusiness?.activeSubscription?.daysRemaining !=
+                  curr.defaultBusiness?.activeSubscription?.daysRemaining ||
+
+              (prev.defaultBusiness == null) != (curr.defaultBusiness == null),
           listener: _handleSubscriptionState,
         ),
 
-        // ── 5. Back online with no business → retry business load ─────────
+
         BlocListener<OfflineStatusBloc, OfflineStatusState>(
           listenWhen: (prev, curr) =>
               prev.connectionStatus != curr.connectionStatus &&
@@ -99,7 +100,6 @@ class _OfflinePreparationListenerState
     );
   }
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
 
   void _handleBusinessStateChange(BuildContext context, AuthState authState) {
     final hasBusiness = authState.defaultBusiness != null;
@@ -163,15 +163,30 @@ class _OfflinePreparationListenerState
     final isExpired = !(sub.isFree ?? true) && (sub.daysRemaining ?? 0) <= 0;
 
     if (isExpired) {
-      if (SubscriptionExpiredScreen.isShowing) return;
+      if (SubscriptionExpiredScreen.isShowing || _pendingShow) return;
+      _pendingShow = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pendingShow = false;
         if (!context.mounted) return;
+        if (_pendingClose) {
+          _pendingClose = false;
+          return;
+        }
+        final currentSub =
+            context.read<AuthBloc>().state.defaultBusiness?.activeSubscription;
+        if (currentSub == null) return;
+        final stillExpired =
+            !(currentSub.isFree ?? true) && (currentSub.daysRemaining ?? 0) <= 0;
+        if (!stillExpired) return;
+
         SubscriptionExpiredScreen.show(context);
       });
     } else {
-      if (!SubscriptionExpiredScreen.isShowing) return;
+      _pendingClose = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pendingClose = false;
         if (!context.mounted) return;
+        if (!SubscriptionExpiredScreen.isShowing) return;
         SubscriptionExpiredScreen.close(context);
       });
     }

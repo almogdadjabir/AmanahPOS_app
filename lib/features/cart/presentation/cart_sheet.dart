@@ -14,7 +14,7 @@ class CartSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PosBloc, PosState>(
       buildWhen: (prev, curr) =>
-      prev.items != curr.items ||
+          prev.items != curr.items ||
           prev.submitStatus != curr.submitStatus ||
           prev.paymentMethod != curr.paymentMethod,
       builder: (context, state) {

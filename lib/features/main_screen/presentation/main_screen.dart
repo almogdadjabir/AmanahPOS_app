@@ -1,6 +1,6 @@
 import 'package:amana_pos/features/main_screen/presentation/offline_preparation_listener.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/bottom_nav.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
-import 'package:amana_pos/features/feature_menu/feature_menu.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
@@ -23,20 +23,11 @@ class MainScreen extends StatelessWidget {
           ),
         ),
         body: BlocBuilder<NavigationBloc, NavigationState>(
-          // Only rebuild when the active screen changes.
-          buildWhen: (prev, curr) =>
-          prev.currentFeature != curr.currentFeature,
-          builder: (context, state) {
-            return Stack(
-              children: [
-                state.currentScreen,
-                const FeatureMenu(),
-              ],
-            );
-          },
+          buildWhen: (prev, curr) => prev.currentFeature != curr.currentFeature,
+          builder: (context, state) => state.currentScreen,
         ),
+        bottomNavigationBar: const BottomNav(),
       ),
     );
   }
 }
-

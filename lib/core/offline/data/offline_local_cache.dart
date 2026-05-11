@@ -26,27 +26,11 @@ class OfflineLocalCache {
     final db = await _db.database;
 
     await db.transaction((txn) async {
-      await txn.delete(OfflineConstants.businessesTable);
       await txn.delete(OfflineConstants.shopsTable);
       await txn.delete(OfflineConstants.categoriesTable);
       await txn.delete(OfflineConstants.productsTable);
       await txn.delete(OfflineConstants.customersTable);
       await txn.delete(OfflineConstants.stockTable);
-
-      for (final business in dto.businesses) {
-        final id = business.id;
-        if (id == null || id.isEmpty) continue;
-
-        await txn.insert(
-          OfflineConstants.businessesTable,
-          {
-            'id': id,
-            'json': jsonEncode(business.toJson()),
-            'updated_at': business.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
 
       for (final shop in dto.shops) {
         final id = shop.id;
@@ -62,24 +46,6 @@ class OfflineLocalCache {
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-      }
-
-      for (final business in dto.businesses) {
-        for (final shop in business.shops ?? const <ShopData>[]) {
-          final id = shop.id;
-          if (id == null || id.isEmpty) continue;
-
-          await txn.insert(
-            OfflineConstants.shopsTable,
-            {
-              'id': id,
-              'business_id': shop.business ?? business.id,
-              'json': jsonEncode(shop.toJson()),
-              'updated_at': shop.updatedAt,
-            },
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
       }
 
       Future<void> saveCategory(CategoryData category) async {

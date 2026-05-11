@@ -9,135 +9,139 @@ class CartPeek extends StatelessWidget {
   final PosState state;
   final VoidCallback onTap;
 
-  const CartPeek({
-    super.key,
-    required this.state,
-    required this.onTap,
-  });
+  const CartPeek({super.key, required this.state, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final count = state.itemCount;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          height: 88,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s3,
-              AppDims.s4,
-              AppDims.s3,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 88,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppDims.rXl),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.28),
+              blurRadius: 24,
+              offset: const Offset(0, -8),
             ),
-            child: Row(
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 46,
-                      height: 46,
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+          child: Row(
+            children: [
+
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(AppDims.rMd),
+                    ),
+                    child: const Icon(
+                      Icons.shopping_cart_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  Positioned(
+                    top: -7,
+                    right: -9,
+                    child: Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 20, minHeight: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: colors.primaryContainer,
-                        borderRadius: BorderRadius.circular(AppDims.rMd),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                      child: Icon(
-                        Icons.shopping_cart_outlined,
-                        color: colors.primary,
+                      child: Text(
+                        '$count',
+                        style: AppTextStyles.sm200(context).copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
+                        ),
                       ),
                     ),
-                    Positioned(
-                      right: -5,
-                      top: -5,
-                      child: Container(
-                        constraints: const BoxConstraints(
-                          minWidth: 22,
-                          minHeight: 22,
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: colors.primary,
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: colors.surface,
-                            width: 2,
-                          ),
-                        ),
-                        child: Text(
-                          '${state.itemCount}',
-                          style: AppTextStyles.bs100(context).copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(width: AppDims.s4),
+
+
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$count item${count == 1 ? '' : 's'}',
+                      style: AppTextStyles.bs100(context).copyWith(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      money(state.total),
+                      style: AppTextStyles.bs400(context).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.4,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: AppDims.s3),
+              ),
 
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Current sale • ${state.itemCount} item${state.itemCount == 1 ? '' : 's'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs200(context).copyWith(
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        money(state.total),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs600(context).copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDims.s4,
+                  vertical: AppDims.s2,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(AppDims.rMd),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.30),
+                    width: 1,
                   ),
                 ),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDims.s4,
-                    vertical: AppDims.s2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(AppDims.rMd),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Review',
-                        style: AppTextStyles.bs300(context).copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(width: AppDims.s1),
-                      const Icon(
-                        Icons.keyboard_arrow_up_rounded,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Review',
+                      style: AppTextStyles.bs300(context).copyWith(
                         color: Colors.white,
-                        size: 18,
+                        fontWeight: FontWeight.w900,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: AppDims.s1),
+                    const Icon(
+                      Icons.keyboard_arrow_up_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

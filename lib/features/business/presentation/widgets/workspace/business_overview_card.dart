@@ -1,6 +1,8 @@
-// lib/features/business/presentation/widgets/workspace/business_overview_card.dart
-
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/capacity_item.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/count_pill.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/status_dot.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/type_chip.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -24,7 +26,7 @@ class BusinessOverviewCard extends StatelessWidget {
 
     final Color accentColor;
     if (sub == null) {
-      accentColor = const Color(0xFFF59E0B); // no subscription → amber warning
+      accentColor = const Color(0xFFF59E0B);
     } else if (isExpired) {
       accentColor = const Color(0xFFEF4444);
     } else if (isExpiringSoon) {
@@ -45,13 +47,13 @@ class BusinessOverviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Zone 1: Business identity ────────────────────────────────────
+
           Padding(
             padding: const EdgeInsets.all(AppDims.s4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Initials avatar
+
                 Container(
                   width: 44,
                   height: 44,
@@ -87,12 +89,12 @@ class BusinessOverviewCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          _TypeChip(
+                          TypeChip(
                             label: _businessTypeLabel(data.businessType),
                             colors: colors,
                           ),
                           const SizedBox(width: 6),
-                          _StatusDot(isActive: isActive, colors: colors),
+                          StatusDot(isActive: isActive, colors: colors),
                         ],
                       ),
                     ],
@@ -100,7 +102,7 @@ class BusinessOverviewCard extends StatelessWidget {
                 ),
 
                 if ((data.shopCount ?? 0) > 0)
-                  _CountPill(
+                  CountPill(
                     icon: Icons.store_rounded,
                     count: data.shopCount ?? 0,
                     colors: colors,
@@ -109,9 +111,9 @@ class BusinessOverviewCard extends StatelessWidget {
             ),
           ),
 
-          // ── Zone 2+3: Subscription or warning ───────────────────────────
+
           if (sub != null) ...[
-            // Subscription band
+
             Divider(height: 1, color: colors.border),
             Container(
               padding: const EdgeInsets.symmetric(
@@ -175,7 +177,7 @@ class BusinessOverviewCard extends StatelessWidget {
               ),
             ),
 
-            // Capacity row
+
             Divider(height: 1, color: colors.border),
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -184,21 +186,21 @@ class BusinessOverviewCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  _CapacityItem(
+                  CapacityItem(
                     icon: Icons.store_rounded,
                     label: 'Shops',
                     value: sub.maxShops,
                     colors: colors,
                   ),
                   Container(width: 1, height: 28, color: colors.border),
-                  _CapacityItem(
+                  CapacityItem(
                     icon: Icons.local_offer_rounded,
                     label: 'Products',
                     value: sub.maxProducts,
                     colors: colors,
                   ),
                   Container(width: 1, height: 28, color: colors.border),
-                  _CapacityItem(
+                  CapacityItem(
                     icon: Icons.people_rounded,
                     label: 'Users',
                     value: sub.maxUsers,
@@ -208,7 +210,7 @@ class BusinessOverviewCard extends StatelessWidget {
               ),
             ),
           ] else ...[
-            // No subscription warning band
+
             Divider(height: 1, color: colors.border),
             Container(
               padding: const EdgeInsets.all(AppDims.s4),
@@ -283,138 +285,5 @@ class BusinessOverviewCard extends StatelessWidget {
     if (isExpired) return 'Expired';
     if (daysLeft == 1) return '1 day left';
     return '$daysLeft days left';
-  }
-}
-
-// ── Sub-widgets ──────────────────────────────────────────────────────────────
-
-class _TypeChip extends StatelessWidget {
-  final String label;
-  final AppThemeColors colors;
-  const _TypeChip({required this.label, required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.bs100(context).copyWith(
-          color: colors.textSecondary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusDot extends StatelessWidget {
-  final bool isActive;
-  final AppThemeColors colors;
-  const _StatusDot({required this.isActive, required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive
-                ? const Color(0xFF22C55E)
-                : colors.textSecondary.withValues(alpha: 0.4),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          isActive ? 'Active' : 'Inactive',
-          style: AppTextStyles.bs100(context).copyWith(
-            color: isActive ? const Color(0xFF22C55E) : colors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CountPill extends StatelessWidget {
-  final IconData icon;
-  final int count;
-  final AppThemeColors colors;
-  const _CountPill({required this.icon, required this.count, required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 12, color: colors.textSecondary),
-          const SizedBox(width: 4),
-          Text(
-            '$count',
-            style: AppTextStyles.bs100(context).copyWith(
-              color: colors.textSecondary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CapacityItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int? value;
-  final AppThemeColors colors;
-  const _CapacityItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.colors,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 12, color: colors.textSecondary),
-              const SizedBox(width: 4),
-              Text(
-                value != null ? '$value' : '∞',
-                style: AppTextStyles.bs300(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: AppTextStyles.bs100(context).copyWith(
-              color: colors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -1,8 +1,6 @@
-import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/widgets/amana_logo.dart';
 import 'package:amana_pos/widgets/app_button.dart';
-import 'package:amana_pos/widgets/brand_logo.dart';
 import 'package:amana_pos/widgets/phone_number_field.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -193,28 +191,6 @@ class _LoginFormState extends State<LoginForm> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Don't have an account? ",
-                        style: AppTextStyles.bs300(context, color: colors.textSecondary),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pushNamed(RouteStrings.registration);
-                        },
-                        child: Text(
-                          'Sign up',
-                          style: AppTextStyles.bs300(
-                            context,
-                            weight: AppTextStyles.bold,
-                            color: colors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
 
                 ],
               ),

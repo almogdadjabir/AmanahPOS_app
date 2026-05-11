@@ -53,7 +53,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
             ),
             sliver: SliverToBoxAdapter(
               child: Text(
-                'Workspace',
+                'Manage',
                 style: AppTextStyles.bs600(context).copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,

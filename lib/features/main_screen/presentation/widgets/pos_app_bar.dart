@@ -2,8 +2,6 @@ import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
-import 'package:amana_pos/features/main_screen/presentation/widgets/animated_menu_icon.dart';
-import 'package:amana_pos/features/main_screen/presentation/widgets/brand_logo.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -27,29 +25,6 @@ class PosAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        BlocSelector<NavigationBloc, NavigationState, bool>(
-          selector: (state) => state.menuOpen,
-          builder: (context, menuOpen) {
-            return GestureDetector(
-              onTap: onMenuTap,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: menuOpen
-                      ? const Color(0xFF0D9488).withValues(alpha: 0.08)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppDims.rSm),
-                ),
-                child: Center(
-                  child: AnimatedMenuIcon(isOpen: menuOpen),
-                ),
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(width: AppDims.s2),
         const AmanaPosLogoMark(isInAppBar: true),
         const SizedBox(width: AppDims.s3),
 
@@ -129,7 +104,9 @@ class _BusinessInfo extends StatelessWidget {
             ),
           ),
           Text(
-            business?.address ?? 'Preparing your workspace...',
+            business?.address?.isNotEmpty == true
+                ? business!.address!
+                : 'أمانة | AmanaPOS',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bs100(context).copyWith(
