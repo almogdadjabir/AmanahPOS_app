@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
+import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
@@ -10,6 +11,8 @@ import 'package:amana_pos/features/category/domain/usecases/category_usecase.dar
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
+import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
+import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
@@ -52,7 +55,8 @@ getProviders(BuildContext context) => [
   BlocProvider(
     create: (context) => LoginBloc(
       useCase: getIt<LoginUseCase>(),
-      cacheStorage: getIt<CacheStorage>()
+      cacheStorage: getIt<CacheStorage>(),
+    fcmTokenService: getIt<FcmTokenService>(),
     ),
   ),
 
@@ -104,5 +108,11 @@ getProviders(BuildContext context) => [
     create: (context) => CustomersBloc(
       useCase: getIt<CustomerUseCase>(),
     ),
-  )
+  ),
+  BlocProvider(
+    create: (context) => NotificationBloc(
+      useCases: getIt<NotificationUseCases>(),
+      cacheStorage: getIt<CacheStorage>(),
+    ),
+  ),
 ];

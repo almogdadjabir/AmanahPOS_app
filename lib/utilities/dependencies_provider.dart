@@ -29,7 +29,6 @@ import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.d
 import 'package:amana_pos/features/login/data/repository_impl/login_repo_impl.dart';
 import 'package:amana_pos/features/login/domain/repository/login_repository.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
-import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/pos/data/datasources/pos_remote_data_source.dart';
 import 'package:amana_pos/features/pos/data/model/offline/offline_sales_queue.dart';
 import 'package:amana_pos/features/pos/data/repository_impl/pos_repo_impl.dart';
@@ -41,6 +40,9 @@ import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart
 import 'package:amana_pos/features/registration/data/repository_impl/registration_repo_impl.dart';
 import 'package:amana_pos/features/registration/domain/repositories/registration_repository.dart';
 import 'package:amana_pos/features/registration/domain/usecases/registration_usecase.dart';
+import 'package:amana_pos/features/notification/data/repository_impl/notification_repo_impl.dart';
+import 'package:amana_pos/features/notification/domain/repository/notification_repository.dart';
+import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
 import 'package:amana_pos/features/users/data/repository_impl/users_repo_impl.dart';
 import 'package:amana_pos/features/users/domain/repositories/users_repository.dart';
 import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
@@ -179,6 +181,14 @@ class DependenciesProvider {
 
     getIt.registerLazySingleton<CustomerRepository>(
           () => CustomerRepoImpl(getIt<RequestHandler>()),
+    );
+
+    getIt.registerLazySingleton<NotificationRepository>(
+          () => NotificationRepoImpl(getIt<RequestHandler>()),
+    );
+
+    getIt.registerLazySingleton<NotificationUseCases>(
+          () => NotificationUseCases(repository: getIt<NotificationRepository>()),
     );
 
     // Use cases

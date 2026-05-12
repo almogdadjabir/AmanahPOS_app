@@ -1,4 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
+import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/edit_bankak_sheet.dart';
@@ -7,6 +9,7 @@ import 'package:amana_pos/features/settings/presentation/widgets/owner_header.da
 import 'package:amana_pos/features/settings/presentation/widgets/set_password_sheet.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/setting_section_header.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_action_tile.dart';
+import 'package:amana_pos/features/settings/presentation/widgets/theme_picker_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -64,6 +67,27 @@ class SettingsScreen extends StatelessWidget {
         child: const SetPasswordSheet(),
       ),
     );
+  }
+
+  void _openThemeSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: context.read<ThemeBloc>(),
+        child: const ThemePickerSheet(),
+      ),
+    );
+  }
+
+  static String _modeLabel(ScreenMode? mode) {
+    switch (mode) {
+      case ScreenMode.light:  return 'Light';
+      case ScreenMode.dark:   return 'Dark';
+      case ScreenMode.device:
+      default:                return 'System';
+    }
   }
 
   @override
@@ -197,7 +221,7 @@ class SettingsScreen extends StatelessWidget {
 
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
-                        AppDims.s4, 0, AppDims.s4, AppDims.s6),
+                        AppDims.s4, 0, AppDims.s4, 0),
                     sliver: SliverToBoxAdapter(
                       child: SettingsActionTile(
                         icon: Icons.lock_outline_rounded,
@@ -206,6 +230,36 @@ class SettingsScreen extends StatelessWidget {
                         subtitle: 'Set or update your login password',
                         trailingText: 'Change',
                         onTap: () => _openPasswordSheet(context),
+                      ),
+                    ),
+                  ),
+
+                  // ── Appearance ──────────────────────────────────────────
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                        AppDims.s4, AppDims.s5, AppDims.s4, AppDims.s2),
+                    sliver: SliverToBoxAdapter(
+                      child: SettingSectionHeader(
+                        title: 'Appearance',
+                        subtitle: 'Customize how AmanaPOS looks on your device.',
+                      ),
+                    ),
+                  ),
+
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                        AppDims.s4, 0, AppDims.s4, AppDims.s6),
+                    sliver: SliverToBoxAdapter(
+                      child: BlocSelector<ThemeBloc, ThemeState, ScreenMode?>(
+                        selector: (s) => s.mode,
+                        builder: (context, mode) => SettingsActionTile(
+                          icon: Icons.palette_outlined,
+                          iconColor: const Color(0xFF0D9488),
+                          title: 'Theme',
+                          subtitle: 'Switch between light, dark, or system default.',
+                          trailingText: _modeLabel(mode),
+                          onTap: () => _openThemeSheet(context),
+                        ),
                       ),
                     ),
                   ),

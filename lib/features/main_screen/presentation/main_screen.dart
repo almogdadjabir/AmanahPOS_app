@@ -19,7 +19,6 @@ class MainScreen extends StatelessWidget {
           title: PosAppBar(
             onMenuTap: () =>
                 context.read<NavigationBloc>().add(const SetMenuOpenEvent()),
-            onNotifTap: () {},
           ),
         ),
         body: BlocBuilder<NavigationBloc, NavigationState>(

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/services/device/device_info_service.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
+import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/features/login/data/models/login_request.dart';
 import 'package:amana_pos/features/login/data/models/login_response.dart';
@@ -24,10 +26,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
   final LoginUseCase useCase;
   final CacheStorage cacheStorage;
+  final FcmTokenService fcmTokenService;
 
   LoginBloc({
     required this.useCase,
     required this.cacheStorage,
+    required this.fcmTokenService,
   }) : super(LoginState.initial()) {
     _initializeEvents();
   }
@@ -94,7 +98,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       if (emit.isDone) return;
 
-      // ── No async lambdas — handle inline ──
       final String? error = response.isLeft()
           ? response.getLeft().toNullable()
           : null;
@@ -159,8 +162,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     try {
       final digits = (state.phoneNumber ?? '').replaceAll(RegExp(r'\D'), '');
 
+      final deviceInfo = await DeviceInfoService.instance.getDeviceInfo();
+
       final response = await useCase.otpVerify(
-        OtpVerifyRequest(phone: '+249$digits', otp: code),
+        OtpVerifyRequest(
+            phone: '+249$digits',
+            otp: code,
+            fcmToken: await fcmTokenService.getToken(),
+            platform: 'android',
+            deviceId: deviceInfo.deviceId,
+            appVersion: deviceInfo.appVersion
+        ),
       );
 
       if (emit.isDone) return;
@@ -244,8 +256,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
-  // ─── Timer ────────────────────────────────────────────────────────────────
-
   void _startResendTimer() {
     _resendTimer?.cancel();
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -264,12 +274,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(state.copyWith(otpResendSeconds: state.otpResendSeconds - 1));
   }
 
-  // ─── Reset ────────────────────────────────────────────────────────────────
-
   void _onReset(OnResetEvent event, Emitter<LoginState> emit) {
     _resendTimer?.cancel();
     if (event.isPhoneChange == true) {
-      // Go back to phone page, preserve the phone number
       emit(state.copyWith(
         loginStatus: LoginStatus.form,
         status: PageStatus.initial,

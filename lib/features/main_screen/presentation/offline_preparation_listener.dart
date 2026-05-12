@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/preparing_offline_screen.dart';
 import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
 import 'package:amana_pos/features/business/presentation/subscription_expired_screen.dart';
@@ -33,6 +34,9 @@ class _OfflinePreparationListenerState
       if (!mounted) return;
       _syncSession(context.read<AuthBloc>().state.sessionId);
       _handleSubscriptionState(context, context.read<AuthBloc>().state);
+      // Note: the notification unread count is NOT dispatched here.
+      // AuthBloc.state.isLoggedIn is always false at this moment because
+      // _onLoadProfile is async — the listener below catches the real transition.
     });
   }
 
@@ -83,6 +87,7 @@ class _OfflinePreparationListenerState
         ),
 
 
+        // ── 5. Back online → retry business load + refresh badge ─────────
         BlocListener<OfflineStatusBloc, OfflineStatusState>(
           listenWhen: (prev, curr) =>
               prev.connectionStatus != curr.connectionStatus &&
@@ -92,6 +97,23 @@ class _OfflinePreparationListenerState
             if (authState.defaultBusiness == null && authState.isLoggedIn) {
               context.read<AuthBloc>().add(OnLoadBusinessEvent());
             }
+            // Refresh badge when the device reconnects.
+            if (authState.isLoggedIn) {
+              context.read<NotificationBloc>().add(const OnLoadUnreadCount());
+            }
+          },
+        ),
+
+        // ── 6. User authenticated → load unread count ─────────────────────
+        // AuthBloc.state.isLoggedIn is false when OfflinePreparationListener
+        // first mounts (profile loads async). We watch the false→true
+        // transition to dispatch OnLoadUnreadCount at the right moment.
+        // This is the ONLY reliable trigger for the initial badge on cold start.
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (prev, curr) =>
+              !prev.isLoggedIn && curr.isLoggedIn,
+          listener: (context, _) {
+            context.read<NotificationBloc>().add(const OnLoadUnreadCount());
           },
         ),
 

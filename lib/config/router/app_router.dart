@@ -14,6 +14,7 @@ import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
+import 'package:amana_pos/features/notification/presentation/notifications_screen.dart';
 import 'package:amana_pos/features/users/presentation/users_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -77,6 +78,11 @@ class AppRouter {
       case RouteStrings.settingsScreen:
         return MaterialPageRoute(
           builder: (_) => SettingsScreen(),
+        );
+
+      case RouteStrings.notificationsScreen:
+        return MaterialPageRoute(
+          builder: (_) => const NotificationsScreen(),
         );
 
       default:
