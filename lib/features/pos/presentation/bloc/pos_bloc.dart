@@ -23,6 +23,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosAcknowledgeSubmit>(_onAcknowledgeSubmit);
     on<PosCartExpandedChanged>(_onCartExpandedChanged);
     on<PosShopSelected>(_onShopSelected);
+    on<PosBarcodeScanned>(_onBarcodeScanned);
   }
 
   void _onShopSelected(PosShopSelected event, Emitter<PosState> emit) {
@@ -30,6 +31,10 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       selectedShopId:   event.shopId,
       selectedShopName: event.shopName,
     ));
+  }
+
+  void _onBarcodeScanned(PosBarcodeScanned event, Emitter<PosState> emit) {
+
   }
 
   void _onSearchChanged(PosSearchChanged event, Emitter<PosState> emit) {

@@ -1,4 +1,6 @@
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
+import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -79,10 +81,36 @@ class PosSearchSection extends StatelessWidget {
             color: colors.surface,
             borderRadius: BorderRadius.circular(AppDims.rMd),
             child: InkWell(
-              onTap: () {
+              onTap: () async {
+                final barcode = await Navigator.of(context).pushNamed<String>(
+                  RouteStrings.barcodeScannerScreen,
+                );
+
+                if (!context.mounted) return;
+                if (barcode == null || barcode.trim().isEmpty) return;
+
+                final cleanBarcode = barcode.trim();
+
+                final productState = context.read<ProductBloc>().state;
+
+                final product = productState.products.where((item) {
+                  return item.barcode?.trim() == cleanBarcode;
+                }).firstOrNull;
+
+                if (product == null) {
+                  GlobalSnackBar.show(
+                    message: 'No product found for barcode: $cleanBarcode',
+                    isError: true,
+                  );
+                  return;
+                }
+
+                context.read<PosBloc>().add(
+                  PosAddProduct(product),
+                );
+
                 GlobalSnackBar.show(
-                  message: 'Barcode scanner coming soon',
-                  isInfo: true,
+                  message: '${product.name ?? 'Product'} added to cart',
                 );
               },
               borderRadius: BorderRadius.circular(AppDims.rMd),

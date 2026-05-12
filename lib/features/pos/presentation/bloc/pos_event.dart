@@ -75,3 +75,12 @@ class PosShopSelected extends PosEvent {
   const PosShopSelected({required this.shopId, required this.shopName});
   @override List<Object?> get props => [shopId, shopName];
 }
+
+class PosBarcodeScanned extends PosEvent {
+  final String barcode;
+
+  const PosBarcodeScanned(this.barcode);
+
+  @override
+  List<Object?> get props => [barcode];
+}

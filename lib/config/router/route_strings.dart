@@ -12,4 +12,5 @@ class RouteStrings {
   static const String settingsScreen = 'settingsScreen';
   static const String cashiersScreen = 'cashiersScreen';
   static const String notificationsScreen = 'notificationsScreen';
+  static const String barcodeScannerScreen = 'barcodeScanner';
 }

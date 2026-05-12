@@ -1,3 +1,4 @@
+import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
@@ -140,6 +141,10 @@ class DependenciesProvider {
         cacheStorage: getIt<CacheStorage>(),
         requestHandler: getIt<RequestHandler>(),
       ),
+    );
+
+    getIt.registerLazySingleton<BarcodePermissionService>(
+          () => BarcodePermissionService(),
     );
 
     // Repositories

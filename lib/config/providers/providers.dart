@@ -1,3 +1,5 @@
+import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
+import 'package:amana_pos/barcode_scanner/presentation/bloc/barcode_scanner_bloc.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
@@ -113,6 +115,11 @@ getProviders(BuildContext context) => [
     create: (context) => NotificationBloc(
       useCases: getIt<NotificationUseCases>(),
       cacheStorage: getIt<CacheStorage>(),
+    ),
+  ),
+  BlocProvider(
+    create: (context) => BarcodeScannerBloc(
+      permissionService: getIt<BarcodePermissionService>(),
     ),
   ),
 ];

@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'package:amana_pos/barcode_scanner/presentation/screens/barcode_scanner_screen.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/business_detail_screen.dart';
@@ -83,6 +84,12 @@ class AppRouter {
       case RouteStrings.notificationsScreen:
         return MaterialPageRoute(
           builder: (_) => const NotificationsScreen(),
+        );
+
+      case RouteStrings.barcodeScannerScreen:
+        return MaterialPageRoute<String>(
+          builder: (_) => const BarcodeScannerScreen(),
+          settings: settings,
         );
 
       default:
