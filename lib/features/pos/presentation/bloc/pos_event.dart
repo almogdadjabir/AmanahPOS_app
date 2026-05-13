@@ -98,3 +98,6 @@ class PosBarcodeScanned extends PosEvent {
   @override
   List<Object?> get props => [barcode];
 }
+class PosSessionReset extends PosEvent {
+  const PosSessionReset();
+}

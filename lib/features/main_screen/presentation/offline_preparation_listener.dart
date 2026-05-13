@@ -55,7 +55,7 @@ class _OfflinePreparationListenerState
     context.read<BusinessBloc>().add(const OnBusinessReset());
     context.read<InventoryBloc>().add(const OnInventoryReset());
     context.read<NotificationBloc>().add(const OnNotificationReset());
-    context.read<PosBloc>().add(const PosClearCart());
+    context.read<PosBloc>().add(const PosSessionReset());
   }
 
   @override

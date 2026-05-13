@@ -42,14 +42,23 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
       if (oldUrl != null && oldUrl.isNotEmpty) {
         imageCache.evict(NetworkImage(oldUrl));
       }
-
       if (newUrl != null && newUrl.isNotEmpty) {
         imageCache.evict(NetworkImage(newUrl));
       }
-
       setState(() {
         _resolvedUrl = newUrl;
       });
+    }
+  }
+
+  String _stripQuery(String url) {
+    try {
+      final stripped = Uri.parse(url).replace(query: '').toString();
+      return stripped.endsWith('?')
+          ? stripped.substring(0, stripped.length - 1)
+          : stripped;
+    } catch (_) {
+      return url;
     }
   }
 
@@ -63,7 +72,7 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
 
     return FutureBuilder<String?>(
       key: ValueKey(url),
-      future: getIt<OfflineLocalCache>().getLocalAssetPathByUrl(url),
+      future: getIt<OfflineLocalCache>().getLocalAssetPathByUrl(_stripQuery(url)),
       builder: (context, snapshot) {
         final localPath = snapshot.data;
 
@@ -71,14 +80,12 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
           return Image.file(
             File(localPath),
             fit: widget.fit,
-            errorBuilder: (_, _,_) {
-              return _NetworkFallbackImage(
-                url: url,
-                fit: widget.fit,
-                placeholder: widget.placeholder,
-                errorWidget: widget.errorWidget,
-              );
-            },
+            errorBuilder: (_, __, ___) => _NetworkFallbackImage(
+              url: url,
+              fit: widget.fit,
+              placeholder: widget.placeholder,
+              errorWidget: widget.errorWidget,
+            ),
           );
         }
 

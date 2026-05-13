@@ -13,7 +13,7 @@ class FcmTokenService {
   static const String _fcmTokenKey = 'fcm_token';
   static const String _fcmTokenTimestampKey = 'fcm_token_timestamp';
   static const String _fcmTokenSyncedKey = 'fcm_token_synced';
-  static const int _maxRetries = 3;
+  static const int _maxRetries = 0;
   static const Duration _retryDelay = Duration(seconds: 5);
 
   String? _cachedToken;

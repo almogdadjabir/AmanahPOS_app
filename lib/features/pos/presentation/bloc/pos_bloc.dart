@@ -24,6 +24,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosCartExpandedChanged>(_onCartExpandedChanged);
     on<PosShopSelected>(_onShopSelected);
     on<PosBarcodeScanned>(_onBarcodeScanned);
+    on<PosSessionReset>(_onSessionReset);
   }
 
   void _onShopSelected(PosShopSelected event, Emitter<PosState> emit) {
@@ -236,5 +237,9 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         : stock.toStringAsFixed(1);
 
     return 'Only $formattedStock item(s) available for $name.';
+  }
+
+  void _onSessionReset(PosSessionReset event, Emitter<PosState> emit) {
+    emit(PosState.initial());
   }
 }

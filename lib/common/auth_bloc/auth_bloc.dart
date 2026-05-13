@@ -76,12 +76,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await useCase.cacheStorage.save(Constants.cachedProfile, null);
         } else {
           _currentUserXTenantID = cachedId;
-          // Same user from cache — do NOT bump sessionId.
           _emitProfileLoaded(emit, cached, userSwitched: false);
-          // Kick off business + offline bootstrap immediately from cache so the
-          // app is usable even when the network profile refresh is slow or hangs.
           add(OnLoadBusinessEvent());
         }
+
       }
 
       final result = await useCase.getProfile();
@@ -104,7 +102,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _currentUserXTenantID = incomingId;
         await useCase.cacheStorage.saveObject(
           Constants.cachedProfile,
-          fresh.toJson(),
+          fresh.user!.toJson(),
         );
 
         // Only bump sessionId when a different user logs in.
@@ -204,6 +202,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           )));
         }
         offlineStatusBloc.add(const OnOfflineStatusStarted());
+        return;
       }
     } catch (_) {}
 
