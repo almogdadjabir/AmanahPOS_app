@@ -24,16 +24,30 @@ class PosPaymentMethodChanged extends PosEvent {
   @override List<Object?> get props => [paymentMethod];
 }
 
-class PosAddProduct extends PosEvent {
+final class PosAddProduct extends PosEvent {
   final ProductData product;
-  const PosAddProduct(this.product);
-  @override List<Object?> get props => [product];
+  final bool ignoreStockLimit;
+
+  const PosAddProduct(
+      this.product, {
+        this.ignoreStockLimit = false,
+      });
+
+  @override
+  List<Object?> get props => [product, ignoreStockLimit];
 }
 
-class PosIncrementItem extends PosEvent {
+final class PosIncrementItem extends PosEvent {
   final String productId;
-  const PosIncrementItem(this.productId);
-  @override List<Object?> get props => [productId];
+  final bool ignoreStockLimit;
+
+  const PosIncrementItem(
+      this.productId, {
+        this.ignoreStockLimit = false,
+      });
+
+  @override
+  List<Object?> get props => [productId, ignoreStockLimit];
 }
 
 class PosDecrementItem extends PosEvent {

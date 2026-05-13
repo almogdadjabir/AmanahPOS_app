@@ -66,6 +66,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
   ProductData? _selectedProduct;
   ShopData? _selectedShop;
   MovementType _movementType = MovementType.opening;
+  DateTime? _selectedExpiryDate;
 
   @override
   void initState() {
@@ -143,6 +144,11 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
         reference: _refCtrl.text.trim().isEmpty
             ? null
             : _refCtrl.text.trim(),
+        expiryDate: _selectedExpiryDate == null
+            ? null
+            : '${_selectedExpiryDate!.year.toString().padLeft(4, '0')}'
+              '-${_selectedExpiryDate!.month.toString().padLeft(2, '0')}'
+              '-${_selectedExpiryDate!.day.toString().padLeft(2, '0')}',
       ),
     );
   }
@@ -307,11 +313,15 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
                           selectedShop: _selectedShop,
                           lockShop: widget.initialProduct != null,
                           movementType: _movementType,
+                          selectedExpiryDate: _selectedExpiryDate,
                           onShopChanged: (shop) {
                             setState(() => _selectedShop = shop);
                           },
                           onMovementChanged: (type) {
                             setState(() => _movementType = type);
+                          },
+                          onExpiryDateChanged: (date) {
+                            setState(() => _selectedExpiryDate = date);
                           },
                           onSubmit: _submit,
                         ),
@@ -497,7 +507,7 @@ class _ProductPickerState extends State<_ProductPicker> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: products.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppDims.s2),
+              separatorBuilder: (_, _) => const SizedBox(height: AppDims.s2),
               itemBuilder: (context, index) {
                 return _ProductPickTile(
                   product: products[index],
@@ -651,8 +661,10 @@ class _StockForm extends StatelessWidget {
   final List<ShopData> shops;
   final ShopData? selectedShop;
   final MovementType movementType;
+  final DateTime? selectedExpiryDate;
   final ValueChanged<ShopData> onShopChanged;
   final ValueChanged<MovementType> onMovementChanged;
+  final ValueChanged<DateTime?> onExpiryDateChanged;
   final VoidCallback onSubmit;
   final bool lockShop;
 
@@ -667,8 +679,10 @@ class _StockForm extends StatelessWidget {
     required this.movementType,
     required this.onShopChanged,
     required this.onMovementChanged,
+    required this.onExpiryDateChanged,
     required this.onSubmit,
     required this.lockShop,
+    this.selectedExpiryDate,
   });
 
   static const _movementTypes = [
@@ -891,6 +905,14 @@ class _StockForm extends StatelessWidget {
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => onSubmit(),
           ),
+          const SizedBox(height: AppDims.s3),
+          // ── Expiry date (shop only, optional) ──────────────────────────
+          FieldLabel(label: 'Expiry Date'),
+          const SizedBox(height: AppDims.s1),
+          _ExpiryDatePicker(
+            selected: selectedExpiryDate,
+            onChanged: onExpiryDateChanged,
+          ),
           const SizedBox(height: AppDims.s5),
           BlocBuilder<InventoryBloc, InventoryState>(
             buildWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
@@ -931,6 +953,74 @@ class _StockForm extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Expiry date picker ────────────────────────────────────────────────────────
+
+class _ExpiryDatePicker extends StatelessWidget {
+  final DateTime?               selected;
+  final ValueChanged<DateTime?> onChanged;
+
+  const _ExpiryDatePicker({required this.selected, required this.onChanged});
+
+  Future<void> _pick(BuildContext context) async {
+    final now  = DateTime.now();
+    final date = await showDatePicker(
+      context:     context,
+      initialDate: selected ?? now.add(const Duration(days: 30)),
+      firstDate:   now,
+      lastDate:    DateTime(now.year + 10),
+      helpText:    'Select expiry date',
+    );
+    if (date != null) onChanged(date);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors  = context.appColors;
+    final hasDate = selected != null;
+
+    final label = hasDate
+        ? '${selected!.day.toString().padLeft(2, '0')}/'
+          '${selected!.month.toString().padLeft(2, '0')}/'
+          '${selected!.year}'
+        : 'Optional — tap to select';
+
+    return GestureDetector(
+      onTap: () => _pick(context),
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+        decoration: BoxDecoration(
+          color:        colors.surfaceSoft,
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+          border:       Border.all(color: colors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today_outlined,
+                size: 18, color: colors.textHint),
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.bs300(context).copyWith(
+                  color:      hasDate ? colors.textPrimary : colors.textHint,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            if (hasDate)
+              GestureDetector(
+                onTap: () => onChanged(null),
+                child: Icon(Icons.close_rounded,
+                    size: 18, color: colors.textHint),
+              ),
+          ],
+        ),
       ),
     );
   }

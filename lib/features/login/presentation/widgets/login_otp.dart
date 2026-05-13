@@ -201,7 +201,7 @@ class LoginOtp extends StatelessWidget {
                 AppSpacing.xl,
                 AppSpacing.sm,
                 AppSpacing.xl,
-                MediaQuery.of(context).padding.bottom + AppSpacing.sm,
+                MediaQuery.paddingOf(context).bottom + AppSpacing.sm,
               ),
               child: AppButton.wide(
                 label: state.isPinMatched ? 'Verified' : 'Verify & continue',

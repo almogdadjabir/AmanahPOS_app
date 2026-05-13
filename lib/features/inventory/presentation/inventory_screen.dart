@@ -1,3 +1,5 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_app_bar.dart';
@@ -108,6 +110,16 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ),
             ),
 
+            // Expiry alerts entry — shop only, never shown for restaurant.
+            if (context.read<AuthBloc>().state.permissions.isShop)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppDims.s4, 0, AppDims.s4, AppDims.s2),
+                sliver: SliverToBoxAdapter(
+                  child: _ExpiryAlertsBanner(),
+                ),
+              ),
+
             const SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 AppDims.s4,
@@ -156,6 +168,48 @@ class _InventoryScreenState extends State<InventoryScreen> {
             fontWeight: FontWeight.w800,
             color: Colors.white,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Expiry alerts entry banner ────────────────────────────────────────────────
+// Tapping navigates to the full expiry alerts screen.
+// Shown only for shop business type (enforced by the parent caller).
+
+class _ExpiryAlertsBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    const alertColor = Color(0xFFEA580C);
+
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pushNamed(RouteStrings.expiryAlertsScreen),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDims.s4,
+          vertical: AppDims.s3,
+        ),
+        decoration: BoxDecoration(
+          color: alertColor.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+          border: Border.all(color: alertColor.withValues(alpha: 0.22)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: alertColor, size: 20),
+            const SizedBox(width: AppDims.s3),
+            Expanded(
+              child: Text(
+                'View Expiry Alerts',
+                style: AppTextStyles.bs200(context).copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: alertColor,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: alertColor, size: 20),
+          ],
         ),
       ),
     );

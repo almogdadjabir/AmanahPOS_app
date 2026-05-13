@@ -107,7 +107,7 @@ class _EditBusinessSheetState extends State<_EditBusinessSheet> {
       },
       child: Padding(
         padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom),
+            bottom: MediaQuery.viewInsetsOf(context).bottom),
         child: Container(
           decoration: BoxDecoration(
             color: context.appColors.surface,

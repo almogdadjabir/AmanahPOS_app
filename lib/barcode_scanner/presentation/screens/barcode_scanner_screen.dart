@@ -1,12 +1,12 @@
 import 'dart:async';
 
+import 'package:amana_pos/barcode_scanner/presentation/bloc/barcode_scanner_bloc.dart';
 import 'package:amana_pos/barcode_scanner/presentation/widgets/camera_scanner_view.dart';
 import 'package:amana_pos/barcode_scanner/presentation/widgets/permission_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../bloc/barcode_scanner_bloc.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   const BarcodeScannerScreen({super.key});

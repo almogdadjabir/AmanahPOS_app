@@ -64,7 +64,12 @@ class _ProductGridItem extends StatelessWidget {
         product:       product,
         quantityInCart: quantityInCart,
         isRestaurant:  isRestaurant,
-        onTap: () => context.read<PosBloc>().add(PosAddProduct(product)),
+        onTap: () => context.read<PosBloc>().add(
+          PosAddProduct(
+            product,
+            ignoreStockLimit: isRestaurant,
+          ),
+        ),
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:amana_pos/features/category/data/models/responses/category_respo
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/category_picker.dart';
+import 'package:amana_pos/features/products/presentation/widgets/product_barcode_field.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_inventory_alerts_section.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
 import 'package:amana_pos/features/products/presentation/widgets/track_inventory_toggle.dart';
@@ -36,6 +37,7 @@ void showAddProductSheet(BuildContext context) {
 
 class _AddProductSheet extends StatefulWidget {
   final bool isRestaurant;
+
   const _AddProductSheet({required this.isRestaurant});
 
   @override
@@ -44,23 +46,24 @@ class _AddProductSheet extends StatefulWidget {
 
 class _AddProductSheetState extends State<_AddProductSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _priceCtrl = TextEditingController();
-  final _costCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
-  final _skuCtrl = TextEditingController();
+
+  final _nameCtrl     = TextEditingController();
+  final _priceCtrl    = TextEditingController();
+  final _costCtrl     = TextEditingController();
+  final _descCtrl     = TextEditingController();
+  final _skuCtrl      = TextEditingController();
   final _barcodeCtrl  = TextEditingController();
   final _minStockCtrl = TextEditingController();
-  final _expiryCtrl = TextEditingController();
+  final _expiryCtrl   = TextEditingController();
 
-  final _nameFocus = FocusNode();
-  final _priceFocus = FocusNode();
-  final _costFocus = FocusNode();
-  final _descFocus = FocusNode();
-  final _skuFocus = FocusNode();
-  final _barcodeFocus = FocusNode();
+  final _nameFocus     = FocusNode();
+  final _priceFocus    = FocusNode();
+  final _costFocus     = FocusNode();
+  final _descFocus     = FocusNode();
+  final _skuFocus      = FocusNode();
+  final _barcodeFocus  = FocusNode();
   final _minStockFocus = FocusNode();
-  final _expiryFocus = FocusNode();
+  final _expiryFocus   = FocusNode();
 
   CategoryData? _selectedCategory;
   String _selectedUnit = 'pcs';
@@ -79,12 +82,22 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _priceCtrl.dispose(); _costCtrl.dispose();
-    _descCtrl.dispose(); _skuCtrl.dispose(); _barcodeCtrl.dispose();
-    _minStockCtrl.dispose(); _expiryCtrl.dispose();
-    _nameFocus.dispose(); _priceFocus.dispose(); _costFocus.dispose();
-    _descFocus.dispose(); _skuFocus.dispose(); _barcodeFocus.dispose();
-    _minStockFocus.dispose(); _expiryFocus.dispose();
+    _nameCtrl.dispose();
+    _priceCtrl.dispose();
+    _costCtrl.dispose();
+    _descCtrl.dispose();
+    _skuCtrl.dispose();
+    _barcodeCtrl.dispose();
+    _minStockCtrl.dispose();
+    _expiryCtrl.dispose();
+    _nameFocus.dispose();
+    _priceFocus.dispose();
+    _costFocus.dispose();
+    _descFocus.dispose();
+    _skuFocus.dispose();
+    _barcodeFocus.dispose();
+    _minStockFocus.dispose();
+    _expiryFocus.dispose();
     super.dispose();
   }
 
@@ -94,16 +107,27 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     final dto = AddProductRequestDto(
       name: _nameCtrl.text.trim(),
       price: _priceCtrl.text.trim(),
-      costPrice: _costCtrl.text.trim().isEmpty ? null : _costCtrl.text.trim(),
+      costPrice: _costCtrl.text.trim().isEmpty
+          ? null
+          : _costCtrl.text.trim(),
       category: _selectedCategory?.id ?? '',
       unit: _selectedUnit,
       trackInventory: !widget.isRestaurant && _trackInventory,
-      minStockLevel: (!widget.isRestaurant && _minStockCtrl.text.trim().isNotEmpty)
+      minStockLevel: (!widget.isRestaurant &&
+              _minStockCtrl.text.trim().isNotEmpty)
           ? _minStockCtrl.text.trim()
           : null,
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+      description: _descCtrl.text.trim().isEmpty
+          ? null
+          : _descCtrl.text.trim(),
       sku: _skuCtrl.text.trim().isEmpty ? null : _skuCtrl.text.trim(),
-      barcode: _barcodeCtrl.text.trim().isEmpty ? null : _barcodeCtrl.text.trim(),
+      barcode: _barcodeCtrl.text.trim().isEmpty
+          ? null
+          : _barcodeCtrl.text.trim(),
+      expiryAlertDays: (!widget.isRestaurant &&
+              _expiryCtrl.text.trim().isNotEmpty)
+          ? _expiryCtrl.text.trim()
+          : null,
       imageUpload: _pickedImage,
     );
 
@@ -121,12 +145,14 @@ class _AddProductSheetState extends State<_AddProductSheet> {
       listener: (context, state) {
         if (state.submitStatus == ProductSubmitStatus.success) {
           Navigator.of(context).pop();
-          GlobalSnackBar.show(message: 'Product added successfully', isInfo: true);
+          GlobalSnackBar.show(
+              message: 'Product added successfully', isInfo: true);
         }
         if (state.submitStatus == ProductSubmitStatus.failure) {
           GlobalSnackBar.show(
             message: state.submitError ?? 'Something went wrong',
-            isError: true, isAutoDismiss: false,
+            isError: true,
+            isAutoDismiss: false,
           );
         }
       },
@@ -137,9 +163,9 @@ class _AddProductSheetState extends State<_AddProductSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               ImageUploadBox(
-                pickedImage: _pickedImage, imageUrl: null,
+                pickedImage: _pickedImage,
+                imageUrl: null,
                 title: 'Add product photo',
                 subtitle: 'Use a clear image for faster cashier selection',
                 onChanged: (img) => setState(() => _pickedImage = img),
@@ -149,34 +175,41 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               FieldLabel(label: 'Product Name', required: true),
               const SizedBox(height: AppDims.s1),
               AppFormField(
-                controller: _nameCtrl, focusNode: _nameFocus,
-                nextFocus: _priceFocus, hint: 'Pepsi 330ml',
+                controller: _nameCtrl,
+                focusNode: _nameFocus,
+                nextFocus: _priceFocus,
+                hint: 'Pepsi 330ml',
                 prefixIcon: Icons.inventory_2_outlined,
                 validator: ProductFormValidators.name,
               ),
               const SizedBox(height: AppDims.s3),
 
               ProductPriceRow(
-                priceCtrl: _priceCtrl, costCtrl: _costCtrl,
-                priceFocus: _priceFocus, costFocus: _costFocus,
+                priceCtrl: _priceCtrl,
+                costCtrl: _costCtrl,
+                priceFocus: _priceFocus,
+                costFocus: _costFocus,
                 nextFocus: _descFocus,
               ),
               const SizedBox(height: AppDims.s3),
 
               BlocBuilder<ProductBloc, ProductState>(
-                buildWhen: (prev, curr) => prev.categories != curr.categories,
+                buildWhen: (prev, curr) =>
+                    prev.categories != curr.categories,
                 builder: (context, state) {
                   final hasCategories = state.categories.isNotEmpty;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FieldLabel(label: 'Category', required: hasCategories),
+                      FieldLabel(
+                          label: 'Category', required: hasCategories),
                       const SizedBox(height: AppDims.s1),
                       if (hasCategories)
                         CategoryPicker(
                           categories: state.categories,
                           selected: _selectedCategory,
-                          onSelected: (c) => setState(() => _selectedCategory = c),
+                          onSelected: (c) =>
+                              setState(() => _selectedCategory = c),
                         )
                       else
                         const _AutoCategoryInfo(),
@@ -190,7 +223,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                 FieldLabel(label: 'Unit', required: true),
                 const SizedBox(height: AppDims.s2),
                 UnitPicker(
-                  units: _units, selected: _selectedUnit,
+                  units: _units,
+                  selected: _selectedUnit,
                   onSelected: (u) => setState(() => _selectedUnit = u),
                 ),
               ],
@@ -202,26 +236,45 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               FieldLabel(label: 'Description'),
               const SizedBox(height: AppDims.s1),
               AppFormField(
-                controller: _descCtrl, focusNode: _descFocus,
-                nextFocus: _skuFocus, hint: 'Product description',
-                prefixIcon: Icons.notes_rounded, maxLines: 3,
+                controller: _descCtrl,
+                focusNode: _descFocus,
+                nextFocus: _skuFocus,
+                hint: 'Product description',
+                prefixIcon: Icons.notes_rounded,
+                maxLines: 3,
               ),
               const SizedBox(height: AppDims.s3),
 
               if (!widget.isRestaurant) ...[
-                ProductSkuBarcodeRow(
-                  skuCtrl: _skuCtrl, barcodeCtrl: _barcodeCtrl,
-                  skuFocus: _skuFocus, barcodeFocus: _barcodeFocus,
+                // SKU — kept in Add, full-width on its own row.
+                FieldLabel(label: 'SKU'),
+                const SizedBox(height: AppDims.s1),
+                AppFormField(
+                  controller: _skuCtrl,
+                  focusNode: _skuFocus,
+                  nextFocus: _barcodeFocus,
+                  hint: 'SKU-001',
+                  prefixIcon: Icons.qr_code_rounded,
                 ),
                 const SizedBox(height: AppDims.s3),
+
+                // Barcode — full-width with scan button.
+                ProductBarcodeField(
+                  controller: _barcodeCtrl,
+                  focusNode: _barcodeFocus,
+                ),
+                const SizedBox(height: AppDims.s3),
+
                 TrackInventoryToggle(
                   value: _trackInventory,
                   onChanged: (v) => setState(() => _trackInventory = v),
                 ),
                 const SizedBox(height: AppDims.s3),
                 ProductInventoryAlertsSection(
-                  minStockCtrl: _minStockCtrl, expiryAlertCtrl: _expiryCtrl,
-                  minStockFocus: _minStockFocus, expiryAlertFocus: _expiryFocus,
+                  minStockCtrl: _minStockCtrl,
+                  expiryAlertCtrl: _expiryCtrl,
+                  minStockFocus: _minStockFocus,
+                  expiryAlertFocus: _expiryFocus,
                   enabled: _trackInventory,
                 ),
               ],
@@ -265,7 +318,8 @@ class _AutoCategoryInfo extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppDims.s2, vertical: 3),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDims.s2, vertical: 3),
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),

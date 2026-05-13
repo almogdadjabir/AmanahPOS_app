@@ -148,7 +148,7 @@ class _LoginFormState extends State<LoginForm> {
                 AppSpacing.xl,
                 AppSpacing.sm,
                 AppSpacing.xl,
-                MediaQuery.of(context).padding.bottom + AppSpacing.sm,
+                MediaQuery.paddingOf(context).bottom + AppSpacing.sm,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

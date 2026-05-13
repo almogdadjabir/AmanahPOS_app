@@ -247,10 +247,10 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
       if (!isOnline) return;
       if (version != _logoutVersion) return;
 
-      await offlineFirstManager.refreshBootstrap();
-
-      if (version != _logoutVersion) return;
-
+      // Do NOT call offlineFirstManager.refreshBootstrap() here directly.
+      // OnOfflineStatusRefreshRequested → _refreshAll already calls it once.
+      // Calling refreshBootstrap() here AND triggering _refreshAll would result
+      // in two back-to-back bootstrap requests every session.
       add(const OnOfflineStatusRefreshRequested());
     } catch (_) {
       // Silent background refresh failure.
@@ -296,8 +296,14 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
     return networkMonitor.isOnline;
   }
 
+  /// Total unsynced (pending + syncing + failed) — for display.
   Future<int> get pendingOfflineSalesCount async {
     return syncManager.pendingSalesCount();
+  }
+
+  /// Only truly unsent sales (pending + syncing) — used to gate logout.
+  Future<int> get blockingPendingOfflineSalesCount async {
+    return syncManager.blockingPendingSalesCount();
   }
 
   @override

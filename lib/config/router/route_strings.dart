@@ -12,5 +12,7 @@ class RouteStrings {
   static const String settingsScreen = 'settingsScreen';
   static const String cashiersScreen = 'cashiersScreen';
   static const String notificationsScreen = 'notificationsScreen';
-  static const String barcodeScannerScreen = 'barcodeScanner';
+  static const String barcodeScannerScreen  = 'barcodeScanner';
+  static const String expiryAlertsScreen    = 'expiryAlertsScreen';
+  static const String pendingSyncScreen     = 'pendingSyncScreen';
 }

@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
@@ -328,41 +329,114 @@ class _MoreFooter extends StatelessWidget {
                 prev.pendingSalesCount != curr.pendingSalesCount,
             builder: (context, state) {
               final statusColor = _syncColor(context, state);
-              return Row(
+              final hasPending = state.pendingSalesCount > 0;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Status dot or spinner
-                  if (state.isBusy)
-                    SizedBox(
-                      width: 8,
-                      height: 8,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        color: statusColor,
+                  // Status row
+                  Row(
+                    children: [
+                      if (state.isBusy)
+                        SizedBox(
+                          width: 8,
+                          height: 8,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: statusColor,
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      const SizedBox(width: AppDims.s2),
+                      Expanded(
+                        child: Text(
+                          '$_appVersion · ${state.connectionLabel} · ${state.statusLabel}',
+                          style: AppTextStyles.sm200(context).copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colors.textHint,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    )
-                  else
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-
-                  const SizedBox(width: AppDims.s2),
-
-                  Expanded(
-                    child: Text(
-                      '$_appVersion · ${state.connectionLabel} · ${state.statusLabel}',
-                      style: AppTextStyles.sm200(context).copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colors.textHint,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ),
+
+                  // Pending sales action row
+                  if (hasPending) ...[
+                    const SizedBox(height: AppDims.s2),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pushNamed(
+                                  RouteStrings.pendingSyncScreen);
+                            },
+                            icon: const Icon(Icons.receipt_long_rounded,
+                                size: 15),
+                            label: Text(
+                              'View ${state.pendingSalesCount} pending',
+                              style: AppTextStyles.sm300(context).copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFF59E0B),
+                              side: const BorderSide(
+                                  color: Color(0xFFF59E0B), width: 1.2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppDims.rMd),
+                              ),
+                              minimumSize: const Size(0, 40),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppDims.s2),
+                        OutlinedButton(
+                          onPressed: state.isBusy
+                              ? null
+                              : () {
+                                  Navigator.of(context).pop();
+                                  getIt<OfflineStatusBloc>().add(
+                                    const OnOfflineStatusSyncSalesRequested(),
+                                  );
+                                },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colors.primary,
+                            side: BorderSide(
+                                color: colors.primary.withValues(alpha: 0.4)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppDims.rMd),
+                            ),
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppDims.s3),
+                          ),
+                          child: state.isBusy
+                              ? SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colors.primary,
+                                  ),
+                                )
+                              : const Icon(Icons.sync_rounded, size: 18),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               );
             },
@@ -389,6 +463,7 @@ class _MoreFooter extends StatelessWidget {
               minimumSize: const Size(double.infinity, 48),
             ),
           ),
+          const SizedBox(height: AppDims.s1),
 
           _DebugRow(
             onCleared: () => getIt<OfflineStatusBloc>()
@@ -435,42 +510,38 @@ class _DebugRow extends StatelessWidget {
 
     return InkWell(
       onTap: () => _confirmClear(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 20, vertical: 10),
-        child: Row(
-          children: [
-            Icon(Icons.cleaning_services_rounded,
-                size: 14, color: colors.textHint),
-            const SizedBox(width: 7),
-            Expanded(
-              child: Text(
-                'Clear local data — debug only',
-                style: AppTextStyles.bs100(context).copyWith(
-                  color:      colors.textHint,
-                  fontWeight: FontWeight.w700,
-                ),
+      child: Row(
+        children: [
+          Icon(Icons.cleaning_services_rounded,
+              size: 14, color: colors.textHint),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              'Clear local data — debug only',
+              style: AppTextStyles.bs100(context).copyWith(
+                color:      colors.textHint,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 7, vertical: 3),
-              decoration: BoxDecoration(
-                color:        colors.surfaceSoft,
-                borderRadius: BorderRadius.circular(4),
-                border:       Border.all(color: colors.border),
-              ),
-              child: Text(
-                'DEBUG',
-                style: AppTextStyles.bs100(context).copyWith(
-                  color:         colors.textHint,
-                  fontWeight:    FontWeight.w900,
-                  letterSpacing: 0.8,
-                ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color:        colors.surfaceSoft,
+              borderRadius: BorderRadius.circular(4),
+              border:       Border.all(color: colors.border),
+            ),
+            child: Text(
+              'DEBUG',
+              style: AppTextStyles.bs100(context).copyWith(
+                color:         colors.textHint,
+                fontWeight:    FontWeight.w900,
+                letterSpacing: 0.8,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

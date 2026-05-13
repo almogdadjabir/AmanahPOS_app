@@ -33,7 +33,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ProductBloc>().add(const OnProductInitial(force: true));
+    context.read<ProductBloc>().add(const OnProductInitial());
     _scrollCtrl.addListener(_onScroll);
   }
 

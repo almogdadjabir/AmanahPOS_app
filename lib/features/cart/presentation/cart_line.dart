@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/cart/presentation/qty_stepper.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
@@ -119,7 +120,10 @@ class CartLine extends StatelessWidget {
                     ? null
                     : () {
                   context.read<PosBloc>().add(
-                    PosIncrementItem(productId),
+                    PosIncrementItem(
+                      productId,
+                      ignoreStockLimit: context.read<AuthBloc>().state.permissions.isRestaurant,
+                    ),
                   );
                 },
               ),

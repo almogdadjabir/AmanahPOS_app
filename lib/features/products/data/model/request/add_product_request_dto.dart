@@ -11,6 +11,7 @@ class AddProductRequestDto {
   final String? barcode;
   final bool trackInventory;
   final String? minStockLevel;
+  final String? expiryAlertDays;
   final PickedAppImage? imageUpload;
 
   const AddProductRequestDto({
@@ -24,6 +25,7 @@ class AddProductRequestDto {
     this.barcode,
     required this.trackInventory,
     this.minStockLevel,
+    this.expiryAlertDays,
     this.imageUpload,
   });
 
@@ -39,6 +41,7 @@ class AddProductRequestDto {
       if (sku != null) 'sku': sku,
       if (barcode != null) 'barcode': barcode,
       if (minStockLevel != null) 'min_stock_level': minStockLevel,
+      if (expiryAlertDays != null) 'expiry_alert_days': expiryAlertDays,
     };
   }
 }

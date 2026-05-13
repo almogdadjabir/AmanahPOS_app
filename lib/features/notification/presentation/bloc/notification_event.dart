@@ -31,3 +31,7 @@ class OnMarkAllNotificationsRead extends NotificationEvent {
 class OnLoadUnreadCount extends NotificationEvent {
   const OnLoadUnreadCount();
 }
+
+class OnNotificationReset extends NotificationEvent {
+  const OnNotificationReset();
+}

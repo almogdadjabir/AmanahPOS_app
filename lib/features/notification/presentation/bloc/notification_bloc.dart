@@ -15,6 +15,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final NotificationUseCases useCases;
   final CacheStorage cacheStorage;
 
+  bool _isLoadingUnreadCount = false;
+
   NotificationBloc({
     required this.useCases,
     required this.cacheStorage,
@@ -24,6 +26,12 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<OnMarkNotificationRead>(_onMarkRead);
     on<OnMarkAllNotificationsRead>(_onMarkAllRead);
     on<OnLoadUnreadCount>(_onLoadUnreadCount);
+    on<OnNotificationReset>(_onReset);
+  }
+
+  void _onReset(OnNotificationReset event, Emitter<NotificationState> emit) {
+    _isLoadingUnreadCount = false;
+    emit(NotificationState.initial());
   }
 
 
@@ -137,27 +145,36 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     OnLoadUnreadCount event,
     Emitter<NotificationState> emit,
   ) async {
+    if (_isLoadingUnreadCount) return;
+    _isLoadingUnreadCount = true;
     try {
-      final raw = await cacheStorage.getValue(_kUnreadCountKey);
-      final cached = raw != null ? int.tryParse(raw) : null;
-      if (cached != null && cached != state.unreadCount && !emit.isDone) {
-        emit(state.copyWith(unreadCount: cached));
-      }
-    } catch (_) {
-    }
+      if(state.unreadCountStatus == NotificationUnreadCountStatus.loading) return;
+      emit(state.copyWith(unreadCountStatus: NotificationUnreadCountStatus.loading));
 
-    final result = await useCases.getUnreadCount();
-    result.fold(
-      (_) {
-        // Silent failure — badge stays at the cached value.
-      },
-      (count) async {
-        if (!emit.isDone && count != state.unreadCount) {
-          emit(state.copyWith(unreadCount: count.unreadCount));
+      try {
+        final raw = await cacheStorage.getValue(_kUnreadCountKey);
+        final cached = raw != null ? int.tryParse(raw) : null;
+        if (cached != null && cached != state.unreadCount && !emit.isDone) {
+          emit(state.copyWith(unreadCount: cached));
         }
-        unawaited(_persistCount(count.unreadCount ?? 0));
-      },
-    );
+      } catch (_) {
+      }
+
+      final result = await useCases.getUnreadCount();
+      result.fold(
+        (_) {
+          // Silent failure — badge stays at the cached value.
+        },
+        (count) async {
+          if (!emit.isDone && count.unreadCount != state.unreadCount) {
+            emit(state.copyWith(unreadCount: count.unreadCount));
+          }
+          unawaited(_persistCount(count.unreadCount ?? 0));
+        },
+      );
+    } finally {
+      _isLoadingUnreadCount = false;
+    }
   }
 
 

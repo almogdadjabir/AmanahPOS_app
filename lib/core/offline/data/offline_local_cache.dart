@@ -1011,9 +1011,11 @@ class OfflineLocalCache {
       await safeDeleteTable(txn, 'offline_assets');
       await safeDeleteTable(txn, 'sync_metadata');
 
-      // Important:
-      // Do NOT delete offline sales / pending sales tables here.
-      // Logout is blocked before this method if pending sales exist.
+      // Safe to clear: the logout gate now only blocks on pending+syncing rows.
+      // Any remaining rows at this point are in 'failed' status and must be
+      // discarded — they reference shop/business data that is no longer valid.
+      await safeDeleteTable(txn, 'pending_sale_items');
+      await safeDeleteTable(txn, 'pending_sales');
     });
 
     await _deleteOfflineAssetsDirectory();

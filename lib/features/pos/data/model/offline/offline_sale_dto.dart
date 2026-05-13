@@ -29,6 +29,8 @@ class OfflineSaleDto {
   final String total;
   final List<OfflineSaleItemDto> items;
   final DateTime createdAt;
+  final String? status;
+  final String? errorMessage;
 
   const OfflineSaleDto({
     required this.clientSaleId,
@@ -41,6 +43,8 @@ class OfflineSaleDto {
     required this.total,
     required this.items,
     required this.createdAt,
+    this.status,
+    this.errorMessage,
   });
 
   Map<String, dynamic> toSyncJson() {

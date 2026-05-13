@@ -1,8 +1,10 @@
+import 'package:amana_pos/config/app_assets.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/svg.dart';
 
 class NotificationEmptyView extends StatelessWidget {
   const NotificationEmptyView({super.key});
@@ -21,11 +23,16 @@ class NotificationEmptyView extends StatelessWidget {
               color: colors.primaryContainer,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.notifications_none_rounded,
-              size: 38,
-              color: colors.primary,
-            ),
+            child: Center(
+              child: SvgPicture.asset(
+                AppAssets.icNotification,
+                width: 42,
+                colorFilter: ColorFilter.mode(
+                    context.appColors.primary,
+                    BlendMode.srcIn
+                ),
+              ),
+            )
           ),
           const SizedBox(height: AppDims.s4),
           Text(

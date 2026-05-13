@@ -23,6 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   String? _currentUserXTenantID;
   bool _loggedOut = false;
+  DateTime? _lastBusinessFetchAt;
 
   AuthBloc({
     required this.useCase,
@@ -77,6 +78,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           _currentUserXTenantID = cachedId;
           // Same user from cache — do NOT bump sessionId.
           _emitProfileLoaded(emit, cached, userSwitched: false);
+          // Kick off business + offline bootstrap immediately from cache so the
+          // app is usable even when the network profile refresh is slow or hangs.
+          add(OnLoadBusinessEvent());
         }
       }
 
@@ -137,13 +141,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
 
-      final pendingSalesCount =
-      await offlineStatusBloc.pendingOfflineSalesCount;
-      if (pendingSalesCount > 0) {
+      final blockingCount =
+          await offlineStatusBloc.blockingPendingOfflineSalesCount;
+      if (blockingCount > 0) {
         emit(state.copyWith(AuthStateUpdate(
           authStatus: AuthStatus.failure,
           responseError:
-          'Sorry, you need to sync all sales first before logout. Pending sales: $pendingSalesCount',
+              'You have $blockingCount pending ${blockingCount == 1 ? 'sale' : 'sales'} that have not been sent yet. Please sync or go online before signing out.',
         )));
         return;
       }
@@ -160,6 +164,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       _currentUserXTenantID = null;
       _loggedOut = true;
+      _lastBusinessFetchAt = null;
+
+      offlineStatusBloc.add(const OnOfflineStatusResetRequested());
 
       emit(AuthState.initial());
       _navigateToWelcome();
@@ -176,6 +183,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       OnLoadBusinessEvent event,
       Emitter<AuthState> emit,
       ) async {
+
     if (state.businessStatus == BusinessStatus.loading) return;
 
     emit(state.copyWith(const AuthStateUpdate(
@@ -199,6 +207,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (_) {}
 
+    // Debounce the network call — two rapid dispatches of OnLoadBusinessEvent
+    // (once on cached profile, once on fresh profile) would otherwise hit the
+    // businesses endpoint twice within the same login flow.
+    final now = DateTime.now();
+    if (_lastBusinessFetchAt != null &&
+        now.difference(_lastBusinessFetchAt!) < const Duration(seconds: 30)) {
+      return;
+    }
+    _lastBusinessFetchAt = now;
+
     try {
       final response = await businessUseCase.getBusinessList();
       final error = response.getLeft().toNullable();
@@ -219,6 +237,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             businessStatus: BusinessStatus.failure,
           )));
         }
+        offlineStatusBloc.add(const OnOfflineStatusStarted());
         return;
       }
 
@@ -259,6 +278,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           businessStatus: BusinessStatus.failure,
         )));
       }
+      offlineStatusBloc.add(const OnOfflineStatusStarted());
     }
   }
 

@@ -41,6 +41,17 @@ class StockData {
   final bool? isOutOfStock;
   final String? updatedAt;
 
+  // ── Expiry fields (shop-only, nullable — old data won't have them) ──────
+  /// ISO-8601 date-only string: "2025-06-15". Null if not tracked.
+  final String? expiryDate;
+  final bool?   isExpired;
+  /// Negative = already expired by that many days.
+  final int?    expiresInDays;
+  /// "expired" | "expiring_soon" | null
+  final String? expiryStatus;
+  final String? batchId;
+  final String? batchNumber;
+
   const StockData({
     this.id,
     this.product,
@@ -52,6 +63,12 @@ class StockData {
     this.isLowStock,
     this.isOutOfStock,
     this.updatedAt,
+    this.expiryDate,
+    this.isExpired,
+    this.expiresInDays,
+    this.expiryStatus,
+    this.batchId,
+    this.batchNumber,
   });
 
   factory StockData.fromJson(Map<String, dynamic> json) {
@@ -68,7 +85,27 @@ class StockData {
       isLowStock: _parseBool(json['is_low_stock']),
       isOutOfStock: _parseBool(json['is_out_of_stock']),
       updatedAt: json['updated_at']?.toString(),
+      // Expiry — safe: missing key returns null without crashing.
+      expiryDate:   json['expiry_date']?.toString(),
+      isExpired:    _parseBool(json['is_expired']),
+      expiresInDays: _parseInt(json['expires_in_days']),
+      expiryStatus: json['expiry_status']?.toString(),
+      batchId:      json['batch_id']?.toString(),
+      batchNumber:  json['batch_number']?.toString(),
     );
+  }
+
+  /// True when the item has an expiry date and is expired.
+  bool get isExpiredSafe => isExpired ?? false;
+
+  /// True when expiring soon but not yet expired.
+  bool get isExpiringSoon =>
+      !isExpiredSafe && expiryStatus == 'expiring_soon';
+
+  /// Parsed expiry date for display. Returns null if not set or unparseable.
+  DateTime? get parsedExpiryDate {
+    if (expiryDate == null || expiryDate!.isEmpty) return null;
+    return DateTime.tryParse(expiryDate!);
   }
 
   double get qty {
@@ -136,6 +173,13 @@ class StockData {
     }
 
     return value.toString();
+  }
+
+  static int? _parseInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString().trim());
   }
 
   static bool? _parseBool(dynamic value) {

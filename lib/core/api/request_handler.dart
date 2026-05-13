@@ -15,7 +15,7 @@ class RequestHandler {
         dynamic data,
         Map<String, dynamic>? headers,
       }) async {
-    try {
+try {
       final response = await dioClient.get(
         path,
         data: data,
@@ -29,14 +29,14 @@ class RequestHandler {
       } else {
         return Left(response.statusMessage);
       }
-    } on DioException catch (e) {
-      if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
-      final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
-      return Left(errorMessage);
-    } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
-      return Left(errorMessage);
-    }
+} on DioException catch (e) {
+  if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
+  final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
+  return Left(errorMessage);
+} catch (e) {
+  final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
+  return Left(errorMessage);
+}
   }
 
   Future<Either<String?, T>> handlePostRequest<T>(

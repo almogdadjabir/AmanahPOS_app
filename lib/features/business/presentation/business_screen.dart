@@ -33,7 +33,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
           final businesses = state.businessList ?? [];
 
           if (state.businessStatus == BusinessStatus.loading ||
-              state.businessStatus == BusinessStatus.initial) {
+              (state.businessStatus == BusinessStatus.initial && state.businessList == null)) {
             return const _LoadingView();
           }
 

@@ -187,8 +187,20 @@ class _PosScreenState extends State<PosScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<PosBloc, PosState>(
-      listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
+      listenWhen: (prev, curr) =>
+      prev.submitStatus != curr.submitStatus ||
+          prev.submitError != curr.submitError,
       listener: (context, state) {
+        if (state.submitStatus == PosSubmitStatus.idle &&
+            state.submitError?.isNotEmpty == true) {
+          GlobalSnackBar.show(
+            message: state.submitError!,
+            isError: true,
+          );
+          context.read<PosBloc>().add(const PosAcknowledgeSubmit());
+          return;
+        }
+
         if (state.submitStatus == PosSubmitStatus.success) {
           context.read<ProductBloc>().add(
             OnProductsSoldLocally(

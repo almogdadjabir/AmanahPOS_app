@@ -4,6 +4,7 @@ import 'package:amana_pos/features/inventory/data/models/requests/add_stock_requ
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/add_stock_response_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/expiry_alert_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -52,4 +53,14 @@ class InventoryRepoImpl extends InventoryRepository {
     );
   }
 
+  @override
+  Future<Either<String?, ExpiryAlertResponseDto>> getExpiryAlerts({
+    int page = 1,
+    int pageSize = 50,
+  }) {
+    return requestHandler.handleGetRequest(
+      'api/v1/inventory/expiry-alerts/?page=$page&page_size=$pageSize',
+      (data) => ExpiryAlertResponseDto.fromJson(data as Map<String, dynamic>),
+    );
+  }
 }

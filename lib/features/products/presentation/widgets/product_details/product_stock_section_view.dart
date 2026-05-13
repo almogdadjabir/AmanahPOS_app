@@ -12,20 +12,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ProductStockSectionView extends StatelessWidget {
   final ProductData product;
 
-  const ProductStockSectionView({super.key,
-    required this.product,
-  });
+  const ProductStockSectionView({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InventoryBloc, InventoryState>(
       buildWhen: (prev, curr) =>
-      prev.stockList != curr.stockList || prev.status != curr.status,
+          prev.stockList != curr.stockList || prev.status != curr.status,
       builder: (context, state) {
-        final productStock = _filterProductStock(state.stockList);
+        // Show skeleton while inventory data is being fetched for the first
+        // time (initial) or while a load/paginate is in progress and we have
+        // no data yet.  Only fall through to the empty-state card once we
+        // are in a terminal (success / failure) state with an empty result.
+        final isLoading = state.status == InventoryStatus.initial ||
+            state.status == InventoryStatus.loading ||
+            state.status == InventoryStatus.loadingMore;
 
-        if (state.status == InventoryStatus.loading &&
-            state.stockList.isEmpty) {
+        if (isLoading && state.stockList.isEmpty) {
           return Container(
             height: 88,
             decoration: BoxDecoration(
@@ -34,6 +37,8 @@ class ProductStockSectionView extends StatelessWidget {
             ),
           );
         }
+
+        final productStock = _filterProductStock(state.stockList);
 
         if (productStock.isEmpty) {
           return NoProductStockCard(
@@ -66,7 +71,6 @@ class ProductStockSectionView extends StatelessWidget {
     }
 
     final name = product.name?.trim().toLowerCase();
-
     if (name == null || name.isEmpty) return const [];
 
     return stockList

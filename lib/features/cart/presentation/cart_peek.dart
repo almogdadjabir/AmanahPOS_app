@@ -21,17 +21,10 @@ class CartPeek extends StatelessWidget {
       child: Container(
         height: 88,
         decoration: BoxDecoration(
-          color: colors.primary,
+          color: colors.secondary,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppDims.rXl),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.28),
-              blurRadius: 24,
-              offset: const Offset(0, -8),
-            ),
-          ],
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),

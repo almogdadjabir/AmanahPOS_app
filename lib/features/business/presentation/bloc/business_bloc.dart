@@ -58,15 +58,23 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
             clearResponseError: true,
           ),
         );
-      } else {
-        emit(
-          state.copyWith(
-            isLoading: true,
-            businessStatus: BusinessStatus.loading,
-            clearResponseError: true,
-          ),
-        );
+
+        // AuthBloc owns the businesses network fetch on every login and saves
+        // to SQLite cache immediately before this code ever runs.  A second
+        // independent call from BusinessBloc would duplicate that request with
+        // no additional benefit — the cache is already fresh.
+        return;
       }
+
+      // Cache is empty (e.g. very first launch, or after clearAllOnLogout for a
+      // different-user login).  Fetch from the network and populate the cache.
+      emit(
+        state.copyWith(
+          isLoading: true,
+          businessStatus: BusinessStatus.loading,
+          clearResponseError: true,
+        ),
+      );
 
       final response = await useCase.getBusinessList();
 
@@ -76,17 +84,6 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       final business = response.getRight().toNullable();
 
       if (error != null) {
-        if (emittedCache) {
-          emit(
-            state.copyWith(
-              isLoading: false,
-              businessStatus: BusinessStatus.success,
-              responseError: error,
-            ),
-          );
-          return;
-        }
-
         emit(
           state.copyWith(
             isLoading: false,
@@ -117,17 +114,6 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       );
     } catch (e) {
       if (emit.isDone) return;
-
-      if (emittedCache) {
-        emit(
-          state.copyWith(
-            isLoading: false,
-            businessStatus: BusinessStatus.success,
-            responseError: e.toString(),
-          ),
-        );
-        return;
-      }
 
       emit(
         state.copyWith(

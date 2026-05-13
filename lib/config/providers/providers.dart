@@ -16,6 +16,7 @@ import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.da
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
@@ -97,6 +98,11 @@ getProviders(BuildContext context) => [
     create: (context) => InventoryBloc(
       useCase: getIt<InventoryUseCase>(),
       offlineLocalCache: getIt<OfflineLocalCache>(),
+    ),
+  ),
+  BlocProvider(
+    create: (context) => ExpiryBloc(
+      useCase: getIt<InventoryUseCase>(),
     ),
   ),
   BlocProvider(

@@ -15,8 +15,13 @@ import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
+import 'package:amana_pos/features/inventory/presentation/expiry_alerts_screen.dart';
 import 'package:amana_pos/features/notification/presentation/notifications_screen.dart';
+import 'package:amana_pos/features/sync/presentation/pending_sync_screen.dart';
+import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/features/users/presentation/users_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -90,6 +95,19 @@ class AppRouter {
         return MaterialPageRoute<String>(
           builder: (_) => const BarcodeScannerScreen(),
           settings: settings,
+        );
+
+      case RouteStrings.expiryAlertsScreen:
+        return MaterialPageRoute(
+          builder: (_) => const ExpiryAlertsScreen(),
+        );
+
+      case RouteStrings.pendingSyncScreen:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => getIt<PendingSyncBloc>(),
+            child: const PendingSyncScreen(),
+          ),
         );
 
       default:

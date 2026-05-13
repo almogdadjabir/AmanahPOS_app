@@ -59,23 +59,68 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
     final existingIndex =
     state.items.indexWhere((item) => item.product.id == productId);
+
+    final currentQty = existingIndex == -1
+        ? 0
+        : state.items[existingIndex].quantity;
+
+    final nextQty = currentQty + 1;
+
+    if (!_canUseQuantity(
+      product: event.product,
+      quantity: nextQty,
+      ignoreStockLimit: event.ignoreStockLimit,
+    )) {
+      emit(state.copyWith(
+        submitError: _stockLimitMessage(event.product),
+      ));
+      return;
+    }
+
     final updated = [...state.items];
 
     if (existingIndex == -1) {
       updated.add(PosCartItem(product: event.product, quantity: 1));
     } else {
       final item = updated[existingIndex];
-      updated[existingIndex] = item.copyWith(quantity: item.quantity + 1);
+      updated[existingIndex] = item.copyWith(quantity: nextQty);
     }
-    emit(state.copyWith(items: updated));
+
+    emit(state.copyWith(
+      items: updated,
+      submitError: null,
+    ));
   }
 
   void _onIncrementItem(PosIncrementItem event, Emitter<PosState> emit) {
-    final updated = state.items.map((item) {
-      if (item.product.id != event.productId) return item;
-      return item.copyWith(quantity: item.quantity + 1);
-    }).toList();
-    emit(state.copyWith(items: updated));
+    final updated = <PosCartItem>[];
+
+    for (final item in state.items) {
+      if (item.product.id != event.productId) {
+        updated.add(item);
+        continue;
+      }
+
+      final nextQty = item.quantity + 1;
+
+      if (!_canUseQuantity(
+        product: item.product,
+        quantity: nextQty,
+        ignoreStockLimit: event.ignoreStockLimit,
+      )) {
+        emit(state.copyWith(
+          submitError: _stockLimitMessage(item.product),
+        ));
+        return;
+      }
+
+      updated.add(item.copyWith(quantity: nextQty));
+    }
+
+    emit(state.copyWith(
+      items: updated,
+      submitError: null,
+    ));
   }
 
   void _onDecrementItem(PosDecrementItem event, Emitter<PosState> emit) {
@@ -165,5 +210,31 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   void _onCartExpandedChanged(
       PosCartExpandedChanged event, Emitter<PosState> emit) {
     emit(state.copyWith(cartExpanded: event.expanded));
+  }
+
+  bool _canUseQuantity({
+    required ProductData product,
+    required int quantity,
+    required bool ignoreStockLimit,
+  }) {
+    if (ignoreStockLimit) return true;
+
+    final trackInventory = product.trackInventory ?? true;
+    if (!trackInventory) return true;
+
+    final stock = product.stockLevel ?? 0;
+
+    return quantity <= stock;
+  }
+
+  String _stockLimitMessage(ProductData product) {
+    final stock = product.stockLevel ?? 0;
+    final name = product.name ?? 'Product';
+
+    final formattedStock = stock % 1 == 0
+        ? stock.toInt().toString()
+        : stock.toStringAsFixed(1);
+
+    return 'Only $formattedStock item(s) available for $name.';
   }
 }

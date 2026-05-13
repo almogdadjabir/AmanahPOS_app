@@ -7,10 +7,10 @@ class UpdateProductRequestDto {
   final String? unit;
   final String? costPrice;
   final String? description;
-  final String? sku;
   final String? barcode;
   final bool? trackInventory;
   final String? minStockLevel;
+  final String? expiryAlertDays;
   final PickedAppImage? imageUpload;
 
   const UpdateProductRequestDto({
@@ -20,10 +20,10 @@ class UpdateProductRequestDto {
     this.unit,
     this.costPrice,
     this.description,
-    this.sku,
     this.barcode,
     this.trackInventory,
     this.minStockLevel,
+    this.expiryAlertDays,
     this.imageUpload,
   });
 
@@ -35,10 +35,10 @@ class UpdateProductRequestDto {
       if (unit != null) 'unit': unit,
       if (costPrice != null) 'cost_price': costPrice,
       if (description != null) 'description': description,
-      if (sku != null) 'sku': sku,
       if (barcode != null) 'barcode': barcode,
       if (trackInventory != null) 'track_inventory': trackInventory,
       if (minStockLevel != null) 'min_stock_level': minStockLevel,
+      if (expiryAlertDays != null) 'expiry_alert_days': expiryAlertDays,
     };
   }
 }

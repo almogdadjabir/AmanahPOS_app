@@ -83,8 +83,9 @@ class ProductSummaryCardView extends StatelessWidget {
           else
             _statusTile(context),
 
-          // ── Stock chip (shops only) ────────────────────────────────────
+          // ── Row 3: Min Stock + Expiry Alert (shops only, when set) ────────
           if (showStock) ...[
+            _buildAlertRow(context),
             const SizedBox(height: AppDims.s3),
             Align(
               alignment: Alignment.centerLeft,
@@ -94,6 +95,64 @@ class ProductSummaryCardView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Row 3 — shown only when at least one alert threshold is configured.
+  Widget _buildAlertRow(BuildContext context) {
+    final minStock   = product.minStockLevel;
+    final expiryDays = product.expiryAlertDays;
+
+    final hasMin    = minStock != null;
+    final hasExpiry = expiryDays != null;
+
+    if (!hasMin && !hasExpiry) return const SizedBox.shrink();
+
+    const amber  = Color(0xFFF59E0B);
+    const orange = Color(0xFFEA580C);
+
+    final minTile = hasMin
+        ? _InfoTile(
+            icon:  Icons.warning_amber_rounded,
+            label: 'Min Stock',
+            value: _formatQty(minStock),
+            color: amber,
+          )
+        : null;
+
+    final expiryTile = hasExpiry
+        ? _InfoTile(
+            icon:  Icons.event_busy_outlined,
+            label: 'Expiry Alert',
+            value: '$expiryDays day${expiryDays == 1 ? '' : 's'}',
+            color: orange,
+          )
+        : null;
+
+    // Only one tile: make it full-width.
+    if (minTile != null && expiryTile == null) {
+      return Column(children: [
+        const SizedBox(height: AppDims.s2),
+        minTile,
+      ]);
+    }
+    if (expiryTile != null && minTile == null) {
+      return Column(children: [
+        const SizedBox(height: AppDims.s2),
+        expiryTile,
+      ]);
+    }
+
+    // Both set: two-column row.
+    return Column(children: [
+      const SizedBox(height: AppDims.s2),
+      Row(
+        children: [
+          Expanded(child: minTile!),
+          const SizedBox(width: AppDims.s2),
+          Expanded(child: expiryTile!),
+        ],
+      ),
+    ]);
   }
 
   Widget _statusTile(BuildContext context) {

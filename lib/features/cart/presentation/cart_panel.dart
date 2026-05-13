@@ -13,7 +13,7 @@ class CartPanel extends StatelessWidget {
   void _openCart(BuildContext context) {
     final posBloc = context.read<PosBloc>();
 
-    final bottomReserve = 64.0 + MediaQuery.of(context).viewPadding.bottom;
+    final bottomReserve = 64.0 + MediaQuery.viewPaddingOf(context).bottom;
 
     showModalBottomSheet(
       context: context,
@@ -23,7 +23,7 @@ class CartPanel extends StatelessWidget {
       builder: (sheetCtx) {
 
         final sheetHeight =
-            MediaQuery.of(sheetCtx).size.height - bottomReserve;
+            MediaQuery.sizeOf(context).height - bottomReserve;
 
         return SizedBox(
           height: sheetHeight,

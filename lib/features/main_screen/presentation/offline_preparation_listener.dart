@@ -1,6 +1,8 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
+import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/preparing_offline_screen.dart';
 import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
 import 'package:amana_pos/features/business/presentation/subscription_expired_screen.dart';
@@ -24,8 +26,16 @@ class _OfflinePreparationListenerState
     extends State<OfflinePreparationListener> {
   int _lastSessionId = 0;
 
+  // ── SubscriptionExpiredScreen race-condition flags ────────────────────────
   bool _pendingShow = false;
   bool _pendingClose = false;
+
+  // ── PreparingOfflineScreen race-condition flags ───────────────────────────
+  // PreparingOfflineScreen.show() is deferred to a postFrameCallback.
+  // Without these flags, a close that arrives before the frame runs is a
+  // no-op (isShowing is still false), and the screen gets stuck permanently.
+  bool _pendingShowPreparing = false;
+  bool _pendingClosePreparing = false;
 
   @override
   void initState() {
@@ -34,9 +44,6 @@ class _OfflinePreparationListenerState
       if (!mounted) return;
       _syncSession(context.read<AuthBloc>().state.sessionId);
       _handleSubscriptionState(context, context.read<AuthBloc>().state);
-      // Note: the notification unread count is NOT dispatched here.
-      // AuthBloc.state.isLoggedIn is always false at this moment because
-      // _onLoadProfile is async — the listener below catches the real transition.
     });
   }
 
@@ -46,6 +53,9 @@ class _OfflinePreparationListenerState
     context.read<ProductBloc>().add(const OnProductReset());
     context.read<CategoryBloc>().add(const OnCategoryReset());
     context.read<BusinessBloc>().add(const OnBusinessReset());
+    context.read<InventoryBloc>().add(const OnInventoryReset());
+    context.read<NotificationBloc>().add(const OnNotificationReset());
+    context.read<PosBloc>().add(const PosClearCart());
   }
 
   @override
@@ -58,14 +68,12 @@ class _OfflinePreparationListenerState
           listener: (context, state) => _syncSession(state.sessionId),
         ),
 
-
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (prev, curr) =>
           prev.businessStatus != curr.businessStatus ||
               prev.defaultBusiness != curr.defaultBusiness,
           listener: _handleBusinessStateChange,
         ),
-
 
         BlocListener<OfflineStatusBloc, OfflineStatusState>(
           listenWhen: (prev, curr) =>
@@ -75,29 +83,24 @@ class _OfflinePreparationListenerState
           listener: _handleOfflineStateChange,
         ),
 
-
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (prev, curr) =>
-
               prev.defaultBusiness?.activeSubscription?.daysRemaining !=
                   curr.defaultBusiness?.activeSubscription?.daysRemaining ||
-
               (prev.defaultBusiness == null) != (curr.defaultBusiness == null),
           listener: _handleSubscriptionState,
         ),
-
 
         // ── 5. Back online → retry business load + refresh badge ─────────
         BlocListener<OfflineStatusBloc, OfflineStatusState>(
           listenWhen: (prev, curr) =>
               prev.connectionStatus != curr.connectionStatus &&
               curr.connectionStatus == OfflineConnectionStatus.online,
-          listener: (context, _) {
+          listener: (context, x) {
             final authState = context.read<AuthBloc>().state;
             if (authState.defaultBusiness == null && authState.isLoggedIn) {
               context.read<AuthBloc>().add(OnLoadBusinessEvent());
             }
-            // Refresh badge when the device reconnects.
             if (authState.isLoggedIn) {
               context.read<NotificationBloc>().add(const OnLoadUnreadCount());
             }
@@ -105,13 +108,8 @@ class _OfflinePreparationListenerState
         ),
 
         // ── 6. User authenticated → load unread count ─────────────────────
-        // AuthBloc.state.isLoggedIn is false when OfflinePreparationListener
-        // first mounts (profile loads async). We watch the false→true
-        // transition to dispatch OnLoadUnreadCount at the right moment.
-        // This is the ONLY reliable trigger for the initial badge on cold start.
         BlocListener<AuthBloc, AuthState>(
-          listenWhen: (prev, curr) =>
-              !prev.isLoggedIn && curr.isLoggedIn,
+          listenWhen: (prev, curr) => !prev.isLoggedIn && curr.isLoggedIn,
           listener: (context, _) {
             context.read<NotificationBloc>().add(const OnLoadUnreadCount());
           },
@@ -122,6 +120,7 @@ class _OfflinePreparationListenerState
     );
   }
 
+  // ── Business state ─────────────────────────────────────────────────────────
 
   void _handleBusinessStateChange(BuildContext context, AuthState authState) {
     final hasBusiness = authState.defaultBusiness != null;
@@ -148,12 +147,15 @@ class _OfflinePreparationListenerState
     }
   }
 
+  // ── Offline / bootstrap state ─────────────────────────────────────────────
+
   void _handleOfflineStateChange(
       BuildContext context,
       OfflineStatusState offlineState,
       ) {
     final authState = context.read<AuthBloc>().state;
 
+    // Business not loaded yet — dismiss any overlay so the app isn't blocked.
     if (authState.defaultBusiness == null) {
       _closePreparingScreen(context);
       return;
@@ -164,19 +166,39 @@ class _OfflinePreparationListenerState
             offlineState.hasCache ||
             offlineState.canUseAppOffline;
 
-    if (!bootstrapReady &&
-        offlineState.bootstrapStatus == OfflineBootstrapStatus.loading) {
-      if (PreparingOfflineScreen.isShowing) return;
+    if (bootstrapReady) {
+      // Has local data — always safe to proceed, dismiss overlay.
+      _closePreparingScreen(context);
+      return;
+    }
 
+    // No cache. Only block the UI while a bootstrap is actively in progress.
+    if (offlineState.bootstrapStatus == OfflineBootstrapStatus.loading) {
+      // Guard against double-show, including a show that's already pending.
+      if (PreparingOfflineScreen.isShowing || _pendingShowPreparing) return;
+
+      _pendingShowPreparing = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pendingShowPreparing = false;
         if (!context.mounted) return;
+
+        // If a close arrived before this frame, honour it and skip the show.
+        if (_pendingClosePreparing) {
+          _pendingClosePreparing = false;
+          return;
+        }
+
         PreparingOfflineScreen.show(context);
       });
       return;
     }
 
-    if (bootstrapReady) _closePreparingScreen(context);
+    // Not ready AND not loading (failure / initial) — dismiss so the user
+    // is never permanently blocked. The error is visible in the main UI.
+    _closePreparingScreen(context);
   }
+
+  // ── Subscription state ────────────────────────────────────────────────────
 
   void _handleSubscriptionState(BuildContext context, AuthState authState) {
     final sub = authState.defaultBusiness?.activeSubscription;
@@ -214,9 +236,16 @@ class _OfflinePreparationListenerState
     }
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   void _closePreparingScreen(BuildContext context) {
+    // Cancel any pending show so it doesn't re-appear after this close.
+    _pendingClosePreparing = true;
+
     if (!PreparingOfflineScreen.isShowing) return;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pendingClosePreparing = false;
       if (!context.mounted) return;
       PreparingOfflineScreen.close(context);
     });

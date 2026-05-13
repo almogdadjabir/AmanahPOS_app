@@ -2,6 +2,7 @@ import 'package:amana_pos/features/inventory/data/models/requests/add_stock_requ
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/add_stock_response_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/expiry_alert_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -15,4 +16,10 @@ abstract class InventoryRepository {
   Future<Either<String?, AddStockResponseDto>> addStock(AddStockRequestDto request);
   Future<Either<String?, AddStockResponseDto>> adjustStock(AdjustStockRequestDto request);
   Future<Either<String?, bool>> transferStock(TransferStockRequestDto request);
+
+  /// Shop only. Returns expiry alerts (expiring soon + expired).
+  Future<Either<String?, ExpiryAlertResponseDto>> getExpiryAlerts({
+    int page = 1,
+    int pageSize = 50,
+  });
 }

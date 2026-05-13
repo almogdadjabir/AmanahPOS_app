@@ -25,6 +25,11 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     on<OnAddStock>(_addStock);
     on<OnAdjustStock>(_adjustStock);
     on<OnTransferStock>(_transferStock);
+    on<OnInventoryReset>(_onReset);
+  }
+
+  void _onReset(OnInventoryReset event, Emitter<InventoryState> emit) {
+    emit(InventoryState.initial());
   }
 
   Future<void> _init(
@@ -226,6 +231,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         quantity: event.quantity,
         movementType: event.movementType,
         reference: event.reference,
+        expiryDate: event.expiryDate,
       );
 
       final response = await useCase.addStock(payload);

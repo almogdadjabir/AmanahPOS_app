@@ -61,6 +61,7 @@ class NavShell extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => BlocProvider.value(
         value: navBloc,
         child: MoreSheet(

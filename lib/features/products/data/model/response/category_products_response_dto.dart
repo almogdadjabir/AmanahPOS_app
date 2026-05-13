@@ -50,6 +50,9 @@ class ProductData {
   final bool? trackInventory;
   final double? minStockLevel;
   final double? stockLevel;
+  /// Days before a batch expires at which the system should alert.
+  /// Backend field: expiry_alert_days (nullable int). Shop only.
+  final int?    expiryAlertDays;
   final String? createdAt;
   final String? thumbnailUrl;
 
@@ -58,7 +61,7 @@ class ProductData {
     this.description, this.sku, this.barcode, this.price,
     this.costPrice, this.image, this.unit, this.isActive,
     this.trackInventory, this.minStockLevel, this.stockLevel,
-    this.createdAt, this.thumbnailUrl,
+    this.expiryAlertDays, this.createdAt, this.thumbnailUrl,
   });
 
   factory ProductData.fromJson(Map<String, dynamic> json) {
@@ -78,6 +81,7 @@ class ProductData {
       trackInventory: json['track_inventory'],
       minStockLevel: (json['min_stock_level'] as num?)?.toDouble(),
       stockLevel: (json['stock_level'] as num?)?.toDouble(),
+      expiryAlertDays: (json['expiry_alert_days'] as num?)?.toInt(),
       createdAt: json['created_at'],
       thumbnailUrl: json['thumbnail_url']?.toString(),
     );
@@ -104,6 +108,7 @@ class ProductData {
       trackInventory: trackInventory,
       minStockLevel: minStockLevel,
       stockLevel: stockLevel ?? this.stockLevel,
+      expiryAlertDays: expiryAlertDays,
       createdAt: createdAt,
       image: image ?? this.image,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,

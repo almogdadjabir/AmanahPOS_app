@@ -161,22 +161,124 @@ class OfflineSalesQueue {
     );
   }
 
+  /// All non-synced rows — used for display (includes failed).
   Future<int> pendingCount() async {
     final db = await _db.database;
     final result = await db.rawQuery(
-      '''
-      SELECT COUNT(*) as count 
-      FROM pending_sales 
-      WHERE status IN (?, ?, ?)
-      ''',
+      'SELECT COUNT(*) as count FROM pending_sales WHERE status IN (?, ?, ?)',
       [
         OfflineSaleStatus.pending.name,
         OfflineSaleStatus.syncing.name,
         OfflineSaleStatus.failed.name,
       ],
     );
-
     return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  /// Only rows that BLOCK logout — failed sales do not block logout.
+  Future<int> blockingPendingCount() async {
+    final db = await _db.database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM pending_sales WHERE status IN (?, ?)',
+      [
+        OfflineSaleStatus.pending.name,
+        OfflineSaleStatus.syncing.name,
+      ],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<void> deleteSale(String clientSaleId) async {
+    final db = await _db.database;
+    await db.transaction((txn) async {
+      await txn.delete(
+        'pending_sale_items',
+        where: 'client_sale_id = ?',
+        whereArgs: [clientSaleId],
+      );
+      await txn.delete(
+        'pending_sales',
+        where: 'client_sale_id = ?',
+        whereArgs: [clientSaleId],
+      );
+    });
+  }
+
+  Future<void> clearAll() async {
+    final db = await _db.database;
+    await db.transaction((txn) async {
+      await txn.delete('pending_sale_items');
+      await txn.delete('pending_sales');
+    });
+  }
+
+  Future<List<OfflineSaleDto>> getAllNonSyncedSales() async {
+    final db = await _db.database;
+
+    final saleRows = await db.query(
+      'pending_sales',
+      where: 'status IN (?, ?, ?)',
+      whereArgs: [
+        OfflineSaleStatus.pending.name,
+        OfflineSaleStatus.syncing.name,
+        OfflineSaleStatus.failed.name,
+      ],
+      orderBy: 'created_at ASC',
+    );
+
+    final sales = <OfflineSaleDto>[];
+
+    for (final row in saleRows) {
+      final clientSaleId = row['client_sale_id'] as String;
+
+      final itemRows = await db.query(
+        'pending_sale_items',
+        where: 'client_sale_id = ?',
+        whereArgs: [clientSaleId],
+      );
+
+      sales.add(
+        OfflineSaleDto(
+          clientSaleId: clientSaleId,
+          shopId: row['shop_id'] as String,
+          customerId: row['customer_id'] as String?,
+          paymentMethod: row['payment_method'] as String,
+          discountAmount: row['discount_amount']?.toString() ?? '0',
+          taxAmount: row['tax_amount']?.toString() ?? '0',
+          subtotal: row['subtotal'] as String,
+          total: row['total'] as String,
+          createdAt: DateTime.parse(row['created_at'] as String),
+          status: row['status'] as String?,
+          errorMessage: row['error_message'] as String?,
+          items: itemRows.map((itemRow) {
+            final snapshot = jsonDecode(itemRow['product_snapshot_json'] as String);
+            return OfflineSaleItemDto(
+              productId: itemRow['product_id'] as String,
+              productName: itemRow['product_name']?.toString() ?? '',
+              quantity: (itemRow['quantity'] as num).toDouble(),
+              unitPrice: itemRow['unit_price'] as String,
+              lineTotal: itemRow['line_total'] as String,
+              productSnapshot: ProductData.fromJson(snapshot),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    return sales;
+  }
+
+  Future<void> resetStuckSyncingSales() async {
+    final db = await _db.database;
+    await db.update(
+      'pending_sales',
+      {
+        'status': OfflineSaleStatus.pending.name,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
+      where: 'status = ?',
+      whereArgs: [OfflineSaleStatus.syncing.name],
+    );
   }
 
   Future<void> _updateStatus(String clientSaleId, OfflineSaleStatus status) async {

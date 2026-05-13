@@ -1,4 +1,8 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_details/product_actions_view.dart';
@@ -12,21 +16,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final ProductData product;
 
   const ProductDetailScreen({super.key, required this.product});
 
   @override
-  Widget build(BuildContext context) {
-    // Resolved once — never changes within this screen's lifetime.
-    final showStock = !context.read<AuthBloc>().state.permissions.isRestaurant;
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
 
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late final bool _showStock;
+
+  @override
+  void initState() {
+    super.initState();
+    _showStock =
+        !context.read<AuthBloc>().state.permissions.isRestaurant;
+
+    // Trigger inventory load on first visit — idempotent: the bloc guards
+    // against concurrent loads internally.
+    final inv = context.read<InventoryBloc>().state;
+    if (inv.status == InventoryStatus.initial && inv.stockList.isEmpty) {
+      context.read<InventoryBloc>().add(const OnInventoryInitial());
+    }
+
+    // Trigger expiry-alerts load (global provider, same guard).
+    final expiry = context.read<ExpiryBloc>().state;
+    if (expiry.status == ExpiryStatus.initial && expiry.alerts.isEmpty) {
+      context.read<ExpiryBloc>().add(const OnExpiryAlertsInitial());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return BlocSelector<ProductBloc, ProductState, ProductData?>(
       selector: (state) =>
-      state.products.where((p) => p.id == product.id).firstOrNull,
+          state.products.where((p) => p.id == widget.product.id).firstOrNull,
       builder: (context, latestProduct) {
-        final current = latestProduct ?? product;
+        final current = latestProduct ?? widget.product;
 
         return Scaffold(
           body: CustomScrollView(
@@ -41,8 +69,8 @@ class ProductDetailScreen extends StatelessWidget {
                     AppDims.s4, AppDims.s4, AppDims.s4, 0),
                 sliver: SliverToBoxAdapter(
                   child: ProductSummaryCardView(
-                    product:   current,
-                    showStock: showStock,
+                    product: current,
+                    showStock: _showStock,
                   )
                       .animate()
                       .fadeIn(duration: 320.ms)
@@ -56,8 +84,8 @@ class ProductDetailScreen extends StatelessWidget {
                     AppDims.s4, AppDims.s4, AppDims.s4, 0),
                 sliver: SliverToBoxAdapter(
                   child: ProductActionsView(
-                    product:   current,
-                    showStock: showStock,
+                    product: current,
+                    showStock: _showStock,
                   )
                       .animate()
                       .fadeIn(delay: 80.ms, duration: 320.ms)
@@ -66,7 +94,40 @@ class ProductDetailScreen extends StatelessWidget {
               ),
 
               // ── Stock by shop (shops only) ───────────────────────────────
-              if (showStock) ...[
+              if (_showStock) ...[
+                // Expiry summary banner — only when this product has expired
+                // or expiring-soon batches in the loaded stock list.
+                BlocBuilder<InventoryBloc, InventoryState>(
+                  buildWhen: (prev, curr) =>
+                      prev.stockList != curr.stockList ||
+                      prev.status != curr.status,
+                  builder: (context, invState) {
+                    final productStock =
+                        _filterStock(invState.stockList, current);
+                    final expiredCount = productStock
+                        .where((s) => s.isExpiredSafe)
+                        .length;
+                    final expiringSoonCount = productStock
+                        .where((s) => s.isExpiringSoon)
+                        .length;
+
+                    if (expiredCount == 0 && expiringSoonCount == 0) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                          AppDims.s4, AppDims.s5, AppDims.s4, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: _ExpiryBanner(
+                          expiredCount: expiredCount,
+                          expiringSoonCount: expiringSoonCount,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                       AppDims.s4, AppDims.s5, AppDims.s4, AppDims.s2),
@@ -74,7 +135,7 @@ class ProductDetailScreen extends StatelessWidget {
                     child: Text(
                       'Stock by Shop',
                       style: AppTextStyles.bs600(context).copyWith(
-                        color:      context.appColors.textPrimary,
+                        color: context.appColors.textPrimary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -88,7 +149,6 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                 ),
               ] else
-              // Bottom breathing room for restaurants
                 const SliverPadding(
                   padding: EdgeInsets.only(bottom: AppDims.s6),
                   sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
@@ -97,6 +157,88 @@ class ProductDetailScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  /// Filter a flat stock list down to rows belonging to [product].
+  static List<StockData> _filterStock(
+      List<StockData> list, ProductData product) {
+    final id = product.id;
+    if (id != null) {
+      return list.where((s) => s.product == id).toList();
+    }
+    final name = product.name?.trim().toLowerCase();
+    if (name == null || name.isEmpty) return const [];
+    return list
+        .where((s) => s.productName?.trim().toLowerCase() == name)
+        .toList();
+  }
+}
+
+// ── Expiry summary banner ─────────────────────────────────────────────────────
+// Styled like _InfoTile from ProductSummaryCardView: same rMd radius,
+// same color.withValues(alpha:0.08) background, icon-on-left layout.
+
+class _ExpiryBanner extends StatelessWidget {
+  final int expiredCount;
+  final int expiringSoonCount;
+
+  const _ExpiryBanner({
+    required this.expiredCount,
+    required this.expiringSoonCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Colour priority: red if anything is expired, else orange.
+    final hasExpired = expiredCount > 0;
+    const expiredColor = Color(0xFFDC2626);
+    const expiringSoonColor = Color(0xFFEA580C);
+    final color = hasExpired ? expiredColor : expiringSoonColor;
+
+    final parts = <String>[];
+    if (expiredCount > 0) {
+      parts.add('$expiredCount batch${expiredCount == 1 ? '' : 'es'} expired');
+    }
+    if (expiringSoonCount > 0) {
+      parts.add(
+          '$expiringSoonCount expiring soon');
+    }
+
+    return GestureDetector(
+      onTap: () =>
+          Navigator.of(context).pushNamed(RouteStrings.expiryAlertsScreen),
+      child: Container(
+        padding: const EdgeInsets.all(AppDims.s3),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              hasExpired
+                  ? Icons.error_outline_rounded
+                  : Icons.warning_amber_rounded,
+              color: color,
+              size: 20,
+            ),
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Text(
+                parts.join(' · '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bs200(context).copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: color, size: 18),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -15,6 +15,7 @@ import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/sync/sync_manager.dart';
+import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
 import 'package:amana_pos/features/business/data/repository_impl/business_repo_impl.dart';
 import 'package:amana_pos/features/business/domain/repositories/business_repository.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
@@ -123,6 +124,10 @@ class DependenciesProvider {
         salesQueue: getIt<OfflineSalesQueue>(),
         posRemoteDataSource: getIt<PosRemoteDataSource>(),
       ),
+    );
+
+    getIt.registerLazySingleton<PendingSyncBloc>(
+      () => PendingSyncBloc(syncManager: getIt<SyncManager>()),
     );
 
     // Offline-first manager

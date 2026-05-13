@@ -1,9 +1,11 @@
 part of 'notification_bloc.dart';
 
 enum NotificationStatus { initial, loading, loadingMore, success, failure }
+enum NotificationUnreadCountStatus { initial, loading, loadingMore, success, failure }
 
 class NotificationState extends Equatable {
   final NotificationStatus status;
+  final NotificationUnreadCountStatus unreadCountStatus;
   final List<NotificationItem> notifications;
   final int unreadCount;
   final int currentPage;
@@ -12,6 +14,7 @@ class NotificationState extends Equatable {
 
   const NotificationState({
     this.status = NotificationStatus.initial,
+    this.unreadCountStatus = NotificationUnreadCountStatus.initial,
     this.notifications = const [],
     this.unreadCount = 0,
     this.currentPage = 0,
@@ -24,11 +27,13 @@ class NotificationState extends Equatable {
   NotificationState copyWith({
     NotificationStatus? status,
     List<NotificationItem>? notifications,
+    NotificationUnreadCountStatus? unreadCountStatus,
     int? unreadCount,
     int? currentPage,
     bool? hasMore,
     String? error,
     bool clearError = false,
+    bool clearNotifications = false,
   }) {
     return NotificationState(
       status: status ?? this.status,
@@ -37,6 +42,7 @@ class NotificationState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       error: clearError ? null : error ?? this.error,
+      unreadCountStatus: unreadCountStatus ?? this.unreadCountStatus,
     );
   }
 
@@ -48,5 +54,6 @@ class NotificationState extends Equatable {
         currentPage,
         hasMore,
         error,
+        unreadCountStatus,
       ];
 }

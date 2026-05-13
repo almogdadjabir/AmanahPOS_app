@@ -64,7 +64,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
               const SizedBox(height: AppDims.s1),
 
               Text(
-                'Set when AmanaPOS should warn you about low stock.',
+                'Set when AmanaPOS should warn you about low stock or expiring batches.',
                 style: AppTextStyles.bs200(context).copyWith(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -80,32 +80,38 @@ class ProductInventoryAlertsSection extends StatelessWidget {
                 controller: minStockCtrl,
                 focusNode: minStockFocus,
                 nextFocus: expiryAlertFocus,
-                hint: 'Example: 5',
+                hint: 'e.g. 5',
                 prefixIcon: Icons.warning_amber_rounded,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
-
                   final value = double.tryParse(v.trim());
                   if (value == null) return 'Enter a valid number';
-                  if (value < 0) return 'Minimum stock cannot be negative';
-
+                  if (value < 0) return 'Cannot be negative';
                   return null;
                 },
               ),
 
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Expiry Alert'),
+              FieldLabel(label: 'Expiry Alert (days)'),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: expiryAlertCtrl,
                 focusNode: expiryAlertFocus,
-                hint: 'Coming soon',
+                hint: 'e.g. 7',
                 prefixIcon: Icons.event_busy_outlined,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  final value = int.tryParse(v.trim());
+                  if (value == null) return 'Enter a whole number';
+                  if (value <= 0) return 'Must be greater than 0';
+                  return null;
+                },
               ),
 
               const SizedBox(height: AppDims.s2),
@@ -118,7 +124,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDims.rSm),
                 ),
                 child: Text(
-                  'Expiry alerts will be enabled later when batch/expiry tracking is supported.',
+                  'You will be notified when a product batch is within the set number of days from its expiry date.',
                   style: AppTextStyles.bs100(context).copyWith(
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w700,

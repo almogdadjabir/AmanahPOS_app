@@ -50,12 +50,19 @@ class OnTransferStock extends InventoryEvent {
   @override List<Object?> get props => [productId, fromShopId, toShopId, quantity];
 }
 
+class OnInventoryReset extends InventoryEvent {
+  const OnInventoryReset();
+  @override List<Object?> get props => [];
+}
+
 class OnAddStock extends InventoryEvent {
   final String productId;
   final String shopId;
   final String quantity;
   final MovementType movementType;
   final String? reference;
+  /// ISO date-only "YYYY-MM-DD". Null if not tracked. Shop only.
+  final String? expiryDate;
 
   const OnAddStock({
     required this.productId,
@@ -63,9 +70,10 @@ class OnAddStock extends InventoryEvent {
     required this.quantity,
     this.movementType = MovementType.in_,
     this.reference,
+    this.expiryDate,
   });
 
   @override
   List<Object?> get props =>
-      [productId, shopId, quantity, movementType, reference];
+      [productId, shopId, quantity, movementType, reference, expiryDate];
 }

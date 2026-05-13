@@ -305,13 +305,12 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
     final colors = context.appColors;
     final config = _SnackBarStyleConfig.fromType(colors, widget.type);
 
-    final mediaQuery = MediaQuery.of(context);
     final double topPosition = widget.customTop ??
         (widget.isTop
-            ? mediaQuery.padding.top + 16
+            ? MediaQuery.paddingOf(context).top + 16
             : 0);
 
-    final double bottomPosition = mediaQuery.padding.bottom + 24;
+    final double bottomPosition = MediaQuery.paddingOf(context).bottom + 24;
 
     return Positioned(
       top: widget.isTop ? topPosition : null,
