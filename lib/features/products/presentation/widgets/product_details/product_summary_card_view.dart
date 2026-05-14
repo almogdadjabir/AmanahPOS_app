@@ -1,5 +1,4 @@
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
-import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -18,26 +17,26 @@ class ProductSummaryCardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final stock  = product.stockLevel ?? 0;
+    final stock = product.stockLevel ?? 0;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDims.s4),
       decoration: BoxDecoration(
-        color:        colors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        border:       Border.all(color: colors.border),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 22,
-            offset:     const Offset(0, 12),
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: Column(
         children: [
-          // ── Row 1: Price + Category ────────────────────────────────────
+
           Row(
             children: [
               Expanded(
@@ -64,7 +63,6 @@ class ProductSummaryCardView extends StatelessWidget {
 
           const SizedBox(height: AppDims.s2),
 
-          // ── Row 2: Stock + Status  OR  Status full-width ───────────────
           if (showStock)
             Row(
               children: [
@@ -83,31 +81,24 @@ class ProductSummaryCardView extends StatelessWidget {
           else
             _statusTile(context),
 
-          // ── Row 3: Min Stock + Expiry Alert (shops only, when set) ────────
           if (showStock) ...[
             _buildAlertRow(context),
-            const SizedBox(height: AppDims.s3),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: StockChip(level: stock),
-            ),
           ],
         ],
       ),
     );
   }
 
-  /// Row 3 — shown only when at least one alert threshold is configured.
   Widget _buildAlertRow(BuildContext context) {
-    final minStock   = product.minStockLevel;
+    final minStock = product.minStockLevel;
     final expiryDays = product.expiryAlertDays;
 
-    final hasMin    = minStock != null;
+    final hasMin = minStock != null;
     final hasExpiry = expiryDays != null;
 
     if (!hasMin && !hasExpiry) return const SizedBox.shrink();
 
-    const amber  = Color(0xFFF59E0B);
+    const amber = Color(0xFFF59E0B);
     const orange = Color(0xFFEA580C);
 
     final minTile = hasMin
@@ -128,7 +119,7 @@ class ProductSummaryCardView extends StatelessWidget {
           )
         : null;
 
-    // Only one tile: make it full-width.
+
     if (minTile != null && expiryTile == null) {
       return Column(children: [
         const SizedBox(height: AppDims.s2),

@@ -13,6 +13,8 @@ import 'package:amana_pos/features/category/domain/usecases/category_usecase.dar
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
+import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
+import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
@@ -126,6 +128,11 @@ getProviders(BuildContext context) => [
   BlocProvider(
     create: (context) => BarcodeScannerBloc(
       permissionService: getIt<BarcodePermissionService>(),
+    ),
+  ),
+  BlocProvider(
+    create: (context) => DashboardSummaryBloc(
+      getDashboardSummaryUseCase: getIt<GetDashboardSummaryUseCase>(),
     ),
   ),
 ];

@@ -1,6 +1,6 @@
+import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/utils/product_image_url.dart';
-import 'package:amana_pos/features/products/presentation/widgets/placeholder_image.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -35,12 +35,9 @@ class ProductDetailAppBarView extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            imageUrl == null
-                ? const PlaceholderImage()
-                : Image.network(
-              imageUrl,
+            OfflineCachedImage(
+              imageUrl: imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const PlaceholderImage(),
             ),
             Positioned.fill(
               child: DecoratedBox(
@@ -110,12 +107,6 @@ class ProductDetailAppBarView extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  void _showDeleteComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Delete product coming soon')),
     );
   }
 }

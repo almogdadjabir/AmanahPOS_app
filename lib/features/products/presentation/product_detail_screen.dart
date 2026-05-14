@@ -34,14 +34,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _showStock =
         !context.read<AuthBloc>().state.permissions.isRestaurant;
 
-    // Trigger inventory load on first visit — idempotent: the bloc guards
-    // against concurrent loads internally.
     final inv = context.read<InventoryBloc>().state;
     if (inv.status == InventoryStatus.initial && inv.stockList.isEmpty) {
       context.read<InventoryBloc>().add(const OnInventoryInitial());
     }
 
-    // Trigger expiry-alerts load (global provider, same guard).
     final expiry = context.read<ExpiryBloc>().state;
     if (expiry.status == ExpiryStatus.initial && expiry.alerts.isEmpty) {
       context.read<ExpiryBloc>().add(const OnExpiryAlertsInitial());
@@ -60,10 +57,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           body: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // ── App bar with image ───────────────────────────────────────
               ProductDetailAppBarView(product: current),
 
-              // ── Summary card ─────────────────────────────────────────────
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                     AppDims.s4, AppDims.s4, AppDims.s4, 0),
@@ -78,7 +73,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
 
-              // ── Action buttons ───────────────────────────────────────────
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                     AppDims.s4, AppDims.s4, AppDims.s4, 0),
@@ -93,10 +87,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
 
-              // ── Stock by shop (shops only) ───────────────────────────────
               if (_showStock) ...[
-                // Expiry summary banner — only when this product has expired
-                // or expiring-soon batches in the loaded stock list.
+
                 BlocBuilder<InventoryBloc, InventoryState>(
                   buildWhen: (prev, curr) =>
                       prev.stockList != curr.stockList ||

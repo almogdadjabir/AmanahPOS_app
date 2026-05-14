@@ -17,6 +17,8 @@ class CategoryProductsResponseDto {
   });
 
   factory CategoryProductsResponseDto.fromJson(Map<String, dynamic> json) {
+    final rawProducts = json['products'] ?? json['results'];
+
     return CategoryProductsResponseDto(
       id: json['id'],
       name: json['name'],
@@ -50,9 +52,7 @@ class ProductData {
   final bool? trackInventory;
   final double? minStockLevel;
   final double? stockLevel;
-  /// Days before a batch expires at which the system should alert.
-  /// Backend field: expiry_alert_days (nullable int). Shop only.
-  final int?    expiryAlertDays;
+  final int? expiryAlertDays;
   final String? createdAt;
   final String? thumbnailUrl;
 
@@ -92,6 +92,7 @@ class ProductData {
     double? stockLevel,
     String? image,
     String? thumbnailUrl,
+    int? expiryAlertDays,
   }) {
     return ProductData(
       id: id,
@@ -108,10 +109,12 @@ class ProductData {
       trackInventory: trackInventory,
       minStockLevel: minStockLevel,
       stockLevel: stockLevel ?? this.stockLevel,
-      expiryAlertDays: expiryAlertDays,
+      expiryAlertDays: expiryAlertDays ?? this.expiryAlertDays,
       createdAt: createdAt,
       image: image ?? this.image,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
     );
   }
+
+  String get productString => 'ProductData(id: $id, category: $category, categoryName: $categoryName, name: $name, description: $description, sku: $sku, barcode: $barcode, price: $price, costPrice: $costPrice, image: $image, unit: $unit, isActive: $isActive, trackInventory: $trackInventory, minStockLevel: $minStockLevel, stockLevel: $stockLevel, expiryAlertDays: $expiryAlertDays, createdAt: $createdAt, thumbnailUrl: $thumbnailUrl)';
 }

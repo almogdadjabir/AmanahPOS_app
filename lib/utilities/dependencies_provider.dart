@@ -15,6 +15,11 @@ import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/sync/sync_manager.dart';
+import 'package:amana_pos/features/dashboard/data/datasources/dashboard_local_data_source.dart';
+import 'package:amana_pos/features/dashboard/data/datasources/dashboard_remote_data_source.dart';
+import 'package:amana_pos/features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
 import 'package:amana_pos/features/business/data/repository_impl/business_repo_impl.dart';
 import 'package:amana_pos/features/business/domain/repositories/business_repository.dart';
@@ -201,6 +206,26 @@ class DependenciesProvider {
           () => NotificationUseCases(repository: getIt<NotificationRepository>()),
     );
 
+    getIt.registerLazySingleton<DashboardRemoteDataSource>(
+          () => DashboardRemoteDataSourceImpl(
+        dio: getIt<Dio>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<DashboardLocalDataSource>(
+          () => DashboardLocalDataSourceImpl(
+        offlineDb: getIt<OfflineDb>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<DashboardRepository>(
+          () => DashboardRepositoryImpl(
+        remoteDataSource: getIt<DashboardRemoteDataSource>(),
+        localDataSource: getIt<DashboardLocalDataSource>(),
+      ),
+    );
+
+
     // Use cases
     getIt.registerLazySingleton<RegistrationUseCase>(
           () => RegistrationUseCase(
@@ -254,6 +279,11 @@ class DependenciesProvider {
     getIt.registerLazySingleton<CustomerUseCase>(
           () => CustomerUseCase(
         repository: getIt<CustomerRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<GetDashboardSummaryUseCase>(
+          () => GetDashboardSummaryUseCase(
+        repository: getIt<DashboardRepository>(),
       ),
     );
 

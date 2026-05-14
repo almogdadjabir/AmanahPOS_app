@@ -2,11 +2,13 @@ import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
-import 'package:amana_pos/features/cart/presentation/cart_sheet.dart';
 import 'package:amana_pos/features/cart/presentation/products_empty.dart';
 import 'package:amana_pos/features/cart/presentation/products_loading_grid.dart';
+import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/today_cards.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_bar.dart';
+import 'package:amana_pos/features/pos/presentation/widgets/pos_sales_caption.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/pos_search_section.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/product_grid.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -46,7 +48,24 @@ class _PosScreenState extends State<PosScreen> {
       context.read<BusinessBloc>().add(OnBusinessInitial());
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _autoSelectShop());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoSelectShop();
+      _loadDashboardSummary();
+    });
+  }
+
+  void _loadDashboardSummary({bool forceRefresh = false}) {
+    if (!mounted) return;
+
+    final shopId = context.read<PosBloc>().state.selectedShopId;
+
+    context.read<DashboardSummaryBloc>().add(
+      OnDashboardSummaryStarted(
+        shopId: shopId,
+        topSellersLimit: 5,
+        forceRefresh: forceRefresh,
+      ),
+    );
   }
 
   @override
@@ -56,34 +75,52 @@ class _PosScreenState extends State<PosScreen> {
   }
 
 
-  void _autoSelectShop() {
-    if (!mounted) return;
+  String? _autoSelectShop() {
+    if (!mounted) return null;
 
     final posState = context.read<PosBloc>().state;
-    if (posState.selectedShopId != null) return;
+    if (posState.selectedShopId != null && posState.selectedShopId!.isNotEmpty) {
+      return posState.selectedShopId;
+    }
 
     final permissions = context.read<AuthBloc>().state.permissions;
 
     if (permissions.isCashier) {
       final assignedId = context.read<AuthBloc>().state.profile?.defaultShopId;
+
       if (assignedId != null && assignedId.isNotEmpty) {
-        context.read<PosBloc>().add(PosShopSelected(
-          shopId:   assignedId,
-          shopName: context.read<AuthBloc>().state.profile?.defaultShopName ??
-              'Your shop',
-        ));
+        context.read<PosBloc>().add(
+          PosShopSelected(
+            shopId: assignedId,
+            shopName:
+            context.read<AuthBloc>().state.profile?.defaultShopName ??
+                'Your shop',
+          ),
+        );
+
+        return assignedId;
       }
-      return;
+
+      return null;
     }
 
     final shops = _activeShops();
-    if (shops.isNotEmpty) {
-      final first = shops.first;
-      context.read<PosBloc>().add(PosShopSelected(
-        shopId: first.id!,
+
+    if (shops.isEmpty) return null;
+
+    final first = shops.first;
+    final shopId = first.id;
+
+    if (shopId == null || shopId.isEmpty) return null;
+
+    context.read<PosBloc>().add(
+      PosShopSelected(
+        shopId: shopId,
         shopName: first.name ?? 'Shop',
-      ));
-    }
+      ),
+    );
+
+    return shopId;
   }
 
   List<ShopData> _activeShops() {
@@ -215,7 +252,14 @@ class _PosScreenState extends State<PosScreen> {
           GlobalSnackBar.show(message: message, isInfo: true);
           context.read<PosBloc>().add(const PosAcknowledgeSubmit());
 
-          _autoSelectShop();
+          final shopId = _autoSelectShop() ?? context.read<PosBloc>().state.selectedShopId;
+
+          context.read<DashboardSummaryBloc>().add(
+            OnDashboardSummaryRefreshRequested(
+              shopId: shopId,
+              topSellersLimit: 10,
+            ),
+          );
         }
 
         if (state.submitStatus == PosSubmitStatus.failure) {
@@ -261,67 +305,113 @@ class _PosScreenState extends State<PosScreen> {
                       .add(const PosCategoryChanged(null));
                   await Future<void>.delayed(
                       const Duration(milliseconds: 450));
-                  _autoSelectShop();
-                },
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        if(context.read<AuthBloc>().state.permissions.isOwner)
-                        _ShopSwitcherBar(
-                          activeShops: _activeShops(),
-                        ),
 
-                        PosSearchSection(searchCtrl: _searchCtrl),
-                        const CategoryBar(),
-                        Expanded(
-                          child: BlocBuilder<ProductBloc, ProductState>(
-                            buildWhen: (prev, curr) =>
-                            prev.productStatus != curr.productStatus ||
-                                prev.products    != curr.products ||
-                                prev.categories  != curr.categories,
-                            builder: (context, productState) {
-                              if (productState.productStatus ==
-                                  ProductStatus.loading ||
-                                  productState.productStatus ==
-                                      ProductStatus.initial) {
-                                return const ProductsLoadingGrid();
-                              }
+                  final shopId = _autoSelectShop() ?? context.read<PosBloc>().state.selectedShopId;
 
-                              if (productState.productStatus ==
-                                  ProductStatus.failure) {
-                                return ProductErrorView(
-                                  message: productState.responseError,
-                                );
-                              }
-
-                              return BlocBuilder<PosBloc, PosState>(
-                                buildWhen: (prev, curr) =>
-                                prev.searchQuery        != curr.searchQuery ||
-                                    prev.selectedCategoryId !=
-                                        curr.selectedCategoryId,
-                                builder: (context, posState) {
-                                  final products = _filterProducts(
-                                      productState.products, posState);
-                                  if (products.isEmpty) {
-                                    return ProductsEmpty(
-                                        query: posState.searchQuery);
-                                  }
-                                  return ProductGrid(products: products);
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                        BlocBuilder<PosBloc, PosState>(
-                          buildWhen: (prev, curr) =>
-                          prev.isEmpty != curr.isEmpty,
-                          builder: (context, state) =>
-                              SizedBox(height: state.isEmpty ? 0 : 88),
-                        ),
-                      ],
+                  context.read<DashboardSummaryBloc>().add(
+                    OnDashboardSummaryRefreshRequested(
+                      shopId: shopId,
+                      topSellersLimit: 10,
                     ),
-                    CartSheet(onCheckout: _handleCheckout),
+                  );
+                },
+                child: Column(
+                  children: [
+                    BlocBuilder<DashboardSummaryBloc, DashboardSummaryState>(
+                      buildWhen: (prev, curr) =>
+                      prev.status != curr.status || prev.summary != curr.summary,
+                      builder: (context, state) {
+                        final authState = context.read<AuthBloc>().state;
+                        final summary = state.summary;
+                        final shift = summary?.shift;
+
+                        final isCashier = authState.permissions.isCashier;
+
+                        final cashierName = shift?.cashierName?.trim().isNotEmpty == true
+                            ? shift!.cashierName!
+                            : authState.profile?.fullName ?? 'Cashier';
+
+                        final shiftStart = DateTime.tryParse(shift?.shiftStartedAt ?? '') ??
+                            DateTime.now();
+
+                        final amount = isCashier
+                            ? shift?.grossSalesAmount ?? summary?.today.grossSalesAmount ?? 0
+                            : summary?.today.grossSalesAmount ?? 0;
+
+                        final salesCount = isCashier
+                            ? shift?.salesCount ?? summary?.today.salesCount ?? 0
+                            : summary?.today.salesCount ?? 0;
+
+                        final labelName = isCashier ? cashierName : 'Today sales';
+
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppDims.s4,
+                            AppDims.s3,
+                            AppDims.s4,
+                            AppDims.s1,
+                          ),
+                          child: CashierShiftCard(
+                            cashierName: labelName,
+                            shiftStart: shiftStart,
+                            amount: amount,
+                            salesCount: salesCount,
+                            sparkline: summary?.sparklineAmounts.isEmpty == false
+                                ? summary!.sparklineAmounts
+                                : const [0, 0],
+                            currencyLabel: summary?.currency ?? 'SDG',
+                          ),
+                        );
+                      },
+                    ),
+
+                    PosSearchSection(searchCtrl: _searchCtrl),
+                    const CategoryBar(),
+                    Expanded(
+                      child: BlocBuilder<ProductBloc, ProductState>(
+                        buildWhen: (prev, curr) =>
+                        prev.productStatus != curr.productStatus ||
+                            prev.products    != curr.products ||
+                            prev.categories  != curr.categories,
+                        builder: (context, productState) {
+                          if (productState.productStatus ==
+                              ProductStatus.loading ||
+                              productState.productStatus ==
+                                  ProductStatus.initial) {
+                            return const ProductsLoadingGrid();
+                          }
+
+                          if (productState.productStatus ==
+                              ProductStatus.failure) {
+                            return ProductErrorView(
+                              message: productState.responseError,
+                            );
+                          }
+
+                          return BlocBuilder<PosBloc, PosState>(
+                            buildWhen: (prev, curr) =>
+                            prev.searchQuery        != curr.searchQuery ||
+                                prev.selectedCategoryId !=
+                                    curr.selectedCategoryId,
+                            builder: (context, posState) {
+                              final products = _filterProducts(
+                                  productState.products, posState);
+                              if (products.isEmpty) {
+                                return ProductsEmpty(
+                                    query: posState.searchQuery);
+                              }
+                              return ProductGrid(products: products);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    BlocBuilder<PosBloc, PosState>(
+                      buildWhen: (prev, curr) =>
+                      prev.isEmpty != curr.isEmpty,
+                      builder: (context, state) =>
+                          SizedBox(height: state.isEmpty ? 0 : 88),
+                    ),
                   ],
                 ),
               );
@@ -384,10 +474,16 @@ class _ShopSwitcherBar extends StatelessWidget {
                     onTap: isSelected
                         ? null
                         : () {
-                      context.read<PosBloc>().add(PosShopSelected(
-                        shopId:   shop.id!,
-                        shopName: shop.name ?? 'Shop',
-                      ));
+                      context.read<PosBloc>().add(
+                        PosShopSelected(
+                          shopId: shop.id!,
+                          shopName: shop.name ?? 'Shop',
+                        ),
+                      );
+
+                      context.read<DashboardSummaryBloc>().add(
+                        OnDashboardSummaryShopChanged(shopId: shop.id!),
+                      );
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),

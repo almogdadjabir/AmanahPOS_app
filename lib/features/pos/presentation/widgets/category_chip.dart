@@ -3,93 +3,104 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
-class CategoryChip extends StatelessWidget {
+class CategoryChip extends StatefulWidget {
   final String label;
-  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
   const CategoryChip({
     super.key,
     required this.label,
-    required this.icon,
     required this.selected,
     required this.onTap,
   });
 
   @override
+  State<CategoryChip> createState() => _CategoryChipState();
+}
+
+class _CategoryChipState extends State<CategoryChip> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color backgroundColor =
-    selected ? colors.primary : colors.surface;
+    final backgroundColor = widget.selected
+        ? colors.primary.withValues(alpha: isDark ? 0.16 : 0.10)
+        : colors.surfaceSoft.withValues(alpha: isDark ? 0.82 : 0.96);
 
-    final Color borderColor =
-    selected ? colors.primary : colors.border;
+    final borderColor = widget.selected
+        ? colors.primary.withValues(alpha: 0.82)
+        : colors.border.withValues(alpha: isDark ? 0.78 : 0.95);
 
-    final Color contentColor =
-    selected ? Colors.white : colors.textSecondary;
+    final textColor = widget.selected ? colors.primary : colors.textPrimary;
 
     return RepaintBoundary(
-      child: Material(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(999),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => _setPressed(true),
+        onTapCancel: () => _setPressed(false),
+        onTapUp: (_) => _setPressed(false),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          scale: _pressed ? 0.96 : 1,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
+            duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
-            height: 38,
+            height: 44,
             constraints: const BoxConstraints(
-              minWidth: 48,
-              maxWidth: 180,
+              maxWidth: 170,
             ),
             padding: const EdgeInsets.symmetric(
-              horizontal: AppDims.s3,
+              horizontal: AppDims.s4,
             ),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: borderColor,
-                width: selected ? 1.4 : 1,
+                width: widget.selected ? 1.35 : 1.05,
               ),
-              boxShadow: selected
+              boxShadow: widget.selected
                   ? [
                 BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.18),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: colors.primary.withValues(
+                    alpha: isDark ? 0.13 : 0.07,
+                  ),
+                  blurRadius: 14,
+                  offset: const Offset(0, 7),
                 ),
               ]
                   : null,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 16,
-                  color: contentColor,
+            child: Center(
+              widthFactor: 1,
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                style: AppTextStyles.bs300(context).copyWith(
+                  color: textColor,
+                  fontWeight: widget.selected ? FontWeight.w900 : FontWeight.w800,
+                  letterSpacing: -0.15,
+                  height: 1,
                 ),
-                const SizedBox(width: AppDims.s1),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bs300(context).copyWith(
-                      color: contentColor,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
-                    ),
-                  ),
+                child: Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
+              ),
             ),
-          ),
+          )
         ),
       ),
     );

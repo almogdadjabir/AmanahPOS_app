@@ -376,6 +376,7 @@ class OfflineLocalCache {
       'track_inventory': data.trackInventory,
       'min_stock_level': data.minStockLevel,
       'stock_level': data.stockLevel,
+      'expiry_alert_days': data.expiryAlertDays,
       'created_at': data.createdAt,
       'thumbnail_url': data.thumbnailUrl,
     };
@@ -626,12 +627,11 @@ class OfflineLocalCache {
           whereArgs: [id],
           limit: 1,
         );
-
         final cachedStock = stockRows.isEmpty
             ? null
             : (stockRows.first['quantity'] as num?)?.toDouble();
 
-        final resolvedStockLevel = cachedStock ?? product.stockLevel ?? 0.0;
+        final resolvedStockLevel = product.stockLevel ?? cachedStock ?? 0.0;
 
         final normalizedProduct = product.copyWith(
           stockLevel: resolvedStockLevel,

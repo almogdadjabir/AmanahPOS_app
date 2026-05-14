@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
@@ -50,12 +51,14 @@ class _OfflinePreparationListenerState
   void _syncSession(int sessionId) {
     if (sessionId == _lastSessionId) return;
     _lastSessionId = sessionId;
+
     context.read<ProductBloc>().add(const OnProductReset());
     context.read<CategoryBloc>().add(const OnCategoryReset());
     context.read<BusinessBloc>().add(const OnBusinessReset());
     context.read<InventoryBloc>().add(const OnInventoryReset());
     context.read<NotificationBloc>().add(const OnNotificationReset());
     context.read<PosBloc>().add(const PosSessionReset());
+    context.read<DashboardSummaryBloc>().add(const OnDashboardSummaryReset());
   }
 
   @override

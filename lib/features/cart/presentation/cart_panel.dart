@@ -8,22 +8,27 @@ class CartPanel extends StatelessWidget {
   final PosState state;
   final VoidCallback onCheckout;
 
-  const CartPanel({super.key, required this.state, required this.onCheckout});
+  const CartPanel({
+    super.key,
+    required this.state,
+    required this.onCheckout,
+  });
+
+  static const double _bottomReserve = 112;
 
   void _openCart(BuildContext context) {
     final posBloc = context.read<PosBloc>();
-
-    final bottomReserve = 64.0 + MediaQuery.viewPaddingOf(context).bottom;
+    final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.50),
+      barrierColor: Colors.black.withValues(alpha: 0.56),
       builder: (sheetCtx) {
-
-        final sheetHeight =
-            MediaQuery.sizeOf(context).height - bottomReserve;
+        final sheetHeight = MediaQuery.sizeOf(context).height -
+            _bottomReserve -
+            safeBottom;
 
         return SizedBox(
           height: sheetHeight,

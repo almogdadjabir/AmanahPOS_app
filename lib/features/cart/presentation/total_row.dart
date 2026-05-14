@@ -7,7 +7,8 @@ class TotalRow extends StatelessWidget {
   final String value;
   final bool isTotal;
 
-  const TotalRow({super.key,
+  const TotalRow({
+    super.key,
     required this.label,
     required this.value,
     this.isTotal = false,
@@ -19,22 +20,32 @@ class TotalRow extends StatelessWidget {
 
     return Row(
       children: [
-        Text(
-          label,
-          style: AppTextStyles.bs300(context).copyWith(
-            color: isTotal ? colors.textPrimary : colors.textSecondary,
-            fontWeight: FontWeight.w800,
+        Flexible(
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: (isTotal
+                ? AppTextStyles.bs600(context)
+                : AppTextStyles.bs300(context))
+                .copyWith(
+              color: isTotal ? colors.primary : colors.textPrimary,
+              fontWeight: FontWeight.w900,
+              height: 1,
+              letterSpacing: isTotal ? -0.6 : -0.2,
+            ),
           ),
         ),
         const Spacer(),
         Text(
-          value,
-          style: (isTotal
-              ? AppTextStyles.lg100(context)
-              : AppTextStyles.bs400(context))
-              .copyWith(
-            color: colors.textPrimary,
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.end,
+          style: AppTextStyles.bs300(context).copyWith(
+            color: isTotal ? colors.textPrimary : colors.textSecondary,
             fontWeight: FontWeight.w900,
+            height: 1,
           ),
         ),
       ],

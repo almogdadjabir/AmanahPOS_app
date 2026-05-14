@@ -133,6 +133,17 @@ abstract final class AppTextStyles {
     );
   }
 
+  static TextStyle bs900(BuildContext context, {FontWeight? weight, Color? color}) {
+    return TextStyle(
+      fontFamily: fontFamily,
+      fontSize: ResponsiveSize.getResponsiveFontSize(context, 60),
+      fontWeight: weight ?? regular,
+      color: color,
+      letterSpacing: 0,
+      height: 66 / 60,
+    );
+  }
+
   // LARGE (42-72)
   static TextStyle lg100(BuildContext context, {FontWeight? weight, Color? color}) {
     return TextStyle(

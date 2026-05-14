@@ -23,9 +23,8 @@ class CategoryBar extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      height: 54,
-      alignment: Alignment.centerLeft,
+    return SizedBox(
+      height: 60,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -43,7 +42,6 @@ class CategoryBar extends StatelessWidget {
             return CategoryChip(
               key: const ValueKey('pos_category_all'),
               label: 'All',
-              icon: Icons.grid_view_rounded,
               selected: selectedCategoryId == null,
               onTap: () {
                 context.read<PosBloc>().add(
@@ -56,12 +54,13 @@ class CategoryBar extends StatelessWidget {
           final category = categories[index - 1];
           final categoryId = category.id;
 
+          final label = category.name?.trim().isNotEmpty == true
+              ? category.name!.trim()
+              : 'Category';
+
           return CategoryChip(
             key: ValueKey('pos_category_${categoryId ?? index}'),
-            label: category.name?.trim().isNotEmpty == true
-                ? category.name!.trim()
-                : 'Category',
-            icon: Icons.layers_rounded,
+            label: label,
             selected: selectedCategoryId == categoryId,
             onTap: () {
               context.read<PosBloc>().add(
