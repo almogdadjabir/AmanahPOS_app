@@ -26,16 +26,27 @@ class ProductsBody extends StatelessWidget {
       duration: const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
+      layoutBuilder: (currentChild, previousChildren) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            ...previousChildren,
+            if (currentChild != null) currentChild,
+          ],
+        );
+      },
       child: isGrid
           ? _GridBody(
-        key: const ValueKey('grid'),
+        key: const ValueKey('products_grid'),
         products: products,
         isLoadingMore: isLoadingMore,
+        hasMore: hasMore,
       )
           : _ListBody(
-        key: const ValueKey('list'),
+        key: const ValueKey('products_list'),
         products: products,
         isLoadingMore: isLoadingMore,
+        hasMore: hasMore,
       ),
     );
   }
@@ -44,11 +55,13 @@ class ProductsBody extends StatelessWidget {
 class _GridBody extends StatelessWidget {
   final List<ProductData> products;
   final bool isLoadingMore;
+  final bool hasMore;
 
   const _GridBody({
     super.key,
     required this.products,
     required this.isLoadingMore,
+    required this.hasMore,
   });
 
   @override
@@ -65,30 +78,41 @@ class _GridBody extends StatelessWidget {
           ),
           sliver: SliverGrid(
             delegate: SliverChildBuilderDelegate(
-                  (context, i) => ProductGridCard(product: products[i])
-                  .animate()
-                  .fadeIn(
-                delay: Duration(milliseconds: 20 + (i % 8) * 25),
-                duration: 240.ms,
-              )
-                  .slideY(
-                begin: 0.03,
-                end: 0,
-                curve: Curves.easeOutCubic,
-              ),
+                  (context, index) {
+                final product = products[index];
+
+                return ProductGridCard(product: product)
+                    .animate()
+                    .fadeIn(
+                  delay: Duration(milliseconds: 18 + (index % 6) * 16),
+                  duration: 210.ms,
+                )
+                    .slideY(
+                  begin: 0.025,
+                  end: 0,
+                  duration: 210.ms,
+                  curve: Curves.easeOutCubic,
+                );
+              },
               childCount: products.length,
             ),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: AppDims.s3,
               mainAxisSpacing: AppDims.s3,
-              childAspectRatio: 0.76,
+              childAspectRatio: 0.74,
             ),
           ),
         ),
-        if (isLoadingMore)
-          const SliverToBoxAdapter(child: LoadMoreIndicator()),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+
+        if (isLoadingMore && hasMore)
+          const SliverToBoxAdapter(
+            child: LoadMoreIndicator(),
+          ),
+
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 130),
+        ),
       ],
     );
   }
@@ -97,11 +121,13 @@ class _GridBody extends StatelessWidget {
 class _ListBody extends StatelessWidget {
   final List<ProductData> products;
   final bool isLoadingMore;
+  final bool hasMore;
 
   const _ListBody({
     super.key,
     required this.products,
     required this.isLoadingMore,
+    required this.hasMore,
   });
 
   @override
@@ -119,22 +145,33 @@ class _ListBody extends StatelessWidget {
           sliver: SliverList.separated(
             itemCount: products.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppDims.s3),
-            itemBuilder: (_, i) => ProductListCard(product: products[i])
-                .animate()
-                .fadeIn(
-              delay: Duration(milliseconds: 20 + (i % 8) * 25),
-              duration: 240.ms,
-            )
-                .slideY(
-              begin: 0.03,
-              end: 0,
-              curve: Curves.easeOutCubic,
-            ),
+            itemBuilder: (context, index) {
+              final product = products[index];
+
+              return ProductListCard(product: product)
+                  .animate()
+                  .fadeIn(
+                delay: Duration(milliseconds: 18 + (index % 6) * 16),
+                duration: 210.ms,
+              )
+                  .slideY(
+                begin: 0.025,
+                end: 0,
+                duration: 210.ms,
+                curve: Curves.easeOutCubic,
+              );
+            },
           ),
         ),
-        if (isLoadingMore)
-          const SliverToBoxAdapter(child: LoadMoreIndicator()),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+
+        if (isLoadingMore && hasMore)
+          const SliverToBoxAdapter(
+            child: LoadMoreIndicator(),
+          ),
+
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 130),
+        ),
       ],
     );
   }

@@ -1,9 +1,3 @@
-// lib/features/inventory/presentation/expiry_alerts_screen.dart
-//
-// Shop only — the route must only be reachable for shop business type.
-// The screen shows expired and expiring-soon stock items fetched from
-// GET /api/v1/inventory/expiry-alerts/
-
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/expiry_alert_card.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -12,6 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ExpiryAlertsScreen extends StatefulWidget {
   const ExpiryAlertsScreen({super.key});
@@ -37,7 +32,6 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
     final colors = context.appColors;
 
     return Scaffold(
-      backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: colors.surface,
         surfaceTintColor: Colors.transparent,
@@ -60,7 +54,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
       ),
       body: BlocBuilder<ExpiryBloc, ExpiryState>(
         builder: (context, state) {
-          // ── Loading ──────────────────────────────────────────────
+
           if (state.status == ExpiryStatus.loading ||
               state.status == ExpiryStatus.initial) {
             return _LoadingView();
@@ -128,7 +122,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                     label: 'Expiring Soon',
                     count: state.expiringSoon.length,
                     color: const Color(0xFFEA580C),
-                    icon: Icons.warning_amber_rounded,
+                    icon: SolarIconsOutline.shieldWarning,
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
@@ -193,7 +187,7 @@ class _SectionHeader extends StatelessWidget {
             const SizedBox(width: AppDims.s2),
             Text(
               label,
-              style: AppTextStyles.bs400(context).copyWith(
+              style: AppTextStyles.bs600(context).copyWith(
                 fontWeight: FontWeight.w900,
                 color: colors.textPrimary,
               ),
@@ -207,7 +201,7 @@ class _SectionHeader extends StatelessWidget {
               ),
               child: Text(
                 '$count',
-                style: AppTextStyles.sm200(context).copyWith(
+                style: AppTextStyles.bs200(context).copyWith(
                   color: color,
                   fontWeight: FontWeight.w900,
                 ),

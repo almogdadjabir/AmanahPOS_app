@@ -15,6 +15,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -174,42 +175,101 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 }
 
-// ── Expiry alerts entry banner ────────────────────────────────────────────────
-// Tapping navigates to the full expiry alerts screen.
-// Shown only for shop business type (enforced by the parent caller).
-
 class _ExpiryAlertsBanner extends StatelessWidget {
+  const _ExpiryAlertsBanner();
+
+  static const Color _alertColor = Color(0xFFEA580C);
+
   @override
   Widget build(BuildContext context) {
-    const alertColor = Color(0xFFEA580C);
+    final colors = context.appColors;
 
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(RouteStrings.expiryAlertsScreen),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDims.s4,
-          vertical: AppDims.s3,
-        ),
-        decoration: BoxDecoration(
-          color: alertColor.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(AppDims.rMd),
-          border: Border.all(color: alertColor.withValues(alpha: 0.22)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: alertColor, size: 20),
-            const SizedBox(width: AppDims.s3),
-            Expanded(
-              child: Text(
-                'View Expiry Alerts',
-                style: AppTextStyles.bs200(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: alertColor,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDims.rLg),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pushNamed(RouteStrings.expiryAlertsScreen);
+        },
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        child: Container(
+          padding: const EdgeInsets.all(AppDims.s4),
+          decoration: BoxDecoration(
+            color: _alertColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(
+              color: _alertColor.withValues(alpha: 0.22),
+              width: 1.1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: _alertColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppDims.rMd),
+                  border: Border.all(
+                    color: _alertColor.withValues(alpha: 0.20),
+                  ),
+                ),
+                child: const Icon(
+                  SolarIconsOutline.dangerTriangle,
+                  color: _alertColor,
+                  size: 24,
                 ),
               ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: alertColor, size: 20),
-          ],
+
+              const SizedBox(width: AppDims.s3),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Expiry Alerts',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs400(context).copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Review expired and soon-to-expire stock items.',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs200(context).copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: AppDims.s3),
+
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: colors.surface.withValues(alpha: 0.70),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: _alertColor.withValues(alpha: 0.16),
+                  ),
+                ),
+                child: const Icon(
+                  SolarIconsOutline.altArrowRight,
+                  color: _alertColor,
+                  size: 18,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

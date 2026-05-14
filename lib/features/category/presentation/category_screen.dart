@@ -8,6 +8,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -25,16 +26,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: context.appColors.background,
+      backgroundColor: colors.background,
       body: BlocBuilder<CategoryBloc, CategoryState>(
-        buildWhen: (prev, curr) =>
-        prev.categoryStatus != curr.categoryStatus ||
-            prev.categoryList != curr.categoryList,
+        buildWhen: (prev, curr) {
+          return prev.categoryStatus != curr.categoryStatus ||
+              prev.categoryList != curr.categoryList;
+        },
         builder: (context, state) {
           return switch (state.categoryStatus) {
             CategoryStatus.initial ||
-            CategoryStatus.loading => const ProductLoadingView(isGrid: false),
+            CategoryStatus.loading =>
+            const ProductLoadingView(isGrid: false),
 
             CategoryStatus.failure => CategoryErrorView(
               message: state.responseError,
@@ -54,9 +59,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         },
       ),
       floatingActionButton: BlocBuilder<CategoryBloc, CategoryState>(
-        buildWhen: (prev, curr) =>
-        prev.categoryList != curr.categoryList ||
-            prev.categoryStatus != curr.categoryStatus,
+        buildWhen: (prev, curr) {
+          return prev.categoryList != curr.categoryList ||
+              prev.categoryStatus != curr.categoryStatus;
+        },
         builder: (context, state) {
           final hasCategories = state.categoryList.isNotEmpty;
           final isLoading = state.categoryStatus == CategoryStatus.initial ||
@@ -68,12 +74,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
           return FloatingActionButton.extended(
             onPressed: () => showAddCategorySheet(context),
-            backgroundColor: context.appColors.primary,
-            icon: const Icon(Icons.add_rounded, color: Colors.white),
+            backgroundColor: colors.primary,
+            icon: const Icon(
+              SolarIconsOutline.addCircle,
+              color: Colors.white,
+            ),
             label: Text(
               'Add Category',
               style: AppTextStyles.bs300(context).copyWith(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
                 color: Colors.white,
               ),
             ),

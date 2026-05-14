@@ -9,7 +9,8 @@ class StockList extends StatelessWidget {
   final List<StockData> items;
   final bool isLoadingMore;
 
-  const StockList({super.key,
+  const StockList({
+    super.key,
     required this.items,
     required this.isLoadingMore,
   });
@@ -29,36 +30,45 @@ class StockList extends StatelessWidget {
           sliver: SliverList.separated(
             itemCount: items.length,
             separatorBuilder: (_, __) => const SizedBox(height: AppDims.s3),
-            itemBuilder: (_, i) {
-              return StockCard(item: items[i])
+            itemBuilder: (_, index) {
+              final item = items[index];
+
+              return StockCard(item: item)
                   .animate()
                   .fadeIn(
-                delay: Duration(milliseconds: 40 + (i % 8) * 25),
-                duration: 240.ms,
+                delay: Duration(milliseconds: 24 + (index % 6) * 18),
+                duration: 220.ms,
               )
                   .slideY(
-                begin: 0.04,
+                begin: 0.025,
                 end: 0,
+                duration: 220.ms,
                 curve: Curves.easeOutCubic,
               );
             },
           ),
         ),
+
         if (isLoadingMore)
-          SliverToBoxAdapter(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppDims.s4),
-            child: Center(
-              child: SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: context.appColors.primary,
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppDims.s5),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.6,
+                    color: context.appColors.primary,
+                  ),
                 ),
               ),
             ),
-          )),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ),
+
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 120),
+        ),
       ],
     );
   }

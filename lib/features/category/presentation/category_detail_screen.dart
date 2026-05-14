@@ -1,14 +1,13 @@
+import 'dart:async';
+
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_app_bar.dart';
-import 'package:amana_pos/features/category/presentation/widgets/category_summary_card.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/products_body.dart';
 import 'package:amana_pos/features/products/presentation/widgets/products_category_error_view.dart';
-import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CategoryDetailScreen extends StatefulWidget {
@@ -28,15 +27,16 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
   bool _isGrid = true;
   bool _isRequestingMore = false;
+  Timer? _loadMoreTimer;
 
   @override
   void initState() {
     super.initState();
 
-    final id = widget.category.id;
-    if (id != null) {
+    final categoryId = widget.category.id;
+    if (categoryId != null && categoryId.trim().isNotEmpty) {
       context.read<CategoryBloc>().add(
-        OnLoadCategoryProducts(categoryId: id),
+        OnLoadCategoryProducts(categoryId: categoryId),
       );
     }
 
@@ -44,33 +44,39 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   void _onScroll() {
-    final id = widget.category.id;
-    if (id == null) return;
+    final categoryId = widget.category.id;
+
+    if (categoryId == null || categoryId.trim().isEmpty) return;
     if (!_scrollCtrl.hasClients) return;
 
     final state = context.read<CategoryBloc>().state;
+
+    if (state.products.isEmpty) return;
     if (!state.hasMorePages) return;
+    if (state.productsStatus == CategoryProductsStatus.loading) return;
     if (state.productsStatus == CategoryProductsStatus.loadingMore) return;
     if (_isRequestingMore) return;
 
     final position = _scrollCtrl.position;
-    final shouldLoadMore = position.pixels >= position.maxScrollExtent - 240;
+    final shouldLoadMore = position.pixels >= position.maxScrollExtent - 260;
 
     if (!shouldLoadMore) return;
 
     _isRequestingMore = true;
 
     context.read<CategoryBloc>().add(
-      OnLoadMoreCategoryProducts(categoryId: id),
+      OnLoadMoreCategoryProducts(categoryId: categoryId),
     );
 
-    Future<void>.delayed(const Duration(milliseconds: 450), () {
+    _loadMoreTimer?.cancel();
+    _loadMoreTimer = Timer(const Duration(milliseconds: 500), () {
       _isRequestingMore = false;
     });
   }
 
   @override
   void dispose() {
+    _loadMoreTimer?.cancel();
     _scrollCtrl.removeListener(_onScroll);
     _scrollCtrl.dispose();
     super.dispose();
@@ -79,51 +85,44 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final category = context.select<CategoryBloc, CategoryData?>(
-          (bloc) => bloc.state.categoryList
-          .where((c) => c.id == widget.category.id)
-          .firstOrNull,
+          (bloc) {
+        final matches = bloc.state.categoryList.where(
+              (item) => item.id == widget.category.id,
+        );
+
+        return matches.isEmpty ? null : matches.first;
+      },
     ) ??
         widget.category;
 
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollCtrl,
-        headerSliverBuilder: (context, _) => [
-          CategoryAppBar(
-            category: category,
-            isGrid: _isGrid,
-            onToggleLayout: () => setState(() => _isGrid = !_isGrid),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s4,
-              AppDims.s4,
-              AppDims.s2,
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        headerSliverBuilder: (context, _) {
+          return [
+            CategoryAppBar(
+              category: category,
+              isGrid: _isGrid,
+              onToggleLayout: () {
+                setState(() => _isGrid = !_isGrid);
+              },
             ),
-            sliver: SliverToBoxAdapter(
-              child: CategorySummaryCard(category: category)
-                  .animate()
-                  .fadeIn(duration: 300.ms)
-                  .slideY(
-                begin: 0.06,
-                end: 0,
-                curve: Curves.easeOutCubic,
-              ),
-            ),
-          ),
-        ],
+          ];
+        },
         body: BlocBuilder<CategoryBloc, CategoryState>(
-          buildWhen: (prev, curr) =>
-          prev.productsStatus != curr.productsStatus ||
-              prev.products != curr.products ||
-              prev.hasMorePages != curr.hasMorePages,
+          buildWhen: (prev, curr) {
+            return prev.productsStatus != curr.productsStatus ||
+                prev.products != curr.products ||
+                prev.hasMorePages != curr.hasMorePages;
+          },
           builder: (context, state) {
             return switch (state.productsStatus) {
               CategoryProductsStatus.initial ||
-              CategoryProductsStatus.loading => ProductLoadingView(
-                isGrid: _isGrid,
-              ),
+              CategoryProductsStatus.loading =>
+                  ProductLoadingView(isGrid: _isGrid),
 
               CategoryProductsStatus.failure => ProductsCategoryErrorView(
                 message: state.productsError,

@@ -11,18 +11,17 @@ class InventoryFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InventoryBloc, InventoryState>(
-      buildWhen: (prev, curr) =>
-      prev.stockList != curr.stockList || prev.filter != curr.filter,
+      buildWhen: (prev, curr) {
+        return prev.stockList != curr.stockList || prev.filter != curr.filter;
+      },
       builder: (context, state) {
         final total = state.stockList.length;
         final low = state.stockList.where((s) => s.isLowStock ?? false).length;
-        final out =
-            state.stockList.where((s) => s.isOutOfStock ?? false).length;
+        final out = state.stockList.where((s) => s.isOutOfStock ?? false).length;
 
         return Row(
           children: [
-            summaryChip(
-              context: context,
+            _SummaryChip(
               label: 'All',
               count: total,
               color: context.appColors.primary,
@@ -36,8 +35,7 @@ class InventoryFilterBar extends StatelessWidget {
               },
             ),
             const SizedBox(width: AppDims.s2),
-            summaryChip(
-              context: context,
+            _SummaryChip(
               label: 'Low',
               count: low,
               color: const Color(0xFFEA580C),
@@ -51,8 +49,7 @@ class InventoryFilterBar extends StatelessWidget {
               },
             ),
             const SizedBox(width: AppDims.s2),
-            summaryChip(
-              context: context,
+            _SummaryChip(
               label: 'Out',
               count: out,
               color: const Color(0xFFDC2626),
@@ -70,56 +67,78 @@ class InventoryFilterBar extends StatelessWidget {
       },
     );
   }
+}
 
+class _SummaryChip extends StatelessWidget {
+  final String label;
+  final int count;
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  Widget summaryChip({
-    required BuildContext context,
-    required String label,
-    required int count,
-    required Color color,
-    required bool isSelected,
-    required VoidCallback onTap,
-}){
+  const _SummaryChip({
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.appColors;
 
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(
-            vertical: AppDims.s2,
-            horizontal: AppDims.s2,
-          ),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.10) : colors.surface,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: isSelected ? color : colors.border,
-              width: isSelected ? 1.4 : 1,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(999),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(
+              vertical: AppDims.s2,
+              horizontal: AppDims.s2,
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                count.toString(),
-                style: AppTextStyles.bs300(context).copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: isSelected ? color : colors.textPrimary,
-                ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? color.withValues(alpha: 0.11)
+                  : colors.surface,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: isSelected
+                    ? color.withValues(alpha: 0.90)
+                    : colors.border,
+                width: isSelected ? 1.4 : 1,
               ),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: AppTextStyles.bs200(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: isSelected ? color : colors.textHint,
-                ),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    count.toString(),
+                    style: AppTextStyles.bs500(context).copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: isSelected ? color : colors.textPrimary,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: AppTextStyles.bs300(context).copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: isSelected ? color : colors.textSecondary,
+                      height: 1,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -10,18 +10,22 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class CategoriesContent extends StatelessWidget {
   final List<CategoryData> categories;
 
-  const CategoriesContent({super.key,
+  const CategoriesContent({
+    super.key,
     required this.categories,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return RefreshIndicator(
-      color: context.appColors.primary,
+      color: colors.primary,
       onRefresh: () async {
         context.read<CategoryBloc>().add(const OnCategoryInitial());
       },
@@ -40,10 +44,11 @@ class CategoriesContent extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: CategoriesHeader(categories: categories)
                   .animate()
-                  .fadeIn(duration: 320.ms)
+                  .fadeIn(duration: 280.ms)
                   .slideY(
-                begin: 0.06,
+                begin: 0.04,
                 end: 0,
+                duration: 280.ms,
                 curve: Curves.easeOutCubic,
               ),
             ),
@@ -59,10 +64,11 @@ class CategoriesContent extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: CategoryStats(categories: categories)
                   .animate()
-                  .fadeIn(delay: 70.ms, duration: 320.ms)
+                  .fadeIn(delay: 60.ms, duration: 280.ms)
                   .slideY(
-                begin: 0.06,
+                begin: 0.04,
                 end: 0,
+                duration: 280.ms,
                 curve: Curves.easeOutCubic,
               ),
             ),
@@ -81,20 +87,27 @@ class CategoriesContent extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Categories',
-                      style: AppTextStyles.bs600(context).copyWith(
-                        color: context.appColors.textPrimary,
+                      style: AppTextStyles.bs700(context).copyWith(
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
+                        height: 1.05,
                       ),
                     ),
                   ),
                   TextButton.icon(
                     onPressed: () => showAddCategorySheet(context),
                     style: TextButton.styleFrom(
-                      foregroundColor: context.appColors.primary,
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 34),
+                      foregroundColor: colors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDims.s2,
+                      ),
+                      minimumSize: const Size(0, 38),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    icon: const Icon(Icons.add_rounded, size: 17),
+                    icon: const Icon(
+                      SolarIconsOutline.addCircle,
+                      size: 18,
+                    ),
                     label: Text(
                       'Add Category',
                       style: AppTextStyles.bs300(context).copyWith(
@@ -112,7 +125,7 @@ class CategoriesContent extends StatelessWidget {
           ),
 
           const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
+            child: SizedBox(height: 120),
           ),
         ],
       ),

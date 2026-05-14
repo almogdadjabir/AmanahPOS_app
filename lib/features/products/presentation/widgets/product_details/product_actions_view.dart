@@ -1,4 +1,3 @@
-
 import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/delete_product_sheet.dart';
@@ -7,10 +6,11 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ProductActionsView extends StatelessWidget {
   final ProductData product;
-  final bool        showStock;
+  final bool showStock;
 
   const ProductActionsView({
     super.key,
@@ -24,40 +24,45 @@ class ProductActionsView extends StatelessWidget {
 
     return Row(
       children: [
-        // Edit — always visible
         Expanded(
           child: _ActionButton(
-            icon:  Icons.edit_outlined,
+            icon: SolarIconsOutline.penNewSquare,
             label: 'Edit',
             color: colors.primary,
-            onTap: () => showEditProductSheet(context, product: product),
+            onTap: () {
+              showEditProductSheet(context, product: product);
+            },
           ),
         ),
 
-        // Add Stock — shops only
         if (showStock) ...[
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: _ActionButton(
-              icon:  Icons.inventory_2_outlined,
+              icon: SolarIconsOutline.box,
               label: 'Add Stock',
               color: const Color(0xFF16A34A),
-              onTap: () => showAddStockProductSheet(
-                context,
-                initialProduct: product,
-              ),
+              onTap: () {
+                showAddStockProductSheet(
+                  context,
+                  initialProduct: product,
+                );
+              },
             ),
           ),
         ],
 
-        // Delete — always visible
         const SizedBox(width: AppDims.s2),
+
         Expanded(
           child: _ActionButton(
-            icon:  Icons.delete_outline_rounded,
+            icon: SolarIconsOutline.trashBinTrash,
             label: 'Delete',
             color: const Color(0xFFDC2626),
-            onTap: () => showDeleteProductSheet(context, product: product),
+            isDanger: true,
+            onTap: () {
+              showDeleteProductSheet(context, product: product);
+            },
           ),
         ),
       ],
@@ -66,9 +71,10 @@ class ProductActionsView extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  final IconData     icon;
-  final String       label;
-  final Color        color;
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool isDanger;
   final VoidCallback onTap;
 
   const _ActionButton({
@@ -76,6 +82,7 @@ class _ActionButton extends StatelessWidget {
     required this.label,
     required this.color,
     required this.onTap,
+    this.isDanger = false,
   });
 
   @override
@@ -83,30 +90,56 @@ class _ActionButton extends StatelessWidget {
     final colors = context.appColors;
 
     return Material(
-      color:        colors.surface,
-      borderRadius: BorderRadius.circular(AppDims.rMd),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDims.rLg),
       child: InkWell(
-        onTap:        onTap,
-        borderRadius: BorderRadius.circular(AppDims.rMd),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
         child: Container(
-          height:  72,
-          padding: const EdgeInsets.all(AppDims.s2),
+          height: 82,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDims.s2,
+            vertical: AppDims.s3,
+          ),
           decoration: BoxDecoration(
-            border:       Border.all(color: colors.border),
-            borderRadius: BorderRadius.circular(AppDims.rMd),
+            color: isDanger
+                ? color.withValues(alpha: 0.07)
+                : colors.surface,
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(
+              color: isDanger
+                  ? color.withValues(alpha: 0.22)
+                  : colors.border,
+              width: 1,
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs200(context).copyWith(
-                  color:      colors.textPrimary,
-                  fontWeight: FontWeight.w900,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(AppDims.rSm),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 19,
+                ),
+              ),
+              const SizedBox(height: 7),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: AppTextStyles.bs300(context).copyWith(
+                    color: isDanger ? color : colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
                 ),
               ),
             ],

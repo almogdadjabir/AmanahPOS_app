@@ -9,6 +9,7 @@ import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -93,7 +94,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
               0,
             ),
             sliver: SliverToBoxAdapter(
-              child: workspaceSectionHeader(context: context),
+              child: WorkspaceSectionHeader(title: 'MANAGE'),
             ),
           ),
 
@@ -168,39 +169,6 @@ class SingleBusinessWorkspace extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget workspaceSectionHeader({required BuildContext context}){
-    final colors = context.appColors;
-
-    return Row(
-      spacing: AppDims.s3,
-      children: [
-        Text(
-          'MANAGE',
-          style: AppTextStyles.bs100(context).copyWith(
-            color: colors.textSecondary.withValues(alpha: 0.82),
-            fontWeight: FontWeight.w900,
-            letterSpacing: 3.5,
-          ),
-        ),
-
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colors.border.withValues(alpha: 0.60),
-                  colors.border.withValues(alpha: 0.25),
-                  colors.border.withValues(alpha: 0.05),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 

@@ -12,6 +12,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 void showAddStockProductSheet(
     BuildContext context, {
@@ -83,17 +84,6 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
     }
   }
 
-  ShopData? _firstValidShop(List<ShopData> shops) {
-    for (final shop in shops) {
-      final id = shop.id;
-      if (id != null && id.trim().isNotEmpty) {
-        return shop;
-      }
-    }
-
-    return null;
-  }
-
   @override
   void dispose() {
     _searchCtrl.dispose();
@@ -104,20 +94,41 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
     super.dispose();
   }
 
+  ShopData? _firstValidShop(List<ShopData> shops) {
+    for (final shop in shops) {
+      final id = shop.id;
+      if (id != null && id.trim().isNotEmpty) return shop;
+    }
+
+    return null;
+  }
+
   List<ShopData> _shopsFromBusiness(BuildContext context) {
     final businessState = context.read<BusinessBloc>().state;
-
     final businesses = businessState.businessList;
-    if (businesses == null || businesses.isEmpty) return const [];
+
+    if (businesses == null || businesses.isEmpty) {
+      return const [];
+    }
 
     return businesses.first.shops ?? const [];
+  }
+
+  void _clearSelectedProduct() {
+    setState(() {
+      _selectedProduct = null;
+      _qtyCtrl.clear();
+      _refCtrl.clear();
+      _selectedExpiryDate = null;
+      _movementType = MovementType.opening;
+    });
   }
 
   void _submit() {
     final productId = _selectedProduct?.id;
     final shopId = _selectedShop?.id;
 
-    if (productId == null) {
+    if (productId == null || productId.trim().isEmpty) {
       GlobalSnackBar.show(
         message: 'Please select a product',
         isError: true,
@@ -125,7 +136,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
       return;
     }
 
-    if (shopId == null) {
+    if (shopId == null || shopId.trim().isEmpty) {
       GlobalSnackBar.show(
         message: 'Please select a shop',
         isError: true,
@@ -133,7 +144,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
       return;
     }
 
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState?.validate() != true) return;
 
     context.read<InventoryBloc>().add(
       OnAddStock(
@@ -147,8 +158,8 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
         expiryDate: _selectedExpiryDate == null
             ? null
             : '${_selectedExpiryDate!.year.toString().padLeft(4, '0')}'
-              '-${_selectedExpiryDate!.month.toString().padLeft(2, '0')}'
-              '-${_selectedExpiryDate!.day.toString().padLeft(2, '0')}',
+            '-${_selectedExpiryDate!.month.toString().padLeft(2, '0')}'
+            '-${_selectedExpiryDate!.day.toString().padLeft(2, '0')}',
       ),
     );
   }
@@ -185,7 +196,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
         ),
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.88,
+            maxHeight: MediaQuery.sizeOf(context).height * 0.90,
           ),
           decoration: BoxDecoration(
             color: colors.surface,
@@ -197,78 +208,13 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: AppDims.s3),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s2,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(AppDims.rMd),
-                      ),
-                      child: Icon(
-                        Icons.inventory_2_rounded,
-                        color: colors.primary,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: AppDims.s3),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Add Stock',
-                            style: AppTextStyles.bs600(context).copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            _selectedProduct == null
-                                ? 'Select a product and assign quantity to a shop.'
-                                : 'Add stock for this product.',
-                            style: AppTextStyles.bs200(context).copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: colors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: colors.surfaceSoft,
-                          borderRadius: BorderRadius.circular(AppDims.rSm),
-                        ),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 22,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              _SheetHandle(color: colors.border),
+              _SheetHeader(
+                title: 'Add Stock',
+                subtitle: _selectedProduct == null
+                    ? 'Select a product and assign quantity to a shop.'
+                    : 'Add stock quantity and optional expiry details.',
+                onClose: () => Navigator.of(context).pop(),
               ),
               Flexible(
                 child: SingleChildScrollView(
@@ -279,22 +225,16 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
                     AppDims.s4,
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _SelectedProductBanner(
                         product: _selectedProduct,
-                        onClear: widget.initialProduct != null || _selectedProduct == null
+                        onClear:
+                        widget.initialProduct != null || _selectedProduct == null
                             ? null
-                            : () {
-                          setState(() {
-                            _selectedProduct = null;
-                            _selectedShop = null;
-                            _qtyCtrl.clear();
-                            _refCtrl.clear();
-                          });
-                        },
+                            : _clearSelectedProduct,
                       ),
-                      const SizedBox(height: AppDims.s3),
+                      const SizedBox(height: AppDims.s4),
                       if (_selectedProduct == null)
                         _ProductPicker(
                           searchCtrl: _searchCtrl,
@@ -311,7 +251,7 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
                           refFocus: _refFocus,
                           shops: _shopsFromBusiness(context),
                           selectedShop: _selectedShop,
-                          lockShop: widget.initialProduct != null,
+                          lockShop: widget.initialShop != null,
                           movementType: _movementType,
                           selectedExpiryDate: _selectedExpiryDate,
                           onShopChanged: (shop) {
@@ -337,6 +277,116 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
   }
 }
 
+class _SheetHandle extends StatelessWidget {
+  final Color color;
+
+  const _SheetHandle({
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 4,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+    );
+  }
+}
+
+class _SheetHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback onClose;
+
+  const _SheetHeader({
+    required this.title,
+    required this.subtitle,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDims.s4,
+        AppDims.s4,
+        AppDims.s4,
+        AppDims.s2,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppDims.rMd),
+              border: Border.all(
+                color: colors.primary.withValues(alpha: 0.14),
+              ),
+            ),
+            child: Icon(
+              SolarIconsOutline.box,
+              color: colors.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: AppDims.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bs600(context).copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs200(context).copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppDims.s2),
+          Material(
+            color: colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(AppDims.rMd),
+            child: InkWell(
+              onTap: onClose,
+              borderRadius: BorderRadius.circular(AppDims.rMd),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(
+                  SolarIconsOutline.closeCircle,
+                  size: 21,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SelectedProductBanner extends StatelessWidget {
   final ProductData? product;
   final VoidCallback? onClear;
@@ -351,32 +401,11 @@ class _SelectedProductBanner extends StatelessWidget {
     final colors = context.appColors;
 
     if (product == null) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppDims.s3),
-        decoration: BoxDecoration(
-          color: colors.primary.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(AppDims.rMd),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.14),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.touch_app_rounded, color: colors.primary, size: 18),
-            const SizedBox(width: AppDims.s2),
-            Expanded(
-              child: Text(
-                'Choose a product first, then add its opening stock.',
-                style: AppTextStyles.bs200(context).copyWith(
-                  color: colors.textSecondary,
-                  fontWeight: FontWeight.w700,
-                  height: 1.35,
-                ),
-              ),
-            ),
-          ],
-        ),
+      return _InfoBanner(
+        icon: SolarIconsOutline.handStars,
+        title: 'Choose product first',
+        message: 'Pick a product, then add its opening stock quantity.',
+        color: colors.primary,
       );
     }
 
@@ -385,29 +414,67 @@ class _SelectedProductBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppDims.s3),
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
-        borderRadius: BorderRadius.circular(AppDims.rMd),
-        border: Border.all(color: colors.border),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: colors.border,
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.local_offer_rounded, color: colors.primary, size: 20),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Text(
-              product!.name ?? 'Product',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bs300(context).copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w900,
-              ),
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppDims.rMd),
+            ),
+            child: Icon(
+              SolarIconsOutline.bag5,
+              color: colors.primary,
+              size: 22,
             ),
           ),
-          if (onClear != null)
+          const SizedBox(width: AppDims.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product!.name ?? 'Product',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs400(context).copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  product!.categoryName?.trim().isNotEmpty == true
+                      ? product!.categoryName!.trim()
+                      : 'No category',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs100(context).copyWith(
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onClear != null) ...[
+            const SizedBox(width: AppDims.s2),
             TextButton(
               onPressed: onClear,
-              child: const Text('Change'),
+              child: Text(
+                'Change',
+                style: AppTextStyles.bs200(context).copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
+          ],
         ],
       ),
     );
@@ -434,45 +501,42 @@ class _ProductPickerState extends State<_ProductPicker> {
     widget.searchCtrl.addListener(_onSearchChanged);
   }
 
-  void _onSearchChanged() {
-    if (mounted) setState(() {});
-  }
-
   @override
   void dispose() {
     widget.searchCtrl.removeListener(_onSearchChanged);
     super.dispose();
   }
 
+  void _onSearchChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProductBloc, ProductState>(
-      buildWhen: (prev, curr) =>
-      prev.products != curr.products ||
-          prev.productStatus != curr.productStatus,
+      buildWhen: (prev, curr) {
+        return prev.products != curr.products ||
+            prev.productStatus != curr.productStatus;
+      },
       builder: (context, state) {
         final query = widget.searchCtrl.text.trim().toLowerCase();
 
         final products = query.isEmpty
             ? state.products
-            : state.products.where((p) {
-          final name = p.name?.toLowerCase() ?? '';
-          final category = p.categoryName?.toLowerCase() ?? '';
+            : state.products.where((product) {
+          final name = product.name?.toLowerCase() ?? '';
+          final category = product.categoryName?.toLowerCase() ?? '';
           return name.contains(query) || category.contains(query);
         }).toList();
 
         if (state.productStatus == ProductStatus.loading ||
             state.productStatus == ProductStatus.initial) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(AppDims.s5),
-              child: CircularProgressIndicator(),
-            ),
-          );
+          return const _ProductPickerLoading();
         }
 
         if (state.productStatus == ProductStatus.failure) {
           return _ProductPickerEmpty(
+            icon: SolarIconsOutline.dangerTriangle,
             title: 'Failed to load products',
             message: state.responseError ?? 'Please try again.',
             onRetry: () {
@@ -483,8 +547,11 @@ class _ProductPickerState extends State<_ProductPicker> {
 
         if (products.isEmpty) {
           return _ProductPickerEmpty(
+            icon: SolarIconsOutline.bag5,
             title: 'No products found',
-            message: 'Create products first, then you can add stock for them.',
+            message: query.isEmpty
+                ? 'Create products first, then you can add stock for them.'
+                : 'No product matches your search.',
             onRetry: () {
               context.read<ProductBloc>().add(const OnProductInitial());
             },
@@ -492,14 +559,17 @@ class _ProductPickerState extends State<_ProductPicker> {
         }
 
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FieldLabel(label: 'Product', required: true),
+            FieldLabel(
+              label: 'Product',
+              required: true,
+            ),
             const SizedBox(height: AppDims.s1),
             AppFormField(
               controller: widget.searchCtrl,
               hint: 'Search products',
-              prefixIcon: Icons.search_rounded,
+              prefixIcon: SolarIconsOutline.magnifier,
               textInputAction: TextInputAction.search,
             ),
             const SizedBox(height: AppDims.s3),
@@ -507,17 +577,45 @@ class _ProductPickerState extends State<_ProductPicker> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: products.length,
-              separatorBuilder: (_, _) => const SizedBox(height: AppDims.s2),
+              separatorBuilder: (_, __) => const SizedBox(height: AppDims.s2),
               itemBuilder: (context, index) {
+                final product = products[index];
+
                 return _ProductPickTile(
-                  product: products[index],
-                  onTap: () => widget.onSelect(products[index]),
+                  product: product,
+                  onTap: () => widget.onSelect(product),
                 );
               },
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _ProductPickerLoading extends StatelessWidget {
+  const _ProductPickerLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDims.s5),
+      decoration: BoxDecoration(
+        color: colors.surfaceSoft,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: colors.border,
+        ),
+      ),
+      child: Center(
+        child: CircularProgressIndicator(
+          color: colors.primary,
+        ),
+      ),
     );
   }
 }
@@ -537,25 +635,31 @@ class _ProductPickTile extends StatelessWidget {
 
     return Material(
       color: colors.surfaceSoft,
-      borderRadius: BorderRadius.circular(AppDims.rMd),
+      borderRadius: BorderRadius.circular(AppDims.rLg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppDims.rMd),
-        child: Padding(
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        child: Container(
           padding: const EdgeInsets.all(AppDims.s3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(
+              color: colors.border,
+            ),
+          ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(AppDims.rSm),
+                  borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
                 child: Icon(
-                  Icons.local_offer_rounded,
+                  SolarIconsOutline.bag5,
                   color: colors.primary,
-                  size: 22,
+                  size: 23,
                 ),
               ),
               const SizedBox(width: AppDims.s3),
@@ -567,11 +671,12 @@ class _ProductPickTile extends StatelessWidget {
                       product.name ?? 'Product',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs300(context).copyWith(
+                      style: AppTextStyles.bs400(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
+                    const SizedBox(height: 3),
                     Text(
                       product.categoryName?.trim().isNotEmpty == true
                           ? product.categoryName!.trim()
@@ -579,16 +684,18 @@ class _ProductPickTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs100(context).copyWith(
-                        color: colors.textHint,
-                        fontWeight: FontWeight.w700,
+                        color: colors.textSecondary,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: AppDims.s2),
               Icon(
-                Icons.chevron_right_rounded,
+                SolarIconsOutline.altArrowRight,
                 color: colors.textHint,
+                size: 18,
               ),
             ],
           ),
@@ -599,11 +706,13 @@ class _ProductPickTile extends StatelessWidget {
 }
 
 class _ProductPickerEmpty extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String message;
   final VoidCallback onRetry;
 
   const _ProductPickerEmpty({
+    required this.icon,
     required this.title,
     required this.message,
     required this.onRetry,
@@ -619,13 +728,21 @@ class _ProductPickerEmpty extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: colors.border,
+        ),
       ),
       child: Column(
         children: [
-          Icon(Icons.local_offer_outlined, size: 36, color: colors.textHint),
+          Icon(
+            icon,
+            size: 38,
+            color: colors.textHint,
+          ),
           const SizedBox(height: AppDims.s3),
           Text(
             title,
+            textAlign: TextAlign.center,
             style: AppTextStyles.bs500(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
@@ -637,13 +754,14 @@ class _ProductPickerEmpty extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppTextStyles.bs200(context).copyWith(
               color: colors.textSecondary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
             ),
           ),
           const SizedBox(height: AppDims.s3),
           OutlinedButton.icon(
             onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 16),
+            icon: const Icon(SolarIconsOutline.refresh, size: 16),
             label: const Text('Retry'),
           ),
         ],
@@ -696,136 +814,45 @@ class _StockForm extends StatelessWidget {
     final colors = context.appColors;
 
     if (shops.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppDims.s4),
-        decoration: BoxDecoration(
-          color: colors.surfaceSoft,
-          borderRadius: BorderRadius.circular(AppDims.rLg),
-          border: Border.all(color: colors.border),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.storefront_outlined, color: colors.textHint, size: 34),
-            const SizedBox(height: AppDims.s3),
-            Text(
-              'No shops available',
-              style: AppTextStyles.bs500(context).copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: AppDims.s1),
-            Text(
-              'Create a shop first before adding product stock.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+      return _InfoEmptyCard(
+        icon: SolarIconsOutline.shop,
+        title: 'No shops available',
+        message: 'Create a shop first before adding product stock.',
       );
     }
 
     return Form(
       key: formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          FieldLabel(label: 'Shop', required: true),
+          FieldLabel(
+            label: 'Shop',
+            required: true,
+          ),
           const SizedBox(height: AppDims.s1),
-
           if (lockShop && selectedShop != null)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: AppDims.s2),
-              padding: const EdgeInsets.all(AppDims.s3),
-              decoration: BoxDecoration(
-                color: colors.surfaceSoft,
-                borderRadius: BorderRadius.circular(AppDims.rMd),
-                border: Border.all(color: colors.border),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.lock_outline_rounded,
-                    size: 18,
-                    color: colors.textHint,
-                  ),
-                  const SizedBox(width: AppDims.s2),
-                  Expanded(
-                    child: Text(
-                      selectedShop?.name ?? 'Shop',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs300(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Default',
-                    style: AppTextStyles.bs100(context).copyWith(
-                      color: colors.textHint,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            )
+            _LockedShopTile(shop: selectedShop!)
           else
             ...shops.map((shop) {
               final selected = selectedShop?.id == shop.id;
 
-              return GestureDetector(
-                onTap: () => onShopChanged(shop),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  margin: const EdgeInsets.only(bottom: AppDims.s2),
-                  padding: const EdgeInsets.all(AppDims.s3),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? colors.primary.withValues(alpha: 0.08)
-                        : colors.surfaceSoft,
-                    borderRadius: BorderRadius.circular(AppDims.rMd),
-                    border: Border.all(
-                      color: selected ? colors.primary : colors.border,
-                      width: selected ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.storefront_outlined,
-                        size: 18,
-                        color: selected ? colors.primary : colors.textHint,
-                      ),
-                      const SizedBox(width: AppDims.s2),
-                      Expanded(
-                        child: Text(
-                          shop.name ?? 'Shop',
-                          style: AppTextStyles.bs300(context).copyWith(
-                            color: selected ? colors.primary : colors.textPrimary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      if (selected)
-                        Icon(
-                          Icons.check_circle_rounded,
-                          size: 18,
-                          color: colors.primary,
-                        ),
-                    ],
-                  ),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppDims.s2),
+                child: _SelectableShopTile(
+                  shop: shop,
+                  selected: selected,
+                  onTap: () => onShopChanged(shop),
                 ),
               );
             }),
+
           const SizedBox(height: AppDims.s3),
-          FieldLabel(label: 'Movement Type', required: true),
+
+          FieldLabel(
+            label: 'Movement Type',
+            required: true,
+          ),
           const SizedBox(height: AppDims.s2),
           Wrap(
             spacing: AppDims.s2,
@@ -839,81 +866,82 @@ class _StockForm extends StatelessWidget {
                 _ => colors.primary,
               };
 
-              return GestureDetector(
+              return _MovementChip(
+                label: type.label,
+                color: color,
+                selected: selected,
                 onTap: () => onMovementChanged(type),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDims.s3,
-                    vertical: AppDims.s2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? color.withValues(alpha: 0.10)
-                        : colors.surfaceSoft,
-                    borderRadius: BorderRadius.circular(AppDims.rMd),
-                    border: Border.all(
-                      color: selected ? color : colors.border,
-                      width: selected ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Text(
-                    type.label,
-                    style: AppTextStyles.bs200(context).copyWith(
-                      color: selected ? color : colors.textSecondary,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
               );
             }).toList(),
           ),
-          const SizedBox(height: AppDims.s3),
-          FieldLabel(label: 'Quantity', required: true),
-          const SizedBox(height: AppDims.s1),
-          AppFormField(
-            controller: qtyCtrl,
-            focusNode: qtyFocus,
-            nextFocus: refFocus,
-            hint: '50',
-            prefixIcon: Icons.add_circle_outline_rounded,
-            keyboardType: const TextInputType.numberWithOptions(
-              decimal: true,
+
+          const SizedBox(height: AppDims.s4),
+
+          _FormPanel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FieldLabel(
+                  label: 'Quantity',
+                  required: true,
+                ),
+                const SizedBox(height: AppDims.s1),
+                AppFormField(
+                  controller: qtyCtrl,
+                  focusNode: qtyFocus,
+                  nextFocus: refFocus,
+                  hint: '50',
+                  prefixIcon: SolarIconsOutline.addCircle,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  validator: (value) {
+                    final raw = value?.trim() ?? '';
+                    final parsed = double.tryParse(raw);
+
+                    if (raw.isEmpty) {
+                      return 'Quantity is required';
+                    }
+
+                    if (parsed == null) {
+                      return 'Enter a valid number';
+                    }
+
+                    if (parsed <= 0) {
+                      return 'Must be greater than 0';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: AppDims.s3),
+
+                FieldLabel(label: 'Reference'),
+                const SizedBox(height: AppDims.s1),
+                AppFormField(
+                  controller: refCtrl,
+                  focusNode: refFocus,
+                  hint: 'Opening stock / purchase ref',
+                  prefixIcon: SolarIconsOutline.tag,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => onSubmit(),
+                ),
+
+                const SizedBox(height: AppDims.s3),
+
+                FieldLabel(label: 'Expiry Date'),
+                const SizedBox(height: AppDims.s1),
+                _ExpiryDatePicker(
+                  selected: selectedExpiryDate,
+                  onChanged: onExpiryDateChanged,
+                ),
+              ],
             ),
-            validator: (v) {
-              final value = double.tryParse(v?.trim() ?? '');
-              if (v == null || v.trim().isEmpty) {
-                return 'Quantity is required';
-              }
-              if (value == null) {
-                return 'Enter a valid number';
-              }
-              if (value <= 0) {
-                return 'Must be greater than 0';
-              }
-              return null;
-            },
           ),
-          const SizedBox(height: AppDims.s3),
-          FieldLabel(label: 'Reference'),
-          const SizedBox(height: AppDims.s1),
-          AppFormField(
-            controller: refCtrl,
-            focusNode: refFocus,
-            hint: 'Opening stock / purchase ref',
-            prefixIcon: Icons.tag_rounded,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => onSubmit(),
-          ),
-          const SizedBox(height: AppDims.s3),
-          // ── Expiry date (shop only, optional) ──────────────────────────
-          FieldLabel(label: 'Expiry Date'),
-          const SizedBox(height: AppDims.s1),
-          _ExpiryDatePicker(
-            selected: selectedExpiryDate,
-            onChanged: onExpiryDateChanged,
-          ),
+
           const SizedBox(height: AppDims.s5),
+
           BlocBuilder<InventoryBloc, InventoryState>(
             buildWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
             builder: (context, state) {
@@ -922,7 +950,7 @@ class _StockForm extends StatelessWidget {
 
               return SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 52,
                 child: FilledButton(
                   onPressed: isLoading ? null : onSubmit,
                   style: FilledButton.styleFrom(
@@ -958,69 +986,408 @@ class _StockForm extends StatelessWidget {
   }
 }
 
-// ── Expiry date picker ────────────────────────────────────────────────────────
+class _SelectableShopTile extends StatelessWidget {
+  final ShopData shop;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SelectableShopTile({
+    required this.shop,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDims.rLg),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.all(AppDims.s3),
+          decoration: BoxDecoration(
+            color: selected
+                ? colors.primary.withValues(alpha: 0.08)
+                : colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(
+              color: selected ? colors.primary : colors.border,
+              width: selected ? 1.4 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                SolarIconsOutline.shop,
+                size: 20,
+                color: selected ? colors.primary : colors.textHint,
+              ),
+              const SizedBox(width: AppDims.s2),
+              Expanded(
+                child: Text(
+                  shop.name ?? 'Shop',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs300(context).copyWith(
+                    color: selected ? colors.primary : colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              if (selected)
+                Icon(
+                  SolarIconsOutline.checkCircle,
+                  size: 19,
+                  color: colors.primary,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LockedShopTile extends StatelessWidget {
+  final ShopData shop;
+
+  const _LockedShopTile({
+    required this.shop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDims.s3),
+      decoration: BoxDecoration(
+        color: colors.surfaceSoft,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: colors.border,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            SolarIconsOutline.lock,
+            size: 19,
+            color: colors.textHint,
+          ),
+          const SizedBox(width: AppDims.s2),
+          Expanded(
+            child: Text(
+              shop.name ?? 'Shop',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bs300(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Text(
+            'Selected',
+            style: AppTextStyles.bs100(context).copyWith(
+              color: colors.textHint,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MovementChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _MovementChip({
+    required this.label,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDims.s3,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? color.withValues(alpha: 0.10) : colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: selected ? color : colors.border,
+              width: selected ? 1.4 : 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.bs200(context).copyWith(
+              color: selected ? color : colors.textSecondary,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ExpiryDatePicker extends StatelessWidget {
-  final DateTime?               selected;
+  final DateTime? selected;
   final ValueChanged<DateTime?> onChanged;
 
-  const _ExpiryDatePicker({required this.selected, required this.onChanged});
+  const _ExpiryDatePicker({
+    required this.selected,
+    required this.onChanged,
+  });
 
   Future<void> _pick(BuildContext context) async {
-    final now  = DateTime.now();
+    final now = DateTime.now();
+
     final date = await showDatePicker(
-      context:     context,
+      context: context,
       initialDate: selected ?? now.add(const Duration(days: 30)),
-      firstDate:   now,
-      lastDate:    DateTime(now.year + 10),
-      helpText:    'Select expiry date',
+      firstDate: now,
+      lastDate: DateTime(now.year + 10),
+      helpText: 'Select expiry date',
     );
-    if (date != null) onChanged(date);
+
+    if (date != null) {
+      onChanged(date);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors  = context.appColors;
+    final colors = context.appColors;
     final hasDate = selected != null;
 
     final label = hasDate
         ? '${selected!.day.toString().padLeft(2, '0')}/'
-          '${selected!.month.toString().padLeft(2, '0')}/'
-          '${selected!.year}'
+        '${selected!.month.toString().padLeft(2, '0')}/'
+        '${selected!.year}'
         : 'Optional — tap to select';
 
-    return GestureDetector(
-      onTap: () => _pick(context),
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
-        decoration: BoxDecoration(
-          color:        colors.surfaceSoft,
-          borderRadius: BorderRadius.circular(AppDims.rMd),
-          border:       Border.all(color: colors.border),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.calendar_today_outlined,
-                size: 18, color: colors.textHint),
-            const SizedBox(width: AppDims.s2),
-            Expanded(
-              child: Text(
-                label,
-                style: AppTextStyles.bs300(context).copyWith(
-                  color:      hasDate ? colors.textPrimary : colors.textHint,
-                  fontWeight: FontWeight.w700,
+    return Material(
+      color: colors.surfaceSoft,
+      borderRadius: BorderRadius.circular(AppDims.rMd),
+      child: InkWell(
+        onTap: () => _pick(context),
+        borderRadius: BorderRadius.circular(AppDims.rMd),
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDims.rMd),
+            border: Border.all(
+              color: colors.border,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                SolarIconsOutline.calendar,
+                size: 19,
+                color: hasDate ? colors.primary : colors.textHint,
+              ),
+              const SizedBox(width: AppDims.s2),
+              Expanded(
+                child: Text(
+                  label,
+                  style: AppTextStyles.bs300(context).copyWith(
+                    color: hasDate ? colors.textPrimary : colors.textHint,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-            ),
-            if (hasDate)
-              GestureDetector(
-                onTap: () => onChanged(null),
-                child: Icon(Icons.close_rounded,
-                    size: 18, color: colors.textHint),
-              ),
-          ],
+              if (hasDate)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onChanged(null),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      SolarIconsOutline.closeCircle,
+                      size: 18,
+                      color: colors.textHint,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _FormPanel extends StatelessWidget {
+  final Widget child;
+
+  const _FormPanel({
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDims.s3),
+      decoration: BoxDecoration(
+        color: colors.surfaceSoft.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: colors.border.withValues(alpha: 0.80),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _InfoBanner extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final Color color;
+
+  const _InfoBanner({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDims.s3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: color.withValues(alpha: 0.16),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 21,
+          ),
+          const SizedBox(width: AppDims.s2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bs300(context).copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  message,
+                  style: AppTextStyles.bs200(context).copyWith(
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w700,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoEmptyCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
+  const _InfoEmptyCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDims.s5),
+      decoration: BoxDecoration(
+        color: colors.surfaceSoft,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: colors.border,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: colors.textHint,
+            size: 38,
+          ),
+          const SizedBox(height: AppDims.s3),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bs500(context).copyWith(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: AppDims.s1),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bs200(context).copyWith(
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
+          ),
+        ],
       ),
     );
   }

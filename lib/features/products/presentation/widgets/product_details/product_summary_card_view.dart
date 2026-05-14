@@ -3,6 +3,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ProductSummaryCardView extends StatelessWidget {
   final ProductData product;
@@ -25,23 +26,24 @@ class ProductSummaryCardView extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(color: colors.border),
+        border: Border.all(
+          color: colors.border,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         children: [
-
           Row(
             children: [
               Expanded(
                 child: _InfoTile(
-                  icon:  Icons.payments_outlined,
+                  icon: SolarIconsOutline.walletMoney,
                   label: 'Price',
                   value: _formatPrice(product.price),
                   color: colors.primary,
@@ -50,7 +52,7 @@ class ProductSummaryCardView extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _InfoTile(
-                  icon:  Icons.layers_outlined,
+                  icon: SolarIconsOutline.layersMinimalistic,
                   label: 'Category',
                   value: product.categoryName?.trim().isNotEmpty == true
                       ? product.categoryName!.trim()
@@ -68,22 +70,22 @@ class ProductSummaryCardView extends StatelessWidget {
               children: [
                 Expanded(
                   child: _InfoTile(
-                    icon:  Icons.inventory_2_outlined,
+                    icon: SolarIconsOutline.box,
                     label: 'Stock',
                     value: _formatQty(stock),
                     color: _stockColor(stock),
                   ),
                 ),
                 const SizedBox(width: AppDims.s2),
-                Expanded(child: _statusTile(context)),
+                Expanded(
+                  child: _statusTile(context),
+                ),
               ],
             )
           else
             _statusTile(context),
 
-          if (showStock) ...[
-            _buildAlertRow(context),
-          ],
+          if (showStock) _buildAlertRow(context),
         ],
       ),
     );
@@ -96,62 +98,70 @@ class ProductSummaryCardView extends StatelessWidget {
     final hasMin = minStock != null;
     final hasExpiry = expiryDays != null;
 
-    if (!hasMin && !hasExpiry) return const SizedBox.shrink();
+    if (!hasMin && !hasExpiry) {
+      return const SizedBox.shrink();
+    }
 
     const amber = Color(0xFFF59E0B);
     const orange = Color(0xFFEA580C);
 
     final minTile = hasMin
         ? _InfoTile(
-            icon:  Icons.warning_amber_rounded,
-            label: 'Min Stock',
-            value: _formatQty(minStock),
-            color: amber,
-          )
+      icon: SolarIconsOutline.dangerTriangle,
+      label: 'Min Stock',
+      value: _formatQty(minStock),
+      color: amber,
+    )
         : null;
 
     final expiryTile = hasExpiry
         ? _InfoTile(
-            icon:  Icons.event_busy_outlined,
-            label: 'Expiry Alert',
-            value: '$expiryDays day${expiryDays == 1 ? '' : 's'}',
-            color: orange,
-          )
+      icon: SolarIconsOutline.calendarMark,
+      label: 'Expiry Alert',
+      value: '$expiryDays day${expiryDays == 1 ? '' : 's'}',
+      color: orange,
+    )
         : null;
 
-
     if (minTile != null && expiryTile == null) {
-      return Column(children: [
-        const SizedBox(height: AppDims.s2),
-        minTile,
-      ]);
-    }
-    if (expiryTile != null && minTile == null) {
-      return Column(children: [
-        const SizedBox(height: AppDims.s2),
-        expiryTile,
-      ]);
+      return Column(
+        children: [
+          const SizedBox(height: AppDims.s2),
+          minTile,
+        ],
+      );
     }
 
-    // Both set: two-column row.
-    return Column(children: [
-      const SizedBox(height: AppDims.s2),
-      Row(
+    if (expiryTile != null && minTile == null) {
+      return Column(
         children: [
-          Expanded(child: minTile!),
-          const SizedBox(width: AppDims.s2),
-          Expanded(child: expiryTile!),
+          const SizedBox(height: AppDims.s2),
+          expiryTile,
         ],
-      ),
-    ]);
+      );
+    }
+
+    return Column(
+      children: [
+        const SizedBox(height: AppDims.s2),
+        Row(
+          children: [
+            Expanded(child: minTile!),
+            const SizedBox(width: AppDims.s2),
+            Expanded(child: expiryTile!),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _statusTile(BuildContext context) {
     final isActive = product.isActive != false;
+
     return _InfoTile(
-      icon:  isActive
-          ? Icons.check_circle_outline_rounded
-          : Icons.pause_circle_outline_rounded,
+      icon: isActive
+          ? SolarIconsOutline.checkCircle
+          : SolarIconsOutline.pauseCircle,
       label: 'Status',
       value: isActive ? 'Active' : 'Inactive',
       color: isActive ? const Color(0xFF16A34A) : context.appColors.textHint,
@@ -177,9 +187,9 @@ class ProductSummaryCardView extends StatelessWidget {
 
 class _InfoTile extends StatelessWidget {
   final IconData icon;
-  final String   label;
-  final String   value;
-  final Color    color;
+  final String label;
+  final String value;
+  final Color color;
 
   const _InfoTile({
     required this.icon,
@@ -195,34 +205,52 @@ class _InfoTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDims.s3),
       decoration: BoxDecoration(
-        color:        color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDims.rMd),
+        border: Border.all(
+          color: color.withValues(alpha: 0.12),
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppDims.rSm),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs300(context).copyWith(
-                    color:      colors.textPrimary,
+                  style: AppTextStyles.bs400(context).copyWith(
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w900,
+                    height: 1.05,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bs100(context).copyWith(
-                    color:      colors.textHint,
-                    fontWeight: FontWeight.w700,
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
                   ),
                 ),
               ],
