@@ -9,7 +9,7 @@ class OfflineDb {
   static final OfflineDb instance = OfflineDb._();
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 2;
+  static const int _dbVersion = 3;
 
   Database? _database;
 
@@ -39,6 +39,40 @@ class OfflineDb {
     if (oldVersion < 2) {
       await _createPendingInboundTables(db);
     }
+    if (oldVersion < 3) {
+      await _createPremiumTables(db);
+    }
+  }
+
+  Future<void> _createPremiumTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS vendors (
+        id TEXT PRIMARY KEY,
+        json TEXT NOT NULL,
+        updated_at TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS premium_summary (
+        shop_id TEXT NOT NULL,
+        json TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY(shop_id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS inbound_transactions (
+        id TEXT PRIMARY KEY,
+        shop_id TEXT,
+        json TEXT NOT NULL,
+        created_at TEXT
+      )
+    ''');
+
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_inbound_shop ON inbound_transactions(shop_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_inbound_created ON inbound_transactions(created_at)');
   }
 
   Future<void> _createPendingInboundTables(Database db) async {
@@ -182,6 +216,8 @@ class OfflineDb {
 
     await _createPendingInboundTables(db);
 
+    await _createPremiumTables(db);
+
     await db.execute('''
       CREATE TABLE pending_sale_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -274,6 +310,9 @@ class OfflineDb {
       await txn.delete('pending_sale_items');
       await txn.delete('pending_sales');
       await txn.delete('pending_inbound_transactions');
+      await txn.delete('vendors');
+      await txn.delete('premium_summary');
+      await txn.delete('inbound_transactions');
       await txn.delete('sync_metadata');
     });
   }

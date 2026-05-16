@@ -257,6 +257,7 @@ class NavShell extends StatelessWidget {
             label: tab.label,
             isActive: originalIndex == activeIdx,
             onTap: () => _onTap(context, tab),
+            showPremiumIndicator: tab.showPremiumIndicator,
           ),
         ),
       );

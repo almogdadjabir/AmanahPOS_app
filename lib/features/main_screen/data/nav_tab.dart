@@ -7,6 +7,7 @@ class NavTab {
   final IconData activeIcon;
   final String label;
   final bool isMore;
+  final bool showPremiumIndicator;
 
   const NavTab({
     this.feature,
@@ -14,5 +15,6 @@ class NavTab {
     required this.activeIcon,
     required this.label,
     this.isMore = false,
+    this.showPremiumIndicator = false,
   });
 }

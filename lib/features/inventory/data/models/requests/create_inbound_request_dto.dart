@@ -2,12 +2,14 @@ class CreateInboundRequestDto {
   final String shopId;
   final String reference;
   final String? notes;
+  final String? vendorId;
   final List<CreateInboundItemRequestDto> items;
 
   const CreateInboundRequestDto({
     required this.shopId,
     required this.reference,
     this.notes,
+    this.vendorId,
     required this.items,
   });
 
@@ -16,6 +18,7 @@ class CreateInboundRequestDto {
       'shop_id': shopId,
       'reference': reference.trim(),
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+      if (vendorId != null && vendorId!.isNotEmpty) 'vendor_id': vendorId,
       'items': items.map((item) => item.toJson()).toList(),
     };
   }

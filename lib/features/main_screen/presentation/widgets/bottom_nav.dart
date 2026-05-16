@@ -14,17 +14,18 @@ class BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<NavigationBloc, NavigationState>(
       buildWhen: (prev, curr) =>
-      prev.currentFeature != curr.currentFeature ||
+          prev.currentFeature != curr.currentFeature ||
           prev.permissions != curr.permissions,
       builder: (context, state) {
-        final tabs = _buildTabs(state.permissions);
+        final isPremium = state.permissions.canUseInventoryInboundReceiving;
+        final tabs = _buildTabs(state.permissions, isPremium: isPremium);
         if (tabs.isEmpty) return const SizedBox.shrink();
         return NavShell(tabs: tabs, state: state);
       },
     );
   }
 
-  static List<NavTab> _buildTabs(AppPermissions perms) {
+  static List<NavTab> _buildTabs(AppPermissions perms, {bool isPremium = false}) {
     final tabs = <NavTab>[];
 
     if (perms.isOwner) {
@@ -54,13 +55,14 @@ class BottomNav extends StatelessWidget {
       ));
 
       if (perms.canAccessInventory) {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: AppFeature.inventory,
           icon: SolarIconsOutline.boxMinimalistic,
           activeIcon: SolarIconsBold.boxMinimalistic,
           label: 'Stock',
+          showPremiumIndicator: isPremium,
         ));
-      }else{
+      } else {
         tabs.add(const NavTab(
           feature: AppFeature.users,
           icon: SolarIconsOutline.userPlus,
@@ -87,11 +89,12 @@ class BottomNav extends StatelessWidget {
       }
 
       if (perms.canAccessInventory) {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: AppFeature.inventory,
           icon: SolarIconsOutline.boxMinimalistic,
           activeIcon: SolarIconsBold.boxMinimalistic,
           label: 'Stock',
+          showPremiumIndicator: isPremium,
         ));
       }
 
@@ -108,7 +111,7 @@ class BottomNav extends StatelessWidget {
           .toSet();
 
       final hasMore = AppFeature.values.any(
-            (f) => perms.allows(f) && !directFeatures.contains(f),
+        (f) => perms.allows(f) && !directFeatures.contains(f),
       );
 
       if (hasMore) {

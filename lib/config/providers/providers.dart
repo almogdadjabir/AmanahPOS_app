@@ -20,6 +20,11 @@ import 'package:amana_pos/features/notification/presentation/bloc/notification_b
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/premium_inventory_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/stock_levels_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/inbound_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/vendors_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/expiry_report_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
@@ -119,6 +124,38 @@ getProviders(BuildContext context) => [
   ),
   BlocProvider(
     create: (context) => ExpiryBloc(
+      useCase: getIt<InventoryUseCase>(),
+    ),
+  ),
+  BlocProvider(
+    create: (_) => PremiumInventoryBloc(
+      useCase: getIt<InventoryUseCase>(),
+      offlineLocalCache: getIt<OfflineLocalCache>(),
+      isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+    ),
+  ),
+  BlocProvider(
+    create: (_) => StockLevelsBloc(
+      useCase: getIt<InventoryUseCase>(),
+    ),
+  ),
+  BlocProvider(
+    create: (_) => InboundBloc(
+      useCase: getIt<InventoryUseCase>(),
+      offlineLocalCache: getIt<OfflineLocalCache>(),
+      offlineInboundQueue: getIt<OfflineInboundQueue>(),
+      isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+    ),
+  ),
+  BlocProvider(
+    create: (_) => VendorsBloc(
+      useCase: getIt<InventoryUseCase>(),
+      offlineLocalCache: getIt<OfflineLocalCache>(),
+      isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+    ),
+  ),
+  BlocProvider(
+    create: (_) => ExpiryReportBloc(
       useCase: getIt<InventoryUseCase>(),
     ),
   ),

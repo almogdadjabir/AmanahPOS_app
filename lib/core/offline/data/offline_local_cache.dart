@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:amana_pos/core/offline/models/offline_asset_record.dart';
 import 'package:amana_pos/core/offline/offline_constants.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/vendor_response_dto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -1016,9 +1019,99 @@ class OfflineLocalCache {
       // discarded — they reference shop/business data that is no longer valid.
       await safeDeleteTable(txn, 'pending_sale_items');
       await safeDeleteTable(txn, 'pending_sales');
+      await safeDeleteTable(txn, OfflineConstants.vendorsTable);
+      await safeDeleteTable(txn, OfflineConstants.premiumSummaryTable);
+      await safeDeleteTable(txn, OfflineConstants.inboundTransactionsTable);
     });
 
     await _deleteOfflineAssetsDirectory();
+  }
+
+  Future<List<VendorData>> getVendors() async {
+    final rows = await _db.getJsonList(OfflineConstants.vendorsTable);
+    return rows.map(VendorData.fromJson).toList();
+  }
+
+  Future<void> saveVendors(List<VendorData> vendors) async {
+    final db = await _db.database;
+    await db.transaction((txn) async {
+      await txn.delete(OfflineConstants.vendorsTable);
+      for (final vendor in vendors) {
+        await txn.insert(
+          OfflineConstants.vendorsTable,
+          {
+            'id': vendor.id,
+            'json': jsonEncode(vendor.toJson()),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
+  Future<PremiumSummaryData?> getPremiumSummary({String? shopId}) async {
+    final db = await _db.database;
+    final key = shopId ?? 'default';
+    final rows = await db.query(
+      OfflineConstants.premiumSummaryTable,
+      where: 'shop_id = ?',
+      whereArgs: [key],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return PremiumSummaryData.fromJson(
+      jsonDecode(rows.first['json'] as String) as Map<String, dynamic>,
+    );
+  }
+
+  Future<void> savePremiumSummary(PremiumSummaryData data, {String? shopId}) async {
+    final db = await _db.database;
+    final key = shopId ?? 'default';
+    await db.insert(
+      OfflineConstants.premiumSummaryTable,
+      {
+        'shop_id': key,
+        'json': jsonEncode(data.toJson()),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<InboundTransactionData>> getInboundTransactions({int limit = 50}) async {
+    final db = await _db.database;
+    final rows = await db.query(
+      OfflineConstants.inboundTransactionsTable,
+      orderBy: 'created_at DESC',
+      limit: limit,
+    );
+    return rows
+        .map((row) => InboundTransactionData.fromJson(
+              jsonDecode(row['json'] as String) as Map<String, dynamic>,
+            ))
+        .toList();
+  }
+
+  Future<void> saveInboundTransactions(List<InboundTransactionData> transactions) async {
+    final db = await _db.database;
+    await db.transaction((txn) async {
+      await txn.delete(OfflineConstants.inboundTransactionsTable);
+      for (final tx in transactions) {
+        final id = tx.id;
+        if (id == null || id.isEmpty) continue;
+        await txn.insert(
+          OfflineConstants.inboundTransactionsTable,
+          {
+            'id': id,
+            'shop_id': tx.shop,
+            'json': jsonEncode(tx.toJson()),
+            'created_at': tx.createdAt,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
   }
 
   Future<void> _deleteOfflineAssetsDirectory() async {
@@ -1033,4 +1126,5 @@ class OfflineLocalCache {
       // Do not block logout if file cleanup fails.
     }
   }
+
 }

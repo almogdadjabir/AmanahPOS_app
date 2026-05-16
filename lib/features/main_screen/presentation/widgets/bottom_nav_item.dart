@@ -7,6 +7,7 @@ class BottomNavItem extends StatefulWidget {
   final String label;
   final bool isActive;
   final VoidCallback? onTap;
+  final bool showPremiumIndicator;
 
   const BottomNavItem({
     super.key,
@@ -14,6 +15,7 @@ class BottomNavItem extends StatefulWidget {
     required this.label,
     required this.isActive,
     this.onTap,
+    this.showPremiumIndicator = false,
   });
 
   @override
@@ -31,7 +33,6 @@ class _BottomNavItemState extends State<BottomNavItem> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
     final activeColor = colors.primary;
     final inactiveColor = colors.textSecondary.withValues(alpha: 0.74);
     final itemColor = widget.isActive ? activeColor : inactiveColor;
@@ -52,28 +53,43 @@ class _BottomNavItemState extends State<BottomNavItem> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(
-                          begin: 0.88,
-                          end: 1,
-                        ).animate(animation),
-                        child: child,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: Tween<double>(begin: 0.88, end: 1).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Icon(
+                        widget.icon,
+                        key: ValueKey(widget.icon),
+                        size: widget.isActive ? 27 : 25,
+                        color: itemColor,
                       ),
-                    );
-                  },
-                  child: Icon(
-                    widget.icon,
-                    key: ValueKey(widget.icon),
-                    size: widget.isActive ? 27 : 25,
-                    color: itemColor,
-                  ),
+                    ),
+                    if (widget.showPremiumIndicator)
+                      Positioned(
+                        top: -3,
+                        right: -5,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFBBF24),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 AnimatedDefaultTextStyle(
@@ -81,8 +97,7 @@ class _BottomNavItemState extends State<BottomNavItem> {
                   curve: Curves.easeOutCubic,
                   style: AppTextStyles.sm200(context).copyWith(
                     color: itemColor,
-                    fontWeight:
-                    widget.isActive ? FontWeight.w900 : FontWeight.w700,
+                    fontWeight: widget.isActive ? FontWeight.w900 : FontWeight.w700,
                     height: 1,
                     letterSpacing: widget.isActive ? -0.15 : 0,
                   ),

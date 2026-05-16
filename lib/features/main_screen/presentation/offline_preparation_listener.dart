@@ -3,6 +3,11 @@ import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dar
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/premium_inventory_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/stock_levels_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/inbound_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/vendors_bloc.dart';
+import 'package:amana_pos/features/inventory/presentation/bloc/expiry_report_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/preparing_offline_screen.dart';
 import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
@@ -59,6 +64,11 @@ class _OfflinePreparationListenerState
     context.read<NotificationBloc>().add(const OnNotificationReset());
     context.read<PosBloc>().add(const PosSessionReset());
     context.read<DashboardSummaryBloc>().add(const OnDashboardSummaryReset());
+    context.read<PremiumInventoryBloc>().add(const OnPremiumInventoryReset());
+    context.read<StockLevelsBloc>().add(const OnStockLevelsReset());
+    context.read<InboundBloc>().add(const OnInboundReset());
+    context.read<VendorsBloc>().add(const OnVendorsReset());
+    context.read<ExpiryReportBloc>().add(const OnExpiryReportReset());
   }
 
   @override

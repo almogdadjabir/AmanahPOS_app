@@ -27,6 +27,7 @@ dependencies:
   # UI / Assets
   flutter_svg: ^2.0.10+1
   flutter_animate: ^4.5.2
+  fl_chart: ^0.69.0
 
   # Network
   dio: ^5.5.0+1
