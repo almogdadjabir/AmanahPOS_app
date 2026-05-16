@@ -77,18 +77,18 @@ Owns the 6 parallel dashboard-level data calls. Fires on `OnPremiumInventoryStar
 4. On success → update caches → emit fresh state
 5. If offline → remain on cached state, `connectionStatus` from `OfflineStatusBloc` drives the status dot colour
 
-### 3.2 Per-sheet Cubits (lazy — initialise only when sheet opens)
+### 3.2 Per-sheet Blocs (lazy — data loads only when sheet opens)
 
-| Cubit | Sheet | Loads |
+| Bloc | Sheet | Key events |
 |---|---|---|
-| `StockLevelsCubit` | Stock Levels Sheet | Paginated stock, search, filter |
-| `InboundCubit` | Inbound Sheet | Inbound list + form submit |
-| `VendorsCubit` | Vendors Sheet | Vendor list, CRUD (online-only) |
-| `ExpiryReportCubit` | Expiry Report Sheet | Filtered expiry list |
+| `StockLevelsBloc` | Stock Levels Sheet | `OnStockLevelsStarted`, `OnStockLevelsLoadMore`, `OnStockLevelsFilterChanged`, `OnStockLevelsSearchChanged`, `OnStockLevelsReset` |
+| `InboundBloc` | Inbound Sheet | `OnInboundStarted`, `OnInboundLoadMore`, `OnInboundFormSubmit`, `OnInboundFormReset`, `OnInboundReset` |
+| `VendorsBloc` | Vendors Sheet | `OnVendorsStarted`, `OnVendorCreate`, `OnVendorUpdate`, `OnVendorDelete`, `OnVendorsReset` |
+| `ExpiryReportBloc` | Expiry Report Sheet | `OnExpiryReportStarted`, `OnExpiryReportLoadMore`, `OnExpiryReportFilterChanged`, `OnExpiryReportReset` |
 
-Low Stock Sheet reuses `StockLevelsCubit` pre-filtered with `lowStock: true`.  
-Each sheet wraps its cubit in a `BlocProvider` created inline when the sheet is shown.  
-The existing `InventoryBloc` handles stock add/adjust/transfer operations — both basic and premium share it.
+Low Stock Sheet fires `OnStockLevelsStarted(lowStockOnly: true)` — same `StockLevelsBloc`, different event parameter.  
+All four blocs are registered in `getProviders` at root level (same pattern as `InventoryBloc`) and live for the app lifetime. Each fires its `Started` event when the corresponding sheet opens, not on app start.  
+The existing `InventoryBloc` handles stock add/adjust operations — both basic and premium share it via `context.read<InventoryBloc>()`.
 
 ---
 
@@ -245,18 +245,18 @@ Error state: card shows a small retry icon — does not block other cards.
 
 ## 6. Bottom Sheets
 
-All sheets use `showModalBottomSheet` with `isScrollControlled: true`, `useSafeArea: true`, drag handle at top. Each wraps its Cubit in `BlocProvider`.
+All sheets use `showModalBottomSheet` with `isScrollControlled: true`, `useSafeArea: true`, drag handle at top. Each sheet reads its corresponding Bloc from the root provider tree via `context.read<XxxBloc>()` — no inline `BlocProvider` needed.
 
-### 6.1 Stock Levels Sheet (`StockLevelsCubit`)
+### 6.1 Stock Levels Sheet (`StockLevelsBloc`)
 - Search field + filter chips: All / Low / Out of Stock
 - Paginated `ListView` (load more on scroll)
 - Tap row → inline adjustment bottom card: Add / Remove / Set qty + notes → dispatches to existing `InventoryBloc` (`OnAddStock` / `OnAdjustStock`)
 
 ### 6.2 Low Stock Sheet
 - Same as Stock Levels sheet but pre-filtered `?low_stock=true&out_of_stock=true`
-- Each row has a `[Receive]` button that pops this sheet and opens Inbound sheet pre-filled with that product
+- Each row has a `[Receive]` button that pops this sheet and opens Inbound sheet pre-filled with that product (dispatches `OnInboundFormReset` then `OnInboundStarted` with the product pre-filled)
 
-### 6.3 Inbound Sheet (`InboundCubit`)
+### 6.3 Inbound Sheet (`InboundBloc`)
 Two sections in one scrollable sheet:
 
 **Section A — Receive Form:**
@@ -266,20 +266,20 @@ Two sections in one scrollable sheet:
 - Notes field (optional)
 - Line items: expandable list, each row: product search (from `GET /products/?shop=`) + qty + unit cost (optional) + expiry date (optional) + batch number (optional)
 - `[+ Add Item]` button
-- `[Record Inbound]` → `OnCreateInboundTransaction` (existing event, vendor_id added to `CreateInboundRequestDto`)
-- Offline: queues via existing `OfflineInboundQueue`
+- `[Record Inbound]` → `OnInboundFormSubmit` on `InboundBloc` (which internally dispatches `OnCreateInboundTransaction` to the existing `InventoryBloc` for the actual API call + local cache update; vendor_id added to `CreateInboundRequestDto`)
+- Offline: existing `OfflineInboundQueue` path unchanged
 
 **Section B — Transaction History:**
-- Paginated list from `InboundCubit`
+- Paginated list driven by `InboundBloc` state
 - Tap → detail modal (reference, vendor, items table)
 
-### 6.4 Expiry Report Sheet (`ExpiryReportCubit`)
+### 6.4 Expiry Report Sheet (`ExpiryReportBloc`)
 - Filter chips: Expiring Soon / Expired / All
 - Optional date range row
 - List: product name, batch, shop, qty, expiry date, days-remaining chip
 - Chip colours: red ≤5 days, amber ≤14 days, green otherwise
 
-### 6.5 Vendors Sheet (`VendorsCubit`) — online-only
+### 6.5 Vendors Sheet (`VendorsBloc`) — online-only
 - List of active vendors: name, phone, transaction count
 - `[+ Add Vendor]` → inline form (name required, phone/email/address/notes optional)
 - Tap vendor → detail with Edit and Deactivate options
@@ -304,6 +304,16 @@ class InventoryScreen extends StatelessWidget {
 
 `BasicInventoryView` = current `_InventoryScreenState` body extracted verbatim.
 
+### offline_preparation_listener.dart — `_syncSession` update
+Add reset events for the 5 new blocs so they clear on user switch (same pattern as existing blocs):
+```dart
+context.read<PremiumInventoryBloc>().add(const OnPremiumInventoryReset());
+context.read<StockLevelsBloc>().add(const OnStockLevelsReset());
+context.read<InboundBloc>().add(const OnInboundReset());
+context.read<VendorsBloc>().add(const OnVendorsReset());
+context.read<ExpiryReportBloc>().add(const OnExpiryReportReset());
+```
+
 ### Bottom Nav — Premium Indicator
 When `isPremium == true`, the Inventory `NavTab` gets a trailing `Icons.auto_awesome` (size 12, color `0xFFD97706`) appended to its label or icon. Achieved by adding an optional `trailingIndicator` field to `NavTab` and rendering it in `NavShell`.
 
@@ -311,7 +321,7 @@ When `isPremium == true`, the Inventory `NavTab` gets a trailing `Icons.auto_awe
 
 ## 8. Dependency Injection
 
-In `providers.dart`, add:
+In `providers.dart`, add all 5 new blocs following the same pattern as `InventoryBloc`:
 ```dart
 BlocProvider(
   create: (_) => PremiumInventoryBloc(
@@ -320,9 +330,29 @@ BlocProvider(
     isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
   ),
 ),
+BlocProvider(
+  create: (_) => StockLevelsBloc(useCase: getIt<InventoryUseCase>()),
+),
+BlocProvider(
+  create: (_) => InboundBloc(
+    useCase: getIt<InventoryUseCase>(),
+    offlineLocalCache: getIt<OfflineLocalCache>(),
+    offlineInboundQueue: getIt<OfflineInboundQueue>(),
+    isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+  ),
+),
+BlocProvider(
+  create: (_) => VendorsBloc(
+    useCase: getIt<InventoryUseCase>(),
+    isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+  ),
+),
+BlocProvider(
+  create: (_) => ExpiryReportBloc(useCase: getIt<InventoryUseCase>()),
+),
 ```
 
-Sheet Cubits (`StockLevelsCubit`, `InboundCubit`, `VendorsCubit`, `ExpiryReportCubit`) are created inline at sheet show-time, not in the global provider tree.
+All blocs live at root level for the entire app lifetime, consistent with the existing architecture.
 
 ---
 
