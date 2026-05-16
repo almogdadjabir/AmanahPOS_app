@@ -30,6 +30,7 @@ import 'package:amana_pos/features/category/domain/usecases/category_usecase.dar
 import 'package:amana_pos/features/customers/data/repository_impl/customer_repo_impl.dart';
 import 'package:amana_pos/features/customers/domain/repositories/customer_repository.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
+import 'package:amana_pos/features/inventory/data/offline/offline_inbound_queue.dart';
 import 'package:amana_pos/features/inventory/data/repository_impl/inventory_repo_impl.dart';
 import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
@@ -123,16 +124,24 @@ class DependenciesProvider {
       ),
     );
 
+    getIt.registerLazySingleton<OfflineInboundQueue>(
+          () => OfflineInboundQueue(
+        db: getIt<OfflineDb>(),
+      ),
+    );
+
     // Sync manager
     getIt.registerLazySingleton<SyncManager>(
           () => SyncManager(
         salesQueue: getIt<OfflineSalesQueue>(),
+        inboundQueue: getIt<OfflineInboundQueue>(),
         posRemoteDataSource: getIt<PosRemoteDataSource>(),
+        requestHandler: getIt<RequestHandler>(),
       ),
     );
 
     getIt.registerLazySingleton<PendingSyncBloc>(
-      () => PendingSyncBloc(syncManager: getIt<SyncManager>()),
+          () => PendingSyncBloc(syncManager: getIt<SyncManager>()),
     );
 
     // Offline-first manager

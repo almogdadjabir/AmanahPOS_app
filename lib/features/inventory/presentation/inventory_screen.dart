@@ -5,9 +5,9 @@ import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_prod
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_app_bar.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_empty_view.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_error_view.dart';
-import 'package:amana_pos/features/inventory/presentation/widgets/inventory_filter_bar.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_header.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_loading_view.dart';
+import 'package:amana_pos/features/inventory/presentation/widgets/inbound_receiving_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/stock_list.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -98,7 +98,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   prev.stockList != curr.stockList ||
                       prev.status != curr.status,
                   builder: (context, state) {
-                    return InventoryHeader(stockList: state.stockList)
+                    return InventoryHeader(
+                      stockList: state.stockList,
+                      selectedFilter: state.filter,
+                      onFilterChanged: (filter) {
+                        context.read<InventoryBloc>().add(
+                          OnInventoryFilterChanged(filter: filter),
+                        );
+
+                        if (_scrollCtrl.hasClients) {
+                          _scrollCtrl.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 260),
+                            curve: Curves.easeOutCubic,
+                          );
+                        }
+                      },
+                    )
                         .animate()
                         .fadeIn(duration: 320.ms)
                         .slideY(
@@ -111,6 +127,26 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ),
             ),
 
+            if (context.select<AuthBloc, bool>((bloc) => bloc.state.permissions.canSeeInboundPremiumCard))
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  AppDims.s4, 0, AppDims.s4, AppDims.s2),
+                sliver: SliverToBoxAdapter(
+                  child: _InboundPremiumLockedBanner(),
+                ),
+              ),
+
+            if (context.select<AuthBloc, bool>((bloc) => bloc.state.permissions.canUseInventoryInboundReceiving))
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppDims.s4, 0, AppDims.s4, AppDims.s2),
+                sliver: SliverToBoxAdapter(
+                  child: _InboundReceivingBanner(
+                    onTap: () => showInboundReceivingSheet(context),
+                  ),
+                ),
+              ),
+
             // Expiry alerts entry — shop only, never shown for restaurant.
             if (context.read<AuthBloc>().state.permissions.isShop)
               SliverPadding(
@@ -121,17 +157,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 ),
               ),
 
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(
-                AppDims.s4,
-                AppDims.s2,
-                AppDims.s4,
-                AppDims.s2,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: InventoryFilterBar(),
-              ),
-            ),
           ],
           body: BlocBuilder<InventoryBloc, InventoryState>(
             buildWhen: (prev, curr) =>
@@ -159,17 +184,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showAddStockProductSheet(context),
-        backgroundColor: context.appColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text(
-          'Add Stock',
-          style: AppTextStyles.bs300(context).copyWith(
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
+      floatingActionButton: _InventoryFab(
+        onAddStock: () => showAddStockProductSheet(context),
+        onInbound: () => showInboundReceivingSheet(context),
       ),
     );
   }
@@ -271,6 +288,200 @@ class _ExpiryAlertsBanner extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InventoryFab extends StatelessWidget {
+  final VoidCallback onAddStock;
+  final VoidCallback onInbound;
+
+  const _InventoryFab({
+    required this.onAddStock,
+    required this.onInbound,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final canUseInbound = context.select<AuthBloc, bool>(
+      (bloc) => bloc.state.permissions.canUseInventoryInboundReceiving,
+    );
+
+    if (!canUseInbound) {
+      return FloatingActionButton.extended(
+        onPressed: onAddStock,
+        backgroundColor: colors.primary,
+        icon: const Icon(SolarIconsOutline.addCircle, color: Colors.white),
+        label: Text(
+          'Add Stock',
+          style: AppTextStyles.bs300(context).copyWith(
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        FloatingActionButton.extended(
+          heroTag: 'inbound_fab',
+          onPressed: onInbound,
+          backgroundColor: colors.primary,
+          icon: const Icon(SolarIconsOutline.box, color: Colors.white),
+          label: Text(
+            'Inbound',
+            style: AppTextStyles.bs300(context).copyWith(
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppDims.s2),
+        FloatingActionButton.extended(
+          heroTag: 'add_stock_fab',
+          onPressed: onAddStock,
+          backgroundColor: colors.surface,
+          foregroundColor: colors.primary,
+          icon: Icon(SolarIconsOutline.addCircle, color: colors.primary),
+          label: Text(
+            'Add Stock',
+            style: AppTextStyles.bs300(context).copyWith(
+              fontWeight: FontWeight.w900,
+              color: colors.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InboundReceivingBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _InboundReceivingBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDims.rLg),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        child: Container(
+          padding: const EdgeInsets.all(AppDims.s4),
+          decoration: BoxDecoration(
+            color: colors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppDims.rMd),
+                ),
+                child: Icon(SolarIconsOutline.box, color: colors.primary, size: 24),
+              ),
+              const SizedBox(width: AppDims.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Inbound Receiving',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs400(context).copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Receive supplier stock using one shared reference.',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs200(context).copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(SolarIconsOutline.altArrowRight, color: colors.primary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InboundPremiumLockedBanner extends StatelessWidget {
+  const _InboundPremiumLockedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    const premium = Color(0xFF8B5CF6);
+    return Container(
+      padding: const EdgeInsets.all(AppDims.s4),
+      decoration: BoxDecoration(
+        color: premium.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(color: premium.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: premium.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppDims.rMd),
+            ),
+            child: const Icon(SolarIconsOutline.lock, color: premium, size: 24),
+          ),
+          const SizedBox(width: AppDims.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Inbound Receiving is premium',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs400(context).copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Enable it for businesses that need advanced stock receiving.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs200(context).copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

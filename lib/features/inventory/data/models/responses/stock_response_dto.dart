@@ -72,14 +72,16 @@ class StockData {
   });
 
   factory StockData.fromJson(Map<String, dynamic> json) {
-    final qty = _parseQuantityAsString(json['quantity']);
+    final qty = _parseQuantityAsString(
+      json['quantity'] ?? json['qty'] ?? json['stock_level'],
+    );
 
     return StockData(
       id: json['id']?.toString(),
-      product: json['product']?.toString(),
+      product: (json['product'] ?? json['product_id'])?.toString(),
       productName: json['product_name']?.toString(),
       productSku: json['product_sku']?.toString(),
-      shop: json['shop']?.toString(),
+      shop: (json['shop'] ?? json['shop_id'])?.toString(),
       shopName: json['shop_name']?.toString(),
       quantity: qty,
       isLowStock: _parseBool(json['is_low_stock']),
@@ -118,14 +120,22 @@ class StockData {
     return {
       'id': id,
       'product': product,
+      'product_id': product,
       'product_name': productName,
       'product_sku': productSku,
       'shop': shop,
+      'shop_id': shop,
       'shop_name': shopName,
       'quantity': quantity,
       'is_low_stock': isLowStock,
       'is_out_of_stock': isOutOfStock,
       'updated_at': updatedAt,
+      'expiry_date': expiryDate,
+      'is_expired': isExpired,
+      'expires_in_days': expiresInDays,
+      'expiry_status': expiryStatus,
+      'batch_id': batchId,
+      'batch_number': batchNumber,
     };
   }
 

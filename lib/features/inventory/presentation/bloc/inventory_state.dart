@@ -2,8 +2,8 @@ part of 'inventory_bloc.dart';
 
 enum InventoryStatus { initial, loading, loadingMore, success, failure }
 
-enum StockFilter { all, lowStock, outOfStock }
-enum InventorySubmitStatus { idle, loading, success, failure }
+enum StockFilter { all, healthy, lowStock, outOfStock }
+enum InventorySubmitStatus { idle, loading, success, queued, failure }
 
 class InventoryState extends Equatable {
   final InventoryStatus status;
@@ -14,6 +14,9 @@ class InventoryState extends Equatable {
   final String? responseError;
   final InventorySubmitStatus submitStatus;
   final String? submitError;
+
+  /// True when the last inbound transaction was saved locally and will sync later.
+  final bool inboundQueuedOffline;
 
   /// True when stock came from SQLite cache.
   final bool isFromCache;
@@ -27,6 +30,7 @@ class InventoryState extends Equatable {
     this.responseError,
     this.submitStatus = InventorySubmitStatus.idle,
     this.submitError,
+    this.inboundQueuedOffline = false,
     this.isFromCache = false,
   });
 
@@ -35,6 +39,11 @@ class InventoryState extends Equatable {
   bool get hasMorePages => !isFromCache && currentPage < totalPages;
 
   List<StockData> get filtered => switch (filter) {
+    StockFilter.healthy => stockList.where((s) {
+      final isLow = s.isLowStock ?? false;
+      final isOut = s.isOutOfStock ?? false;
+      return !isLow && !isOut;
+    }).toList(),
     StockFilter.lowStock => stockList.where((s) => s.isLowStock ?? false).toList(),
     StockFilter.outOfStock => stockList.where((s) => s.isOutOfStock ?? false).toList(),
     StockFilter.all => stockList,
@@ -51,6 +60,7 @@ class InventoryState extends Equatable {
     InventorySubmitStatus? submitStatus,
     String? submitError,
     bool clearSubmitError = false,
+    bool? inboundQueuedOffline,
     bool? isFromCache,
   }) {
     return InventoryState(
@@ -66,6 +76,7 @@ class InventoryState extends Equatable {
       submitError: clearSubmitError
           ? null
           : submitError ?? this.submitError,
+      inboundQueuedOffline: inboundQueuedOffline ?? this.inboundQueuedOffline,
       isFromCache: isFromCache ?? this.isFromCache,
     );
   }
@@ -79,6 +90,7 @@ class InventoryState extends Equatable {
     responseError,
     submitStatus,
     submitError,
+    inboundQueuedOffline,
     isFromCache,
   ];
 }

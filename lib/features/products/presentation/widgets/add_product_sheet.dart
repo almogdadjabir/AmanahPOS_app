@@ -21,7 +21,10 @@ import 'package:amana_pos/widgets/optional_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void showAddProductSheet(BuildContext context) {
+void showAddProductSheet(
+    BuildContext context, {
+      CategoryData? initialCategory,
+    }) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -30,6 +33,7 @@ void showAddProductSheet(BuildContext context) {
       value: context.read<ProductBloc>(),
       child: _AddProductSheet(
         isRestaurant: context.read<AuthBloc>().state.permissions.isRestaurant,
+        initialCategory: initialCategory,
       ),
     ),
   );
@@ -37,8 +41,12 @@ void showAddProductSheet(BuildContext context) {
 
 class _AddProductSheet extends StatefulWidget {
   final bool isRestaurant;
+  final CategoryData? initialCategory;
 
-  const _AddProductSheet({required this.isRestaurant});
+  const _AddProductSheet({
+    required this.isRestaurant,
+    this.initialCategory,
+  });
 
   @override
   State<_AddProductSheet> createState() => _AddProductSheetState();
@@ -75,9 +83,28 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   @override
   void initState() {
     super.initState();
+
     _units = widget.isRestaurant ? kUnitsRestaurant : kUnitsShop;
+
     final cats = context.read<ProductBloc>().state.categories;
-    if (cats.isNotEmpty) _selectedCategory = cats.first;
+
+    if (widget.initialCategory != null) {
+      final initialId = widget.initialCategory!.id;
+
+      final matched = cats.where((category) {
+        return category.id == initialId;
+      }).toList();
+
+      _selectedCategory = matched.isNotEmpty
+          ? matched.first
+          : widget.initialCategory;
+
+      return;
+    }
+
+    if (cats.isNotEmpty) {
+      _selectedCategory = cats.first;
+    }
   }
 
   @override

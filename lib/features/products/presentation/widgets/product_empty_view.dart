@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ProductEmptyView extends StatelessWidget {
   final String title;
@@ -36,7 +37,7 @@ class ProductEmptyView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // ── Catalog preview grid ──────────────────────────────────────
-            const _CatalogGrid()
+            _CatalogGrid(onPressed: onPrimaryAction)
                 .animate()
                 .fadeIn(duration: 380.ms)
                 .scale(
@@ -115,7 +116,9 @@ class ProductEmptyView extends StatelessWidget {
 // ── Catalog preview grid ────────────────────────────────────────────────────
 
 class _CatalogGrid extends StatelessWidget {
-  const _CatalogGrid();
+  final VoidCallback? onPressed;
+
+  const _CatalogGrid({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +132,7 @@ class _CatalogGrid extends StatelessWidget {
             Expanded(
               child: _FilledCard(
                 accentColor: colors.warning,
-                icon: Icons.inventory_2_rounded,
+                icon: SolarIconsOutline.box,
               )
                   .animate(delay: 40.ms)
                   .fadeIn(duration: 280.ms)
@@ -144,7 +147,7 @@ class _CatalogGrid extends StatelessWidget {
             Expanded(
               child: _FilledCard(
                 accentColor: colors.success,
-                icon: Icons.local_offer_rounded,
+                icon: SolarIconsOutline.tag,
               )
                   .animate(delay: 100.ms)
                   .fadeIn(duration: 280.ms)
@@ -163,7 +166,7 @@ class _CatalogGrid extends StatelessWidget {
             Expanded(
               child: _FilledCard(
                 accentColor: colors.info,
-                icon: Icons.category_rounded,
+                icon: SolarIconsOutline.layersMinimalistic,
               )
                   .animate(delay: 160.ms)
                   .fadeIn(duration: 280.ms)
@@ -177,7 +180,7 @@ class _CatalogGrid extends StatelessWidget {
             const SizedBox(width: AppDims.s3),
             // The "your product goes here" slot
             Expanded(
-              child: const _EmptySlot()
+              child: _EmptySlot(onPressed: onPressed)
                   .animate(delay: 220.ms)
                   .fadeIn(duration: 280.ms)
                   .scale(
@@ -278,71 +281,76 @@ class _FilledCard extends StatelessWidget {
 // ── "Your product goes here" empty slot ─────────────────────────────────────
 
 class _EmptySlot extends StatelessWidget {
-  const _EmptySlot();
+  final VoidCallback? onPressed;
+
+  const _EmptySlot({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
     // Continuous gentle breathing — GPU transform only, no repaints
-    return SizedBox(
-      height: 132,
-      child: CustomPaint(
-        foregroundPainter: _DashBorderPainter(
-          color: colors.primary.withValues(alpha: 0.42),
-          radius: AppDims.rXl,
-          strokeWidth: 1.6,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colors.primaryContainer.withValues(alpha: 0.20),
-            borderRadius: BorderRadius.circular(AppDims.rXl),
+    return GestureDetector(
+      onTap: onPressed,
+      child: SizedBox(
+        height: 132,
+        child: CustomPaint(
+          foregroundPainter: _DashBorderPainter(
+            color: colors.primary.withValues(alpha: 0.42),
+            radius: AppDims.rXl,
+            strokeWidth: 1.6,
           ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.28),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+          child: Container(
+            decoration: BoxDecoration(
+              color: colors.primaryContainer.withValues(alpha: 0.20),
+              borderRadius: BorderRadius.circular(AppDims.rXl),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.primary.withValues(alpha: 0.28),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      SolarIconsOutline.addCircle,
+                      size: 22,
+                      color: Colors.white,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    size: 22,
-                    color: Colors.white,
+                  const SizedBox(height: AppDims.s2),
+                  Text(
+                    'Your product',
+                    style: AppTextStyles.sm200(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppDims.s2),
-                Text(
-                  'Your product',
-                  style: AppTextStyles.sm200(context).copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.primary,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(
-          begin: 1.0,
-          end: 1.026,
-          duration: 2400.ms,
-          curve: Curves.easeInOut,
-        );
+      )
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .scaleXY(
+            begin: 1.0,
+            end: 1.026,
+            duration: 2400.ms,
+            curve: Curves.easeInOut,
+          ),
+    );
   }
 }
 
@@ -375,7 +383,11 @@ class _AddProductButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.add_rounded, size: 22, color: Colors.white),
+            const Icon(
+              SolarIconsOutline.addCircle,
+              size: 22,
+              color: Colors.white,
+            ),
             const SizedBox(width: AppDims.s2),
             Text(
               label,

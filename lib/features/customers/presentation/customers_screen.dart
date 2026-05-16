@@ -8,6 +8,15 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
+
+enum CustomerQuickFilter {
+  all,
+  active,
+  inactive,
+  credit,
+  withPhone,
+}
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -20,6 +29,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   final _scrollCtrl = ScrollController();
   final _searchCtrl = TextEditingController();
 
+  CustomerQuickFilter _selectedFilter = CustomerQuickFilter.all;
   bool _isRequestingMore = false;
 
   @override
@@ -27,8 +37,23 @@ class _CustomersScreenState extends State<CustomersScreen> {
     super.initState();
 
     context.read<CustomersBloc>().add(const OnCustomersInitial());
-
     _scrollCtrl.addListener(_onScroll);
+  }
+
+  void _onCustomerFilterChanged(CustomerQuickFilter filter) {
+    if (_selectedFilter == filter) return;
+
+    setState(() {
+      _selectedFilter = filter;
+    });
+
+    if (_scrollCtrl.hasClients) {
+      _scrollCtrl.animateTo(
+        0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   void _onScroll() {
@@ -58,6 +83,41 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Future<void> _refresh() async {
     context.read<CustomersBloc>().add(const OnCustomersInitial());
     await Future<void>.delayed(const Duration(milliseconds: 450));
+  }
+
+  List<CustomerData> _filteredCustomers(List<CustomerData> customers) {
+    switch (_selectedFilter) {
+      case CustomerQuickFilter.all:
+        return customers;
+
+      case CustomerQuickFilter.active:
+        return customers.where((customer) {
+          return customer.isActive == true;
+        }).toList(growable: false);
+
+      case CustomerQuickFilter.inactive:
+        return customers.where((customer) {
+          return customer.isActive == false;
+        }).toList(growable: false);
+
+      case CustomerQuickFilter.credit:
+        return customers.where((customer) {
+          return _customerCreditAmount(customer) > 0;
+        }).toList(growable: false);
+
+      case CustomerQuickFilter.withPhone:
+        return customers.where((customer) {
+          return customer.phone?.trim().isNotEmpty == true;
+        }).toList(growable: false);
+    }
+  }
+
+  static double _customerCreditAmount(CustomerData customer) {
+    final raw = customer.totalPurchases?.trim();
+
+    if (raw == null || raw.isEmpty) return 0;
+
+    return double.tryParse(raw) ?? 0;
   }
 
   @override
@@ -111,6 +171,36 @@ class _CustomersScreenState extends State<CustomersScreen> {
             slivers: [
               const _CustomersAppBar(),
 
+              BlocBuilder<CustomersBloc, CustomersState>(
+                buildWhen: (prev, curr) =>
+                prev.customers != curr.customers ||
+                    prev.status != curr.status,
+                builder: (context, state) {
+                  if (state.status == CustomersStatus.initial ||
+                      state.status == CustomersStatus.loading) {
+                    return const SliverToBoxAdapter(
+                      child: SizedBox.shrink(),
+                    );
+                  }
+
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppDims.s4,
+                      AppDims.s4,
+                      AppDims.s4,
+                      0,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: _CustomersHeader(
+                        customers: state.customers,
+                        selectedFilter: _selectedFilter,
+                        onFilterChanged: _onCustomerFilterChanged,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   AppDims.s4,
@@ -129,9 +219,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     prev.filteredCustomers != curr.filteredCustomers ||
                     prev.searchQuery != curr.searchQuery,
                 builder: (context, state) {
+                  final customers = _filteredCustomers(state.filteredCustomers);
+
                   return switch (state.status) {
                     CustomersStatus.initial ||
-                    CustomersStatus.loading => const _CustomersLoading(),
+                    CustomersStatus.loading =>
+                    const _CustomersLoading(),
 
                     CustomersStatus.failure => SliverFillRemaining(
                       hasScrollBody: false,
@@ -141,16 +234,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ),
                     ),
 
-                    _ => state.filteredCustomers.isEmpty
+                    _ => customers.isEmpty
                         ? SliverFillRemaining(
                       hasScrollBody: false,
                       child: _CustomersEmpty(
                         query: state.searchQuery,
+                        filter: _selectedFilter,
                         onAdd: () => showCustomerFormSheet(context),
                       ),
                     )
                         : _CustomersList(
-                      customers: state.filteredCustomers,
+                      customers: customers,
                       isLoadingMore:
                       state.status == CustomersStatus.loadingMore,
                     ),
@@ -163,7 +257,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => showCustomerFormSheet(context),
           backgroundColor: context.appColors.primary,
-          icon: const Icon(Icons.person_add_alt_rounded, color: Colors.white),
+          icon: const Icon(
+            SolarIconsOutline.userPlus,
+            color: Colors.white,
+          ),
           label: Text(
             'Add Customer',
             style: AppTextStyles.bs300(context).copyWith(
@@ -201,11 +298,259 @@ class _CustomersAppBar extends StatelessWidget {
             context.read<CustomersBloc>().add(const OnCustomersInitial());
           },
           icon: Icon(
-            Icons.refresh_rounded,
+            SolarIconsOutline.refresh,
             color: context.appColors.textPrimary,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CustomersHeader extends StatelessWidget {
+  final List<CustomerData> customers;
+  final CustomerQuickFilter selectedFilter;
+  final ValueChanged<CustomerQuickFilter> onFilterChanged;
+
+  const _CustomersHeader({
+    required this.customers,
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    final active = customers.where((customer) {
+      return customer.isActive == true;
+    }).length;
+
+    final inactive = customers.where((customer) {
+      return customer.isActive == false;
+    }).length;
+
+    final credit = customers.where((customer) {
+      return _CustomersScreenState._customerCreditAmount(customer) > 0;
+    }).length;
+
+    final withPhone = customers.where((customer) {
+      return customer.phone?.trim().isNotEmpty == true;
+    }).length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDims.s4),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(AppDims.rLg),
+                  border: Border.all(
+                    color: colors.primary.withValues(alpha: 0.16),
+                  ),
+                ),
+                child: Icon(
+                  SolarIconsOutline.usersGroupRounded,
+                  color: colors.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: AppDims.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Customers',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs700(context).copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        height: 1.05,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Manage customer profiles, phone numbers, loyalty, and purchase history.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs300(context).copyWith(
+                        color: colors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDims.s4),
+          Row(
+            children: [
+              Expanded(
+                child: _CustomerMiniStat(
+                  label: 'Total',
+                  value: '${customers.length}',
+                  icon: SolarIconsOutline.usersGroupRounded,
+                  color: colors.primary,
+                  isSelected: selectedFilter == CustomerQuickFilter.all,
+                  onTap: () => onFilterChanged(CustomerQuickFilter.all),
+                ),
+              ),
+              const SizedBox(width: AppDims.s2),
+              Expanded(
+                child: _CustomerMiniStat(
+                  label: 'Active',
+                  value: '$active',
+                  icon: SolarIconsOutline.checkCircle,
+                  color: const Color(0xFF16A34A),
+                  isSelected: selectedFilter == CustomerQuickFilter.active,
+                  onTap: () => onFilterChanged(CustomerQuickFilter.active),
+                ),
+              ),
+              const SizedBox(width: AppDims.s2),
+              Expanded(
+                child: _CustomerMiniStat(
+                  label: 'Inactive',
+                  value: '$inactive',
+                  icon: SolarIconsOutline.pauseCircle,
+                  color: const Color(0xFF94A3B8),
+                  isSelected: selectedFilter == CustomerQuickFilter.inactive,
+                  onTap: () => onFilterChanged(CustomerQuickFilter.inactive),
+                ),
+              ),
+              const SizedBox(width: AppDims.s2),
+              Expanded(
+                child: _CustomerMiniStat(
+                  label: 'Credit',
+                  value: '$credit',
+                  icon: SolarIconsOutline.walletMoney,
+                  color: const Color(0xFFEA580C),
+                  isSelected: selectedFilter == CustomerQuickFilter.credit,
+                  onTap: () => onFilterChanged(CustomerQuickFilter.credit),
+                ),
+              ),
+              const SizedBox(width: AppDims.s2),
+              Expanded(
+                child: _CustomerMiniStat(
+                  label: 'Phone',
+                  value: '$withPhone',
+                  icon: SolarIconsOutline.phoneRounded,
+                  color: const Color(0xFF0EA5E9),
+                  isSelected: selectedFilter == CustomerQuickFilter.withPhone,
+                  onTap: () => onFilterChanged(CustomerQuickFilter.withPhone),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CustomerMiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CustomerMiniStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDims.rMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDims.rMd),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDims.s2,
+            vertical: AppDims.s3,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? color.withValues(alpha: 0.14)
+                : color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppDims.rMd),
+            border: Border.all(
+              width: isSelected ? 1.4 : 1,
+              color: isSelected
+                  ? color.withValues(alpha: 0.55)
+                  : color.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: color,
+              ),
+              const SizedBox(height: 6),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: AppTextStyles.bs500(context).copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bs100(context).copyWith(
+                  color: isSelected ? color : colors.textSecondary,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -241,7 +586,7 @@ class _CustomersSearchField extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
           prefixIcon: Icon(
-            Icons.search_rounded,
+            SolarIconsOutline.magnifier,
             color: colors.textHint,
             size: 20,
           ),
@@ -435,7 +780,7 @@ class _CustomerCard extends StatelessWidget {
                   ),
                 ],
                 icon: Icon(
-                  Icons.more_vert_rounded,
+                  SolarIconsOutline.menuDots,
                   color: colors.textHint,
                 ),
               ),
@@ -480,16 +825,52 @@ class _SmallPill extends StatelessWidget {
 
 class _CustomersEmpty extends StatelessWidget {
   final String query;
+  final CustomerQuickFilter filter;
   final VoidCallback onAdd;
 
   const _CustomersEmpty({
     required this.query,
+    required this.filter,
     required this.onAdd,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final hasQuery = query.trim().isNotEmpty;
+
+    final title = hasQuery
+        ? 'No customers found'
+        : switch (filter) {
+      CustomerQuickFilter.all => 'No customers yet',
+      CustomerQuickFilter.active => 'No active customers',
+      CustomerQuickFilter.inactive => 'No inactive customers',
+      CustomerQuickFilter.credit => 'No credit customers',
+      CustomerQuickFilter.withPhone => 'No customers with phone',
+    };
+
+    final message = hasQuery
+        ? 'Nothing matches "${query.trim()}".'
+        : switch (filter) {
+      CustomerQuickFilter.all =>
+      'Add your first customer to track loyalty and purchases.',
+      CustomerQuickFilter.active => 'No customers are currently active.',
+      CustomerQuickFilter.inactive => 'All customers are currently active.',
+      CustomerQuickFilter.credit =>
+      'No customers currently have credit or purchase balance.',
+      CustomerQuickFilter.withPhone =>
+      'No customers have phone numbers yet.',
+    };
+
+    final icon = hasQuery
+        ? SolarIconsOutline.magnifier
+        : switch (filter) {
+      CustomerQuickFilter.all => SolarIconsOutline.usersGroupRounded,
+      CustomerQuickFilter.active => SolarIconsOutline.checkCircle,
+      CustomerQuickFilter.inactive => SolarIconsOutline.pauseCircle,
+      CustomerQuickFilter.credit => SolarIconsOutline.walletMoney,
+      CustomerQuickFilter.withPhone => SolarIconsOutline.phoneRounded,
+    };
 
     return Center(
       child: Padding(
@@ -497,37 +878,44 @@ class _CustomersEmpty extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              hasQuery
-                  ? Icons.search_off_rounded
-                  : Icons.people_alt_outlined,
-              size: 46,
-              color: context.appColors.textHint,
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: colors.surfaceSoft,
+                borderRadius: BorderRadius.circular(AppDims.rXl),
+                border: Border.all(color: colors.border),
+              ),
+              child: Icon(
+                icon,
+                size: 34,
+                color: colors.textSecondary,
+              ),
             ),
             const SizedBox(height: AppDims.s3),
             Text(
-              hasQuery ? 'No customers found' : 'No customers yet',
+              title,
+              textAlign: TextAlign.center,
               style: AppTextStyles.bs500(context).copyWith(
-                color: context.appColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: AppDims.s1),
             Text(
-              hasQuery
-                  ? 'Nothing matches "${query.trim()}".'
-                  : 'Add your first customer to track loyalty and purchases.',
+              message,
               textAlign: TextAlign.center,
               style: AppTextStyles.bs200(context).copyWith(
-                color: context.appColors.textSecondary,
+                color: colors.textSecondary,
                 fontWeight: FontWeight.w600,
+                height: 1.35,
               ),
             ),
-            if (!hasQuery) ...[
+            if (!hasQuery && filter == CustomerQuickFilter.all) ...[
               const SizedBox(height: AppDims.s4),
               FilledButton.icon(
                 onPressed: onAdd,
-                icon: const Icon(Icons.person_add_alt_rounded),
+                icon: const Icon(SolarIconsOutline.userPlus),
                 label: const Text('Add Customer'),
               ),
             ],
@@ -580,7 +968,7 @@ class _CustomersError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.cloud_off_rounded,
+              SolarIconsOutline.cloudCross,
               size: 46,
               color: context.appColors.textHint,
             ),
@@ -605,7 +993,10 @@ class _CustomersError extends StatelessWidget {
             const SizedBox(height: AppDims.s4),
             OutlinedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 16),
+              icon: const Icon(
+                SolarIconsOutline.refresh,
+                size: 16,
+              ),
               label: const Text('Retry'),
             ),
           ],

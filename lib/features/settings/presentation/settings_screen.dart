@@ -83,18 +83,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  static String _modeLabel(ScreenMode? mode) {
-    switch (mode) {
-      case ScreenMode.light:
-        return 'Light';
-      case ScreenMode.dark:
-        return 'Dark';
-      case ScreenMode.device:
-      default:
-        return 'System';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -363,7 +351,7 @@ class _SettingsAppBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
         child: Row(
           children: [
-            _BackButton(colors: colors),
+            BackButton(),
             const SizedBox(width: AppDims.s3),
             Expanded(
               child: Text(
@@ -383,40 +371,6 @@ class _SettingsAppBar extends StatelessWidget {
   }
 }
 
-class _BackButton extends StatelessWidget {
-  final AppThemeColors colors;
-
-  const _BackButton({
-    required this.colors,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(15),
-      child: InkWell(
-        onTap: () => Navigator.of(context).pop(),
-        borderRadius: BorderRadius.circular(15),
-        child: Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: colors.border.withValues(alpha: 0.76),
-            ),
-          ),
-          child: Icon(
-            SolarIconsOutline.altArrowLeft,
-            color: colors.textPrimary,
-            size: 25,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _SyncedPill extends StatelessWidget {
   const _SyncedPill();

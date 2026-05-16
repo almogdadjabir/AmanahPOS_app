@@ -9,7 +9,7 @@ class OfflineDb {
   static final OfflineDb instance = OfflineDb._();
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2;
 
   Database? _database;
 
@@ -27,9 +27,38 @@ class OfflineDb {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
 
     return _database!;
+  }
+
+
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createPendingInboundTables(db);
+    }
+  }
+
+  Future<void> _createPendingInboundTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS pending_inbound_transactions (
+        client_inbound_id TEXT PRIMARY KEY,
+        reference TEXT NOT NULL,
+        shop_id TEXT NOT NULL,
+        notes TEXT,
+        payload_json TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        synced_at TEXT
+      )
+    ''');
+
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_pending_inbound_status ON pending_inbound_transactions(status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_pending_inbound_reference ON pending_inbound_transactions(reference)');
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -151,6 +180,8 @@ class OfflineDb {
 
     await db.execute('CREATE INDEX idx_pending_sales_status ON pending_sales(status)');
 
+    await _createPendingInboundTables(db);
+
     await db.execute('''
       CREATE TABLE pending_sale_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -242,6 +273,7 @@ class OfflineDb {
       await txn.delete('offline_assets');
       await txn.delete('pending_sale_items');
       await txn.delete('pending_sales');
+      await txn.delete('pending_inbound_transactions');
       await txn.delete('sync_metadata');
     });
   }

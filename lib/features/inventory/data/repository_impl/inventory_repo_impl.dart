@@ -1,11 +1,12 @@
-
 import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/add_stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/expiry_alert_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -49,6 +50,19 @@ class InventoryRepoImpl extends InventoryRepository {
     return requestHandler.handlePostRequest(
       'api/v1/inventory/stock/transfer/',
           (data) => true,
+      data: request.toJson(),
+    );
+  }
+
+
+
+  @override
+  Future<Either<String?, InboundResponseDto>> createInboundTransaction(
+    CreateInboundRequestDto request,
+  ) {
+    return requestHandler.handlePostRequest(
+      'api/v1/inventory/inbound/',
+      (data) => InboundResponseDto.fromJson(data as Map<String, dynamic>),
       data: request.toJson(),
     );
   }

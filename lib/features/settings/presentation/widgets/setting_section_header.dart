@@ -1,6 +1,7 @@
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 
 class SettingSectionHeader extends StatelessWidget {
@@ -22,14 +23,7 @@ class SettingSectionHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title.toUpperCase(),
-            style: AppTextStyles.bs300(context).copyWith(
-              color: colors.primary,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 5,
-            ),
-          ),
+          WorkspaceSectionHeader(title: title, color: colors.primary),
           const SizedBox(height: AppDims.s2),
           Text(
             subtitle,

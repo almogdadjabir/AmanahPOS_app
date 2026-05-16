@@ -143,66 +143,72 @@ class _NotificationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if(context.read<AuthBloc>().state.permissions.isOwner == false) {
-      return SizedBox.shrink();
-    }
-    final colors = context.appColors;
+    return BlocSelector<AuthBloc, AuthState, bool>(
+      selector: (state) => state.permissions.isOwner,
+      builder: (context, isOwner) {
+        if (!isOwner) {
+          return const SizedBox.shrink();
+        }
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, RouteStrings.notificationsScreen);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.only(right: AppDims.s3),
-        child: SizedBox(
-          width: 58,
-          height: 58,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.surfaceSoft.withValues(alpha: 0.68),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: colors.border.withValues(alpha: 0.75),
-                    width: 1.2,
-                  ),
-                ),
-                child: Center(
-                  child: BlocSelector<NotificationBloc, NotificationState, int?>(
-                    selector: (state) => state.unreadCount,
-                    builder: (context, unreadNotificationCount) {
+        final colors = context.appColors;
 
-                      final icon = SvgPicture.asset(
-                        AppAssets.icNotification,
-                        width:  24,
-                        colorFilter: ColorFilter.mode(
-                            context.appColors.textPrimary,
-                            BlendMode.srcIn
-                        ),
-                      );
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, RouteStrings.notificationsScreen);
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.only(right: AppDims.s3),
+            child: SizedBox(
+              width: 58,
+              height: 58,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: colors.surfaceSoft.withValues(alpha: 0.68),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: colors.border.withValues(alpha: 0.75),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Center(
+                      child: BlocSelector<NotificationBloc, NotificationState, int?>(
+                        selector: (state) => state.unreadCount,
+                        builder: (context, unreadNotificationCount) {
+                          final icon = SvgPicture.asset(
+                            AppAssets.icNotification,
+                            width: 24,
+                            colorFilter: ColorFilter.mode(
+                              context.appColors.textPrimary,
+                              BlendMode.srcIn,
+                            ),
+                          );
 
-                      if (unreadNotificationCount == null || unreadNotificationCount == 0) {
-                        return icon;
-                      }
+                          if (unreadNotificationCount == null ||
+                              unreadNotificationCount == 0) {
+                            return icon;
+                          }
 
-                      return Badge.count(
-                        count: unreadNotificationCount,
-                        backgroundColor: context.appColors.danger,
-                        textColor: Colors.white,
-                        child: icon,
-                      );
-                    },
+                          return Badge.count(
+                            count: unreadNotificationCount,
+                            backgroundColor: context.appColors.danger,
+                            textColor: Colors.white,
+                            child: icon,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

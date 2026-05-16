@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_app_bar.dart';
+import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
+import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/products_body.dart';
@@ -33,14 +35,25 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   void initState() {
     super.initState();
 
-    final categoryId = widget.category.id;
-    if (categoryId != null && categoryId.trim().isNotEmpty) {
-      context.read<CategoryBloc>().add(
-        OnLoadCategoryProducts(categoryId: categoryId),
-      );
-    }
-
+    _loadCategoryProducts();
     _scrollCtrl.addListener(_onScroll);
+  }
+
+  void _loadCategoryProducts() {
+    final categoryId = widget.category.id;
+
+    if (categoryId == null || categoryId.trim().isEmpty) return;
+
+    context.read<CategoryBloc>().add(
+      OnLoadCategoryProducts(categoryId: categoryId),
+    );
+  }
+
+  void _openAddProductSheet(CategoryData category) {
+    showAddProductSheet(
+      context,
+      initialCategory: category,
+    );
   }
 
   void _onScroll() {
@@ -95,55 +108,76 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     ) ??
         widget.category;
 
-    return Scaffold(
-      body: NestedScrollView(
-        controller: _scrollCtrl,
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        headerSliverBuilder: (context, _) {
-          return [
-            CategoryAppBar(
-              category: category,
-              isGrid: _isGrid,
-              onToggleLayout: () {
-                setState(() => _isGrid = !_isGrid);
-              },
-            ),
-          ];
-        },
-        body: BlocBuilder<CategoryBloc, CategoryState>(
-          buildWhen: (prev, curr) {
-            return prev.productsStatus != curr.productsStatus ||
-                prev.products != curr.products ||
-                prev.hasMorePages != curr.hasMorePages;
-          },
-          builder: (context, state) {
-            return switch (state.productsStatus) {
-              CategoryProductsStatus.initial ||
-              CategoryProductsStatus.loading =>
-                  ProductLoadingView(isGrid: _isGrid),
-
-              CategoryProductsStatus.failure => ProductsCategoryErrorView(
-                message: state.productsError,
-                categoryId: widget.category.id!,
+    return BlocListener<ProductBloc, ProductState>(
+      listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
+      listener: (context, state) {
+        if (state.submitStatus == ProductSubmitStatus.success) {
+          _loadCategoryProducts();
+        }
+      },
+      child: Scaffold(
+        body: NestedScrollView(
+          controller: _scrollCtrl,
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          headerSliverBuilder: (context, _) {
+            return [
+              BlocBuilder<CategoryBloc, CategoryState>(
+                buildWhen: (prev, curr) =>
+                prev.products.length != curr.products.length ||
+                    prev.productsStatus != curr.productsStatus ||
+                    prev.productsFromCache != curr.productsFromCache,
+                builder: (context, state) {
+                  return CategoryAppBar(
+                    category: category,
+                    productCount: state.products.length,
+                    isFromCache: state.productsFromCache,
+                    isGrid: _isGrid,
+                    onToggleLayout: () {
+                      setState(() => _isGrid = !_isGrid);
+                    },
+                    onAddProduct: () => _openAddProductSheet(category),
+                  );
+                },
               ),
-
-              _ => state.products.isEmpty
-                  ? const ProductEmptyView(
-                title: 'No products in this category',
-                message:
-                'Products assigned to this category will appear here.',
-              )
-                  : ProductsBody(
-                products: state.products,
-                isGrid: _isGrid,
-                isLoadingMore: state.productsStatus ==
-                    CategoryProductsStatus.loadingMore,
-                hasMore: state.hasMorePages,
-              ),
-            };
+            ];
           },
+          body: BlocBuilder<CategoryBloc, CategoryState>(
+            buildWhen: (prev, curr) {
+              return prev.productsStatus != curr.productsStatus ||
+                  prev.products != curr.products ||
+                  prev.hasMorePages != curr.hasMorePages;
+            },
+            builder: (context, state) {
+              return switch (state.productsStatus) {
+                CategoryProductsStatus.initial ||
+                CategoryProductsStatus.loading =>
+                    ProductLoadingView(isGrid: _isGrid),
+
+                CategoryProductsStatus.failure => ProductsCategoryErrorView(
+                  message: state.productsError,
+                  categoryId: widget.category.id!,
+                ),
+
+                _ => state.products.isEmpty
+                    ? ProductEmptyView(
+                  title: 'No products yet',
+                  message:
+                  'This category is ready. Add the first product here so it appears directly under this category.',
+                  primaryActionText: 'Add Product',
+                  onPrimaryAction: () => _openAddProductSheet(category),
+                )
+                    : ProductsBody(
+                  products: state.products,
+                  isGrid: _isGrid,
+                  isLoadingMore: state.productsStatus ==
+                      CategoryProductsStatus.loadingMore,
+                  hasMore: state.hasMorePages,
+                ),
+              };
+            },
+          ),
         ),
       ),
     );

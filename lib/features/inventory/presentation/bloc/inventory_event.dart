@@ -77,3 +77,19 @@ class OnAddStock extends InventoryEvent {
   List<Object?> get props =>
       [productId, shopId, quantity, movementType, reference, expiryDate];
 }
+
+class OnCreateInboundTransaction extends InventoryEvent {
+  final CreateInboundRequestDto request;
+
+  const OnCreateInboundTransaction({required this.request});
+
+  @override
+  List<Object?> get props => [request];
+}
+
+class OnAcknowledgeInventorySubmit extends InventoryEvent {
+  const OnAcknowledgeInventorySubmit();
+
+  @override
+  List<Object?> get props => [];
+}

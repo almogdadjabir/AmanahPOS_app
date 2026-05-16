@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/category_filter.dart';
@@ -26,6 +27,24 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final ScrollController _scrollCtrl = ScrollController();
+  ProductQuickFilter _quickFilter = ProductQuickFilter.all;
+
+  void _selectQuickFilter(ProductQuickFilter filter) {
+    if (_quickFilter == filter) return;
+
+    setState(() {
+      _quickFilter = filter;
+    });
+
+    if (_scrollCtrl.hasClients) {
+      _scrollCtrl.animateTo(
+        0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
 
   bool _isRequestingMore = false;
   Timer? _loadMoreDebounce;
@@ -164,6 +183,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 scrollController: _scrollCtrl,
                 state: state,
                 isWithAppbar: widget.isWithAppbar,
+                selectedQuickFilter: _quickFilter,
+                onQuickFilterChanged: _selectQuickFilter,
               )
                   : _ProductsEmptyContent(
                 onActionPressed: _openEmptyAction,
@@ -194,15 +215,44 @@ class _ProductsContent extends StatelessWidget {
   final bool isWithAppbar;
   final ScrollController scrollController;
   final ProductState state;
+  final ProductQuickFilter selectedQuickFilter;
+  final ValueChanged<ProductQuickFilter> onQuickFilterChanged;
 
   const _ProductsContent({
     required this.scrollController,
     required this.state,
     required this.isWithAppbar,
+    required this.selectedQuickFilter,
+    required this.onQuickFilterChanged,
   });
+
+  List<ProductData> _filterProductsByQuickFilter(
+      List<ProductData> products,
+      ProductQuickFilter filter,
+      ) {
+    switch (filter) {
+      case ProductQuickFilter.all:
+        return products;
+
+      case ProductQuickFilter.active:
+        return products.where((product) {
+          return product.isActive == true;
+        }).toList(growable: false);
+
+      case ProductQuickFilter.outOfStock:
+        return products.where((product) {
+          return (product.stockLevel ?? 0) <= 0;
+        }).toList(growable: false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final filteredProducts = _filterProductsByQuickFilter(
+      state.products,
+      selectedQuickFilter,
+    );
+
     return NestedScrollView(
       controller: scrollController,
       physics: const AlwaysScrollableScrollPhysics(
@@ -210,8 +260,7 @@ class _ProductsContent extends StatelessWidget {
       ),
       headerSliverBuilder: (context, _) {
         return [
-          if(isWithAppbar == false)
-          const ProductsAppBar(),
+          if (isWithAppbar == false) const ProductsAppBar(),
 
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
@@ -224,6 +273,8 @@ class _ProductsContent extends StatelessWidget {
               child: ProductsHeaderView(
                 products: state.products,
                 categoryCount: state.categories.length,
+                selectedQuickFilter: selectedQuickFilter,
+                onQuickFilterChanged: onQuickFilterChanged,
               )
                   .animate()
                   .fadeIn(duration: 320.ms)
@@ -242,7 +293,7 @@ class _ProductsContent extends StatelessWidget {
         ];
       },
       body: ProductsBody(
-        products: state.products,
+        products: filteredProducts,
         isGrid: state.isGrid,
         isLoadingMore: state.productStatus == ProductStatus.loadingMore,
         hasMore: state.hasMorePages,

@@ -63,6 +63,7 @@ class User extends Equatable {
   final BankakAccount? bankakAccount;
   final String? createdAt;
   final String? lastLoginAt;
+  final Map<String, bool> enabledFeatures;
 
   const User({
     this.id,
@@ -79,6 +80,7 @@ class User extends Equatable {
     this.bankakAccount,
     this.createdAt,
     this.lastLoginAt,
+    this.enabledFeatures = const {},
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -99,6 +101,7 @@ class User extends Equatable {
         : null,
     createdAt: json['created_at'] as String?,
     lastLoginAt: json['last_login_at'] as String?,
+    enabledFeatures: _parseEnabledFeatures(json['enabled_features']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -116,13 +119,22 @@ class User extends Equatable {
     'bankak_account': bankakAccount?.toJson(),
     'created_at': createdAt,
     'last_login_at': lastLoginAt,
+    'enabled_features': enabledFeatures,
   };
+
+  static Map<String, bool> _parseEnabledFeatures(dynamic value) {
+    if (value is! Map) return const {};
+
+    return value.map((key, val) {
+      return MapEntry(key.toString(), val == true);
+    });
+  }
 
   @override
   List<Object?> get props => [
     id, phone, email, fullName, role, isStaff, isVerified,
     hasPassword, businessId, defaultShopId, defaultShopName,
-    bankakAccount, createdAt, lastLoginAt,
+    bankakAccount, createdAt, lastLoginAt, enabledFeatures,
   ];
 }
 

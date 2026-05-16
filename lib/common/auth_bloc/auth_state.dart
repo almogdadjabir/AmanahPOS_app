@@ -1,10 +1,3 @@
-// lib/common/auth_bloc/auth_state.dart
-//
-// Changes vs old version:
-//   • AppPermissions getter derived from defaultBusiness + profile
-//   • sessionId (int) increments on every successful login so data BLoCs
-//     can detect a user switch and self-reset
-
 part of 'auth_bloc.dart';
 
 enum AuthStatus { initial, loading, success, failure }
@@ -59,6 +52,7 @@ class AuthState extends Equatable {
   AppPermissions get permissions => AppPermissions.from(
     businessType: defaultBusiness?.businessType,
     userRole: profile?.role,
+    enabledFeatures: profile?.enabledFeatures ?? const {},
   );
 
   // ─── copyWith ─────────────────────────────────────────────────────────────

@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 
 class WorkspaceSectionHeader extends StatelessWidget {
   final String title;
-  const WorkspaceSectionHeader({super.key, required this.title});
+  final Color? color;
+  const WorkspaceSectionHeader({super.key, required this.title, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +17,8 @@ class WorkspaceSectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: AppTextStyles.bs100(context).copyWith(
-            color: colors.textSecondary.withValues(alpha: 0.82),
+          style: AppTextStyles.bs300(context).copyWith(
+            color: color ?? colors.textSecondary.withValues(alpha: 0.82),
             fontWeight: FontWeight.w900,
             letterSpacing: 3.5,
           ),

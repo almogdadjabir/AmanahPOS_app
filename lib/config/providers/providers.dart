@@ -6,7 +6,6 @@ import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
-import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
@@ -15,6 +14,7 @@ import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.da
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
+import 'package:amana_pos/features/inventory/data/offline/offline_inbound_queue.dart';
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
@@ -34,6 +34,7 @@ import 'package:amana_pos/features/splash/domain/blocs/splash_bloc.dart';
 import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -100,6 +101,20 @@ getProviders(BuildContext context) => [
     create: (context) => InventoryBloc(
       useCase: getIt<InventoryUseCase>(),
       offlineLocalCache: getIt<OfflineLocalCache>(),
+      offlineInboundQueue: getIt<OfflineInboundQueue>(),
+      isOnline: () async {
+        final dynamic result = await getIt<Connectivity>().checkConnectivity();
+
+        if (result is List<ConnectivityResult>) {
+          return result.any((item) => item != ConnectivityResult.none);
+        }
+
+        if (result is ConnectivityResult) {
+          return result != ConnectivityResult.none;
+        }
+
+        return false;
+      },
     ),
   ),
   BlocProvider(

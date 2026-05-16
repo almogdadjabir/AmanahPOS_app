@@ -91,20 +91,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       backgroundColor: colors.background,
       appBar: AppBar(
         elevation: 0,
+        toolbarHeight: 88,
         backgroundColor: colors.background,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(
-            SolarIconsOutline.altArrowLeft,
-            color: colors.textPrimary,
-          ),
-        ),
-        title: Text(
-          'Notifications',
-          style: AppTextStyles.bs600(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: colors.textPrimary,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+          child: Row(
+            children: [
+              BackButton(),
+              const SizedBox(width: AppDims.s3),
+              Expanded(
+                child: Text(
+                  'Notifications',
+                  style: AppTextStyles.bs600(context).copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.7,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         actions: [

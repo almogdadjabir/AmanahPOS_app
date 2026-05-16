@@ -22,6 +22,9 @@ class ProductsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (products.isEmpty) {
+      return const _FilteredProductsEmptyBody();
+    }
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOutCubic,
@@ -171,6 +174,52 @@ class _ListBody extends StatelessWidget {
 
         const SliverToBoxAdapter(
           child: SizedBox(height: 130),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilteredProductsEmptyBody extends StatelessWidget {
+  const _FilteredProductsEmptyBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.all(AppDims.s6),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 42,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+                const SizedBox(height: AppDims.s3),
+                Text(
+                  'No products found',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: AppDims.s1),
+                Text(
+                  'Try another quick filter or category.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );

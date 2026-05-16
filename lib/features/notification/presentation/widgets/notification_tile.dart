@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/notification/data/models/notification_item.dart';
+import 'package:amana_pos/features/notification/presentation/notification_details_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -18,7 +19,7 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final config = _typeConfig(item.type);
+    final config = typeConfig(item.type);
 
     final title = item.title?.trim().isNotEmpty == true
         ? item.title!.trim()
@@ -172,200 +173,10 @@ void showNotificationDetailsSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _NotificationDetailsSheet(item: item),
+    builder: (_) => NotificationDetailsSheet(item: item),
   );
 }
 
-class _NotificationDetailsSheet extends StatelessWidget {
-  final NotificationItem item;
-
-  const _NotificationDetailsSheet({
-    required this.item,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final config = _typeConfig(item.type);
-
-    final title = item.title?.trim().isNotEmpty == true
-        ? item.title!.trim()
-        : 'Notification';
-
-    final body = item.body?.trim().isNotEmpty == true
-        ? item.body!.trim()
-        : 'No details available.';
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.78,
-        ),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppDims.rXl),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 28,
-              offset: const Offset(0, -8),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppDims.s3),
-
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.border,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppDims.s4,
-                AppDims.s4,
-                AppDims.s4,
-                AppDims.s3,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: config.color.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(AppDims.rMd),
-                    ),
-                    child: Icon(
-                      config.icon,
-                      color: config.color,
-                      size: 22,
-                    ),
-                  ),
-
-                  const SizedBox(width: AppDims.s3),
-
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          config.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bs100(context).copyWith(
-                            color: config.color,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                            height: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          _formatFullDate(item.createdAt),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bs200(context).copyWith(
-                            color: colors.textSecondary,
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: AppDims.s2),
-
-                  Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(999),
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(999),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Icon(
-                          SolarIconsOutline.closeCircle,
-                          size: 24,
-                          color: colors.textHint,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: colors.border.withValues(alpha: 0.70),
-            ),
-
-            Flexible(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s4 + MediaQuery.paddingOf(context).bottom,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTextStyles.bs700(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w900,
-                        height: 1.12,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-
-                    const SizedBox(height: AppDims.s4),
-
-                    Text(
-                      body,
-                      style: AppTextStyles.bs400(context).copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                        height: 1.55,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatFullDate(DateTime? date) {
-    if (date == null) return 'No date';
-
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year} · '
-        '${date.hour.toString().padLeft(2, '0')}:'
-        '${date.minute.toString().padLeft(2, '0')}';
-  }
-}
 
 
 class _NotificationIconBox extends StatelessWidget {
@@ -401,7 +212,7 @@ class _NotificationIconBox extends StatelessWidget {
 }
 
 class _TypeBadge extends StatelessWidget {
-  final _TypeConfig config;
+  final TypeConfig config;
 
   const _TypeBadge({
     required this.config,
@@ -433,71 +244,71 @@ class _TypeBadge extends StatelessWidget {
   }
 }
 
-class _TypeConfig {
+class TypeConfig {
   final IconData icon;
   final Color color;
   final String label;
 
-  const _TypeConfig(
+  const TypeConfig(
       this.icon,
       this.color,
       this.label,
       );
 }
 
-_TypeConfig _typeConfig(String type) {
+TypeConfig typeConfig(String type) {
   switch (type) {
     case 'success':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.checkCircle,
         Color(0xFF16A34A),
         'Success',
       );
 
     case 'warning':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.dangerTriangle,
         Color(0xFFF59E0B),
         'Warning',
       );
 
     case 'error':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.dangerCircle,
         Color(0xFFEF4444),
         'Error',
       );
 
     case 'sale':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.billList,
         Color(0xFF0D9488),
         'Sale',
       );
 
     case 'stock':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.box,
         Color(0xFFEC4899),
         'Stock',
       );
 
     case 'subscription':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.card,
         Color(0xFF8B5CF6),
         'Plan',
       );
 
     case 'security':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.shieldCheck,
         Color(0xFFF59E0B),
         'Security',
       );
 
     case 'system':
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.settings,
         Color(0xFF6B7280),
         'System',
@@ -505,7 +316,7 @@ _TypeConfig _typeConfig(String type) {
 
     case 'info':
     default:
-      return const _TypeConfig(
+      return const TypeConfig(
         SolarIconsOutline.infoCircle,
         Color(0xFF0EA5E9),
         'Info',

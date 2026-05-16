@@ -97,8 +97,8 @@ class BottomNav extends StatelessWidget {
 
       tabs.add(const NavTab(
         feature: AppFeature.pos,
-        icon: SolarIconsBold.sendSquare,
-        activeIcon: SolarIconsBold.sendSquare,
+        icon: SolarIconsOutline.cartLarge_4,
+        activeIcon: SolarIconsOutline.cartLarge,
         label: 'Sell',
       ));
 

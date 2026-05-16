@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class InventoryEmptyView extends StatelessWidget {
   final StockFilter filter;
@@ -18,6 +19,7 @@ class InventoryEmptyView extends StatelessWidget {
 
     final title = switch (filter) {
       StockFilter.all => 'No stock entries yet',
+      StockFilter.healthy => 'No healthy stock items',
       StockFilter.lowStock => 'No low stock items',
       StockFilter.outOfStock => 'No out of stock items',
     };
@@ -25,6 +27,8 @@ class InventoryEmptyView extends StatelessWidget {
     final message = switch (filter) {
       StockFilter.all =>
       'Add stock for your products to start tracking inventory.',
+      StockFilter.healthy =>
+      'No products are currently in a healthy stock state.',
       StockFilter.lowStock =>
       'Everything looks good. No products are currently low on stock.',
       StockFilter.outOfStock =>
@@ -32,9 +36,10 @@ class InventoryEmptyView extends StatelessWidget {
     };
 
     final icon = switch (filter) {
-      StockFilter.all => Icons.inventory_2_outlined,
-      StockFilter.lowStock => Icons.check_circle_outline_rounded,
-      StockFilter.outOfStock => Icons.check_circle_outline_rounded,
+      StockFilter.all => SolarIconsOutline.box,
+      StockFilter.healthy => SolarIconsOutline.checkCircle,
+      StockFilter.lowStock => SolarIconsOutline.dangerTriangle,
+      StockFilter.outOfStock => SolarIconsOutline.bagCross,
     };
 
     return Center(
@@ -79,7 +84,7 @@ class InventoryEmptyView extends StatelessWidget {
               const SizedBox(height: AppDims.s4),
               FilledButton.icon(
                 onPressed: () => showAddStockProductSheet(context),
-                icon: const Icon(Icons.add_rounded),
+                icon: const Icon(SolarIconsOutline.addCircle),
                 label: const Text('Add Stock'),
                 style: FilledButton.styleFrom(
                   backgroundColor: colors.primary,
