@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -27,8 +28,8 @@ class RecentReceiptsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CardHeader(
-            title: 'Recent Receipts',
+          CardHeader(
+            title: context.tr.invRecentReceiptsTitle,
             icon: SolarIconsOutline.documentText,
             accent: Color(0xFF93C5FD),
           ),

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/expiry_alert_card.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -87,7 +88,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                 // Expired section
                 if (state.expired.isNotEmpty) ...[
                   _SectionHeader(
-                    label: 'Expired',
+                    label: context.tr.invExpiryExpired,
                     count: state.expired.length,
                     color: const Color(0xFFDC2626),
                     icon: Icons.error_outline_rounded,
@@ -119,7 +120,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                 // Expiring soon section
                 if (state.expiringSoon.isNotEmpty) ...[
                   _SectionHeader(
-                    label: 'Expiring Soon',
+                    label: context.tr.invExpiryExpiringSoon,
                     count: state.expiringSoon.length,
                     color: const Color(0xFFEA580C),
                     icon: SolarIconsOutline.shieldWarning,
@@ -328,7 +329,7 @@ class _ErrorView extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('Retry'),
+              label: Text(context.tr.retry),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.primary,
                 side:

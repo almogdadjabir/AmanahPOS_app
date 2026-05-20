@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
@@ -516,7 +517,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                             labelText: 'Vendor *',
                             prefixIcon: Icon(SolarIconsOutline.buildings),
                           ),
-                          hint: const Text('Select vendor'),
+                          hint: Text(context.tr.invSelectVendor),
                           items: vs.vendors.map((v) {
                             return DropdownMenuItem<String>(
                               value: v.id,
@@ -588,7 +589,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                             SolarIconsOutline.addCircle,
                             size: 16,
                           ),
-                          label: const Text('Add Row'),
+                          label: Text(context.tr.invAddRow),
                           style: TextButton.styleFrom(
                             foregroundColor: goldDeep,
                           ),

@@ -1711,6 +1711,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark all read'**
   String get markAllRead;
+
+  /// No description provided for @invExpiryExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get invExpiryExpired;
+
+  /// No description provided for @invExpiryExpiringSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring Soon'**
+  String get invExpiryExpiringSoon;
+
+  /// No description provided for @invHeroExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get invHeroExport;
+
+  /// No description provided for @invHeroScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get invHeroScan;
+
+  /// No description provided for @invInventoryHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory Health'**
+  String get invInventoryHealth;
+
+  /// No description provided for @invNeedsRestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Restock'**
+  String get invNeedsRestock;
+
+  /// No description provided for @invInboundThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbound This Month'**
+  String get invInboundThisMonth;
+
+  /// No description provided for @invExpiringDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring ≤30 days'**
+  String get invExpiringDays;
+
+  /// No description provided for @invQuickActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get invQuickActionsTitle;
+
+  /// No description provided for @invReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get invReceive;
+
+  /// No description provided for @invStockAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get invStockAction;
+
+  /// No description provided for @invVendors.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendors'**
+  String get invVendors;
+
+  /// No description provided for @invExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry'**
+  String get invExpiry;
+
+  /// No description provided for @invHealthRingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Ring'**
+  String get invHealthRingTitle;
+
+  /// No description provided for @invHealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy'**
+  String get invHealthy;
+
+  /// No description provided for @invLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get invLow;
+
+  /// No description provided for @invOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get invOut;
+
+  /// No description provided for @invInboundVelocityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbound Velocity'**
+  String get invInboundVelocityTitle;
+
+  /// No description provided for @invExpiryTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Timeline'**
+  String get invExpiryTimelineTitle;
+
+  /// No description provided for @invRecentReceiptsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Receipts'**
+  String get invRecentReceiptsTitle;
+
+  /// No description provided for @invVendorBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor Board'**
+  String get invVendorBoardTitle;
+
+  /// No description provided for @invRestockQueueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restock Queue'**
+  String get invRestockQueueTitle;
+
+  /// No description provided for @invVendorSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor saved'**
+  String get invVendorSaved;
+
+  /// No description provided for @invVendorFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save vendor'**
+  String get invVendorFailed;
+
+  /// No description provided for @invAddFirstVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first vendor'**
+  String get invAddFirstVendor;
+
+  /// No description provided for @invSelectVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select vendor'**
+  String get invSelectVendor;
+
+  /// No description provided for @invAddRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Row'**
+  String get invAddRow;
+
+  /// No description provided for @invMovementType.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement Type'**
+  String get invMovementType;
+
+  /// No description provided for @invFieldQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get invFieldQuantity;
+
+  /// No description provided for @invFieldReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get invFieldReference;
+
+  /// No description provided for @invConfirmMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Movement'**
+  String get invConfirmMovement;
+
+  /// No description provided for @invFieldNewQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'New Quantity'**
+  String get invFieldNewQuantity;
+
+  /// No description provided for @invFieldNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get invFieldNotes;
+
+  /// No description provided for @invAdjustStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust Stock'**
+  String get invAdjustStock;
+
+  /// No description provided for @invTransferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer To'**
+  String get invTransferTo;
+
+  /// No description provided for @invQtyToTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity to Transfer'**
+  String get invQtyToTransfer;
+
+  /// No description provided for @invTransferStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Stock'**
+  String get invTransferStock;
+
+  /// No description provided for @invAddIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add In'**
+  String get invAddIn;
+
+  /// No description provided for @invAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust'**
+  String get invAdjust;
+
+  /// No description provided for @invTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get invTransfer;
+
+  /// No description provided for @invVendorDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get invVendorDeactivate;
 }
 
 class _AppLocalizationsDelegate

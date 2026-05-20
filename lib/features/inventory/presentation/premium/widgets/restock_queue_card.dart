@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -29,9 +30,9 @@ class RestockQueueCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: CardHeader(
-                  title: 'Restock Queue',
+                  title: context.tr.invRestockQueueTitle,
                   icon: SolarIconsOutline.boxMinimalistic,
                   accent: Color(0xFFFCD34D),
                 ),

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_vendor_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/update_vendor_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/vendor_response_dto.dart';
@@ -48,12 +49,12 @@ class _VendorsSheet extends StatelessWidget {
       listener: (context, state) {
         if (state.submitStatus == VendorsSubmitStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Vendor saved')),
+            SnackBar(content: Text(context.tr.invVendorSaved)),
           );
         } else if (state.submitStatus == VendorsSubmitStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.submitError ?? 'Failed to save vendor'),
+              content: Text(state.submitError ?? context.tr.invVendorFailed),
               backgroundColor: Colors.red,
             ),
           );
@@ -98,7 +99,7 @@ class _VendorsSheet extends StatelessWidget {
                         onPressed: () => _addVendor(context),
                         icon: const Icon(SolarIconsOutline.addCircle,
                             size: 18),
-                        label: const Text('Add'),
+                        label: Text(context.tr.add),
                         style: TextButton.styleFrom(
                             foregroundColor: goldDeep),
                       ),
@@ -139,7 +140,7 @@ class _VendorsSheet extends StatelessWidget {
                                 onPressed: () => _addVendor(context),
                                 style: TextButton.styleFrom(
                                     foregroundColor: goldDeep),
-                                child: const Text('Add your first vendor'),
+                                child: Text(context.tr.invAddFirstVendor),
                               ),
                             ],
                           ),
@@ -208,13 +209,13 @@ class _VendorsSheet extends StatelessWidget {
                                 }
                               },
                               itemBuilder: (_) => [
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'edit',
-                                  child: Text('Edit'),
+                                  child: Text(context.tr.edit),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'deactivate',
-                                  child: Text('Deactivate'),
+                                  child: Text(context.tr.invVendorDeactivate),
                                 ),
                               ],
                             ),

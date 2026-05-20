@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/premium_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -266,12 +267,12 @@ class _ActionRow extends StatelessWidget {
         const SizedBox(width: AppDims.s2),
         _GhostButton(
           icon: SolarIconsOutline.export,
-          label: 'Export',
+          label: context.tr.invHeroExport,
         ),
         const SizedBox(width: AppDims.s2),
         _GhostButton(
           icon: SolarIconsOutline.qrCode,
-          label: 'Scan',
+          label: context.tr.invHeroScan,
         ),
       ],
     );
@@ -349,7 +350,7 @@ class _KpiScroll extends StatelessWidget {
       child: Row(
         children: [
           _KpiCard(
-            title: 'Inventory Health',
+            title: context.tr.invInventoryHealth,
             value: '${health.toInt()}%',
             sub: '$inStock / ${s?.stockItemsCount ?? 0} healthy',
             accent: const Color(0xFF5EEAD4),
@@ -357,7 +358,7 @@ class _KpiScroll extends StatelessWidget {
           ),
           const SizedBox(width: AppDims.s2),
           _KpiCard(
-            title: 'Needs Restock',
+            title: context.tr.invNeedsRestock,
             value:
                 '${(s?.lowStockCount ?? 0) + (s?.outOfStockCount ?? 0)}',
             sub:
@@ -367,7 +368,7 @@ class _KpiScroll extends StatelessWidget {
           ),
           const SizedBox(width: AppDims.s2),
           _KpiCard(
-            title: 'Inbound This Month',
+            title: context.tr.invInboundThisMonth,
             value: '${s?.inboundThisMonthCount ?? 0}',
             sub: '${s?.receivedQuantityThisMonth ?? '0'} units received',
             accent: const Color(0xFF93C5FD),
@@ -375,7 +376,7 @@ class _KpiScroll extends StatelessWidget {
           ),
           const SizedBox(width: AppDims.s2),
           _KpiCard(
-            title: 'Expiring ≤30 days',
+            title: context.tr.invExpiringDays,
             value: '${s?.expiringSoonCount ?? 0}',
             sub: '${s?.expiredCount ?? 0} already expired',
             accent: const Color(0xFFFCA5A5),

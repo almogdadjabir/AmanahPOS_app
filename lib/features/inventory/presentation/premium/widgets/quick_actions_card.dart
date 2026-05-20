@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/premium_colors.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -20,12 +21,13 @@ class QuickActionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return BentoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CardHeader(
-            title: 'Quick Actions',
+          CardHeader(
+            title: tr.invQuickActionsTitle,
             icon: SolarIconsOutline.widget,
             accent: gold,
           ),
@@ -35,7 +37,7 @@ class QuickActionsCard extends StatelessWidget {
               Expanded(
                 child: _ActionButton(
                   icon: SolarIconsOutline.box,
-                  label: 'Receive',
+                  label: tr.invReceive,
                   color: goldDeep,
                   onTap: onReceive,
                 ),
@@ -44,7 +46,7 @@ class QuickActionsCard extends StatelessWidget {
               Expanded(
                 child: _ActionButton(
                   icon: SolarIconsOutline.layersMinimalistic,
-                  label: 'Stock',
+                  label: tr.invStockAction,
                   color: const Color(0xFF93C5FD),
                   onTap: onStockLevels,
                 ),
@@ -53,7 +55,7 @@ class QuickActionsCard extends StatelessWidget {
               Expanded(
                 child: _ActionButton(
                   icon: SolarIconsOutline.shop,
-                  label: 'Vendors',
+                  label: tr.invVendors,
                   color: const Color(0xFF5EEAD4),
                   onTap: onVendors,
                 ),
@@ -62,7 +64,7 @@ class QuickActionsCard extends StatelessWidget {
               Expanded(
                 child: _ActionButton(
                   icon: SolarIconsOutline.calendarMark,
-                  label: 'Expiry',
+                  label: tr.invExpiry,
                   color: const Color(0xFFFCA5A5),
                   onTap: onExpiry,
                 ),

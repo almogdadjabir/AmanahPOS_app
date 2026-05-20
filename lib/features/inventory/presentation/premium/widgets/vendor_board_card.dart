@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/vendor_summary_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/premium_colors.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
@@ -29,8 +30,8 @@ class VendorBoardCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CardHeader(
-            title: 'Vendor Board',
+          CardHeader(
+            title: context.tr.invVendorBoardTitle,
             icon: SolarIconsOutline.shop,
             accent: goldDeep,
           ),

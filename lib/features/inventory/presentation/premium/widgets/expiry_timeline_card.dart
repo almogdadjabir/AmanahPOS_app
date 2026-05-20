@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/expiry_report_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -36,8 +37,8 @@ class ExpiryTimelineCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CardHeader(
-            title: 'Expiry Timeline',
+          CardHeader(
+            title: context.tr.invExpiryTimelineTitle,
             icon: SolarIconsOutline.calendar,
             accent: Color(0xFFFCA5A5),
           ),

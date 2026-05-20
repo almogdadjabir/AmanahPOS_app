@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/users/data/models/movement_type.dart';
@@ -326,21 +327,21 @@ class _TabSelector extends StatelessWidget {
       child: Row(
         children: [
           _TabChip(
-            label: 'Add In',
+            label: context.tr.invAddIn,
             icon: Icons.add_circle_outline_rounded,
             color: const Color(0xFF16A34A),
             selected: selected == _Tab.add,
             onTap: () => onSelect(_Tab.add),
           ),
           _TabChip(
-            label: 'Adjust',
+            label: context.tr.invAdjust,
             icon: Icons.tune_rounded,
             color: const Color(0xFF0EA5E9),
             selected: selected == _Tab.adjust,
             onTap: () => onSelect(_Tab.adjust),
           ),
           _TabChip(
-            label: 'Transfer',
+            label: context.tr.invTransfer,
             icon: Icons.swap_horiz_rounded,
             color: const Color(0xFF8B5CF6),
             selected: selected == _Tab.transfer,
@@ -453,7 +454,7 @@ class _AddStockForm extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Movement type ────────────────────────────────────────────
-          FieldLabel(label: 'Movement Type', required: true),
+          FieldLabel(label: context.tr.invMovementType, required: true),
           const SizedBox(height: AppDims.s2),
           Wrap(
             spacing: AppDims.s2,
@@ -501,7 +502,7 @@ class _AddStockForm extends StatelessWidget {
           const SizedBox(height: AppDims.s3),
 
           // ── Quantity ─────────────────────────────────────────────────
-          FieldLabel(label: 'Quantity', required: true),
+          FieldLabel(label: context.tr.invFieldQuantity, required: true),
           const SizedBox(height: AppDims.s1),
           AppFormField(
             controller:  qtyCtrl,
@@ -520,7 +521,7 @@ class _AddStockForm extends StatelessWidget {
           const SizedBox(height: AppDims.s3),
 
           // ── Reference ─────────────────────────────────────────────────
-          FieldLabel(label: 'Reference'),
+          FieldLabel(label: context.tr.invFieldReference),
           const SizedBox(height: AppDims.s1),
           AppFormField(
             controller:     refCtrl,
@@ -532,7 +533,7 @@ class _AddStockForm extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s5),
           _SubmitButton(
-            label:    'Confirm Movement',
+            label:    context.tr.invConfirmMovement,
             color:    switch (selectedMovement) {
               MovementType.in_     => const Color(0xFF16A34A),
               MovementType.out     => const Color(0xFFDC2626),
@@ -603,7 +604,7 @@ class _AdjustStockForm extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s3),
 
-          FieldLabel(label: 'New Quantity', required: true),
+          FieldLabel(label: context.tr.invFieldNewQuantity, required: true),
           const SizedBox(height: AppDims.s1),
           AppFormField(
             controller:  qtyCtrl,
@@ -621,7 +622,7 @@ class _AdjustStockForm extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s3),
 
-          FieldLabel(label: 'Notes'),
+          FieldLabel(label: context.tr.invFieldNotes),
           const SizedBox(height: AppDims.s1),
           AppFormField(
             controller:      noteCtrl,
@@ -634,7 +635,7 @@ class _AdjustStockForm extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s5),
           _SubmitButton(
-            label: 'Adjust Stock',
+            label: context.tr.invAdjustStock,
             color: const Color(0xFF0EA5E9),
             onSubmit: onSubmit,
           ),
@@ -674,7 +675,7 @@ class _TransferStockForm extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── To shop picker ───────────────────────────────────────────
-          FieldLabel(label: 'Transfer To', required: true),
+          FieldLabel(label: context.tr.invTransferTo, required: true),
           const SizedBox(height: AppDims.s1),
           if (otherShops.isEmpty)
             Container(
@@ -761,7 +762,7 @@ class _TransferStockForm extends StatelessWidget {
 
           const SizedBox(height: AppDims.s3),
 
-          FieldLabel(label: 'Quantity to Transfer', required: true),
+          FieldLabel(label: context.tr.invQtyToTransfer, required: true),
           const SizedBox(height: AppDims.s1),
           AppFormField(
             controller:  qtyCtrl,
@@ -780,7 +781,7 @@ class _TransferStockForm extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s5),
           _SubmitButton(
-            label: 'Transfer Stock',
+            label: context.tr.invTransferStock,
             color: const Color(0xFF8B5CF6),
             onSubmit: otherShops.isEmpty ? null : onSubmit,
           ),

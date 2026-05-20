@@ -843,4 +843,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get markAllRead => 'Mark all read';
+
+  @override
+  String get invExpiryExpired => 'Expired';
+
+  @override
+  String get invExpiryExpiringSoon => 'Expiring Soon';
+
+  @override
+  String get invHeroExport => 'Export';
+
+  @override
+  String get invHeroScan => 'Scan';
+
+  @override
+  String get invInventoryHealth => 'Inventory Health';
+
+  @override
+  String get invNeedsRestock => 'Needs Restock';
+
+  @override
+  String get invInboundThisMonth => 'Inbound This Month';
+
+  @override
+  String get invExpiringDays => 'Expiring ≤30 days';
+
+  @override
+  String get invQuickActionsTitle => 'Quick Actions';
+
+  @override
+  String get invReceive => 'Receive';
+
+  @override
+  String get invStockAction => 'Stock';
+
+  @override
+  String get invVendors => 'Vendors';
+
+  @override
+  String get invExpiry => 'Expiry';
+
+  @override
+  String get invHealthRingTitle => 'Health Ring';
+
+  @override
+  String get invHealthy => 'Healthy';
+
+  @override
+  String get invLow => 'Low';
+
+  @override
+  String get invOut => 'Out';
+
+  @override
+  String get invInboundVelocityTitle => 'Inbound Velocity';
+
+  @override
+  String get invExpiryTimelineTitle => 'Expiry Timeline';
+
+  @override
+  String get invRecentReceiptsTitle => 'Recent Receipts';
+
+  @override
+  String get invVendorBoardTitle => 'Vendor Board';
+
+  @override
+  String get invRestockQueueTitle => 'Restock Queue';
+
+  @override
+  String get invVendorSaved => 'Vendor saved';
+
+  @override
+  String get invVendorFailed => 'Failed to save vendor';
+
+  @override
+  String get invAddFirstVendor => 'Add your first vendor';
+
+  @override
+  String get invSelectVendor => 'Select vendor';
+
+  @override
+  String get invAddRow => 'Add Row';
+
+  @override
+  String get invMovementType => 'Movement Type';
+
+  @override
+  String get invFieldQuantity => 'Quantity';
+
+  @override
+  String get invFieldReference => 'Reference';
+
+  @override
+  String get invConfirmMovement => 'Confirm Movement';
+
+  @override
+  String get invFieldNewQuantity => 'New Quantity';
+
+  @override
+  String get invFieldNotes => 'Notes';
+
+  @override
+  String get invAdjustStock => 'Adjust Stock';
+
+  @override
+  String get invTransferTo => 'Transfer To';
+
+  @override
+  String get invQtyToTransfer => 'Quantity to Transfer';
+
+  @override
+  String get invTransferStock => 'Transfer Stock';
+
+  @override
+  String get invAddIn => 'Add In';
+
+  @override
+  String get invAdjust => 'Adjust';
+
+  @override
+  String get invTransfer => 'Transfer';
+
+  @override
+  String get invVendorDeactivate => 'Deactivate';
 }

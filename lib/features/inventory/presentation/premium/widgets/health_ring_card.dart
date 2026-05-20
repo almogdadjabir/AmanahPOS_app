@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/premium_colors.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
@@ -42,8 +43,8 @@ class HealthRingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CardHeader(
-            title: 'Health Ring',
+          CardHeader(
+            title: context.tr.invHealthRingTitle,
             icon: SolarIconsOutline.chart,
             accent: goldDeep,
           ),
@@ -106,18 +107,18 @@ class HealthRingCard extends StatelessWidget {
             _StatChipRow(
               chips: [
                 _StatChip(
-                  label: 'Healthy',
+                  label: context.tr.invHealthy,
                   value:
                   '${(s?.stockItemsCount ?? 0) - (s?.lowStockCount ?? 0) - (s?.outOfStockCount ?? 0)}',
                   color: const Color(0xFF5EEAD4),
                 ),
                 _StatChip(
-                  label: 'Low',
+                  label: context.tr.invLow,
                   value: '${s?.lowStockCount ?? 0}',
                   color: const Color(0xFFFCD34D),
                 ),
                 _StatChip(
-                  label: 'Out',
+                  label: context.tr.invOut,
                   value: '${s?.outOfStockCount ?? 0}',
                   color: const Color(0xFFFCA5A5),
                 ),

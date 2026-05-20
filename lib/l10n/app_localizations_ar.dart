@@ -835,4 +835,127 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get markAllRead => 'تعليم الكل كمقروء';
+
+  @override
+  String get invExpiryExpired => 'منتهية الصلاحية';
+
+  @override
+  String get invExpiryExpiringSoon => 'تنتهي قريباً';
+
+  @override
+  String get invHeroExport => 'تصدير';
+
+  @override
+  String get invHeroScan => 'مسح ضوئي';
+
+  @override
+  String get invInventoryHealth => 'صحة المخزون';
+
+  @override
+  String get invNeedsRestock => 'يحتاج تزويد';
+
+  @override
+  String get invInboundThisMonth => 'الواردات هذا الشهر';
+
+  @override
+  String get invExpiringDays => 'ينتهي ≤٣٠ يوماً';
+
+  @override
+  String get invQuickActionsTitle => 'الإجراءات السريعة';
+
+  @override
+  String get invReceive => 'استلام';
+
+  @override
+  String get invStockAction => 'مخزون';
+
+  @override
+  String get invVendors => 'الموردون';
+
+  @override
+  String get invExpiry => 'الصلاحية';
+
+  @override
+  String get invHealthRingTitle => 'حلقة الصحة';
+
+  @override
+  String get invHealthy => 'جيد';
+
+  @override
+  String get invLow => 'منخفض';
+
+  @override
+  String get invOut => 'نافد';
+
+  @override
+  String get invInboundVelocityTitle => 'وتيرة الاستلام';
+
+  @override
+  String get invExpiryTimelineTitle => 'جدول انتهاء الصلاحية';
+
+  @override
+  String get invRecentReceiptsTitle => 'الإيصالات الأخيرة';
+
+  @override
+  String get invVendorBoardTitle => 'لوحة الموردين';
+
+  @override
+  String get invRestockQueueTitle => 'قائمة التزويد';
+
+  @override
+  String get invVendorSaved => 'تم حفظ المورد';
+
+  @override
+  String get invVendorFailed => 'فشل حفظ المورد';
+
+  @override
+  String get invAddFirstVendor => 'أضف موردك الأول';
+
+  @override
+  String get invSelectVendor => 'اختر موردًا';
+
+  @override
+  String get invAddRow => 'إضافة صف';
+
+  @override
+  String get invMovementType => 'نوع الحركة';
+
+  @override
+  String get invFieldQuantity => 'الكمية';
+
+  @override
+  String get invFieldReference => 'المرجع';
+
+  @override
+  String get invConfirmMovement => 'تأكيد الحركة';
+
+  @override
+  String get invFieldNewQuantity => 'الكمية الجديدة';
+
+  @override
+  String get invFieldNotes => 'الملاحظات';
+
+  @override
+  String get invAdjustStock => 'تعديل المخزون';
+
+  @override
+  String get invTransferTo => 'نقل إلى';
+
+  @override
+  String get invQtyToTransfer => 'الكمية المراد نقلها';
+
+  @override
+  String get invTransferStock => 'نقل المخزون';
+
+  @override
+  String get invAddIn => 'إضافة وارد';
+
+  @override
+  String get invAdjust => 'تعديل';
+
+  @override
+  String get invTransfer => 'نقل';
+
+  @override
+  String get invVendorDeactivate => 'إلغاء التفعيل';
 }
