@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
@@ -169,7 +170,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
         }
       },
       child: ProductSheetShell(
-        title: 'New User',
+        title: context.tr.newUser,
         body: Form(
           key: _formKey,
           child: Column(
@@ -177,7 +178,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
             children: [
               _InfoBanner(
                 icon: SolarIconsOutline.userPlus,
-                title: 'Create staff account',
+                title: context.tr.createStaffAccount,
                 message:
                 'Only cashier and manager accounts can be created here.',
                 color: context.appColors.primary,
@@ -186,7 +187,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(
-                label: 'Full Name',
+                label: context.tr.fieldFullName,
                 required: true,
               ),
               const SizedBox(height: AppDims.s1),
@@ -215,7 +216,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               const SizedBox(height: AppDims.s3),
 
               FieldLabel(
-                label: 'Phone',
+                label: context.tr.fieldPhone,
                 required: true,
               ),
               const SizedBox(height: AppDims.s1),
@@ -237,7 +238,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               const SizedBox(height: AppDims.s3),
 
               FieldLabel(
-                label: 'Role',
+                label: context.tr.fieldRole,
                 required: true,
               ),
               const SizedBox(height: AppDims.s2),
@@ -254,7 +255,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
               if (_showShopPicker) ...[
                 FieldLabel(
-                  label: 'Assigned Shop',
+                  label: context.tr.fieldAssignedShop,
                   required: true,
                 ),
                 const SizedBox(height: AppDims.s1),
@@ -289,7 +290,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
                       state.submitStatus == UserSubmitStatus.loading;
 
                   return UserSubmitButton(
-                    label: isLoading ? 'Creating...' : 'Create User',
+                    label: context.tr.createUser,
                     onPressed: isLoading ? null : _submit,
                   );
                 },
@@ -469,7 +470,7 @@ class _ShopAssignmentHint extends StatelessWidget {
     if (selectedShopId == null) {
       return _InfoBanner(
         icon: SolarIconsOutline.dangerTriangle,
-        title: 'Shop required',
+        title: context.tr.shopRequired,
         message: 'Cashiers must be assigned to a shop to process sales.',
         color: const Color(0xFFF59E0B),
       );
@@ -482,7 +483,7 @@ class _ShopAssignmentHint extends StatelessWidget {
 
     return _InfoBanner(
       icon: SolarIconsOutline.checkCircle,
-      title: 'Shop assigned',
+      title: context.tr.shopAssigned,
       message: 'Cashier will be assigned to ${shopName ?? 'this shop'}.',
       color: const Color(0xFF16A34A),
     );

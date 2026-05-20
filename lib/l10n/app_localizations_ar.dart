@@ -497,4 +497,88 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get catAppBarStatus => 'الحالة';
+
+  @override
+  String get addCashier => 'إضافة كاشير';
+
+  @override
+  String get userStatTotal => 'الإجمالي';
+
+  @override
+  String get userStatActive => 'نشطة';
+
+  @override
+  String get userStatCashiers => 'الكاشيرات';
+
+  @override
+  String get userStatManagers => 'المديرون';
+
+  @override
+  String get newUser => 'مستخدم جديد';
+
+  @override
+  String get editUser => 'تعديل المستخدم';
+
+  @override
+  String get createStaffAccount => 'إنشاء حساب موظف';
+
+  @override
+  String get editStaffAccount => 'تعديل حساب الموظف';
+
+  @override
+  String get fieldPhone => 'الهاتف';
+
+  @override
+  String get fieldRole => 'الدور';
+
+  @override
+  String get fieldAssignedShop => 'المتجر المُعيَّن';
+
+  @override
+  String get createUser => 'إنشاء مستخدم';
+
+  @override
+  String get userInfoTitle => 'معلومات الحساب';
+
+  @override
+  String get userInfoSubtitle => 'الملف الأساسي للكاشير وحالة الوصول.';
+
+  @override
+  String get userActivityTitle => 'النشاط';
+
+  @override
+  String get userActivitySubtitle => 'تفاصيل تسجيل الدخول وإنشاء الحساب.';
+
+  @override
+  String get userDetailPhone => 'الهاتف';
+
+  @override
+  String get userDetailRole => 'الدور';
+
+  @override
+  String get userDetailVerified => 'تم التحقق';
+
+  @override
+  String get userDetailStatus => 'الحالة';
+
+  @override
+  String get userDetailLastLogin => 'آخر تسجيل دخول';
+
+  @override
+  String get userDetailJoined => 'تاريخ الانضمام';
+
+  @override
+  String get deactivateUser => 'إلغاء تفعيل المستخدم؟';
+
+  @override
+  String get managerAccess => 'صلاحيات المدير';
+
+  @override
+  String get shopRequired => 'المتجر مطلوب';
+
+  @override
+  String get shopAssigned => 'تم تعيين المتجر';
+
+  @override
+  String get unassignedCashier => 'كاشير غير معيَّن';
 }

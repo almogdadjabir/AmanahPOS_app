@@ -1057,6 +1057,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get catAppBarStatus;
+
+  /// No description provided for @addCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Cashier'**
+  String get addCashier;
+
+  /// No description provided for @userStatTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get userStatTotal;
+
+  /// No description provided for @userStatActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get userStatActive;
+
+  /// No description provided for @userStatCashiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashiers'**
+  String get userStatCashiers;
+
+  /// No description provided for @userStatManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'Managers'**
+  String get userStatManagers;
+
+  /// No description provided for @newUser.
+  ///
+  /// In en, this message translates to:
+  /// **'New User'**
+  String get newUser;
+
+  /// No description provided for @editUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit User'**
+  String get editUser;
+
+  /// No description provided for @createStaffAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create staff account'**
+  String get createStaffAccount;
+
+  /// No description provided for @editStaffAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit staff account'**
+  String get editStaffAccount;
+
+  /// No description provided for @fieldPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get fieldPhone;
+
+  /// No description provided for @fieldRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get fieldRole;
+
+  /// No description provided for @fieldAssignedShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Shop'**
+  String get fieldAssignedShop;
+
+  /// No description provided for @createUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Create User'**
+  String get createUser;
+
+  /// No description provided for @userInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Info'**
+  String get userInfoTitle;
+
+  /// No description provided for @userInfoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic cashier profile and access status.'**
+  String get userInfoSubtitle;
+
+  /// No description provided for @userActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get userActivityTitle;
+
+  /// No description provided for @userActivitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Login and account creation details.'**
+  String get userActivitySubtitle;
+
+  /// No description provided for @userDetailPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get userDetailPhone;
+
+  /// No description provided for @userDetailRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get userDetailRole;
+
+  /// No description provided for @userDetailVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get userDetailVerified;
+
+  /// No description provided for @userDetailStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get userDetailStatus;
+
+  /// No description provided for @userDetailLastLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Last login'**
+  String get userDetailLastLogin;
+
+  /// No description provided for @userDetailJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get userDetailJoined;
+
+  /// No description provided for @deactivateUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate User?'**
+  String get deactivateUser;
+
+  /// No description provided for @managerAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager access'**
+  String get managerAccess;
+
+  /// No description provided for @shopRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop required'**
+  String get shopRequired;
+
+  /// No description provided for @shopAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop assigned'**
+  String get shopAssigned;
+
+  /// No description provided for @unassignedCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned cashier'**
+  String get unassignedCashier;
 }
 
 class _AppLocalizationsDelegate

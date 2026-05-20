@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/deactivate_user_sheet.dart';
@@ -46,8 +47,8 @@ class UserDetailScreen extends StatelessWidget {
                   delegate: SliverChildListDelegate(
                     [
                       _SectionTitle(
-                        title: 'Account Info',
-                        subtitle: 'Basic cashier profile and access status.',
+                        title: context.tr.userInfoTitle,
+                        subtitle: context.tr.userInfoSubtitle,
                       ),
                       const SizedBox(height: AppDims.s2),
                       _InfoSection(user: currentUser),
@@ -55,8 +56,8 @@ class UserDetailScreen extends StatelessWidget {
                       const SizedBox(height: AppDims.s5),
 
                       _SectionTitle(
-                        title: 'Activity',
-                        subtitle: 'Login and account creation details.',
+                        title: context.tr.userActivityTitle,
+                        subtitle: context.tr.userActivitySubtitle,
                       ),
                       const SizedBox(height: AppDims.s2),
                       _ActivitySection(user: currentUser),
@@ -212,19 +213,19 @@ class _InfoSection extends StatelessWidget {
       children: [
         _InfoRow(
           icon: SolarIconsOutline.phone,
-          label: 'Phone',
+          label: context.tr.userDetailPhone,
           value: user.phone?.trim().isNotEmpty == true ? user.phone!.trim() : '—',
         ),
         _InfoRow(
           icon: SolarIconsOutline.userId,
-          label: 'Role',
+          label: context.tr.userDetailRole,
           value: _capitalize(user.role),
         ),
         _InfoRow(
           icon: verified
               ? SolarIconsOutline.verifiedCheck
               : SolarIconsOutline.closeCircle,
-          label: 'Verified',
+          label: context.tr.userDetailVerified,
           value: verified ? 'Yes' : 'No',
           valueColor: verified ? const Color(0xFF16A34A) : null,
           iconColor: verified ? const Color(0xFF16A34A) : null,
@@ -232,7 +233,7 @@ class _InfoSection extends StatelessWidget {
         _InfoRow(
           icon: SolarIconsOutline.recordCircle,
           iconColor: active ? const Color(0xFF16A34A) : null,
-          label: 'Status',
+          label: context.tr.userDetailStatus,
           value: active ? 'Active' : 'Inactive',
           valueColor: active ? const Color(0xFF16A34A) : null,
           isLast: true,
@@ -261,14 +262,14 @@ class _ActivitySection extends StatelessWidget {
       children: [
         _InfoRow(
           icon: SolarIconsOutline.login,
-          label: 'Last login',
+          label: context.tr.userDetailLastLogin,
           value: _formatDate(user.lastLoginAt) ?? 'Never',
           valueColor:
           user.lastLoginAt == null ? context.appColors.textHint : null,
         ),
         _InfoRow(
           icon: SolarIconsOutline.calendar,
-          label: 'Joined',
+          label: context.tr.userDetailJoined,
           value: _formatDate(user.createdAt) ?? '—',
           isLast: true,
         ),

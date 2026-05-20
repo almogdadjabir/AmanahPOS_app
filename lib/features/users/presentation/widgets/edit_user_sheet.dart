@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
@@ -197,7 +198,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
         }
       },
       child: ProductSheetShell(
-        title: 'Edit User',
+        title: context.tr.editUser,
         subtitle: widget.user.fullName,
         body: Form(
           key: _formKey,
@@ -206,7 +207,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
             children: [
               _InfoBanner(
                 icon: SolarIconsOutline.penNewSquare,
-                title: 'Edit staff account',
+                title: context.tr.editStaffAccount,
                 message:
                 'Only cashier and manager roles can be assigned from here.',
                 color: context.appColors.primary,
@@ -215,7 +216,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(
-                label: 'Full Name',
+                label: context.tr.fieldFullName,
                 required: true,
               ),
               const SizedBox(height: AppDims.s1),
@@ -242,7 +243,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(
-                label: 'Role',
+                label: context.tr.fieldRole,
                 required: true,
               ),
               const SizedBox(height: AppDims.s2),
@@ -255,7 +256,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               const SizedBox(height: AppDims.s4),
 
               if (_shops.isNotEmpty && _isCashier) ...[
-                FieldLabel(label: 'Assigned Shop'),
+                FieldLabel(label: context.tr.fieldAssignedShop),
                 const SizedBox(height: AppDims.s1),
                 _ShopDropdown(
                   shops: _shops,
@@ -278,7 +279,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               if (!_isCashier) ...[
                 _InfoBanner(
                   icon: SolarIconsOutline.shieldUser,
-                  title: 'Manager access',
+                  title: context.tr.managerAccess,
                   message:
                   'Managers are not assigned to a single shop. They can manage business operations based on their permissions.',
                   color: const Color(0xFF0EA5E9),
@@ -287,7 +288,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               ],
 
               UserSubmitButton(
-                label: 'Save Changes',
+                label: context.tr.saveChanges,
                 onPressed: _submit,
                 enabled: _hasChanges,
               ),
@@ -405,7 +406,7 @@ class _ShopAssignmentHint extends StatelessWidget {
     if (selectedShopId == null) {
       return _InfoBanner(
         icon: SolarIconsOutline.dangerTriangle,
-        title: 'Unassigned cashier',
+        title: context.tr.unassignedCashier,
         message:
         'This cashier is not assigned to any shop and cannot process sales.',
         color: const Color(0xFFF59E0B),
@@ -419,7 +420,7 @@ class _ShopAssignmentHint extends StatelessWidget {
 
     return _InfoBanner(
       icon: SolarIconsOutline.checkCircle,
-      title: 'Shop assigned',
+      title: context.tr.shopAssigned,
       message:
       'Assigned to ${shopName ?? 'shop'}. Cashier can process sales at this shop.',
       color: const Color(0xFF16A34A),

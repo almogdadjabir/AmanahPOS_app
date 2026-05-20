@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/add_user_sheet.dart';
@@ -75,7 +76,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 size: 18,
               ),
               label: Text(
-                'Add Cashier',
+                context.tr.addCashier,
                 style: AppTextStyles.bs300(context).copyWith(
                   fontWeight: FontWeight.w900,
                 ),
@@ -376,7 +377,7 @@ class _UsersHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: _UserMiniStat(
-                  label: 'Total',
+                  label: context.tr.userStatTotal,
                   value: '${users.length}',
                   icon: SolarIconsOutline.usersGroupRounded,
                   color: colors.primary,
@@ -387,7 +388,7 @@ class _UsersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _UserMiniStat(
-                  label: 'Active',
+                  label: context.tr.userStatActive,
                   value: '$active',
                   icon: SolarIconsOutline.checkCircle,
                   color: const Color(0xFF16A34A),
@@ -398,7 +399,7 @@ class _UsersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _UserMiniStat(
-                  label: 'Cashiers',
+                  label: context.tr.userStatCashiers,
                   value: '$cashiers',
                   icon: SolarIconsOutline.userSpeakRounded,
                   color: const Color(0xFF0EA5E9),
@@ -409,7 +410,7 @@ class _UsersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _UserMiniStat(
-                  label: 'Managers',
+                  label: context.tr.userStatManagers,
                   value: '$managers',
                   icon: SolarIconsOutline.shieldUser,
                   color: const Color(0xFF8B5CF6),

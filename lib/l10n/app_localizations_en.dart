@@ -502,4 +502,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catAppBarStatus => 'Status';
+
+  @override
+  String get addCashier => 'Add Cashier';
+
+  @override
+  String get userStatTotal => 'Total';
+
+  @override
+  String get userStatActive => 'Active';
+
+  @override
+  String get userStatCashiers => 'Cashiers';
+
+  @override
+  String get userStatManagers => 'Managers';
+
+  @override
+  String get newUser => 'New User';
+
+  @override
+  String get editUser => 'Edit User';
+
+  @override
+  String get createStaffAccount => 'Create staff account';
+
+  @override
+  String get editStaffAccount => 'Edit staff account';
+
+  @override
+  String get fieldPhone => 'Phone';
+
+  @override
+  String get fieldRole => 'Role';
+
+  @override
+  String get fieldAssignedShop => 'Assigned Shop';
+
+  @override
+  String get createUser => 'Create User';
+
+  @override
+  String get userInfoTitle => 'Account Info';
+
+  @override
+  String get userInfoSubtitle => 'Basic cashier profile and access status.';
+
+  @override
+  String get userActivityTitle => 'Activity';
+
+  @override
+  String get userActivitySubtitle => 'Login and account creation details.';
+
+  @override
+  String get userDetailPhone => 'Phone';
+
+  @override
+  String get userDetailRole => 'Role';
+
+  @override
+  String get userDetailVerified => 'Verified';
+
+  @override
+  String get userDetailStatus => 'Status';
+
+  @override
+  String get userDetailLastLogin => 'Last login';
+
+  @override
+  String get userDetailJoined => 'Joined';
+
+  @override
+  String get deactivateUser => 'Deactivate User?';
+
+  @override
+  String get managerAccess => 'Manager access';
+
+  @override
+  String get shopRequired => 'Shop required';
+
+  @override
+  String get shopAssigned => 'Shop assigned';
+
+  @override
+  String get unassignedCashier => 'Unassigned cashier';
 }

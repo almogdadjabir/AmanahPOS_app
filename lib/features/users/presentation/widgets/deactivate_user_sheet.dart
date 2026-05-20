@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
@@ -44,7 +45,7 @@ void showDeactivateUserSheet(
           final isLoading = state.submitStatus == UserSubmitStatus.loading;
 
           return AppDeactivateBottomSheet(
-            title: 'Deactivate User?',
+            title: context.tr.deactivateUser,
             description: '"${user.fullName}" will lose access immediately. '
                 'You can reactivate them later.',
             isLoading: isLoading,
