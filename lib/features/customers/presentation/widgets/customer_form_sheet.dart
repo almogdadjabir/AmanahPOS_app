@@ -1,4 +1,4 @@
-
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/customers/data/models/requests/customer_request_dto.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
@@ -96,6 +96,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     return BlocListener<CustomersBloc, CustomersState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
@@ -103,13 +104,13 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
         if (state.submitStatus == CustomerSubmitStatus.success) {
           Navigator.of(context).pop();
           GlobalSnackBar.show(
-            message: _isEdit ? 'Customer updated' : 'Customer created',
+            message: _isEdit ? tr.customerUpdatedShort : tr.customerCreated,
             isInfo: true,
           );
         }
         if (state.submitStatus == CustomerSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
+            message: state.submitError ?? tr.somethingWentWrong,
             isError: true, isAutoDismiss: false,
           );
         }
@@ -164,7 +165,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _isEdit ? 'Edit Customer' : 'Add Customer',
+                            _isEdit ? tr.editCustomer : tr.addCustomer,
                             style: AppTextStyles.bs600(context).copyWith(
                               color:      colors.textPrimary,
                               fontWeight: FontWeight.w900,
@@ -173,8 +174,8 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                           const SizedBox(height: 3),
                           Text(
                             _isEdit
-                                ? 'Update customer details and loyalty points.'
-                                : 'Create a customer profile for sales and loyalty.',
+                                ? tr.editCustomerSubtitle
+                                : tr.addCustomerSubtitle,
                             style: AppTextStyles.bs200(context).copyWith(
                               color:      colors.textSecondary,
                               fontWeight: FontWeight.w600,
@@ -203,7 +204,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
 
-                        FieldLabel(label: 'Customer Name', required: true),
+                        FieldLabel(label: tr.fieldCustomerName, required: true),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _nameCtrl,   focusNode: _nameFocus,
@@ -213,7 +214,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Phone', required: true),
+                        FieldLabel(label: tr.fieldPhone, required: true),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller:  _phoneCtrl,   focusNode: _phoneFocus,
@@ -224,7 +225,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Email'),
+                        FieldLabel(label: tr.fieldEmail),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller:  _emailCtrl,    focusNode: _emailFocus,
@@ -235,26 +236,26 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Address'),
+                        FieldLabel(label: tr.fieldAddress),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _addressCtrl, focusNode: _addressFocus,
-                          nextFocus:  _notesFocus,  hint: 'Customer address',
+                          nextFocus:  _notesFocus,  hint: tr.hintCustomerAddress,
                           prefixIcon: Icons.location_on_outlined,
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Notes'),
+                        FieldLabel(label: tr.fieldNotes),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _notesCtrl,  focusNode: _notesFocus,
-                          nextFocus:  _pointsFocus, hint: 'Any customer notes',
+                          nextFocus:  _pointsFocus, hint: tr.hintCustomerNotes,
                           prefixIcon: Icons.notes_rounded,
                           maxLines:   3,
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Loyalty Points'),
+                        FieldLabel(label: tr.fieldLoyaltyPoints),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller:      _pointsCtrl,
@@ -269,7 +270,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         const SizedBox(height: AppDims.s5),
 
                         CustomerSubmitButton(
-                          label:     _isEdit ? 'Save Changes' : 'Create Customer',
+                          label:     _isEdit ? tr.saveChanges : tr.createCustomer,
                           onPressed: _submit,
                         ),
                       ],

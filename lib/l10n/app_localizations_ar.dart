@@ -581,4 +581,145 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get unassignedCashier => 'كاشير غير معيَّن';
+
+  @override
+  String get addCustomer => 'إضافة عميل';
+
+  @override
+  String get customerStatTotal => 'الإجمالي';
+
+  @override
+  String get customerStatActive => 'نشط';
+
+  @override
+  String get customerStatInactive => 'غير نشط';
+
+  @override
+  String get customerStatCredit => 'الائتمان';
+
+  @override
+  String get customerStatPhone => 'الهاتف';
+
+  @override
+  String get fieldCustomerName => 'اسم العميل';
+
+  @override
+  String get fieldAddress => 'العنوان';
+
+  @override
+  String get fieldNotes => 'الملاحظات';
+
+  @override
+  String get fieldLoyaltyPoints => 'نقاط الولاء';
+
+  @override
+  String get createCustomer => 'إنشاء عميل';
+
+  @override
+  String get customerInactiveLabel => 'غير نشط';
+
+  @override
+  String get customerSearchHint =>
+      'بحث في العملاء، الهاتف، البريد الإلكتروني...';
+
+  @override
+  String get customerSalesPrefix => 'المبيعات';
+
+  @override
+  String get customers => 'العملاء';
+
+  @override
+  String get customersSubtitle =>
+      'إدارة ملفات تعريف العملاء وأرقام الهواتف والولاء وسجل المشتريات.';
+
+  @override
+  String get customerUpdatedSuccess => 'تم تحديث العميل بنجاح';
+
+  @override
+  String get customerUpdatedShort => 'تم تحديث العميل';
+
+  @override
+  String get customerCreated => 'تم إنشاء العميل';
+
+  @override
+  String get somethingWentWrong => 'حدث خطأ ما';
+
+  @override
+  String get noPhone => 'لا يوجد هاتف';
+
+  @override
+  String get customersNotFound => 'لم يتم العثور على عملاء';
+
+  @override
+  String get customersEmptyAll => 'لا يوجد عملاء بعد';
+
+  @override
+  String get customersEmptyActive => 'لا يوجد عملاء نشطون';
+
+  @override
+  String get customersEmptyInactive => 'لا يوجد عملاء غير نشطين';
+
+  @override
+  String get customersEmptyCredit => 'لا يوجد عملاء ذوو رصيد';
+
+  @override
+  String get customersEmptyPhone => 'لا يوجد عملاء لديهم هاتف';
+
+  @override
+  String get customersEmptyAllMsg => 'أضف عميلك الأول لتتبع الولاء والمشتريات.';
+
+  @override
+  String get customersEmptyActiveMsg => 'لا يوجد عملاء نشطون حالياً.';
+
+  @override
+  String get customersEmptyInactiveMsg => 'جميع العملاء نشطون حالياً.';
+
+  @override
+  String get customersEmptyCreditMsg =>
+      'لا يوجد عملاء لديهم رصيد أو رصيد مشتريات حالياً.';
+
+  @override
+  String get customersEmptyPhoneMsg => 'لا يوجد عملاء لديهم أرقام هواتف بعد.';
+
+  @override
+  String get customersNoMatchTitle => 'لم يتم العثور على عملاء';
+
+  @override
+  String customersNoMatchMsg(String query) {
+    return 'لا يوجد ما يطابق \"$query\".';
+  }
+
+  @override
+  String get customersLoadFailed => 'فشل تحميل العملاء';
+
+  @override
+  String get editCustomer => 'تعديل العميل';
+
+  @override
+  String get editCustomerSubtitle => 'تحديث تفاصيل العميل ونقاط الولاء.';
+
+  @override
+  String get addCustomerSubtitle => 'إنشاء ملف تعريف عميل للمبيعات والولاء.';
+
+  @override
+  String get hintCustomerAddress => 'عنوان العميل';
+
+  @override
+  String get hintCustomerNotes => 'أي ملاحظات عن العميل';
+
+  @override
+  String get deleteCustomerTitle => 'حذف العميل؟';
+
+  @override
+  String deleteCustomerConfirm(String name) {
+    return 'هل أنت متأكد أنك تريد حذف \"$name\"؟';
+  }
+
+  @override
+  String get invalidCustomer => 'عميل غير صالح';
+
+  @override
+  String loyaltyPointsSuffix(int points) {
+    return '$points نقطة';
+  }
 }

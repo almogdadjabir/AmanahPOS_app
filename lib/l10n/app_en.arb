@@ -208,5 +208,65 @@
   "managerAccess": "Manager access",
   "shopRequired": "Shop required",
   "shopAssigned": "Shop assigned",
-  "unassignedCashier": "Unassigned cashier"
+  "unassignedCashier": "Unassigned cashier",
+  "addCustomer": "Add Customer",
+  "customerStatTotal": "Total",
+  "customerStatActive": "Active",
+  "customerStatInactive": "Inactive",
+  "customerStatCredit": "Credit",
+  "customerStatPhone": "Phone",
+  "fieldCustomerName": "Customer Name",
+  "fieldAddress": "Address",
+  "fieldNotes": "Notes",
+  "fieldLoyaltyPoints": "Loyalty Points",
+  "createCustomer": "Create Customer",
+  "customerInactiveLabel": "Inactive",
+  "customerSearchHint": "Search customers, phone, email...",
+  "customerSalesPrefix": "Sales",
+
+  "customers": "Customers",
+  "customersSubtitle": "Manage customer profiles, phone numbers, loyalty, and purchase history.",
+  "customerUpdatedSuccess": "Customer updated successfully",
+  "customerUpdatedShort": "Customer updated",
+  "customerCreated": "Customer created",
+  "somethingWentWrong": "Something went wrong",
+  "noPhone": "No phone",
+  "customersNotFound": "No customers found",
+  "customersEmptyAll": "No customers yet",
+  "customersEmptyActive": "No active customers",
+  "customersEmptyInactive": "No inactive customers",
+  "customersEmptyCredit": "No credit customers",
+  "customersEmptyPhone": "No customers with phone",
+  "customersEmptyAllMsg": "Add your first customer to track loyalty and purchases.",
+  "customersEmptyActiveMsg": "No customers are currently active.",
+  "customersEmptyInactiveMsg": "All customers are currently active.",
+  "customersEmptyCreditMsg": "No customers currently have credit or purchase balance.",
+  "customersEmptyPhoneMsg": "No customers have phone numbers yet.",
+  "customersNoMatchTitle": "No customers found",
+  "customersNoMatchMsg": "Nothing matches \"{query}\".",
+  "@customersNoMatchMsg": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "customersLoadFailed": "Failed to load customers",
+  "editCustomer": "Edit Customer",
+  "editCustomerSubtitle": "Update customer details and loyalty points.",
+  "addCustomerSubtitle": "Create a customer profile for sales and loyalty.",
+  "hintCustomerAddress": "Customer address",
+  "hintCustomerNotes": "Any customer notes",
+  "deleteCustomerTitle": "Delete Customer?",
+  "deleteCustomerConfirm": "Are you sure you want to delete \"{name}\"?",
+  "@deleteCustomerConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "invalidCustomer": "Invalid customer",
+  "loyaltyPointsSuffix": "{points} points",
+  "@loyaltyPointsSuffix": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  }
 }

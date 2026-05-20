@@ -586,4 +586,147 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unassignedCashier => 'Unassigned cashier';
+
+  @override
+  String get addCustomer => 'Add Customer';
+
+  @override
+  String get customerStatTotal => 'Total';
+
+  @override
+  String get customerStatActive => 'Active';
+
+  @override
+  String get customerStatInactive => 'Inactive';
+
+  @override
+  String get customerStatCredit => 'Credit';
+
+  @override
+  String get customerStatPhone => 'Phone';
+
+  @override
+  String get fieldCustomerName => 'Customer Name';
+
+  @override
+  String get fieldAddress => 'Address';
+
+  @override
+  String get fieldNotes => 'Notes';
+
+  @override
+  String get fieldLoyaltyPoints => 'Loyalty Points';
+
+  @override
+  String get createCustomer => 'Create Customer';
+
+  @override
+  String get customerInactiveLabel => 'Inactive';
+
+  @override
+  String get customerSearchHint => 'Search customers, phone, email...';
+
+  @override
+  String get customerSalesPrefix => 'Sales';
+
+  @override
+  String get customers => 'Customers';
+
+  @override
+  String get customersSubtitle =>
+      'Manage customer profiles, phone numbers, loyalty, and purchase history.';
+
+  @override
+  String get customerUpdatedSuccess => 'Customer updated successfully';
+
+  @override
+  String get customerUpdatedShort => 'Customer updated';
+
+  @override
+  String get customerCreated => 'Customer created';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get noPhone => 'No phone';
+
+  @override
+  String get customersNotFound => 'No customers found';
+
+  @override
+  String get customersEmptyAll => 'No customers yet';
+
+  @override
+  String get customersEmptyActive => 'No active customers';
+
+  @override
+  String get customersEmptyInactive => 'No inactive customers';
+
+  @override
+  String get customersEmptyCredit => 'No credit customers';
+
+  @override
+  String get customersEmptyPhone => 'No customers with phone';
+
+  @override
+  String get customersEmptyAllMsg =>
+      'Add your first customer to track loyalty and purchases.';
+
+  @override
+  String get customersEmptyActiveMsg => 'No customers are currently active.';
+
+  @override
+  String get customersEmptyInactiveMsg => 'All customers are currently active.';
+
+  @override
+  String get customersEmptyCreditMsg =>
+      'No customers currently have credit or purchase balance.';
+
+  @override
+  String get customersEmptyPhoneMsg => 'No customers have phone numbers yet.';
+
+  @override
+  String get customersNoMatchTitle => 'No customers found';
+
+  @override
+  String customersNoMatchMsg(String query) {
+    return 'Nothing matches \"$query\".';
+  }
+
+  @override
+  String get customersLoadFailed => 'Failed to load customers';
+
+  @override
+  String get editCustomer => 'Edit Customer';
+
+  @override
+  String get editCustomerSubtitle =>
+      'Update customer details and loyalty points.';
+
+  @override
+  String get addCustomerSubtitle =>
+      'Create a customer profile for sales and loyalty.';
+
+  @override
+  String get hintCustomerAddress => 'Customer address';
+
+  @override
+  String get hintCustomerNotes => 'Any customer notes';
+
+  @override
+  String get deleteCustomerTitle => 'Delete Customer?';
+
+  @override
+  String deleteCustomerConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"?';
+  }
+
+  @override
+  String get invalidCustomer => 'Invalid customer';
+
+  @override
+  String loyaltyPointsSuffix(int points) {
+    return '$points points';
+  }
 }

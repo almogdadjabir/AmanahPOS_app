@@ -1225,6 +1225,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unassigned cashier'**
   String get unassignedCashier;
+
+  /// No description provided for @addCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Customer'**
+  String get addCustomer;
+
+  /// No description provided for @customerStatTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get customerStatTotal;
+
+  /// No description provided for @customerStatActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get customerStatActive;
+
+  /// No description provided for @customerStatInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get customerStatInactive;
+
+  /// No description provided for @customerStatCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get customerStatCredit;
+
+  /// No description provided for @customerStatPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get customerStatPhone;
+
+  /// No description provided for @fieldCustomerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Name'**
+  String get fieldCustomerName;
+
+  /// No description provided for @fieldAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get fieldAddress;
+
+  /// No description provided for @fieldNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get fieldNotes;
+
+  /// No description provided for @fieldLoyaltyPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty Points'**
+  String get fieldLoyaltyPoints;
+
+  /// No description provided for @createCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Customer'**
+  String get createCustomer;
+
+  /// No description provided for @customerInactiveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get customerInactiveLabel;
+
+  /// No description provided for @customerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customers, phone, email...'**
+  String get customerSearchHint;
+
+  /// No description provided for @customerSalesPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get customerSalesPrefix;
+
+  /// No description provided for @customers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get customers;
+
+  /// No description provided for @customersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage customer profiles, phone numbers, loyalty, and purchase history.'**
+  String get customersSubtitle;
+
+  /// No description provided for @customerUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer updated successfully'**
+  String get customerUpdatedSuccess;
+
+  /// No description provided for @customerUpdatedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer updated'**
+  String get customerUpdatedShort;
+
+  /// No description provided for @customerCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer created'**
+  String get customerCreated;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @noPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'No phone'**
+  String get noPhone;
+
+  /// No description provided for @customersNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found'**
+  String get customersNotFound;
+
+  /// No description provided for @customersEmptyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers yet'**
+  String get customersEmptyAll;
+
+  /// No description provided for @customersEmptyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active customers'**
+  String get customersEmptyActive;
+
+  /// No description provided for @customersEmptyInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'No inactive customers'**
+  String get customersEmptyInactive;
+
+  /// No description provided for @customersEmptyCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'No credit customers'**
+  String get customersEmptyCredit;
+
+  /// No description provided for @customersEmptyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers with phone'**
+  String get customersEmptyPhone;
+
+  /// No description provided for @customersEmptyAllMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first customer to track loyalty and purchases.'**
+  String get customersEmptyAllMsg;
+
+  /// No description provided for @customersEmptyActiveMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers are currently active.'**
+  String get customersEmptyActiveMsg;
+
+  /// No description provided for @customersEmptyInactiveMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'All customers are currently active.'**
+  String get customersEmptyInactiveMsg;
+
+  /// No description provided for @customersEmptyCreditMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers currently have credit or purchase balance.'**
+  String get customersEmptyCreditMsg;
+
+  /// No description provided for @customersEmptyPhoneMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers have phone numbers yet.'**
+  String get customersEmptyPhoneMsg;
+
+  /// No description provided for @customersNoMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found'**
+  String get customersNoMatchTitle;
+
+  /// No description provided for @customersNoMatchMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches \"{query}\".'**
+  String customersNoMatchMsg(String query);
+
+  /// No description provided for @customersLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load customers'**
+  String get customersLoadFailed;
+
+  /// No description provided for @editCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Customer'**
+  String get editCustomer;
+
+  /// No description provided for @editCustomerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update customer details and loyalty points.'**
+  String get editCustomerSubtitle;
+
+  /// No description provided for @addCustomerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a customer profile for sales and loyalty.'**
+  String get addCustomerSubtitle;
+
+  /// No description provided for @hintCustomerAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer address'**
+  String get hintCustomerAddress;
+
+  /// No description provided for @hintCustomerNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Any customer notes'**
+  String get hintCustomerNotes;
+
+  /// No description provided for @deleteCustomerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Customer?'**
+  String get deleteCustomerTitle;
+
+  /// No description provided for @deleteCustomerConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String deleteCustomerConfirm(String name);
+
+  /// No description provided for @invalidCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid customer'**
+  String get invalidCustomer;
+
+  /// No description provided for @loyaltyPointsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{points} points'**
+  String loyaltyPointsSuffix(int points);
 }
 
 class _AppLocalizationsDelegate

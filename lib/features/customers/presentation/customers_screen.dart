@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:amana_pos/features/customers/presentation/widgets/customer_form_sheet.dart';
@@ -137,7 +138,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           Navigator.of(context).maybePop();
 
           GlobalSnackBar.show(
-            message: 'Customer updated successfully',
+            message: context.tr.customerUpdatedSuccess,
             isInfo: true,
           );
 
@@ -148,7 +149,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
         if (state.submitStatus == CustomerSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
+            message: state.submitError ?? context.tr.somethingWentWrong,
             isError: true,
             isAutoDismiss: false,
           );
@@ -262,7 +263,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             color: Colors.white,
           ),
           label: Text(
-            'Add Customer',
+            context.tr.addCustomer,
             style: AppTextStyles.bs300(context).copyWith(
               fontWeight: FontWeight.w900,
               color: Colors.white,
@@ -279,6 +280,7 @@ class _CustomersAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return SliverAppBar(
       automaticallyImplyLeading: false,
       pinned: true,
@@ -286,7 +288,7 @@ class _CustomersAppBar extends StatelessWidget {
       backgroundColor: context.appColors.background,
       surfaceTintColor: Colors.transparent,
       title: Text(
-        'Customers',
+        tr.customers,
         style: AppTextStyles.bs600(context).copyWith(
           color: context.appColors.textPrimary,
           fontWeight: FontWeight.w900,
@@ -321,6 +323,7 @@ class _CustomersHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     final active = customers.where((customer) {
       return customer.isActive == true;
@@ -379,7 +382,7 @@ class _CustomersHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Customers',
+                      tr.customers,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs700(context).copyWith(
@@ -390,7 +393,7 @@ class _CustomersHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Manage customer profiles, phone numbers, loyalty, and purchase history.',
+                      tr.customersSubtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs300(context).copyWith(
@@ -409,7 +412,7 @@ class _CustomersHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: _CustomerMiniStat(
-                  label: 'Total',
+                  label: tr.customerStatTotal,
                   value: '${customers.length}',
                   icon: SolarIconsOutline.usersGroupRounded,
                   color: colors.primary,
@@ -420,7 +423,7 @@ class _CustomersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CustomerMiniStat(
-                  label: 'Active',
+                  label: tr.customerStatActive,
                   value: '$active',
                   icon: SolarIconsOutline.checkCircle,
                   color: const Color(0xFF16A34A),
@@ -431,7 +434,7 @@ class _CustomersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CustomerMiniStat(
-                  label: 'Inactive',
+                  label: tr.customerStatInactive,
                   value: '$inactive',
                   icon: SolarIconsOutline.pauseCircle,
                   color: const Color(0xFF94A3B8),
@@ -442,7 +445,7 @@ class _CustomersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CustomerMiniStat(
-                  label: 'Credit',
+                  label: tr.customerStatCredit,
                   value: '$credit',
                   icon: SolarIconsOutline.walletMoney,
                   color: const Color(0xFFEA580C),
@@ -453,7 +456,7 @@ class _CustomersHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CustomerMiniStat(
-                  label: 'Phone',
+                  label: tr.customerStatPhone,
                   value: '$withPhone',
                   icon: SolarIconsOutline.phoneRounded,
                   color: const Color(0xFF0EA5E9),
@@ -565,6 +568,7 @@ class _CustomersSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     return SizedBox(
       height: 46,
@@ -580,7 +584,7 @@ class _CustomersSearchField extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
         decoration: InputDecoration(
-          hintText: 'Search customers, phone, email...',
+          hintText: tr.customerSearchHint,
           hintStyle: AppTextStyles.bs300(context).copyWith(
             color: colors.textHint,
             fontWeight: FontWeight.w600,
@@ -659,6 +663,7 @@ class _CustomerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
     final isActive = customer.isActive ?? true;
     final name = customer.name?.trim().isNotEmpty == true
         ? customer.name!.trim()
@@ -710,7 +715,7 @@ class _CustomerCard extends StatelessWidget {
                         if (!isActive) ...[
                           const SizedBox(width: AppDims.s2),
                           _SmallPill(
-                            label: 'Inactive',
+                            label: tr.customerInactiveLabel,
                             color: colors.textHint,
                           ),
                         ],
@@ -720,7 +725,7 @@ class _CustomerCard extends StatelessWidget {
                     Text(
                       customer.phone?.trim().isNotEmpty == true
                           ? customer.phone!.trim()
-                          : 'No phone',
+                          : tr.noPhone,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs200(context).copyWith(
@@ -746,11 +751,11 @@ class _CustomerCard extends StatelessWidget {
                       runSpacing: AppDims.s1,
                       children: [
                         _SmallPill(
-                          label: '${customer.loyaltyPoints ?? 0} points',
+                          label: tr.loyaltyPointsSuffix(customer.loyaltyPoints ?? 0),
                           color: const Color(0xFF8B5CF6),
                         ),
                         _SmallPill(
-                          label: 'Sales ${customer.totalPurchases ?? '0.00'}',
+                          label: '${tr.customerSalesPrefix} ${customer.totalPurchases ?? '0.00'}',
                           color: const Color(0xFF16A34A),
                         ),
                       ],
@@ -769,14 +774,14 @@ class _CustomerCard extends StatelessWidget {
                     showDeleteCustomerSheet(context, customer: customer);
                   }
                 },
-                itemBuilder: (_) => const [
+                itemBuilder: (_) => [
                   PopupMenuItem(
                     value: 'edit',
-                    child: Text('Edit'),
+                    child: Text(tr.edit),
                   ),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Text('Delete'),
+                    child: Text(tr.delete),
                   ),
                 ],
                 icon: Icon(
@@ -837,29 +842,27 @@ class _CustomersEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
     final hasQuery = query.trim().isNotEmpty;
 
     final title = hasQuery
-        ? 'No customers found'
+        ? tr.customersNoMatchTitle
         : switch (filter) {
-      CustomerQuickFilter.all => 'No customers yet',
-      CustomerQuickFilter.active => 'No active customers',
-      CustomerQuickFilter.inactive => 'No inactive customers',
-      CustomerQuickFilter.credit => 'No credit customers',
-      CustomerQuickFilter.withPhone => 'No customers with phone',
+      CustomerQuickFilter.all => tr.customersEmptyAll,
+      CustomerQuickFilter.active => tr.customersEmptyActive,
+      CustomerQuickFilter.inactive => tr.customersEmptyInactive,
+      CustomerQuickFilter.credit => tr.customersEmptyCredit,
+      CustomerQuickFilter.withPhone => tr.customersEmptyPhone,
     };
 
     final message = hasQuery
-        ? 'Nothing matches "${query.trim()}".'
+        ? tr.customersNoMatchMsg(query.trim())
         : switch (filter) {
-      CustomerQuickFilter.all =>
-      'Add your first customer to track loyalty and purchases.',
-      CustomerQuickFilter.active => 'No customers are currently active.',
-      CustomerQuickFilter.inactive => 'All customers are currently active.',
-      CustomerQuickFilter.credit =>
-      'No customers currently have credit or purchase balance.',
-      CustomerQuickFilter.withPhone =>
-      'No customers have phone numbers yet.',
+      CustomerQuickFilter.all => tr.customersEmptyAllMsg,
+      CustomerQuickFilter.active => tr.customersEmptyActiveMsg,
+      CustomerQuickFilter.inactive => tr.customersEmptyInactiveMsg,
+      CustomerQuickFilter.credit => tr.customersEmptyCreditMsg,
+      CustomerQuickFilter.withPhone => tr.customersEmptyPhoneMsg,
     };
 
     final icon = hasQuery
@@ -916,7 +919,7 @@ class _CustomersEmpty extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onAdd,
                 icon: const Icon(SolarIconsOutline.userPlus),
-                label: const Text('Add Customer'),
+                label: Text(tr.addCustomer),
               ),
             ],
           ],
@@ -961,6 +964,8 @@ class _CustomersError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDims.s5),
@@ -974,7 +979,7 @@ class _CustomersError extends StatelessWidget {
             ),
             const SizedBox(height: AppDims.s3),
             Text(
-              'Failed to load customers',
+              tr.customersLoadFailed,
               style: AppTextStyles.bs500(context).copyWith(
                 color: context.appColors.textPrimary,
                 fontWeight: FontWeight.w900,
@@ -997,7 +1002,7 @@ class _CustomersError extends StatelessWidget {
                 SolarIconsOutline.refresh,
                 size: 16,
               ),
-              label: const Text('Retry'),
+              label: Text(tr.retry),
             ),
           ],
         ),

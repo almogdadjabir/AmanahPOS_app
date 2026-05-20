@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -31,6 +32,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
@@ -72,7 +74,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s4),
           Text(
-            'Delete Customer?',
+            tr.deleteCustomerTitle,
             style: AppTextStyles.bs600(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
@@ -80,7 +82,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s2),
           Text(
-            'Are you sure you want to delete "${customer.name ?? 'this customer'}"?',
+            tr.deleteCustomerConfirm(customer.name ?? tr.customers),
             textAlign: TextAlign.center,
             style: AppTextStyles.bs300(context).copyWith(
               color: colors.textSecondary,
@@ -108,7 +110,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppDims.rMd),
                         ),
                       ),
-                      child: const Text('Cancel'),
+                      child: Text(tr.cancel),
                     ),
                   ),
                   const SizedBox(width: AppDims.s3),
@@ -121,7 +123,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
 
                         if (customerId == null) {
                           GlobalSnackBar.show(
-                            message: 'Invalid customer',
+                            message: tr.invalidCustomer,
                             isError: true,
                           );
                           return;
@@ -150,7 +152,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
                           color: Colors.white,
                         ),
                       )
-                          : const Text('Delete'),
+                          : Text(tr.delete),
                     ),
                   ),
                 ],
