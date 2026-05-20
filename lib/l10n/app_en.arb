@@ -1,0 +1,68 @@
+{
+  "@@locale": "en",
+
+  "navHome": "Home",
+  "navProducts": "Products",
+  "navSell": "Sell",
+  "navInventory": "Inventory",
+  "navReports": "Reports",
+  "navSettings": "Settings",
+
+  "save": "Save",
+  "cancel": "Cancel",
+  "edit": "Edit",
+  "delete": "Delete",
+  "close": "Close",
+  "search": "Search",
+  "confirm": "Confirm",
+  "done": "Done",
+  "add": "Add",
+  "retry": "Retry",
+  "signOut": "Sign out",
+  "noData": "No data found",
+
+  "settingsSectionManage": "MANAGE",
+  "settingsSectionAccount": "ACCOUNT & SECURITY",
+  "settingsSectionAppearance": "APPEARANCE",
+  "settingsSectionSupport": "SUPPORT",
+
+  "settingsCategories": "Categories",
+  "settingsCategoriesSubtitle": "Organize products",
+  "settingsCashiers": "Cashiers",
+  "settingsCashiersSubtitle": "Staff access & shifts",
+  "settingsCustomers": "Customers",
+  "settingsCustomersSubtitle": "Profiles & loyalty",
+  "settingsReturns": "Returns",
+  "settingsReturnsSubtitle": "Process customer item returns",
+  "settingsSalesHistory": "Sales history",
+  "settingsSalesHistorySubtitle": "Browse and search all transactions",
+
+  "settingsProfile": "Profile",
+  "settingsBankakPayments": "Bankak Payments",
+  "settingsPassword": "Password",
+  "settingsPasswordSubtitle": "Change your account password",
+  "settingsWhatsappSupport": "WhatsApp Support",
+  "settingsLanguage": "Language",
+  "settingsSignOut": "Sign out",
+
+  "currentLanguageName": "English",
+
+  "languagePickerTitle": "Language",
+  "languagePickerSubtitle": "Choose your preferred language.",
+  "languageEnglish": "English",
+  "languageEnglishNative": "English (EN)",
+  "languageArabic": "Arabic",
+  "languageArabicNative": "العربية (AR)",
+
+  "profileUpdatedSuccess": "Updated successfully",
+  "profileUpdateFailed": "Failed to update",
+  "passwordUpdatedSuccess": "Password updated",
+  "passwordUpdateFailed": "Failed to update password",
+
+  "logoutConfirmTitle": "Sign out",
+  "logoutConfirmMessage": "Are you sure you want to sign out?",
+
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System"
+}

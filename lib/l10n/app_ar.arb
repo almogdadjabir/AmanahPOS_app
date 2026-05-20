@@ -1,0 +1,68 @@
+{
+  "@@locale": "ar",
+
+  "navHome": "الرئيسية",
+  "navProducts": "المنتجات",
+  "navSell": "بيع",
+  "navInventory": "المخزون",
+  "navReports": "التقارير",
+  "navSettings": "الإعدادات",
+
+  "save": "حفظ",
+  "cancel": "إلغاء",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "close": "إغلاق",
+  "search": "بحث",
+  "confirm": "تأكيد",
+  "done": "تم",
+  "add": "إضافة",
+  "retry": "إعادة المحاولة",
+  "signOut": "تسجيل الخروج",
+  "noData": "لا توجد بيانات",
+
+  "settingsSectionManage": "الإدارة",
+  "settingsSectionAccount": "الحساب والأمان",
+  "settingsSectionAppearance": "المظهر",
+  "settingsSectionSupport": "الدعم",
+
+  "settingsCategories": "الفئات",
+  "settingsCategoriesSubtitle": "تنظيم المنتجات",
+  "settingsCashiers": "الكاشيرات",
+  "settingsCashiersSubtitle": "صلاحيات الموظفين والمناوبات",
+  "settingsCustomers": "العملاء",
+  "settingsCustomersSubtitle": "الملفات الشخصية والولاء",
+  "settingsReturns": "المرتجعات",
+  "settingsReturnsSubtitle": "معالجة مرتجعات العملاء",
+  "settingsSalesHistory": "سجل المبيعات",
+  "settingsSalesHistorySubtitle": "استعراض وبحث في جميع المعاملات",
+
+  "settingsProfile": "الملف الشخصي",
+  "settingsBankakPayments": "مدفوعات بنكك",
+  "settingsPassword": "كلمة المرور",
+  "settingsPasswordSubtitle": "تغيير كلمة مرور حسابك",
+  "settingsWhatsappSupport": "دعم واتساب",
+  "settingsLanguage": "اللغة",
+  "settingsSignOut": "تسجيل الخروج",
+
+  "currentLanguageName": "العربية",
+
+  "languagePickerTitle": "اللغة",
+  "languagePickerSubtitle": "اختر لغتك المفضلة.",
+  "languageEnglish": "الإنجليزية",
+  "languageEnglishNative": "English (EN)",
+  "languageArabic": "العربية",
+  "languageArabicNative": "العربية (AR)",
+
+  "profileUpdatedSuccess": "تم التحديث بنجاح",
+  "profileUpdateFailed": "فشل التحديث",
+  "passwordUpdatedSuccess": "تم تحديث كلمة المرور",
+  "passwordUpdateFailed": "فشل تحديث كلمة المرور",
+
+  "logoutConfirmTitle": "تسجيل الخروج",
+  "logoutConfirmMessage": "هل أنت متأكد من تسجيل الخروج؟",
+
+  "themeLight": "فاتح",
+  "themeDark": "داكن",
+  "themeSystem": "النظام"
+}

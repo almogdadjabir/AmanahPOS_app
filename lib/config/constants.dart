@@ -8,6 +8,7 @@ class Constants {
   static const isDarkTheme = 'is_dark_theme';
   static const appTheme = 'app_theme';
   static const isBigFontSize = 'is_big_font_size';
+  static const appLocale = 'app_locale';
   static bool isTablet = true;
   static const xTenantID = 'x_tenant_iD';
 
