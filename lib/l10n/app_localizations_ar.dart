@@ -321,4 +321,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bankakAddButton => 'إضافة حساب بنكك';
+
+  @override
+  String get bankakReadyTitle => 'جاهز لقبول مبيعات بنكك';
+
+  @override
+  String get bankakReadySubtitle => 'قبول مدفوعات بنكك في نقطة البيع';
+
+  @override
+  String get bankakAccountPrefix => 'الحساب ';
+
+  @override
+  String get bankakNoAccountAdded => 'لم يُضَف حساب بنكك بعد';
+
+  @override
+  String get bankakUpdateTitle => 'تحديث حساب بنكك';
 }

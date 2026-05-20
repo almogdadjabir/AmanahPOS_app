@@ -118,5 +118,11 @@
   "bankakPosNote": "عندما يختار الكاشير بنكك في نقطة البيع، تسجّل أمانة البيعة تحت هذا الحساب.",
   "bankakCardTitle": "مدفوعات بنكك",
   "bankakChangeButton": "تغيير حساب بنكك",
-  "bankakAddButton": "إضافة حساب بنكك"
+  "bankakAddButton": "إضافة حساب بنكك",
+
+  "bankakReadyTitle": "جاهز لقبول مبيعات بنكك",
+  "bankakReadySubtitle": "قبول مدفوعات بنكك في نقطة البيع",
+  "bankakAccountPrefix": "الحساب ",
+  "bankakNoAccountAdded": "لم يُضَف حساب بنكك بعد",
+  "bankakUpdateTitle": "تحديث حساب بنكك"
 }

@@ -324,4 +324,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bankakAddButton => 'Add Bankak Account';
+
+  @override
+  String get bankakReadyTitle => 'Ready to accept Bankak sales';
+
+  @override
+  String get bankakReadySubtitle => 'Accept Bankak payments in POS';
+
+  @override
+  String get bankakAccountPrefix => 'Account ';
+
+  @override
+  String get bankakNoAccountAdded => 'No Bankak account added yet';
+
+  @override
+  String get bankakUpdateTitle => 'Update Bankak Account';
 }

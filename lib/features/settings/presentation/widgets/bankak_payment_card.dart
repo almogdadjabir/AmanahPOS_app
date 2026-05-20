@@ -103,8 +103,8 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
                     const SizedBox(height: 3),
                     Text(
                       hasAccount
-                          ? 'Ready to accept Bankak sales'
-                          : 'Accept Bankak payments in POS',
+                          ? tr.bankakReadyTitle
+                          : tr.bankakReadySubtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs200(context).copyWith(
@@ -147,8 +147,8 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
                 Expanded(
                   child: Text(
                     hasAccount
-                        ? 'Account ${_maskAccount(account)}'
-                        : 'No Bankak account added yet',
+                        ? '${tr.bankakAccountPrefix}${_maskAccount(account)}'
+                        : tr.bankakNoAccountAdded,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.bs300(context).copyWith(
@@ -368,8 +368,8 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                       children: [
                         Text(
                           hasExisting
-                              ? 'Update Bankak Account'
-                              : 'Add Bankak Account',
+                              ? tr.bankakUpdateTitle
+                              : tr.bankakAddTitle,
                           style: AppTextStyles.bs600(context).copyWith(
                             color: colors.textPrimary,
                             fontWeight: FontWeight.w900,
@@ -427,7 +427,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
 
               const SizedBox(height: AppDims.s4),
 
-              FieldLabel(label: 'Bankak Account Number', required: true),
+              FieldLabel(label: tr.bankakAccountNumber, required: true),
               const SizedBox(height: AppDims.s1),
 
               AppFormField(

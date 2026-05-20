@@ -715,6 +715,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Bankak Account'**
   String get bankakAddButton;
+
+  /// No description provided for @bankakReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to accept Bankak sales'**
+  String get bankakReadyTitle;
+
+  /// No description provided for @bankakReadySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Bankak payments in POS'**
+  String get bankakReadySubtitle;
+
+  /// No description provided for @bankakAccountPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Account '**
+  String get bankakAccountPrefix;
+
+  /// No description provided for @bankakNoAccountAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No Bankak account added yet'**
+  String get bankakNoAccountAdded;
+
+  /// No description provided for @bankakUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Bankak Account'**
+  String get bankakUpdateTitle;
 }
 
 class _AppLocalizationsDelegate

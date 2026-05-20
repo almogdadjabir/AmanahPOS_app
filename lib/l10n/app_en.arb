@@ -118,5 +118,11 @@
   "bankakPosNote": "When cashier chooses Bankak in POS, AmanaPOS records the sale under this account.",
   "bankakCardTitle": "Bankak Payments",
   "bankakChangeButton": "Change Bankak Account",
-  "bankakAddButton": "Add Bankak Account"
+  "bankakAddButton": "Add Bankak Account",
+
+  "bankakReadyTitle": "Ready to accept Bankak sales",
+  "bankakReadySubtitle": "Accept Bankak payments in POS",
+  "bankakAccountPrefix": "Account ",
+  "bankakNoAccountAdded": "No Bankak account added yet",
+  "bankakUpdateTitle": "Update Bankak Account"
 }
