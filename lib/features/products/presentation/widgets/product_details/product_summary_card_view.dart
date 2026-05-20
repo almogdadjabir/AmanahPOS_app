@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -108,7 +109,7 @@ class ProductSummaryCardView extends StatelessWidget {
     final minTile = hasMin
         ? _InfoTile(
       icon: SolarIconsOutline.dangerTriangle,
-      label: 'Min Stock',
+      label: context.tr.fieldMinStockLevel,
       value: _formatQty(minStock),
       color: amber,
     )
@@ -117,7 +118,7 @@ class ProductSummaryCardView extends StatelessWidget {
     final expiryTile = hasExpiry
         ? _InfoTile(
       icon: SolarIconsOutline.calendarMark,
-      label: 'Expiry Alert',
+      label: context.tr.fieldExpiryAlert,
       value: '$expiryDays day${expiryDays == 1 ? '' : 's'}',
       color: orange,
     )

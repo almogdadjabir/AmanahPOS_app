@@ -368,4 +368,97 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posShopMismatch => 'لست مُعيَّناً لهذا المتجر. تواصل مع مديرك.';
+
+  @override
+  String get productsManagement => 'إدارة المنتجات';
+
+  @override
+  String get addProduct => 'إضافة منتج';
+
+  @override
+  String get noProductsYet => 'لا توجد منتجات بعد';
+
+  @override
+  String get noProductsMessage =>
+      'أضف منتجك الأول لبناء الكتالوج والبدء بالبيع.';
+
+  @override
+  String get productStatAll => 'المنتجات';
+
+  @override
+  String get productStatActive => 'نشطة';
+
+  @override
+  String get productStatOutOfStock => 'نافد';
+
+  @override
+  String get showList => 'عرض قائمة';
+
+  @override
+  String get showGrid => 'عرض شبكة';
+
+  @override
+  String get newProduct => 'منتج جديد';
+
+  @override
+  String get editProduct => 'تعديل المنتج';
+
+  @override
+  String get addProductPhoto => 'إضافة صورة المنتج';
+
+  @override
+  String get tapToChangePhoto => 'اضغط لتغيير صورة المنتج';
+
+  @override
+  String get fieldProductName => 'اسم المنتج';
+
+  @override
+  String get fieldCategory => 'الفئة';
+
+  @override
+  String get fieldUnit => 'الوحدة';
+
+  @override
+  String get fieldDescription => 'الوصف';
+
+  @override
+  String get fieldPrice => 'السعر';
+
+  @override
+  String get fieldCostPrice => 'سعر التكلفة';
+
+  @override
+  String get fieldSku => 'الرمز التعريفي';
+
+  @override
+  String get fieldBarcode => 'الباركود';
+
+  @override
+  String get fieldMinStockLevel => 'الحد الأدنى للمخزون';
+
+  @override
+  String get fieldExpiryAlertDays => 'تنبيه انتهاء الصلاحية (أيام)';
+
+  @override
+  String get saveChanges => 'حفظ التغييرات';
+
+  @override
+  String get stockByShop => 'المخزون حسب المتجر';
+
+  @override
+  String get productPhotoSubtitle => 'اضغط لتغيير صورة المنتج';
+
+  @override
+  String get inventoryAlertsTitle => 'تنبيهات المخزون';
+
+  @override
+  String get inventoryAlertsSubtitle =>
+      'حدد متى يجب أن يُنبهك AmanaPOS بشأن انخفاض المخزون أو الدفعات المنتهية الصلاحية.';
+
+  @override
+  String get inventoryAlertsExpiryHint =>
+      'ستتلقى إشعارًا عندما تكون دفعة المنتج ضمن الأيام المحددة من تاريخ انتهاء صلاحيتها.';
+
+  @override
+  String get fieldExpiryAlert => 'تنبيه انتهاء الصلاحية';
 }

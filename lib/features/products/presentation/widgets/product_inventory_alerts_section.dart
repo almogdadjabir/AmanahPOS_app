@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -51,7 +52,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
                   const SizedBox(width: AppDims.s2),
                   Expanded(
                     child: Text(
-                      'Inventory Alerts',
+                      context.tr.inventoryAlertsTitle,
                       style: AppTextStyles.bs400(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
@@ -64,7 +65,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
               const SizedBox(height: AppDims.s1),
 
               Text(
-                'Set when AmanaPOS should warn you about low stock or expiring batches.',
+                context.tr.inventoryAlertsSubtitle,
                 style: AppTextStyles.bs200(context).copyWith(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -74,7 +75,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
 
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Minimum Stock Level'),
+              FieldLabel(label: context.tr.fieldMinStockLevel),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: minStockCtrl,
@@ -96,7 +97,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
 
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Expiry Alert (days)'),
+              FieldLabel(label: context.tr.fieldExpiryAlertDays),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: expiryAlertCtrl,
@@ -124,7 +125,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDims.rSm),
                 ),
                 child: Text(
-                  'You will be notified when a product batch is within the set number of days from its expiry date.',
+                  context.tr.inventoryAlertsExpiryHint,
                   style: AppTextStyles.bs100(context).copyWith(
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w700,

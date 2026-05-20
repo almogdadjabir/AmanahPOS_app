@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/services/image/app_image_picker.dart';
 import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/config/enum.dart';
@@ -181,7 +182,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
         }
       },
       child: ProductSheetShell(
-        title: 'Edit Product',
+        title: context.tr.editProduct,
         maxHeightFactor: 0.90,
         body: Form(
           key: _formKey,
@@ -197,7 +198,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
               ),
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Product Name', required: true),
+              FieldLabel(label: context.tr.fieldProductName, required: true),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _nameCtrl,
@@ -219,13 +220,13 @@ class _EditProductSheetState extends State<_EditProductSheet> {
               const SizedBox(height: AppDims.s3),
 
               // Category — locked in edit mode
-              FieldLabel(label: 'Category', required: true),
+              FieldLabel(label: context.tr.fieldCategory, required: true),
               const SizedBox(height: AppDims.s1),
               _LockedCategoryField(name: _categoryName),
               const SizedBox(height: AppDims.s3),
 
               if (!widget.isRestaurant) ...[
-                FieldLabel(label: 'Unit', required: true),
+                FieldLabel(label: context.tr.fieldUnit, required: true),
                 const SizedBox(height: AppDims.s2),
                 UnitPicker(
                   units: _units,
@@ -239,7 +240,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
               OptionalDivider(),
               const SizedBox(height: AppDims.s4),
 
-              FieldLabel(label: 'Description'),
+              FieldLabel(label: context.tr.fieldDescription),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _descCtrl,
@@ -273,7 +274,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
               ],
 
               const SizedBox(height: AppDims.s5),
-              ProductSubmitButton(label: 'Save Changes', onPressed: _submit),
+              ProductSubmitButton(label: context.tr.saveChanges, onPressed: _submit),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/services/image/app_image_picker.dart';
 import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/config/enum.dart';
@@ -184,7 +185,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
         }
       },
       child: ProductSheetShell(
-        title: 'New Product',
+        title: context.tr.newProduct,
         body: Form(
           key: _formKey,
           child: Column(
@@ -193,13 +194,13 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               ImageUploadBox(
                 pickedImage: _pickedImage,
                 imageUrl: null,
-                title: 'Add product photo',
+                title: context.tr.addProductPhoto,
                 subtitle: 'Use a clear image for faster cashier selection',
                 onChanged: (img) => setState(() => _pickedImage = img),
               ),
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Product Name', required: true),
+              FieldLabel(label: context.tr.fieldProductName, required: true),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _nameCtrl,
@@ -307,7 +308,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               ],
 
               const SizedBox(height: AppDims.s5),
-              ProductSubmitButton(label: 'Add Product', onPressed: _submit),
+              ProductSubmitButton(label: context.tr.addProduct, onPressed: _submit),
             ],
           ),
         ),

@@ -373,4 +373,97 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get posShopMismatch =>
       'You are not assigned to this shop. Contact your manager.';
+
+  @override
+  String get productsManagement => 'Products Management';
+
+  @override
+  String get addProduct => 'Add Product';
+
+  @override
+  String get noProductsYet => 'No products yet';
+
+  @override
+  String get noProductsMessage =>
+      'Add your first product to start building your catalog and begin selling.';
+
+  @override
+  String get productStatAll => 'Products';
+
+  @override
+  String get productStatActive => 'Active';
+
+  @override
+  String get productStatOutOfStock => 'Out';
+
+  @override
+  String get showList => 'Show list';
+
+  @override
+  String get showGrid => 'Show grid';
+
+  @override
+  String get newProduct => 'New Product';
+
+  @override
+  String get editProduct => 'Edit Product';
+
+  @override
+  String get addProductPhoto => 'Add product photo';
+
+  @override
+  String get tapToChangePhoto => 'Tap to change product image';
+
+  @override
+  String get fieldProductName => 'Product Name';
+
+  @override
+  String get fieldCategory => 'Category';
+
+  @override
+  String get fieldUnit => 'Unit';
+
+  @override
+  String get fieldDescription => 'Description';
+
+  @override
+  String get fieldPrice => 'Price';
+
+  @override
+  String get fieldCostPrice => 'Cost Price';
+
+  @override
+  String get fieldSku => 'SKU';
+
+  @override
+  String get fieldBarcode => 'Barcode';
+
+  @override
+  String get fieldMinStockLevel => 'Minimum Stock Level';
+
+  @override
+  String get fieldExpiryAlertDays => 'Expiry Alert (days)';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get stockByShop => 'Stock by Shop';
+
+  @override
+  String get productPhotoSubtitle => 'Tap to change product image';
+
+  @override
+  String get inventoryAlertsTitle => 'Inventory Alerts';
+
+  @override
+  String get inventoryAlertsSubtitle =>
+      'Set when AmanaPOS should warn you about low stock or expiring batches.';
+
+  @override
+  String get inventoryAlertsExpiryHint =>
+      'You will be notified when a product batch is within the set number of days from its expiry date.';
+
+  @override
+  String get fieldExpiryAlert => 'Expiry Alert';
 }

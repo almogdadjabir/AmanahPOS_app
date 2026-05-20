@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -30,6 +31,7 @@ class ProductsHeaderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
     final isRestaurant = context.read<AuthBloc>().state.permissions.isRestaurant;
 
     final activeCount = products.where((p) => p.isActive == true).length;
@@ -112,7 +114,7 @@ class ProductsHeaderView extends StatelessWidget {
             children: [
               Expanded(
                 child: _MiniStat(
-                  label: 'Products',
+                  label: tr.productStatAll,
                   value: '${products.length}',
                   icon: SolarIconsOutline.bag5,
                   color: colors.primary,
@@ -123,7 +125,7 @@ class ProductsHeaderView extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _MiniStat(
-                  label: 'Active',
+                  label: tr.productStatActive,
                   value: '$activeCount',
                   icon: SolarIconsOutline.checkCircle,
                   color: const Color(0xFF16A34A),
@@ -135,7 +137,7 @@ class ProductsHeaderView extends StatelessWidget {
                 const SizedBox(width: AppDims.s2),
                 Expanded(
                   child: _MiniStat(
-                    label: 'Out',
+                    label: tr.productStatOutOfStock,
                     value: '$outOfStockCount',
                     icon: SolarIconsOutline.bagCross,
                     color: const Color(0xFFDC2626),

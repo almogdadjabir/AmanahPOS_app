@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
@@ -118,6 +119,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       builder: (context, state) {
         final isLoading = _isLoading(state);
         final hasProducts = _hasProducts(state);
+        final tr = context.tr;
 
         return Scaffold(
           appBar: widget.isWithAppbar
@@ -133,7 +135,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ),
             ),
             title: Text(
-              'Products Management',
+              tr.productsManagement,
               style: AppTextStyles.bs500(context).copyWith(
                 color: context.appColors.textPrimary,
                 fontWeight: FontWeight.w900,
@@ -145,8 +147,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 child: BlocBuilder<ProductBloc, ProductState>(
                   buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
                   builder: (context, state) {
+                    final tr = context.tr;
                     return IconButton(
-                      tooltip: state.isGrid ? 'Show list' : 'Show grid',
+                      tooltip: state.isGrid ? tr.showList : tr.showGrid,
                       onPressed: () {
                         context.read<ProductBloc>().add(
                           const OnToggleProductLayout(),
@@ -197,7 +200,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             backgroundColor: context.appColors.primary,
             icon: const Icon(Icons.add_rounded, color: Colors.white),
             label: Text(
-              'Add Product',
+              tr.addProduct,
               style: AppTextStyles.bs300(context).copyWith(
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -312,6 +315,7 @@ class _ProductsEmptyContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     return Container(
       decoration: BoxDecoration(
@@ -335,10 +339,9 @@ class _ProductsEmptyContent extends StatelessWidget {
             child: SafeArea(
               child: ProductEmptyView(
                 hasCategories: true,
-                title: 'No products yet',
-                message:
-                    'Add your first product to start building your catalog and begin selling.',
-                primaryActionText: 'Add Product',
+                title: tr.noProductsYet,
+                message: tr.noProductsMessage,
+                primaryActionText: tr.addProduct,
                 onPrimaryAction: onActionPressed,
               ),
             ),

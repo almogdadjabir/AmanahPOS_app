@@ -805,6 +805,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You are not assigned to this shop. Contact your manager.'**
   String get posShopMismatch;
+
+  /// No description provided for @productsManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Products Management'**
+  String get productsManagement;
+
+  /// No description provided for @addProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Product'**
+  String get addProduct;
+
+  /// No description provided for @noProductsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No products yet'**
+  String get noProductsYet;
+
+  /// No description provided for @noProductsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first product to start building your catalog and begin selling.'**
+  String get noProductsMessage;
+
+  /// No description provided for @productStatAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get productStatAll;
+
+  /// No description provided for @productStatActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get productStatActive;
+
+  /// No description provided for @productStatOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get productStatOutOfStock;
+
+  /// No description provided for @showList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show list'**
+  String get showList;
+
+  /// No description provided for @showGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Show grid'**
+  String get showGrid;
+
+  /// No description provided for @newProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'New Product'**
+  String get newProduct;
+
+  /// No description provided for @editProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Product'**
+  String get editProduct;
+
+  /// No description provided for @addProductPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add product photo'**
+  String get addProductPhoto;
+
+  /// No description provided for @tapToChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to change product image'**
+  String get tapToChangePhoto;
+
+  /// No description provided for @fieldProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Name'**
+  String get fieldProductName;
+
+  /// No description provided for @fieldCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get fieldCategory;
+
+  /// No description provided for @fieldUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get fieldUnit;
+
+  /// No description provided for @fieldDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get fieldDescription;
+
+  /// No description provided for @fieldPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get fieldPrice;
+
+  /// No description provided for @fieldCostPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Price'**
+  String get fieldCostPrice;
+
+  /// No description provided for @fieldSku.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU'**
+  String get fieldSku;
+
+  /// No description provided for @fieldBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode'**
+  String get fieldBarcode;
+
+  /// No description provided for @fieldMinStockLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Stock Level'**
+  String get fieldMinStockLevel;
+
+  /// No description provided for @fieldExpiryAlertDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Alert (days)'**
+  String get fieldExpiryAlertDays;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @stockByShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock by Shop'**
+  String get stockByShop;
+
+  /// No description provided for @productPhotoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to change product image'**
+  String get productPhotoSubtitle;
+
+  /// No description provided for @inventoryAlertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory Alerts'**
+  String get inventoryAlertsTitle;
+
+  /// No description provided for @inventoryAlertsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set when AmanaPOS should warn you about low stock or expiring batches.'**
+  String get inventoryAlertsSubtitle;
+
+  /// No description provided for @inventoryAlertsExpiryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be notified when a product batch is within the set number of days from its expiry date.'**
+  String get inventoryAlertsExpiryHint;
+
+  /// No description provided for @fieldExpiryAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Alert'**
+  String get fieldExpiryAlert;
 }
 
 class _AppLocalizationsDelegate

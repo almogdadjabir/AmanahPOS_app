@@ -9,9 +9,9 @@ import 'package:amana_pos/features/products/presentation/widgets/product_details
 import 'package:amana_pos/features/products/presentation/widgets/product_details/product_detail_app_bar_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_details/product_stock_section_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_details/product_summary_card_view.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
-import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -125,7 +125,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   padding: const EdgeInsets.fromLTRB(
                       AppDims.s4, AppDims.s5, AppDims.s4, AppDims.s2),
                   sliver: SliverToBoxAdapter(
-                    child: WorkspaceSectionHeader(title: 'Stock by Shop')
+                    child: WorkspaceSectionHeader(title: context.tr.stockByShop)
                   ),
                 ),
                 SliverPadding(
