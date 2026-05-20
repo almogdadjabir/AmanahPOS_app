@@ -336,4 +336,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bankakUpdateTitle => 'تحديث حساب بنكك';
+
+  @override
+  String get posTodaySales => 'مبيعات اليوم';
+
+  @override
+  String get posAllCategory => 'الكل';
+
+  @override
+  String get posSearchHint => 'بحث · الرمز التعريفي · الباركود';
+
+  @override
+  String get posBankakNotSetup =>
+      'لم يُعدَّ حساب بنكك. اذهب إلى الإعدادات وأضف رقم حسابك أولاً.';
+
+  @override
+  String get posCashierNotAssigned => 'لم تُعيَّن لمتجر. تواصل مع مديرك.';
+
+  @override
+  String get posNoShopFound =>
+      'لم يتم العثور على متجر. حدّث الصفحة وحاول مجدداً.';
+
+  @override
+  String get posSaleCompleted => 'تمت البيعة بنجاح';
+
+  @override
+  String get posFailedSale => 'فشل إتمام البيعة';
+
+  @override
+  String get posBankakRequired => 'يرجى إضافة رقم حساب بنكك في الإعدادات.';
+
+  @override
+  String get posShopMismatch => 'لست مُعيَّناً لهذا المتجر. تواصل مع مديرك.';
 }

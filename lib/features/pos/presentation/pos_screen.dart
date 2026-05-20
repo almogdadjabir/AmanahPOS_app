@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
@@ -164,8 +165,7 @@ class _PosScreenState extends State<PosScreen> {
 
         if (bankakAccount == null || bankakAccount.isEmpty) {
           GlobalSnackBar.show(
-            message:
-            'Bankak account is not set up. Go to Settings and add your account number first.',
+            message: context.tr.posBankakNotSetup,
             isError:       true,
             isAutoDismiss: false,
           );
@@ -182,8 +182,8 @@ class _PosScreenState extends State<PosScreen> {
         if (fallback == null) {
           final permissions = context.read<AuthBloc>().state.permissions;
           final message = permissions.isCashier
-              ? 'You are not assigned to a shop. Contact your manager.'
-              : 'No shop found. Please refresh and try again.';
+              ? context.tr.posCashierNotAssigned
+              : context.tr.posNoShopFound;
           GlobalSnackBar.show(
             message: message,
             isError: true,
@@ -247,7 +247,7 @@ class _PosScreenState extends State<PosScreen> {
 
           final message = state.submitError?.isNotEmpty == true
               ? state.submitError!
-              : 'Sale completed successfully';
+              : context.tr.posSaleCompleted;
 
           GlobalSnackBar.show(message: message, isInfo: true);
           context.read<PosBloc>().add(const PosAcknowledgeSubmit());
@@ -263,11 +263,11 @@ class _PosScreenState extends State<PosScreen> {
         }
 
         if (state.submitStatus == PosSubmitStatus.failure) {
-          final raw = state.submitError ?? 'Failed to complete sale';
+          final raw = state.submitError ?? context.tr.posFailedSale;
           final message = raw.contains('BANKAK_ACCOUNT_REQUIRED')
-              ? 'Please add your Bankak account number in Settings.'
+              ? context.tr.posBankakRequired
               : raw.contains('SHOP_MISMATCH')
-              ? 'You are not assigned to this shop. Contact your manager.'
+              ? context.tr.posShopMismatch
               : raw;
 
           GlobalSnackBar.show(
@@ -342,7 +342,7 @@ class _PosScreenState extends State<PosScreen> {
                             ? shift?.salesCount ?? summary?.today.salesCount ?? 0
                             : summary?.today.salesCount ?? 0;
 
-                        final labelName = isCashier ? cashierName : 'Today sales';
+                        final labelName = isCashier ? cashierName : context.tr.posTodaySales;
 
                         return Padding(
                           padding: const EdgeInsets.fromLTRB(

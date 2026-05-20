@@ -124,5 +124,16 @@
   "bankakReadySubtitle": "قبول مدفوعات بنكك في نقطة البيع",
   "bankakAccountPrefix": "الحساب ",
   "bankakNoAccountAdded": "لم يُضَف حساب بنكك بعد",
-  "bankakUpdateTitle": "تحديث حساب بنكك"
+  "bankakUpdateTitle": "تحديث حساب بنكك",
+
+  "posTodaySales": "مبيعات اليوم",
+  "posAllCategory": "الكل",
+  "posSearchHint": "بحث · الرمز التعريفي · الباركود",
+  "posBankakNotSetup": "لم يُعدَّ حساب بنكك. اذهب إلى الإعدادات وأضف رقم حسابك أولاً.",
+  "posCashierNotAssigned": "لم تُعيَّن لمتجر. تواصل مع مديرك.",
+  "posNoShopFound": "لم يتم العثور على متجر. حدّث الصفحة وحاول مجدداً.",
+  "posSaleCompleted": "تمت البيعة بنجاح",
+  "posFailedSale": "فشل إتمام البيعة",
+  "posBankakRequired": "يرجى إضافة رقم حساب بنكك في الإعدادات.",
+  "posShopMismatch": "لست مُعيَّناً لهذا المتجر. تواصل مع مديرك."
 }

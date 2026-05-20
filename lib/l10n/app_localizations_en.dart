@@ -339,4 +339,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bankakUpdateTitle => 'Update Bankak Account';
+
+  @override
+  String get posTodaySales => 'Today sales';
+
+  @override
+  String get posAllCategory => 'All';
+
+  @override
+  String get posSearchHint => 'Search · SKU · Barcode';
+
+  @override
+  String get posBankakNotSetup =>
+      'Bankak account is not set up. Go to Settings and add your account number first.';
+
+  @override
+  String get posCashierNotAssigned =>
+      'You are not assigned to a shop. Contact your manager.';
+
+  @override
+  String get posNoShopFound => 'No shop found. Please refresh and try again.';
+
+  @override
+  String get posSaleCompleted => 'Sale completed successfully';
+
+  @override
+  String get posFailedSale => 'Failed to complete sale';
+
+  @override
+  String get posBankakRequired =>
+      'Please add your Bankak account number in Settings.';
+
+  @override
+  String get posShopMismatch =>
+      'You are not assigned to this shop. Contact your manager.';
 }

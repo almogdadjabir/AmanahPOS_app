@@ -745,6 +745,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update Bankak Account'**
   String get bankakUpdateTitle;
+
+  /// No description provided for @posTodaySales.
+  ///
+  /// In en, this message translates to:
+  /// **'Today sales'**
+  String get posTodaySales;
+
+  /// No description provided for @posAllCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get posAllCategory;
+
+  /// No description provided for @posSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search · SKU · Barcode'**
+  String get posSearchHint;
+
+  /// No description provided for @posBankakNotSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak account is not set up. Go to Settings and add your account number first.'**
+  String get posBankakNotSetup;
+
+  /// No description provided for @posCashierNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not assigned to a shop. Contact your manager.'**
+  String get posCashierNotAssigned;
+
+  /// No description provided for @posNoShopFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No shop found. Please refresh and try again.'**
+  String get posNoShopFound;
+
+  /// No description provided for @posSaleCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale completed successfully'**
+  String get posSaleCompleted;
+
+  /// No description provided for @posFailedSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to complete sale'**
+  String get posFailedSale;
+
+  /// No description provided for @posBankakRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add your Bankak account number in Settings.'**
+  String get posBankakRequired;
+
+  /// No description provided for @posShopMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not assigned to this shop. Contact your manager.'**
+  String get posShopMismatch;
 }
 
 class _AppLocalizationsDelegate

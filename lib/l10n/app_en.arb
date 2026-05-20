@@ -124,5 +124,16 @@
   "bankakReadySubtitle": "Accept Bankak payments in POS",
   "bankakAccountPrefix": "Account ",
   "bankakNoAccountAdded": "No Bankak account added yet",
-  "bankakUpdateTitle": "Update Bankak Account"
+  "bankakUpdateTitle": "Update Bankak Account",
+
+  "posTodaySales": "Today sales",
+  "posAllCategory": "All",
+  "posSearchHint": "Search · SKU · Barcode",
+  "posBankakNotSetup": "Bankak account is not set up. Go to Settings and add your account number first.",
+  "posCashierNotAssigned": "You are not assigned to a shop. Contact your manager.",
+  "posNoShopFound": "No shop found. Please refresh and try again.",
+  "posSaleCompleted": "Sale completed successfully",
+  "posFailedSale": "Failed to complete sale",
+  "posBankakRequired": "Please add your Bankak account number in Settings.",
+  "posShopMismatch": "You are not assigned to this shop. Contact your manager."
 }

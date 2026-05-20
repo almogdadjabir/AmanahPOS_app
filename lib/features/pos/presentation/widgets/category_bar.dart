@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_chip.dart';
@@ -41,7 +42,7 @@ class CategoryBar extends StatelessWidget {
           if (index == 0) {
             return CategoryChip(
               key: const ValueKey('pos_category_all'),
-              label: 'All',
+              label: context.tr.posAllCategory,
               selected: selectedCategoryId == null,
               onTap: () {
                 context.read<PosBloc>().add(

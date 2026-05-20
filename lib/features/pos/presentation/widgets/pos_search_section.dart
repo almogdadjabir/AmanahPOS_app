@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
@@ -56,7 +57,7 @@ class PosSearchSection extends StatelessWidget {
                 ),
                 cursorColor: colors.primary,
                 decoration: InputDecoration(
-                  hintText: 'Search · SKU · Barcode',
+                  hintText: context.tr.posSearchHint,
                   hintStyle: AppTextStyles.bs300(context).copyWith(
                     color: colors.textHint,
                     fontWeight: FontWeight.w700,
