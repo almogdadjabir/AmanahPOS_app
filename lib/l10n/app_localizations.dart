@@ -134,6 +134,18 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get navSettings;
 
+  /// No description provided for @navCashiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashiers'**
+  String get navCashiers;
+
+  /// No description provided for @navMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navMore;
+
   /// No description provided for @save.
   ///
   /// In en, this message translates to:

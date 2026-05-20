@@ -27,6 +27,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navSettings => 'الإعدادات';
 
   @override
+  String get navCashiers => 'الكاشيرات';
+
+  @override
+  String get navMore => 'المزيد';
+
+  @override
   String get save => 'حفظ';
 
   @override

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/main_screen/data/nav_tab.dart';
@@ -18,40 +19,45 @@ class BottomNav extends StatelessWidget {
           prev.permissions != curr.permissions,
       builder: (context, state) {
         final isPremium = state.permissions.canUseInventoryInboundReceiving;
-        final tabs = buildTabs(state.permissions, isPremium: isPremium);
+        final tabs = buildTabs(context, state.permissions, isPremium: isPremium);
         if (tabs.isEmpty) return const SizedBox.shrink();
         return NavShell(tabs: tabs, state: state);
       },
     );
   }
 
-  static List<NavTab> buildTabs(AppPermissions perms, {bool isPremium = false}) {
+  static List<NavTab> buildTabs(
+    BuildContext context,
+    AppPermissions perms, {
+    bool isPremium = false,
+  }) {
+    final tr = context.tr;
     final tabs = <NavTab>[];
 
     if (perms.isOwner) {
       if (perms.canAccessBusiness) {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: AppFeature.business,
           icon: SolarIconsBold.shop,
           activeIcon: SolarIconsBold.shop,
-          label: 'Home',
+          label: tr.navHome,
         ));
       }
 
       if (perms.canAccessProducts) {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: AppFeature.products,
           icon: SolarIconsOutline.bag5,
           activeIcon: SolarIconsOutline.bag5,
-          label: 'Products',
+          label: tr.navProducts,
         ));
       }
 
-      tabs.add(const NavTab(
+      tabs.add(NavTab(
         feature: AppFeature.pos,
         icon: SolarIconsOutline.cartLarge_4,
         activeIcon: SolarIconsOutline.cartLarge,
-        label: 'Sell',
+        label: tr.navSell,
       ));
 
       if (perms.canAccessInventory) {
@@ -59,32 +65,32 @@ class BottomNav extends StatelessWidget {
           feature: AppFeature.inventory,
           icon: SolarIconsOutline.boxMinimalistic,
           activeIcon: SolarIconsBold.boxMinimalistic,
-          label: 'Stock',
+          label: tr.navInventory,
           showPremiumIndicator: isPremium,
         ));
       } else {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: AppFeature.users,
           icon: SolarIconsOutline.userPlus,
           activeIcon: SolarIconsOutline.userPlus,
-          label: 'Cashiers',
+          label: tr.navCashiers,
         ));
       }
 
-      tabs.add(const NavTab(
+      tabs.add(NavTab(
         feature: null,
         icon: SolarIconsOutline.menuDots,
         activeIcon: SolarIconsBold.menuDots,
-        label: 'More',
+        label: tr.navMore,
         isMore: true,
       ));
     } else {
       if (perms.canAccessProducts) {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: AppFeature.products,
           icon: SolarIconsOutline.bag5,
           activeIcon: SolarIconsBold.bag5,
-          label: 'Products',
+          label: tr.navProducts,
         ));
       }
 
@@ -93,16 +99,16 @@ class BottomNav extends StatelessWidget {
           feature: AppFeature.inventory,
           icon: SolarIconsOutline.boxMinimalistic,
           activeIcon: SolarIconsBold.boxMinimalistic,
-          label: 'Stock',
+          label: tr.navInventory,
           showPremiumIndicator: isPremium,
         ));
       }
 
-      tabs.add(const NavTab(
+      tabs.add(NavTab(
         feature: AppFeature.pos,
         icon: SolarIconsOutline.cartLarge_4,
         activeIcon: SolarIconsOutline.cartLarge,
-        label: 'Sell',
+        label: tr.navSell,
       ));
 
       final directFeatures = tabs
@@ -115,11 +121,11 @@ class BottomNav extends StatelessWidget {
       );
 
       if (hasMore) {
-        tabs.add(const NavTab(
+        tabs.add(NavTab(
           feature: null,
           icon: SolarIconsOutline.menuDots,
           activeIcon: SolarIconsBold.menuDots,
-          label: 'More',
+          label: tr.navMore,
           isMore: true,
         ));
       }

@@ -7,6 +7,8 @@
   "navInventory": "Inventory",
   "navReports": "Reports",
   "navSettings": "Settings",
+  "navCashiers": "Cashiers",
+  "navMore": "More",
 
   "save": "Save",
   "cancel": "Cancel",
