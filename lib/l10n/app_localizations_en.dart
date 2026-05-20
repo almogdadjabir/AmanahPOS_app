@@ -729,4 +729,77 @@ class AppLocalizationsEn extends AppLocalizations {
   String loyaltyPointsSuffix(int points) {
     return '$points points';
   }
+
+  @override
+  String get returnFindSale => 'Find a sale to return';
+
+  @override
+  String get returnFindSaleSubtitle => 'Enter a receipt number or amount above';
+
+  @override
+  String get returnSearchFailed => 'Search failed';
+
+  @override
+  String get returnNoSalesFound => 'No sales found';
+
+  @override
+  String get returnNoSalesSubtitle =>
+      'Try a different receipt number or amount';
+
+  @override
+  String get returnAll => 'Return all';
+
+  @override
+  String get deselectAll => 'Deselect all';
+
+  @override
+  String get refCopied => 'Reference copied';
+
+  @override
+  String get shareReturnWhatsApp => 'Share return receipt via WhatsApp';
+
+  @override
+  String get salesHistoryTitle => 'Sales history';
+
+  @override
+  String get allSalesLoaded => 'All sales loaded';
+
+  @override
+  String get saleReceiptFailure => 'Failed to generate receipt PDF';
+
+  @override
+  String get returnItemsAction => 'Return items from this sale';
+
+  @override
+  String get salesCouldNotLoad => 'Could not load sales';
+
+  @override
+  String get saleComplete => 'Sale complete!';
+
+  @override
+  String get savedOffline => 'Saved offline';
+
+  @override
+  String get tapToCopy => 'Tap to copy';
+
+  @override
+  String get totalPaid => 'Total paid';
+
+  @override
+  String get shareViaWhatsApp => 'Share via WhatsApp';
+
+  @override
+  String get shareVia => 'Share via...';
+
+  @override
+  String get newSale => 'New sale';
+
+  @override
+  String get receiptCopied => 'Receipt number copied';
+
+  @override
+  String get saleSearchHint => 'Search receipt, amount, payment...';
+
+  @override
+  String get amanaPosLabel => 'AMANAPOS';
 }

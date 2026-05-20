@@ -722,4 +722,76 @@ class AppLocalizationsAr extends AppLocalizations {
   String loyaltyPointsSuffix(int points) {
     return '$points نقطة';
   }
+
+  @override
+  String get returnFindSale => 'ابحث عن بيعة للإرجاع';
+
+  @override
+  String get returnFindSaleSubtitle => 'أدخل رقم الإيصال أو المبلغ أعلاه';
+
+  @override
+  String get returnSearchFailed => 'فشل البحث';
+
+  @override
+  String get returnNoSalesFound => 'لم يتم العثور على مبيعات';
+
+  @override
+  String get returnNoSalesSubtitle => 'جرّب رقم إيصال أو مبلغاً مختلفاً';
+
+  @override
+  String get returnAll => 'إرجاع الكل';
+
+  @override
+  String get deselectAll => 'إلغاء تحديد الكل';
+
+  @override
+  String get refCopied => 'تم نسخ المرجع';
+
+  @override
+  String get shareReturnWhatsApp => 'مشاركة إيصال الإرجاع عبر واتساب';
+
+  @override
+  String get salesHistoryTitle => 'سجل المبيعات';
+
+  @override
+  String get allSalesLoaded => 'تم تحميل جميع المبيعات';
+
+  @override
+  String get saleReceiptFailure => 'فشل إنشاء ملف الإيصال';
+
+  @override
+  String get returnItemsAction => 'إرجاع عناصر من هذه البيعة';
+
+  @override
+  String get salesCouldNotLoad => 'تعذّر تحميل المبيعات';
+
+  @override
+  String get saleComplete => 'تمت البيعة!';
+
+  @override
+  String get savedOffline => 'محفوظ بلا إنترنت';
+
+  @override
+  String get tapToCopy => 'اضغط للنسخ';
+
+  @override
+  String get totalPaid => 'إجمالي المدفوع';
+
+  @override
+  String get shareViaWhatsApp => 'مشاركة عبر واتساب';
+
+  @override
+  String get shareVia => 'مشاركة عبر...';
+
+  @override
+  String get newSale => 'بيعة جديدة';
+
+  @override
+  String get receiptCopied => 'تم نسخ رقم الإيصال';
+
+  @override
+  String get saleSearchHint => 'بحث في الإيصالات، المبالغ، المدفوعات...';
+
+  @override
+  String get amanaPosLabel => 'أمانة';
 }

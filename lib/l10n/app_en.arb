@@ -268,5 +268,30 @@
     "placeholders": {
       "points": { "type": "int" }
     }
-  }
+  },
+
+  "returnFindSale": "Find a sale to return",
+  "returnFindSaleSubtitle": "Enter a receipt number or amount above",
+  "returnSearchFailed": "Search failed",
+  "returnNoSalesFound": "No sales found",
+  "returnNoSalesSubtitle": "Try a different receipt number or amount",
+  "returnAll": "Return all",
+  "deselectAll": "Deselect all",
+  "refCopied": "Reference copied",
+  "shareReturnWhatsApp": "Share return receipt via WhatsApp",
+  "salesHistoryTitle": "Sales history",
+  "allSalesLoaded": "All sales loaded",
+  "saleReceiptFailure": "Failed to generate receipt PDF",
+  "returnItemsAction": "Return items from this sale",
+  "salesCouldNotLoad": "Could not load sales",
+  "saleComplete": "Sale complete!",
+  "savedOffline": "Saved offline",
+  "tapToCopy": "Tap to copy",
+  "totalPaid": "Total paid",
+  "shareViaWhatsApp": "Share via WhatsApp",
+  "shareVia": "Share via...",
+  "newSale": "New sale",
+  "receiptCopied": "Receipt number copied",
+  "saleSearchHint": "Search receipt, amount, payment...",
+  "amanaPosLabel": "AMANAPOS"
 }

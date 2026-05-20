@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -22,7 +23,7 @@ class SaleErrorView extends StatelessWidget {
               child: const Icon(Icons.wifi_off_rounded,
                   size: 36, color: AppColors.danger)),
           const SizedBox(height: AppDims.s4),
-          Text('Could not load sales',
+          Text(context.tr.salesCouldNotLoad,
               style: AppTextStyles.bs400(context)
                   .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: AppDims.s2),
@@ -40,7 +41,7 @@ class SaleErrorView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14)),
             ),
             icon: const Icon(Icons.refresh_rounded, size: 16),
-            label: const Text('Retry'),
+            label: Text(context.tr.retry),
           ),
         ]),
       ),

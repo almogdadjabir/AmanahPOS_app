@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/services/sale_receipt_pdf_service.dart';
 import 'package:amana_pos/theme/app_colors.dart';
@@ -54,7 +55,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Reference copied'),
+        content: Text(context.tr.refCopied),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.slate800,
@@ -80,7 +81,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
 
       messenger.showSnackBar(
         SnackBar(
-          content: const Text('Failed to generate receipt PDF'),
+          content: Text(context.tr.saleReceiptFailure),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.danger,
@@ -242,7 +243,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
                         Icons.keyboard_return_rounded,
                         size: 18,
                       ),
-                      label: const Text('Return items from this sale'),
+                      label: Text(context.tr.returnItemsAction),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.dangerLight,
                         foregroundColor: AppColors.danger,

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/returns/data/models/responses/refund_response_dto.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -166,9 +167,9 @@ class ReturnSuccessSheet extends StatelessWidget {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reference copied'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(context.tr.refCopied),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -372,7 +373,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: _shareWhatsApp,
                     icon: const Icon(Icons.chat_rounded, size: 18),
-                    label: const Text('Share return receipt via WhatsApp'),
+                    label: Text(context.tr.shareReturnWhatsApp),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF25D366),
                       foregroundColor: Colors.white,
@@ -419,7 +420,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                    child: const Text('Done'),
+                    child: Text(context.tr.done),
                   ),
                 ],
               ),

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history_bloc.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -37,12 +38,12 @@ class SaleAppBar extends StatelessWidget implements PreferredSizeWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('AMANAPOS',
+              Text(context.tr.amanaPosLabel,
                   style: AppTextStyles.sm100(context).copyWith(
                     color: AppColors.primary, fontSize: 10,
                     letterSpacing: 1.0, fontWeight: FontWeight.w700, height: 1,
                   )),
-              Text('Sales history',
+              Text(context.tr.salesHistoryTitle,
                   style: AppTextStyles.bs200(context).copyWith(
                     fontWeight: FontWeight.w700, fontSize: 17, height: 1.3,
                   )),

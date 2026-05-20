@@ -1489,6 +1489,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{points} points'**
   String loyaltyPointsSuffix(int points);
+
+  /// No description provided for @returnFindSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a sale to return'**
+  String get returnFindSale;
+
+  /// No description provided for @returnFindSaleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a receipt number or amount above'**
+  String get returnFindSaleSubtitle;
+
+  /// No description provided for @returnSearchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed'**
+  String get returnSearchFailed;
+
+  /// No description provided for @returnNoSalesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales found'**
+  String get returnNoSalesFound;
+
+  /// No description provided for @returnNoSalesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different receipt number or amount'**
+  String get returnNoSalesSubtitle;
+
+  /// No description provided for @returnAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Return all'**
+  String get returnAll;
+
+  /// No description provided for @deselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get deselectAll;
+
+  /// No description provided for @refCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference copied'**
+  String get refCopied;
+
+  /// No description provided for @shareReturnWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share return receipt via WhatsApp'**
+  String get shareReturnWhatsApp;
+
+  /// No description provided for @salesHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get salesHistoryTitle;
+
+  /// No description provided for @allSalesLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All sales loaded'**
+  String get allSalesLoaded;
+
+  /// No description provided for @saleReceiptFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to generate receipt PDF'**
+  String get saleReceiptFailure;
+
+  /// No description provided for @returnItemsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Return items from this sale'**
+  String get returnItemsAction;
+
+  /// No description provided for @salesCouldNotLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load sales'**
+  String get salesCouldNotLoad;
+
+  /// No description provided for @saleComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale complete!'**
+  String get saleComplete;
+
+  /// No description provided for @savedOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved offline'**
+  String get savedOffline;
+
+  /// No description provided for @tapToCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to copy'**
+  String get tapToCopy;
+
+  /// No description provided for @totalPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Total paid'**
+  String get totalPaid;
+
+  /// No description provided for @shareViaWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via WhatsApp'**
+  String get shareViaWhatsApp;
+
+  /// No description provided for @shareVia.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via...'**
+  String get shareVia;
+
+  /// No description provided for @newSale.
+  ///
+  /// In en, this message translates to:
+  /// **'New sale'**
+  String get newSale;
+
+  /// No description provided for @receiptCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt number copied'**
+  String get receiptCopied;
+
+  /// No description provided for @saleSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search receipt, amount, payment...'**
+  String get saleSearchHint;
+
+  /// No description provided for @amanaPosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AMANAPOS'**
+  String get amanaPosLabel;
 }
 
 class _AppLocalizationsDelegate

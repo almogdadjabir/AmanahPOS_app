@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -115,9 +116,9 @@ class SaleReceiptSheet extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: _displayRef));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Receipt number copied'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(context.tr.receiptCopied),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -181,7 +182,7 @@ class SaleReceiptSheet extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isOffline ? 'Saved offline' : 'Sale complete!',
+                              isOffline ? context.tr.savedOffline : context.tr.saleComplete,
                               style: AppTextStyles.bs500(context).copyWith(
                                 fontWeight: FontWeight.w900,
                                 color: colors.textPrimary,
@@ -276,7 +277,7 @@ class SaleReceiptSheet extends StatelessWidget {
                                   size: 13, color: colors.textHint),
                               const SizedBox(width: 4),
                               Text(
-                                'Tap to copy',
+                                context.tr.tapToCopy,
                                 style: AppTextStyles.sm100(context)
                                     .copyWith(color: colors.textHint),
                               ),
@@ -344,7 +345,7 @@ class SaleReceiptSheet extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Total paid',
+                            Text(context.tr.totalPaid,
                                 style: AppTextStyles.bs100(context).copyWith(
                                     color: colors.textSecondary)),
                             Text(_paymentLabel,
@@ -368,7 +369,7 @@ class SaleReceiptSheet extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: _shareWhatsApp,
                     icon: const Icon(Icons.chat_rounded, size: 18),
-                    label: const Text('Share via WhatsApp'),
+                    label: Text(context.tr.shareViaWhatsApp),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF25D366),
                       foregroundColor: Colors.white,
@@ -386,7 +387,7 @@ class SaleReceiptSheet extends StatelessWidget {
                     onPressed: _shareGeneral,
                     icon: Icon(Icons.share_rounded,
                         size: 18, color: colors.textPrimary),
-                    label: Text('Share via...',
+                    label: Text(context.tr.shareVia,
                         style: TextStyle(color: colors.textPrimary)),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: colors.border),
@@ -411,7 +412,7 @@ class SaleReceiptSheet extends StatelessWidget {
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                    child: const Text('New sale'),
+                    child: Text(context.tr.newSale),
                   ),
                 ],
               ),

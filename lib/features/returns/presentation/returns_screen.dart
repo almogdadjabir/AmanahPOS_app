@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/returns/presentation/bloc/returns_bloc.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/item_selector_view.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/return_success_sheet.dart';
@@ -114,7 +115,7 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
                       ),
                     ),
                     child: Text(
-                      state.allSelected ? 'Deselect all' : 'Return all',
+                      state.allSelected ? context.tr.deselectAll : context.tr.returnAll,
                       style: AppTextStyles.sm100(context).copyWith(
                         color: state.allSelected
                             ? Colors.white

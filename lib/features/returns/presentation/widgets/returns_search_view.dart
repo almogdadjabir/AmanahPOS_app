@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/returns/presentation/bloc/returns_bloc.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/theme/app_colors.dart';
@@ -183,8 +184,8 @@ class _SearchResults extends StatelessWidget {
         icon: SolarIconsOutline.saleSquare,
         iconColor: AppColors.danger,
         iconBg: AppColors.dangerLight,
-        title: 'Find a sale to return',
-        subtitle: 'Enter a receipt number or amount above',
+        title: context.tr.returnFindSale,
+        subtitle: context.tr.returnFindSaleSubtitle,
       );
     }
 
@@ -204,7 +205,7 @@ class _SearchResults extends StatelessWidget {
         icon: Icons.error_outline_rounded,
         iconColor: AppColors.danger,
         iconBg: AppColors.dangerLight,
-        title: 'Search failed',
+        title: context.tr.returnSearchFailed,
         subtitle: state.errorMessage ?? 'Please try again',
       );
     }
@@ -214,8 +215,8 @@ class _SearchResults extends StatelessWidget {
         icon: Icons.search_off_rounded,
         iconColor: colors.textHint,
         iconBg: colors.surfaceSoft,
-        title: 'No sales found',
-        subtitle: 'Try a different receipt number or amount',
+        title: context.tr.returnNoSalesFound,
+        subtitle: context.tr.returnNoSalesSubtitle,
       );
     }
 
