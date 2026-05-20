@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/settings/data/models/update_profile_request_dto.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
@@ -70,11 +71,12 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final hasExisting = widget.currentAccountNumber.trim().isNotEmpty;
 
     return AppBottomSheet(
-      title: hasExisting ? 'Change Bankak Account' : 'Add Bankak Account',
-      subtitle: 'Used when cashier selects Bankak as payment method in POS.',
+      title: hasExisting ? tr.bankakChangeTitle : tr.bankakAddTitle,
+      subtitle: tr.bankakSheetSubtitle,
       icon: Icons.account_balance_wallet_outlined,
       logoAsset: 'assets/images/bankak_logo.png',
       child: Form(
@@ -102,7 +104,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
                   const SizedBox(width: AppDims.s2),
                   Expanded(
                     child: Text(
-                      'AmanaPOS will record Bankak sales under this account for reporting. The customer still pays through the Bankak app.',
+                      tr.bankakInfoNote,
                       style: AppTextStyles.bs200(context).copyWith(
                         color: context.appColors.textSecondary,
                         fontWeight: FontWeight.w700,
@@ -114,7 +116,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
               ),
             ),
             const SizedBox(height: AppDims.s4),
-            FieldLabel(label: 'Bankak Account Number', required: true),
+            FieldLabel(label: tr.bankakAccountNumber, required: true),
             const SizedBox(height: AppDims.s1),
             AppFormField(
               controller: _accountCtrl,
@@ -150,7 +152,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
                         child: OutlinedButton.icon(
                           onPressed: isLoading ? null : _remove,
                           icon: const Icon(Icons.delete_outline_rounded),
-                          label: const Text('Remove'),
+                          label: Text(tr.bankakRemove),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFFDC2626),
                             side: BorderSide(
@@ -169,7 +171,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
                     Expanded(
                       flex: 2,
                       child: PrimarySheetButton(
-                        label: hasExisting ? 'Save Changes' : 'Add Account',
+                        label: hasExisting ? tr.bankakSaveChanges : tr.bankakAddAccount,
                         isLoading: isLoading,
                         onPressed: _submit,
                       ),

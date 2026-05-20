@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/settings/data/models/update_profile_request_dto.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
@@ -69,9 +70,10 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return AppBottomSheet(
-      title: 'Edit Profile',
-      subtitle: 'Update your name and contact information.',
+      title: tr.editProfileTitle,
+      subtitle: tr.editProfileSubtitle,
       icon: SolarIconsOutline.user,
       child: Form(
         key: _formKey,
@@ -79,7 +81,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FieldLabel(
-              label: 'Full Name',
+              label: tr.fieldFullName,
               required: true,
             ),
             const SizedBox(height: AppDims.s1),
@@ -108,7 +110,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             const SizedBox(height: AppDims.s4),
 
             FieldLabel(
-              label: 'Email',
+              label: tr.fieldEmail,
             ),
             const SizedBox(height: AppDims.s1),
             AppFormField(
@@ -146,7 +148,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
               },
               builder: (context, state) {
                 return PrimarySheetButton(
-                  label: 'Save Profile',
+                  label: tr.saveProfile,
                   isLoading:
                   state.submitStatus == SettingsSubmitStatus.loading,
                   onPressed: _submit,

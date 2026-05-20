@@ -439,6 +439,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System'**
   String get themeSystem;
+
+  /// No description provided for @loginWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get loginWelcomeTitle;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your mobile number to receive a 6-digit verification code.'**
+  String get loginSubtitle;
+
+  /// No description provided for @loginMobileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get loginMobileLabel;
+
+  /// No description provided for @loginContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get loginContinue;
+
+  /// No description provided for @loginTermsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing you agree to our '**
+  String get loginTermsPrefix;
+
+  /// No description provided for @loginTermsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get loginTermsLink;
+
+  /// No description provided for @loginTermsSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' & '**
+  String get loginTermsSeparator;
+
+  /// No description provided for @loginPrivacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get loginPrivacyLink;
+
+  /// No description provided for @otpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get otpTitle;
+
+  /// No description provided for @otpSentPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to\n'**
+  String get otpSentPrefix;
+
+  /// No description provided for @otpChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get otpChange;
+
+  /// No description provided for @otpResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in '**
+  String get otpResendIn;
+
+  /// No description provided for @otpResendButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get otpResendButton;
+
+  /// No description provided for @otpVerifyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify & continue'**
+  String get otpVerifyButton;
+
+  /// No description provided for @otpVerifiedButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get otpVerifiedButton;
+
+  /// No description provided for @otpVerifiedSigningIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified — signing you in…'**
+  String get otpVerifiedSigningIn;
+
+  /// No description provided for @themePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get themePickerTitle;
+
+  /// No description provided for @themePickerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how AmanaPOS looks on your device.'**
+  String get themePickerSubtitle;
+
+  /// No description provided for @themeLightSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean bright interface. Always on.'**
+  String get themeLightSubtitle;
+
+  /// No description provided for @themeDarkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy on the eyes in low light.'**
+  String get themeDarkSubtitle;
+
+  /// No description provided for @themeSystemSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your device setting automatically.'**
+  String get themeSystemSubtitle;
+
+  /// No description provided for @editProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfileTitle;
+
+  /// No description provided for @editProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your name and contact information.'**
+  String get editProfileSubtitle;
+
+  /// No description provided for @fieldFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fieldFullName;
+
+  /// No description provided for @fieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get fieldEmail;
+
+  /// No description provided for @saveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfile;
+
+  /// No description provided for @setPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Password'**
+  String get setPasswordTitle;
+
+  /// No description provided for @setPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a strong password to protect your AmanaPOS account.'**
+  String get setPasswordSubtitle;
+
+  /// No description provided for @fieldNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get fieldNewPassword;
+
+  /// No description provided for @fieldConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get fieldConfirmPassword;
+
+  /// No description provided for @updatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Password'**
+  String get updatePassword;
+
+  /// No description provided for @bankakAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Bankak Account'**
+  String get bankakAddTitle;
+
+  /// No description provided for @bankakChangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Bankak Account'**
+  String get bankakChangeTitle;
+
+  /// No description provided for @bankakSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used when cashier selects Bankak as payment method in POS.'**
+  String get bankakSheetSubtitle;
+
+  /// No description provided for @bankakInfoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'AmanaPOS will record Bankak sales under this account for reporting. The customer still pays through the Bankak app.'**
+  String get bankakInfoNote;
+
+  /// No description provided for @bankakAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak Account Number'**
+  String get bankakAccountNumber;
+
+  /// No description provided for @bankakSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get bankakSaveChanges;
+
+  /// No description provided for @bankakAddAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Account'**
+  String get bankakAddAccount;
+
+  /// No description provided for @bankakRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get bankakRemove;
+
+  /// No description provided for @bankakActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get bankakActive;
+
+  /// No description provided for @bankakNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get bankakNotSet;
+
+  /// No description provided for @bankakUsedForLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for Bankak sales tracking and reports.'**
+  String get bankakUsedForLabel;
+
+  /// No description provided for @bankakPosNote.
+  ///
+  /// In en, this message translates to:
+  /// **'When cashier chooses Bankak in POS, AmanaPOS records the sale under this account.'**
+  String get bankakPosNote;
+
+  /// No description provided for @bankakCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak Payments'**
+  String get bankakCardTitle;
+
+  /// No description provided for @bankakChangeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Bankak Account'**
+  String get bankakChangeButton;
+
+  /// No description provided for @bankakAddButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Bankak Account'**
+  String get bankakAddButton;
 }
 
 class _AppLocalizationsDelegate

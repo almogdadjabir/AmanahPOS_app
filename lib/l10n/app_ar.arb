@@ -66,5 +66,57 @@
 
   "themeLight": "فاتح",
   "themeDark": "داكن",
-  "themeSystem": "النظام"
+  "themeSystem": "النظام",
+
+  "loginWelcomeTitle": "مرحباً بعودتك",
+  "loginSubtitle": "أدخل رقم جوالك لاستلام رمز التحقق المكون من 6 أرقام.",
+  "loginMobileLabel": "رقم الجوال",
+  "loginContinue": "متابعة",
+  "loginTermsPrefix": "بالمتابعة، فإنك توافق على ",
+  "loginTermsLink": "الشروط",
+  "loginTermsSeparator": " و ",
+  "loginPrivacyLink": "سياسة الخصوصية",
+
+  "otpTitle": "رمز التحقق",
+  "otpSentPrefix": "أرسلنا رمزاً من 6 أرقام إلى\n",
+  "otpChange": "تغيير",
+  "otpResendIn": "إعادة الإرسال بعد ",
+  "otpResendButton": "إعادة إرسال الرمز",
+  "otpVerifyButton": "تحقق وتابع",
+  "otpVerifiedButton": "تم التحقق",
+  "otpVerifiedSigningIn": "تم التحقق — جارٍ تسجيل الدخول...",
+
+  "themePickerTitle": "المظهر",
+  "themePickerSubtitle": "اختر مظهر أمانة على جهازك.",
+  "themeLightSubtitle": "واجهة مضيئة ونظيفة. دائماً مفعّلة.",
+  "themeDarkSubtitle": "مريحة للعيون في الضوء الخافت.",
+  "themeSystemSubtitle": "تتبع إعداد جهازك تلقائياً.",
+
+  "editProfileTitle": "تعديل الملف الشخصي",
+  "editProfileSubtitle": "تحديث اسمك ومعلومات الاتصال.",
+  "fieldFullName": "الاسم الكامل",
+  "fieldEmail": "البريد الإلكتروني",
+  "saveProfile": "حفظ الملف الشخصي",
+
+  "setPasswordTitle": "تعيين كلمة المرور",
+  "setPasswordSubtitle": "استخدم كلمة مرور قوية لحماية حسابك في أمانة.",
+  "fieldNewPassword": "كلمة المرور الجديدة",
+  "fieldConfirmPassword": "تأكيد كلمة المرور",
+  "updatePassword": "تحديث كلمة المرور",
+
+  "bankakAddTitle": "إضافة حساب بنكك",
+  "bankakChangeTitle": "تغيير حساب بنكك",
+  "bankakSheetSubtitle": "يُستخدم عندما يختار الكاشير بنكك كطريقة دفع في نقطة البيع.",
+  "bankakInfoNote": "ستسجّل أمانة مبيعات بنكك تحت هذا الحساب للتقارير. العميل يدفع عبر تطبيق بنكك.",
+  "bankakAccountNumber": "رقم حساب بنكك",
+  "bankakSaveChanges": "حفظ التغييرات",
+  "bankakAddAccount": "إضافة حساب",
+  "bankakRemove": "إزالة",
+  "bankakActive": "نشط",
+  "bankakNotSet": "غير محدد",
+  "bankakUsedForLabel": "يُستخدم لتتبع مبيعات بنكك والتقارير.",
+  "bankakPosNote": "عندما يختار الكاشير بنكك في نقطة البيع، تسجّل أمانة البيعة تحت هذا الحساب.",
+  "bankakCardTitle": "مدفوعات بنكك",
+  "bankakChangeButton": "تغيير حساب بنكك",
+  "bankakAddButton": "إضافة حساب بنكك"
 }

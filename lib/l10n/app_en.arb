@@ -66,5 +66,57 @@
 
   "themeLight": "Light",
   "themeDark": "Dark",
-  "themeSystem": "System"
+  "themeSystem": "System",
+
+  "loginWelcomeTitle": "Welcome back",
+  "loginSubtitle": "Enter your mobile number to receive a 6-digit verification code.",
+  "loginMobileLabel": "Mobile number",
+  "loginContinue": "Continue",
+  "loginTermsPrefix": "By continuing you agree to our ",
+  "loginTermsLink": "Terms",
+  "loginTermsSeparator": " & ",
+  "loginPrivacyLink": "Privacy Policy",
+
+  "otpTitle": "Verification code",
+  "otpSentPrefix": "We sent a 6-digit code to\n",
+  "otpChange": "Change",
+  "otpResendIn": "Resend code in ",
+  "otpResendButton": "Resend code",
+  "otpVerifyButton": "Verify & continue",
+  "otpVerifiedButton": "Verified",
+  "otpVerifiedSigningIn": "Verified — signing you in…",
+
+  "themePickerTitle": "Appearance",
+  "themePickerSubtitle": "Choose how AmanaPOS looks on your device.",
+  "themeLightSubtitle": "Clean bright interface. Always on.",
+  "themeDarkSubtitle": "Easy on the eyes in low light.",
+  "themeSystemSubtitle": "Follows your device setting automatically.",
+
+  "editProfileTitle": "Edit Profile",
+  "editProfileSubtitle": "Update your name and contact information.",
+  "fieldFullName": "Full Name",
+  "fieldEmail": "Email",
+  "saveProfile": "Save Profile",
+
+  "setPasswordTitle": "Set Password",
+  "setPasswordSubtitle": "Use a strong password to protect your AmanaPOS account.",
+  "fieldNewPassword": "New Password",
+  "fieldConfirmPassword": "Confirm Password",
+  "updatePassword": "Update Password",
+
+  "bankakAddTitle": "Add Bankak Account",
+  "bankakChangeTitle": "Change Bankak Account",
+  "bankakSheetSubtitle": "Used when cashier selects Bankak as payment method in POS.",
+  "bankakInfoNote": "AmanaPOS will record Bankak sales under this account for reporting. The customer still pays through the Bankak app.",
+  "bankakAccountNumber": "Bankak Account Number",
+  "bankakSaveChanges": "Save Changes",
+  "bankakAddAccount": "Add Account",
+  "bankakRemove": "Remove",
+  "bankakActive": "Active",
+  "bankakNotSet": "Not set",
+  "bankakUsedForLabel": "Used for Bankak sales tracking and reports.",
+  "bankakPosNote": "When cashier chooses Bankak in POS, AmanaPOS records the sale under this account.",
+  "bankakCardTitle": "Bankak Payments",
+  "bankakChangeButton": "Change Bankak Account",
+  "bankakAddButton": "Add Bankak Account"
 }

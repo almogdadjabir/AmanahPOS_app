@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -55,6 +56,7 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final colors = context.appColors;
     final account = widget.controller.text.trim();
     final hasAccount = account.isNotEmpty;
@@ -90,7 +92,7 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Bankak Payments',
+                      tr.bankakCardTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs500(context).copyWith(
@@ -168,7 +170,7 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
                 ? OutlinedButton.icon(
               onPressed: _openBankakSheet,
               icon: const Icon(Icons.edit_rounded, size: 18),
-              label: const Text('Change Bankak Account'),
+              label: Text(tr.bankakChangeButton),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.textPrimary,
                 side: BorderSide(color: colors.border),
@@ -183,7 +185,7 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
                 : FilledButton.icon(
               onPressed: _openBankakSheet,
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Add Bankak Account'),
+              label: Text(tr.bankakAddButton),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
@@ -245,6 +247,7 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final color = configured
         ? const Color(0xFF16A34A)
         : context.appColors.textHint;
@@ -259,7 +262,7 @@ class _StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        configured ? 'Active' : 'Not set',
+        configured ? tr.bankakActive : tr.bankakNotSet,
         maxLines: 1,
         style: AppTextStyles.bs100(context).copyWith(
           color: color,
@@ -315,6 +318,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final colors = context.appColors;
     final hasExisting = widget.initialValue.trim().isNotEmpty;
 
@@ -373,7 +377,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'Used for Bankak sales tracking and reports.',
+                          tr.bankakUsedForLabel,
                           style: AppTextStyles.bs200(context).copyWith(
                             color: colors.textSecondary,
                             fontWeight: FontWeight.w600,
@@ -409,7 +413,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                     const SizedBox(width: AppDims.s2),
                     Expanded(
                       child: Text(
-                        'When cashier chooses Bankak in POS, AmanaPOS records the sale under this account.',
+                        tr.bankakPosNote,
                         style: AppTextStyles.bs200(context).copyWith(
                           color: colors.textSecondary,
                           fontWeight: FontWeight.w700,
@@ -465,7 +469,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                       child: OutlinedButton.icon(
                         onPressed: _remove,
                         icon: const Icon(Icons.delete_outline_rounded),
-                        label: const Text('Remove'),
+                        label: Text(tr.bankakRemove),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFFDC2626),
                           side: BorderSide(
@@ -494,7 +498,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                         ),
                       ),
                       child: Text(
-                        hasExisting ? 'Save Changes' : 'Add Account',
+                        hasExisting ? tr.bankakSaveChanges : tr.bankakAddAccount,
                         style: AppTextStyles.bs500(context).copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,

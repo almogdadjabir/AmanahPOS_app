@@ -485,6 +485,7 @@ class _ThemePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final colors = context.appColors;
 
     return Container(
@@ -497,21 +498,21 @@ class _ThemePicker extends StatelessWidget {
         children: [
           _ThemeOption(
             mode: ScreenMode.light,
-            label: 'Light',
+            label: tr.themeLight,
             selectedMode: selectedMode,
             onTap: () => onModeSelected(ScreenMode.light),
           ),
           const SizedBox(width: AppDims.s2),
           _ThemeOption(
             mode: ScreenMode.device,
-            label: 'System',
+            label: tr.themeSystem,
             selectedMode: selectedMode,
             onTap: () => onModeSelected(ScreenMode.device),
           ),
           const SizedBox(width: AppDims.s2),
           _ThemeOption(
             mode: ScreenMode.dark,
-            label: 'Dark',
+            label: tr.themeDark,
             selectedMode: selectedMode,
             onTap: () => onModeSelected(ScreenMode.dark),
           ),

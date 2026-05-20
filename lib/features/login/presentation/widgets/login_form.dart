@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/widgets/amana_logo.dart';
 import 'package:amana_pos/widgets/app_button.dart';
@@ -48,6 +49,7 @@ class _LoginFormState extends State<LoginForm> {
           prev.isLoading != curr.isLoading ||
           prev.isMobileValid != curr.isMobileValid,
       builder: (context, state) {
+        final tr = context.tr;
         final colors = context.appColors;
         final hasError = state.mobileError != null;
 
@@ -75,7 +77,7 @@ class _LoginFormState extends State<LoginForm> {
                     const SizedBox(height: AppSpacing.xxl),
 
                     Text(
-                      'Welcome back',
+                      tr.loginWelcomeTitle,
                       style: AppTextStyles.lg200(context,
                           weight: AppTextStyles.extraBold,
                           color: colors.textPrimary),
@@ -87,7 +89,7 @@ class _LoginFormState extends State<LoginForm> {
                     const SizedBox(height: AppSpacing.xs),
 
                     Text(
-                      'Enter your mobile number to receive a 6-digit verification code.',
+                      tr.loginSubtitle,
                       style: AppTextStyles.bs400(context,
                           color: colors.textSecondary),
                     )
@@ -98,7 +100,7 @@ class _LoginFormState extends State<LoginForm> {
                     const SizedBox(height: AppSpacing.xxl),
 
                     Text(
-                      'Mobile number',
+                      tr.loginMobileLabel,
                       style: AppTextStyles.bs600(context,
                           weight: AppTextStyles.semibold,
                           color: colors.textSecondary),
@@ -154,7 +156,7 @@ class _LoginFormState extends State<LoginForm> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AppButton.wide(
-                    label: 'Continue',
+                    label: tr.loginContinue,
                     onPressed: state.isMobileValid
                         ? () => context.read<LoginBloc>().add(OnLoginSubmitEvent())
                         : null,
@@ -171,16 +173,16 @@ class _LoginFormState extends State<LoginForm> {
                       style: AppTextStyles.bs300(context,
                           color: colors.textHint),
                       children: [
-                        const TextSpan(text: 'By continuing you agree to our '),
+                        TextSpan(text: tr.loginTermsPrefix),
                         TextSpan(
-                          text: 'Terms',
+                          text: tr.loginTermsLink,
                           style: TextStyle(
                               color: colors.primary,
                               fontWeight: FontWeight.w600),
                         ),
-                        const TextSpan(text: ' & '),
+                        TextSpan(text: tr.loginTermsSeparator),
                         TextSpan(
-                          text: 'Privacy Policy',
+                          text: tr.loginPrivacyLink,
                           style: TextStyle(
                               color: colors.primary,
                               fontWeight: FontWeight.w600),

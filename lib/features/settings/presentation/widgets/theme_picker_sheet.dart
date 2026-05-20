@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
@@ -13,9 +14,10 @@ class ThemePickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return AppBottomSheet(
-      title: 'Appearance',
-      subtitle: 'Choose how AmanaPOS looks on your device.',
+      title: tr.themePickerTitle,
+      subtitle: tr.themePickerSubtitle,
       icon: Icons.palette_outlined,
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
@@ -26,8 +28,8 @@ class ThemePickerSheet extends StatelessWidget {
               _ThemeOption(
                 mode: ScreenMode.light,
                 current: current,
-                title: 'Light',
-                subtitle: 'Clean bright interface. Always on.',
+                title: tr.themeLight,
+                subtitle: tr.themeLightSubtitle,
                 icon: Icons.wb_sunny_rounded,
                 iconColor: const Color(0xFFF59E0B),
                 delay: 0,
@@ -36,8 +38,8 @@ class ThemePickerSheet extends StatelessWidget {
               _ThemeOption(
                 mode: ScreenMode.dark,
                 current: current,
-                title: 'Dark',
-                subtitle: 'Easy on the eyes in low light.',
+                title: tr.themeDark,
+                subtitle: tr.themeDarkSubtitle,
                 icon: Icons.nights_stay_rounded,
                 iconColor: const Color(0xFF6366F1),
                 delay: 55,
@@ -46,8 +48,8 @@ class ThemePickerSheet extends StatelessWidget {
               _ThemeOption(
                 mode: ScreenMode.device,
                 current: current,
-                title: 'System',
-                subtitle: 'Follows your device setting automatically.',
+                title: tr.themeSystem,
+                subtitle: tr.themeSystemSubtitle,
                 icon: Icons.phone_android_rounded,
                 iconColor: const Color(0xFF0D9488),
                 delay: 110,

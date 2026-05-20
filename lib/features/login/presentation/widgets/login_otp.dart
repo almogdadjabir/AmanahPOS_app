@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/widgets/app_button.dart';
 import 'package:amana_pos/features/login/presentation/widgets/otp_input_square.dart';
@@ -22,6 +23,7 @@ class LoginOtp extends StatelessWidget {
           prev.phoneNumber != curr.phoneNumber ||
           prev.otp != curr.otp,
       builder: (context, state) {
+        final tr = context.tr;
         final colors = context.appColors;
         final filled = (state.otp ?? '').length == 6;
 
@@ -63,7 +65,7 @@ class LoginOtp extends StatelessWidget {
                     const SizedBox(height: AppSpacing.lg),
 
                     Text(
-                      'Verification code',
+                      tr.otpTitle,
                       style: AppTextStyles.lg200(
                         context,
                         weight: AppTextStyles.extraBold,
@@ -83,7 +85,7 @@ class LoginOtp extends StatelessWidget {
                           color: colors.textSecondary,
                         ),
                         children: [
-                          const TextSpan(text: 'We sent a 6-digit code to\n'),
+                          TextSpan(text: tr.otpSentPrefix),
                           TextSpan(
                             text: '+249 ${state.phoneNumber ?? ''}  ',
                             style: TextStyle(
@@ -99,7 +101,7 @@ class LoginOtp extends StatelessWidget {
                                   .read<LoginBloc>()
                                   .add(const OnResetEvent(isPhoneChange: true)),
                               child: Text(
-                                'Change',
+                                tr.otpChange,
                                 style: AppTextStyles.bs400(
                                   context,
                                   weight: AppTextStyles.bold,
@@ -137,7 +139,7 @@ class LoginOtp extends StatelessWidget {
                       ).animate().fadeIn(duration: 200.ms)
                           : state.isPinMatched
                           ? _StatusBanner(
-                        message: 'Verified — signing you in…',
+                        message: tr.otpVerifiedSigningIn,
                         isError: false,
                       )
                           .animate()
@@ -157,7 +159,7 @@ class LoginOtp extends StatelessWidget {
                             color: colors.textSecondary,
                           ),
                           children: [
-                            const TextSpan(text: 'Resend code in '),
+                            TextSpan(text: tr.otpResendIn),
                             TextSpan(
                               text:
                               '0:${state.otpResendSeconds.toString().padLeft(2, '0')}',
@@ -182,7 +184,7 @@ class LoginOtp extends StatelessWidget {
                           color: colors.primary,
                         ),
                         label: Text(
-                          'Resend code',
+                          tr.otpResendButton,
                           style: AppTextStyles.sm300(
                             context,
                             weight: AppTextStyles.bold,
@@ -204,7 +206,7 @@ class LoginOtp extends StatelessWidget {
                 MediaQuery.paddingOf(context).bottom + AppSpacing.sm,
               ),
               child: AppButton.wide(
-                label: state.isPinMatched ? 'Verified' : 'Verify & continue',
+                label: state.isPinMatched ? tr.otpVerifiedButton : tr.otpVerifyButton,
                 onPressed: (filled && !state.isLoading && !state.isPinMatched)
                     ? () => context.read<LoginBloc>().add(OnSubmitOtpEvent())
                     : null,

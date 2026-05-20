@@ -179,4 +179,149 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeSystem => 'System';
+
+  @override
+  String get loginWelcomeTitle => 'Welcome back';
+
+  @override
+  String get loginSubtitle =>
+      'Enter your mobile number to receive a 6-digit verification code.';
+
+  @override
+  String get loginMobileLabel => 'Mobile number';
+
+  @override
+  String get loginContinue => 'Continue';
+
+  @override
+  String get loginTermsPrefix => 'By continuing you agree to our ';
+
+  @override
+  String get loginTermsLink => 'Terms';
+
+  @override
+  String get loginTermsSeparator => ' & ';
+
+  @override
+  String get loginPrivacyLink => 'Privacy Policy';
+
+  @override
+  String get otpTitle => 'Verification code';
+
+  @override
+  String get otpSentPrefix => 'We sent a 6-digit code to\n';
+
+  @override
+  String get otpChange => 'Change';
+
+  @override
+  String get otpResendIn => 'Resend code in ';
+
+  @override
+  String get otpResendButton => 'Resend code';
+
+  @override
+  String get otpVerifyButton => 'Verify & continue';
+
+  @override
+  String get otpVerifiedButton => 'Verified';
+
+  @override
+  String get otpVerifiedSigningIn => 'Verified — signing you in…';
+
+  @override
+  String get themePickerTitle => 'Appearance';
+
+  @override
+  String get themePickerSubtitle => 'Choose how AmanaPOS looks on your device.';
+
+  @override
+  String get themeLightSubtitle => 'Clean bright interface. Always on.';
+
+  @override
+  String get themeDarkSubtitle => 'Easy on the eyes in low light.';
+
+  @override
+  String get themeSystemSubtitle =>
+      'Follows your device setting automatically.';
+
+  @override
+  String get editProfileTitle => 'Edit Profile';
+
+  @override
+  String get editProfileSubtitle => 'Update your name and contact information.';
+
+  @override
+  String get fieldFullName => 'Full Name';
+
+  @override
+  String get fieldEmail => 'Email';
+
+  @override
+  String get saveProfile => 'Save Profile';
+
+  @override
+  String get setPasswordTitle => 'Set Password';
+
+  @override
+  String get setPasswordSubtitle =>
+      'Use a strong password to protect your AmanaPOS account.';
+
+  @override
+  String get fieldNewPassword => 'New Password';
+
+  @override
+  String get fieldConfirmPassword => 'Confirm Password';
+
+  @override
+  String get updatePassword => 'Update Password';
+
+  @override
+  String get bankakAddTitle => 'Add Bankak Account';
+
+  @override
+  String get bankakChangeTitle => 'Change Bankak Account';
+
+  @override
+  String get bankakSheetSubtitle =>
+      'Used when cashier selects Bankak as payment method in POS.';
+
+  @override
+  String get bankakInfoNote =>
+      'AmanaPOS will record Bankak sales under this account for reporting. The customer still pays through the Bankak app.';
+
+  @override
+  String get bankakAccountNumber => 'Bankak Account Number';
+
+  @override
+  String get bankakSaveChanges => 'Save Changes';
+
+  @override
+  String get bankakAddAccount => 'Add Account';
+
+  @override
+  String get bankakRemove => 'Remove';
+
+  @override
+  String get bankakActive => 'Active';
+
+  @override
+  String get bankakNotSet => 'Not set';
+
+  @override
+  String get bankakUsedForLabel =>
+      'Used for Bankak sales tracking and reports.';
+
+  @override
+  String get bankakPosNote =>
+      'When cashier chooses Bankak in POS, AmanaPOS records the sale under this account.';
+
+  @override
+  String get bankakCardTitle => 'Bankak Payments';
+
+  @override
+  String get bankakChangeButton => 'Change Bankak Account';
+
+  @override
+  String get bankakAddButton => 'Add Bankak Account';
 }

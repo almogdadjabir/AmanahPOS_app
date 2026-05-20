@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/settings/data/models/set_password_request_dto.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
@@ -53,15 +54,16 @@ class _SetPasswordSheetState extends State<SetPasswordSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return AppBottomSheet(
-      title: 'Set Password',
-      subtitle: 'Use a strong password to protect your AmanaPOS account.',
+      title: tr.setPasswordTitle,
+      subtitle: tr.setPasswordSubtitle,
       icon: Icons.lock_outline_rounded,
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            FieldLabel(label: 'New Password', required: true),
+            FieldLabel(label: tr.fieldNewPassword, required: true),
             const SizedBox(height: AppDims.s1),
             _PasswordField(
               controller: _passwordCtrl,
@@ -84,7 +86,7 @@ class _SetPasswordSheetState extends State<SetPasswordSheet> {
               },
             ),
             const SizedBox(height: AppDims.s3),
-            FieldLabel(label: 'Confirm Password', required: true),
+            FieldLabel(label: tr.fieldConfirmPassword, required: true),
             const SizedBox(height: AppDims.s1),
             _PasswordField(
               controller: _confirmCtrl,
@@ -113,7 +115,7 @@ class _SetPasswordSheetState extends State<SetPasswordSheet> {
               prev.passwordStatus != curr.passwordStatus,
               builder: (context, state) {
                 return PrimarySheetButton(
-                  label: 'Update Password',
+                  label: tr.updatePassword,
                   isLoading:
                   state.passwordStatus == SettingsSubmitStatus.loading,
                   onPressed: _submit,

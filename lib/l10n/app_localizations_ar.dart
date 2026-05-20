@@ -178,4 +178,147 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get themeSystem => 'النظام';
+
+  @override
+  String get loginWelcomeTitle => 'مرحباً بعودتك';
+
+  @override
+  String get loginSubtitle =>
+      'أدخل رقم جوالك لاستلام رمز التحقق المكون من 6 أرقام.';
+
+  @override
+  String get loginMobileLabel => 'رقم الجوال';
+
+  @override
+  String get loginContinue => 'متابعة';
+
+  @override
+  String get loginTermsPrefix => 'بالمتابعة، فإنك توافق على ';
+
+  @override
+  String get loginTermsLink => 'الشروط';
+
+  @override
+  String get loginTermsSeparator => ' و ';
+
+  @override
+  String get loginPrivacyLink => 'سياسة الخصوصية';
+
+  @override
+  String get otpTitle => 'رمز التحقق';
+
+  @override
+  String get otpSentPrefix => 'أرسلنا رمزاً من 6 أرقام إلى\n';
+
+  @override
+  String get otpChange => 'تغيير';
+
+  @override
+  String get otpResendIn => 'إعادة الإرسال بعد ';
+
+  @override
+  String get otpResendButton => 'إعادة إرسال الرمز';
+
+  @override
+  String get otpVerifyButton => 'تحقق وتابع';
+
+  @override
+  String get otpVerifiedButton => 'تم التحقق';
+
+  @override
+  String get otpVerifiedSigningIn => 'تم التحقق — جارٍ تسجيل الدخول...';
+
+  @override
+  String get themePickerTitle => 'المظهر';
+
+  @override
+  String get themePickerSubtitle => 'اختر مظهر أمانة على جهازك.';
+
+  @override
+  String get themeLightSubtitle => 'واجهة مضيئة ونظيفة. دائماً مفعّلة.';
+
+  @override
+  String get themeDarkSubtitle => 'مريحة للعيون في الضوء الخافت.';
+
+  @override
+  String get themeSystemSubtitle => 'تتبع إعداد جهازك تلقائياً.';
+
+  @override
+  String get editProfileTitle => 'تعديل الملف الشخصي';
+
+  @override
+  String get editProfileSubtitle => 'تحديث اسمك ومعلومات الاتصال.';
+
+  @override
+  String get fieldFullName => 'الاسم الكامل';
+
+  @override
+  String get fieldEmail => 'البريد الإلكتروني';
+
+  @override
+  String get saveProfile => 'حفظ الملف الشخصي';
+
+  @override
+  String get setPasswordTitle => 'تعيين كلمة المرور';
+
+  @override
+  String get setPasswordSubtitle =>
+      'استخدم كلمة مرور قوية لحماية حسابك في أمانة.';
+
+  @override
+  String get fieldNewPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get fieldConfirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get updatePassword => 'تحديث كلمة المرور';
+
+  @override
+  String get bankakAddTitle => 'إضافة حساب بنكك';
+
+  @override
+  String get bankakChangeTitle => 'تغيير حساب بنكك';
+
+  @override
+  String get bankakSheetSubtitle =>
+      'يُستخدم عندما يختار الكاشير بنكك كطريقة دفع في نقطة البيع.';
+
+  @override
+  String get bankakInfoNote =>
+      'ستسجّل أمانة مبيعات بنكك تحت هذا الحساب للتقارير. العميل يدفع عبر تطبيق بنكك.';
+
+  @override
+  String get bankakAccountNumber => 'رقم حساب بنكك';
+
+  @override
+  String get bankakSaveChanges => 'حفظ التغييرات';
+
+  @override
+  String get bankakAddAccount => 'إضافة حساب';
+
+  @override
+  String get bankakRemove => 'إزالة';
+
+  @override
+  String get bankakActive => 'نشط';
+
+  @override
+  String get bankakNotSet => 'غير محدد';
+
+  @override
+  String get bankakUsedForLabel => 'يُستخدم لتتبع مبيعات بنكك والتقارير.';
+
+  @override
+  String get bankakPosNote =>
+      'عندما يختار الكاشير بنكك في نقطة البيع، تسجّل أمانة البيعة تحت هذا الحساب.';
+
+  @override
+  String get bankakCardTitle => 'مدفوعات بنكك';
+
+  @override
+  String get bankakChangeButton => 'تغيير حساب بنكك';
+
+  @override
+  String get bankakAddButton => 'إضافة حساب بنكك';
 }
