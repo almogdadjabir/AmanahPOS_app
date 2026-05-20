@@ -466,4 +466,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldExpiryAlert => 'Expiry Alert';
+
+  @override
+  String get newCategory => 'New Category';
+
+  @override
+  String get editCategory => 'Edit Category';
+
+  @override
+  String get noCategoriesYet => 'No categories yet';
+
+  @override
+  String get fieldCategoryName => 'Category Name';
+
+  @override
+  String get createCategory => 'Create Category';
+
+  @override
+  String get catStatTotal => 'Total';
+
+  @override
+  String get catStatActive => 'Active';
+
+  @override
+  String get catStatInactive => 'Inactive';
+
+  @override
+  String get catStatSub => 'Sub';
+
+  @override
+  String get catAppBarProducts => 'Products';
+
+  @override
+  String get catAppBarSub => 'Sub';
+
+  @override
+  String get catAppBarStatus => 'Status';
 }

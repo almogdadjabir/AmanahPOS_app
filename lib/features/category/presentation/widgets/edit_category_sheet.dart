@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_sheet_widgets.dart';
@@ -84,7 +85,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
         }
       },
       child: ProductSheetShell(
-        title: 'Edit Category',
+        title: context.tr.editCategory,
         subtitle: widget.category.name,
         body: Form(
           key: _formKey,
@@ -92,7 +93,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              FieldLabel(label: 'Name', required: true),
+              FieldLabel(label: context.tr.fieldCategoryName, required: true),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _nameCtrl,
@@ -104,7 +105,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
               ),
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: 'Description'),
+              FieldLabel(label: context.tr.fieldDescription),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _descCtrl,
@@ -117,7 +118,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
               const SizedBox(height: AppDims.s5),
 
               CategorySubmitButton(
-                label: 'Save Changes',
+                label: context.tr.saveChanges,
                 onPressed: _submit,
                 enabled: _hasChanges,
               ),

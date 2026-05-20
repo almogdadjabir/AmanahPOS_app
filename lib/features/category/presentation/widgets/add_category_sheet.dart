@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_sheet_widgets.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
@@ -92,7 +93,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
               state.submitStatus == CategorySubmitStatus.loading;
 
           return ProductSheetShell(
-            title: 'New Category',
+            title: context.tr.newCategory,
             body: Form(
               key: _formKey,
               child: Column(
@@ -102,7 +103,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                   const SizedBox(height: AppDims.s5),
 
                   FieldLabel(
-                    label: 'Category Name',
+                    label: context.tr.fieldCategoryName,
                     required: true,
                   ),
                   const SizedBox(height: AppDims.s1),
@@ -117,7 +118,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
 
                   const SizedBox(height: AppDims.s4),
 
-                  FieldLabel(label: 'Description'),
+                  FieldLabel(label: context.tr.fieldDescription),
                   const SizedBox(height: AppDims.s1),
                   AppFormField(
                     controller: _descCtrl,
@@ -137,7 +138,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                   const SizedBox(height: AppDims.s5),
 
                   _AmanaCategorySubmitButton(
-                    label: 'Create Category',
+                    label: context.tr.createCategory,
                     isLoading: isSubmitting,
                     onPressed: isSubmitting ? null : _submit,
                   ),

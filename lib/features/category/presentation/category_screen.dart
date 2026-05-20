@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/add_category_sheet.dart';
 import 'package:amana_pos/features/category/presentation/widgets/categories_content.dart';
@@ -48,10 +49,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             CategoryStatus.success => state.categoryList.isEmpty
                 ? ProductEmptyView(
               hasCategories: false,
-              title: 'No categories yet',
+              title: context.tr.noCategoriesYet,
               message:
               'Create your first category to organize products and speed up selling.',
-              primaryActionText: 'Add Category',
+              primaryActionText: context.tr.newCategory,
               onPrimaryAction: () => showAddCategorySheet(context),
             )
                 : CategoriesContent(categories: state.categoryList),
@@ -80,7 +81,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               color: Colors.white,
             ),
             label: Text(
-              'Add Category',
+              context.tr.newCategory,
               style: AppTextStyles.bs300(context).copyWith(
                 fontWeight: FontWeight.w900,
                 color: Colors.white,

@@ -166,5 +166,18 @@
   "inventoryAlertsTitle": "تنبيهات المخزون",
   "inventoryAlertsSubtitle": "حدد متى يجب أن يُنبهك AmanaPOS بشأن انخفاض المخزون أو الدفعات المنتهية الصلاحية.",
   "inventoryAlertsExpiryHint": "ستتلقى إشعارًا عندما تكون دفعة المنتج ضمن الأيام المحددة من تاريخ انتهاء صلاحيتها.",
-  "fieldExpiryAlert": "تنبيه انتهاء الصلاحية"
+  "fieldExpiryAlert": "تنبيه انتهاء الصلاحية",
+
+  "newCategory": "فئة جديدة",
+  "editCategory": "تعديل الفئة",
+  "noCategoriesYet": "لا توجد فئات بعد",
+  "fieldCategoryName": "اسم الفئة",
+  "createCategory": "إنشاء فئة",
+  "catStatTotal": "الإجمالي",
+  "catStatActive": "نشطة",
+  "catStatInactive": "غير نشطة",
+  "catStatSub": "فرعية",
+  "catAppBarProducts": "المنتجات",
+  "catAppBarSub": "الفرعية",
+  "catAppBarStatus": "الحالة"
 }

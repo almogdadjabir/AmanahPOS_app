@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -109,7 +110,7 @@ class CategoriesHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: _CategoryMiniStat(
-                  label: 'Total',
+                  label: context.tr.catStatTotal,
                   value: '${categories.length}',
                   icon: SolarIconsOutline.layersMinimalistic,
                   color: colors.primary,
@@ -120,7 +121,7 @@ class CategoriesHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CategoryMiniStat(
-                  label: 'Active',
+                  label: context.tr.catStatActive,
                   value: '$active',
                   icon: SolarIconsOutline.checkCircle,
                   color: const Color(0xFF16A34A),
@@ -131,7 +132,7 @@ class CategoriesHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CategoryMiniStat(
-                  label: 'Inactive',
+                  label: context.tr.catStatInactive,
                   value: '$inactive',
                   icon: SolarIconsOutline.pauseCircle,
                   color: const Color(0xFF94A3B8),
@@ -142,7 +143,7 @@ class CategoriesHeader extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _CategoryMiniStat(
-                  label: 'Sub',
+                  label: context.tr.catStatSub,
                   value: '$withSubCategories',
                   icon: SolarIconsOutline.widget,
                   color: const Color(0xFF8B5CF6),

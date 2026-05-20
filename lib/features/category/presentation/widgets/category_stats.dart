@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -33,7 +34,7 @@ class CategoryStats extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: SolarIconsOutline.layersMinimalistic,
-            label: 'Total',
+            label: context.tr.catStatTotal,
             value: '${categories.length}',
             color: colors.primary,
           ),
@@ -42,7 +43,7 @@ class CategoryStats extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: SolarIconsOutline.checkCircle,
-            label: 'Active',
+            label: context.tr.catStatActive,
             value: '$active',
             color: const Color(0xFF16A34A),
           ),
@@ -51,7 +52,7 @@ class CategoryStats extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: SolarIconsOutline.pauseCircle,
-            label: 'Inactive',
+            label: context.tr.catStatInactive,
             value: '$inactive',
             color: const Color(0xFF94A3B8),
           ),
@@ -60,7 +61,7 @@ class CategoryStats extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: SolarIconsOutline.widget,
-            label: 'Sub',
+            label: context.tr.catStatSub,
             value: '$subCategories',
             color: const Color(0xFF8B5CF6),
           ),

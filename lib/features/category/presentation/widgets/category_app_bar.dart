@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/widgets/delete_category_sheet.dart';
 import 'package:amana_pos/features/category/presentation/widgets/edit_category_sheet.dart';
@@ -185,7 +186,7 @@ class CategoryAppBar extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _CategoryMiniInfo(
-                            label: 'Products',
+                            label: context.tr.catAppBarProducts,
                             value: '$productCount',
                             icon: SolarIconsOutline.bag5,
                             color: colors.primary,
@@ -194,7 +195,7 @@ class CategoryAppBar extends StatelessWidget {
                         const SizedBox(width: AppDims.s2),
                         Expanded(
                           child: _CategoryMiniInfo(
-                            label: 'Sub',
+                            label: context.tr.catAppBarSub,
                             value: '$subCategoryCount',
                             icon: SolarIconsOutline.widget,
                             color: const Color(0xFF8B5CF6),
@@ -203,7 +204,7 @@ class CategoryAppBar extends StatelessWidget {
                         const SizedBox(width: AppDims.s2),
                         Expanded(
                           child: _CategoryMiniInfo(
-                            label: 'Status',
+                            label: context.tr.catAppBarStatus,
                             value: isActive ? 'Live' : 'Off',
                             icon: isActive
                                 ? SolarIconsOutline.checkCircle

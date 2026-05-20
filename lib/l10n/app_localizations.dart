@@ -985,6 +985,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expiry Alert'**
   String get fieldExpiryAlert;
+
+  /// No description provided for @newCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New Category'**
+  String get newCategory;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Category'**
+  String get editCategory;
+
+  /// No description provided for @noCategoriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet'**
+  String get noCategoriesYet;
+
+  /// No description provided for @fieldCategoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category Name'**
+  String get fieldCategoryName;
+
+  /// No description provided for @createCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Category'**
+  String get createCategory;
+
+  /// No description provided for @catStatTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get catStatTotal;
+
+  /// No description provided for @catStatActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get catStatActive;
+
+  /// No description provided for @catStatInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get catStatInactive;
+
+  /// No description provided for @catStatSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub'**
+  String get catStatSub;
+
+  /// No description provided for @catAppBarProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get catAppBarProducts;
+
+  /// No description provided for @catAppBarSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub'**
+  String get catAppBarSub;
+
+  /// No description provided for @catAppBarStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get catAppBarStatus;
 }
 
 class _AppLocalizationsDelegate

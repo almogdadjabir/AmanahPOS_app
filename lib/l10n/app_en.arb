@@ -166,5 +166,18 @@
   "inventoryAlertsTitle": "Inventory Alerts",
   "inventoryAlertsSubtitle": "Set when AmanaPOS should warn you about low stock or expiring batches.",
   "inventoryAlertsExpiryHint": "You will be notified when a product batch is within the set number of days from its expiry date.",
-  "fieldExpiryAlert": "Expiry Alert"
+  "fieldExpiryAlert": "Expiry Alert",
+
+  "newCategory": "New Category",
+  "editCategory": "Edit Category",
+  "noCategoriesYet": "No categories yet",
+  "fieldCategoryName": "Category Name",
+  "createCategory": "Create Category",
+  "catStatTotal": "Total",
+  "catStatActive": "Active",
+  "catStatInactive": "Inactive",
+  "catStatSub": "Sub",
+  "catAppBarProducts": "Products",
+  "catAppBarSub": "Sub",
+  "catAppBarStatus": "Status"
 }

@@ -461,4 +461,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fieldExpiryAlert => 'تنبيه انتهاء الصلاحية';
+
+  @override
+  String get newCategory => 'فئة جديدة';
+
+  @override
+  String get editCategory => 'تعديل الفئة';
+
+  @override
+  String get noCategoriesYet => 'لا توجد فئات بعد';
+
+  @override
+  String get fieldCategoryName => 'اسم الفئة';
+
+  @override
+  String get createCategory => 'إنشاء فئة';
+
+  @override
+  String get catStatTotal => 'الإجمالي';
+
+  @override
+  String get catStatActive => 'نشطة';
+
+  @override
+  String get catStatInactive => 'غير نشطة';
+
+  @override
+  String get catStatSub => 'فرعية';
+
+  @override
+  String get catAppBarProducts => 'المنتجات';
+
+  @override
+  String get catAppBarSub => 'الفرعية';
+
+  @override
+  String get catAppBarStatus => 'الحالة';
 }
