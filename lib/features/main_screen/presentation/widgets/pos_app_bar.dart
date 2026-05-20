@@ -516,9 +516,8 @@ class LocationChip extends StatelessWidget {
         : 'Business workspace';
 
     return GestureDetector(
-      onTap: business == null || !getIt<AuthBloc>().state.permissions.isOwner
-          ? null
-          : () {
+      onTap: (business?.shopCount ?? 0) > 1
+          ? () {
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -531,7 +530,8 @@ class LocationChip extends StatelessWidget {
             ),
           ),
         );
-      },
+      }
+          : null,
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 58,
@@ -601,15 +601,14 @@ class LocationChip extends StatelessWidget {
               ),
             ),
 
-            if (getIt<AuthBloc>().state.permissions.isOwner)...[
-            const SizedBox(width: 6),
-
-            Icon(
-              SolarIconsOutline.altArrowDown,
-              size: 17,
-              color: colors.textHint,
-            ),
-          ],
+            if ((business?.shopCount ?? 0) > 1) ...[
+              const SizedBox(width: 6),
+              Icon(
+                SolarIconsOutline.altArrowDown,
+                size: 17,
+                color: colors.textHint,
+              ),
+            ],
           ],
         ),
       ),

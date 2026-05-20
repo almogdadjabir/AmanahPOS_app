@@ -9,6 +9,7 @@ import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart'
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +40,125 @@ void showInboundSheet(BuildContext context) {
   );
 }
 
+void showInboundHistorySheet(BuildContext context) {
+  final inboundBloc = context.read<InboundBloc>();
+
+  inboundBloc.add(const OnInboundStarted());
+
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => BlocProvider.value(
+      value: inboundBloc,
+      child: const _InboundHistorySheet(),
+    ),
+  );
+}
+
+class _InboundHistorySheet extends StatelessWidget {
+  const _InboundHistorySheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.82,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.textSecondary.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: goldDeep.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      SolarIconsOutline.documentText,
+                      color: goldDeep,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: AppDims.s3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Receipt History',
+                          style: AppTextStyles.bs400(context).copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Review recent inbound stock receipts',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bs200(context).copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      SolarIconsOutline.refresh,
+                      color: colors.textSecondary,
+                    ),
+                    onPressed: () {
+                      // context.read<InboundBloc>().add(
+                      //   const OnInboundRefreshed(),
+                      // );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      SolarIconsOutline.closeCircle,
+                      color: colors.textSecondary,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppDims.s3),
+            const Divider(height: 1),
+            const Expanded(
+              child: _HistoryTab(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _InboundSheet extends StatefulWidget {
   const _InboundSheet();
 
@@ -65,102 +185,145 @@ class _InboundSheetState extends State<_InboundSheet>
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+
     return BlocListener<InboundBloc, InboundState>(
       listenWhen: (p, c) => p.submitStatus != c.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == InboundSubmitStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Stock received successfully'),
-              backgroundColor: Color(0xFF059669),
-            ),
+          GlobalSnackBar.show(
+            message: 'Stock received successfully',
+            isInfo: true,
           );
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
           _tabs.animateTo(1);
         } else if (state.submitStatus == InboundSubmitStatus.queued) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Queued — will sync when online'),
-              backgroundColor: goldDeep,
-            ),
+          GlobalSnackBar.show(
+            message: 'Queued — will sync when online',
+            isWarning: true,
           );
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
           _tabs.animateTo(1);
         } else if (state.submitStatus == InboundSubmitStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.submitError ?? 'Failed to receive stock'),
-              backgroundColor: Colors.red,
-            ),
+          GlobalSnackBar.show(
+            message: state.submitError ?? 'Failed to receive stock',
+            isError: true,
           );
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
         }
       },
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.95,
-        child: Container(
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.textSecondary.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(2),
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.only(bottom: viewInsets.bottom),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.94,
+          minChildSize: 0.72,
+          maxChildSize: 0.96,
+          expand: false,
+          builder: (context, sheetScrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
                 ),
               ),
-              const SizedBox(height: 16),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppDims.s4),
-                child: Row(
-                  children: [
-                    Text(
-                      'Inbound Receiving',
-                      style: AppTextStyles.bs400(context).copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: colors.textPrimary,
-                      ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 42,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colors.textSecondary.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(999),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(SolarIconsOutline.closeCircle,
-                          color: colors.textSecondary),
-                      onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: goldDeep.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            SolarIconsOutline.box,
+                            color: goldDeep,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: AppDims.s3),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Inbound Receiving',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.bs400(context).copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Receive stock and review receipt history',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.bs200(context).copyWith(
+                                  color: colors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            SolarIconsOutline.closeCircle,
+                            color: colors.textSecondary,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              TabBar(
-                controller: _tabs,
-                indicatorColor: goldDeep,
-                labelColor: goldDeep,
-                unselectedLabelColor: colors.textSecondary,
-                labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 13),
-                tabs: const [
-                  Tab(text: 'Receive Stock'),
-                  Tab(text: 'History'),
+                  ),
+                  const SizedBox(height: AppDims.s2),
+                  TabBar(
+                    controller: _tabs,
+                    indicatorColor: goldDeep,
+                    labelColor: goldDeep,
+                    unselectedLabelColor: colors.textSecondary,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                    tabs: const [
+                      Tab(text: 'Receive Stock'),
+                      Tab(text: 'History'),
+                    ],
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabs,
+                      children: const [
+                        _ReceiveForm(),
+                        _HistoryTab(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              const Divider(height: 1),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabs,
-                  children: const [
-                    _ReceiveForm(),
-                    _HistoryTab(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -217,8 +380,9 @@ class _ReceiveFormState extends State<_ReceiveForm> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final shopId = _shopId();
     if (shopId == null || shopId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No shop found')),
+      GlobalSnackBar.show(
+        message: 'No shop found',
+        isError: true,
       );
       return;
     }
@@ -238,8 +402,16 @@ class _ReceiveFormState extends State<_ReceiveForm> {
         .toList();
 
     if (lineItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one product')),
+      GlobalSnackBar.show(
+        message: 'Add at least one product',
+        isError: true,
+      );
+      return;
+    }
+    if (_vendorId == null || _vendorId!.trim().isEmpty) {
+      GlobalSnackBar.show(
+        message: 'Please select a vendor',
+        isError: true,
       );
       return;
     }
@@ -251,7 +423,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
               reference: _refCtrl.text.trim(),
               notes:
                   _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-              vendorId: _vendorId,
+              vendorId: _vendorId!,
               items: lineItems,
             ),
           ),
@@ -277,8 +449,9 @@ class _ReceiveFormState extends State<_ReceiveForm> {
   void _pickProduct(int index) async {
     final products = context.read<ProductBloc>().state.products;
     if (products.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No products loaded')),
+      GlobalSnackBar.show(
+        message: 'No products loaded',
+        isError: true,
       );
       return;
     }
@@ -300,125 +473,218 @@ class _ReceiveFormState extends State<_ReceiveForm> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final bottomSafe = MediaQuery.viewPaddingOf(context).bottom;
+
     return BlocBuilder<InboundBloc, InboundState>(
       buildWhen: (p, c) => p.submitStatus != c.submitStatus,
       builder: (context, state) {
         final isLoading = state.submitStatus == InboundSubmitStatus.loading;
+
         return Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(AppDims.s4),
+          child: Column(
             children: [
-              // Vendor dropdown
-              BlocBuilder<VendorsBloc, VendorsState>(
-                buildWhen: (p, c) => p.vendors != c.vendors,
-                builder: (context, vs) {
-                  if (vs.vendors.isEmpty) return const SizedBox.shrink();
-                  return DropdownButtonFormField<String>(
-                    initialValue: _vendorId,
-                    decoration: const InputDecoration(
-                      labelText: 'Vendor (optional)',
-                      prefixIcon: Icon(SolarIconsOutline.buildings),
+              Expanded(
+                child: ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDims.s4,
+                    AppDims.s4,
+                    AppDims.s4,
+                    AppDims.s6,
+                  ),
+                  children: [
+                    BlocBuilder<VendorsBloc, VendorsState>(
+                      buildWhen: (p, c) => p.vendors != c.vendors,
+                      builder: (context, vs) {
+                        if (vs.vendors.isEmpty) {
+                          return TextFormField(
+                            enabled: false,
+                            decoration: const InputDecoration(
+                              labelText: 'Vendor *',
+                              hintText: 'No vendors available',
+                              prefixIcon: Icon(SolarIconsOutline.buildings),
+                            ),
+                            validator: (_) => 'Vendor is required',
+                          );
+                        }
+
+                        return DropdownButtonFormField<String>(
+                          initialValue: _vendorId,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Vendor *',
+                            prefixIcon: Icon(SolarIconsOutline.buildings),
+                          ),
+                          hint: const Text('Select vendor'),
+                          items: vs.vendors.map((v) {
+                            return DropdownMenuItem<String>(
+                              value: v.id,
+                              child: Text(
+                                v.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Vendor is required';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() => _vendorId = value);
+                          },
+                        );
+                      },
                     ),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('None')),
-                      ...vs.vendors.map(
-                        (v) => DropdownMenuItem(
-                          value: v.id,
-                          child: Text(v.name),
-                        ),
+                    const SizedBox(height: AppDims.s3),
+
+                    TextFormField(
+                      controller: _refCtrl,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Reference *',
+                        hintText: 'Invoice or PO number',
+                        prefixIcon: Icon(SolarIconsOutline.documentText),
                       ),
-                    ],
-                    onChanged: (v) => _vendorId = v,
-                  );
-                },
-              ),
-              const SizedBox(height: AppDims.s3),
-              // Reference
-              TextFormField(
-                controller: _refCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Reference *',
-                  hintText: 'Invoice or PO number',
-                  prefixIcon: Icon(SolarIconsOutline.documentText),
+                      validator: (v) {
+                        return (v == null || v.trim().isEmpty)
+                            ? 'Reference is required'
+                            : null;
+                      },
+                    ),
+                    const SizedBox(height: AppDims.s3),
+
+                    TextFormField(
+                      controller: _notesCtrl,
+                      textInputAction: TextInputAction.newline,
+                      decoration: const InputDecoration(
+                        labelText: 'Notes (optional)',
+                        prefixIcon: Icon(SolarIconsOutline.notes),
+                      ),
+                      minLines: 1,
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: AppDims.s4),
+
+                    Row(
+                      children: [
+                        Text(
+                          'Products',
+                          style: AppTextStyles.bs300(context).copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            FocusScope.of(context).unfocus();
+                            setState(() => _items.add(_LineItem()));
+                          },
+                          icon: const Icon(
+                            SolarIconsOutline.addCircle,
+                            size: 16,
+                          ),
+                          label: const Text('Add Row'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: goldDeep,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    ...List.generate(_items.length, (i) {
+                      final item = _items[i];
+
+                      return _LineItemCard(
+                        key: ObjectKey(item),
+                        index: i,
+                        item: item,
+                        canRemove: _items.length > 1,
+                        onPickProduct: () {
+                          FocusScope.of(context).unfocus();
+                          _pickProduct(i);
+                        },
+                        onPickExpiry: () {
+                          FocusScope.of(context).unfocus();
+                          _pickExpiry(i);
+                        },
+                        onRemove: () {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            item.dispose();
+                            _items.removeAt(i);
+                          });
+                        },
+                      );
+                    }),
+                  ],
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Reference is required' : null,
               ),
-              const SizedBox(height: AppDims.s2),
-              // Notes
-              TextFormField(
-                controller: _notesCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  prefixIcon: Icon(SolarIconsOutline.notes),
+
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  AppDims.s4,
+                  AppDims.s3,
+                  AppDims.s4,
+                  bottomSafe + AppDims.s3,
                 ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: AppDims.s4),
-              // Line items header
-              Row(
-                children: [
-                  Text(
-                    'Products',
-                    style: AppTextStyles.bs300(context).copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: colors.textPrimary,
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: colors.textSecondary.withValues(alpha: 0.10),
                     ),
                   ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () => setState(() => _items.add(_LineItem())),
-                    icon: const Icon(SolarIconsOutline.addCircle, size: 16),
-                    label: const Text('Add Row'),
-                    style: TextButton.styleFrom(foregroundColor: goldDeep),
-                  ),
-                ],
-              ),
-              ...List.generate(_items.length, (i) {
-                final item = _items[i];
-                return _LineItemCard(
-                  key: ValueKey(i),
-                  index: i,
-                  item: item,
-                  canRemove: _items.length > 1,
-                  onPickProduct: () => _pickProduct(i),
-                  onPickExpiry: () => _pickExpiry(i),
-                  onRemove: () => setState(() {
-                    item.dispose();
-                    _items.removeAt(i);
-                  }),
-                );
-              }),
-              const SizedBox(height: AppDims.s4),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: isLoading ? null : _submit,
-                  icon: isLoading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(SolarIconsOutline.box),
-                  label: Text(
-                    isLoading ? 'Submitting...' : 'Receive Stock',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 15),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: goldDeep,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: goldDeep.withValues(alpha: 0.6),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDims.rMd),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 18,
+                      offset: const Offset(0, -8),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                      FocusScope.of(context).unfocus();
+                      _submit();
+                    },
+                    icon: isLoading
+                        ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                        : const Icon(SolarIconsOutline.box),
+                    label: Text(
+                      isLoading ? 'Submitting...' : 'Receive Stock',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: goldDeep,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: goldDeep.withValues(alpha: 0.6),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDims.rMd),
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: AppDims.s4),
             ],
           ),
         );
@@ -600,105 +866,292 @@ class _ProductPickerSheet extends StatefulWidget {
 }
 
 class _ProductPickerSheetState extends State<_ProductPickerSheet> {
-  String _query = '';
+  final TextEditingController _searchCtrl = TextEditingController();
+  late List<ProductData> _filtered;
 
-  List<ProductData> get _filtered {
-    if (_query.isEmpty) return widget.products;
-    final q = _query.toLowerCase();
-    return widget.products
-        .where((p) =>
-            (p.name ?? '').toLowerCase().contains(q) ||
-            (p.sku ?? '').toLowerCase().contains(q))
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _filtered = _initialVisibleProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<ProductData> _initialVisibleProducts() {
+    if (widget.products.length <= 80) return widget.products;
+    return widget.products.take(80).toList();
+  }
+
+  void _onSearchChanged(String value) {
+    final query = value.trim().toLowerCase();
+
+    if (query.isEmpty) {
+      setState(() => _filtered = _initialVisibleProducts());
+      return;
+    }
+
+    final results = <ProductData>[];
+
+    for (final product in widget.products) {
+      final name = (product.name ?? '').toLowerCase();
+      final sku = (product.sku ?? '').toLowerCase();
+      final barcode = (product.barcode ?? '').toLowerCase();
+
+      if (name.contains(query) ||
+          sku.contains(query) ||
+          barcode.contains(query)) {
+        results.add(product);
+      }
+
+      if (results.length >= 80) break;
+    }
+
+    setState(() => _filtered = results);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      builder: (_, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.textSecondary.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      padding: EdgeInsets.only(bottom: viewInsets.bottom),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.82,
+        minChildSize: 0.50,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) {
+          return Container(
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-              const SizedBox(height: 12),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppDims.s4),
-                child: TextField(
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search products...',
-                    prefixIcon: Icon(SolarIconsOutline.magnifier,
-                        color: colors.textSecondary, size: 20),
-                    filled: true,
-                    fillColor:
-                        colors.textSecondary.withValues(alpha: 0.06),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colors.textSecondary.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(999),
                   ),
-                  onChanged: (q) => setState(() => _query = q),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.separated(
-                  controller: scrollController,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppDims.s4, vertical: 4),
-                  itemCount: _filtered.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (context, i) {
-                    final p = _filtered[i];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        p.name ?? '',
-                        style: AppTextStyles.bs300(context).copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
+                const SizedBox(height: 14),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Select Product',
+                          style: AppTextStyles.bs400(context).copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
-                      subtitle: p.sku != null
-                          ? Text(
-                              p.sku!,
-                              style: AppTextStyles.bs200(context)
-                                  .copyWith(color: colors.textSecondary),
-                            )
-                          : null,
-                      onTap: () => Navigator.pop(context, p),
-                    );
-                  },
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(
+                          SolarIconsOutline.closeCircle,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    autofocus: false,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search by name, SKU, or barcode',
+                      prefixIcon: Icon(
+                        SolarIconsOutline.magnifier,
+                        color: colors.textSecondary,
+                        size: 20,
+                      ),
+                      suffixIcon: _searchCtrl.text.isEmpty
+                          ? null
+                          : IconButton(
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          _onSearchChanged('');
+                        },
+                        icon: Icon(
+                          SolarIconsOutline.closeCircle,
+                          color: colors.textSecondary,
+                          size: 20,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: colors.textSecondary.withValues(alpha: 0.06),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: _onSearchChanged,
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDims.s4,
+                    AppDims.s2,
+                    AppDims.s4,
+                    AppDims.s1,
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        _searchCtrl.text.trim().isEmpty
+                            ? 'Showing ${_filtered.length} products'
+                            : '${_filtered.length} results',
+                        style: AppTextStyles.bs100(context).copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (widget.products.length > 80)
+                        Text(
+                          'Search to find more',
+                          style: AppTextStyles.bs100(context).copyWith(
+                            color: goldDeep,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                Expanded(
+                  child: _filtered.isEmpty
+                      ? Center(
+                    child: Text(
+                      'No products found',
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                      : ListView.separated(
+                    controller: scrollController,
+                    keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDims.s4,
+                      vertical: AppDims.s2,
+                    ),
+                    itemCount: _filtered.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, i) {
+                      final p = _filtered[i];
+
+                      return Material(
+                        color: colors.textSecondary.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            FocusScope.of(context).unfocus();
+                            Navigator.pop(context, p);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: goldDeep.withValues(alpha: 0.10),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    SolarIconsOutline.bag5,
+                                    color: goldDeep,
+                                    size: 19,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p.name ?? 'Unnamed product',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTextStyles.bs300(context)
+                                            .copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          color: colors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        [
+                                          if ((p.sku ?? '').isNotEmpty)
+                                            'SKU: ${p.sku}',
+                                          if ((p.barcode ?? '').isNotEmpty)
+                                            'Barcode: ${p.barcode}',
+                                        ].join(' · '),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTextStyles.bs100(context)
+                                            .copyWith(
+                                          color: colors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  SolarIconsOutline.altArrowRight,
+                                  size: 18,
+                                  color: colors.textSecondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
-
 // ── History Tab ───────────────────────────────────────────────────────────────
 
 class _HistoryTab extends StatefulWidget {

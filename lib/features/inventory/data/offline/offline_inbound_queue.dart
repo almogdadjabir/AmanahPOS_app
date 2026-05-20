@@ -149,15 +149,16 @@ class OfflineInboundQueue {
         shopId: payload['shop_id']?.toString() ?? '',
         reference: payload['reference']?.toString() ?? '',
         notes: payload['notes']?.toString(),
+        vendorId: payload['vendor_id']?.toString() ?? '',
         items: rawItems
             .whereType<Map<String, dynamic>>()
             .map((item) => CreateInboundItemRequestDto(
-                  productId: item['product_id']?.toString() ?? '',
-                  quantity: item['quantity']?.toString() ?? '0',
-                  unitCost: item['unit_cost']?.toString(),
-                  expiryDate: item['expiry_date']?.toString(),
-                  batchNumber: item['batch_number']?.toString(),
-                ))
+          productId: item['product_id']?.toString() ?? '',
+          quantity: item['quantity']?.toString() ?? '0',
+          unitCost: item['unit_cost']?.toString(),
+          expiryDate: item['expiry_date']?.toString(),
+          batchNumber: item['batch_number']?.toString(),
+        ))
             .toList(),
       ),
     );

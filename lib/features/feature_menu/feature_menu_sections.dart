@@ -1,9 +1,4 @@
-// lib/features/feature_menu/widgets/menu_sections.dart
-//
-// Builds the menu section list filtered to what the current user can access.
-// Reads permissions from NavigationState (already synced from AuthBloc).
-
-import 'package:amana_pos/core/permissions/app_permissions.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/main_screen/data/section.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
@@ -11,17 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<Section> buildMenuSections(
-    BuildContext context,
-    NavigationState navState,
-    ) {
+  BuildContext context,
+  NavigationState navState,
+) {
   final perms = navState.permissions;
   final current = navState.currentFeature;
 
-  // Helper: only add an item if the user has permission.
-  SectionItem? guarded(
-      SectionItem item,
-      bool permitted,
-      ) =>
+  SectionItem? guarded(SectionItem item, bool permitted) =>
       permitted ? item : null;
 
   final sections = <Section>[
@@ -36,6 +27,30 @@ List<Section> buildMenuSections(
           const Color(0xFF0D9488),
           active: current == AppFeature.pos,
           onTap: () => _go(context, AppFeature.pos),
+        ),
+        perms.canAccessPOS,
+      ),
+      guarded(
+        SectionItem(
+          'sales_history',
+          'Sales history',
+          'Browse and search all transactions',
+          Icons.receipt_long_rounded,
+          const Color(0xFF0D9488),
+          onTap: () => Navigator.of(context)
+              .pushNamed(RouteStrings.salesHistoryScreen),
+        ),
+        perms.canAccessPOS,
+      ),
+      guarded(
+        SectionItem(
+          'returns',
+          'Returns',
+          'Process customer item returns',
+          Icons.keyboard_return_rounded,
+          const Color(0xFFDC2626),
+          onTap: () =>
+              Navigator.of(context).pushNamed(RouteStrings.returnsScreen),
         ),
         perms.canAccessPOS,
       ),
@@ -74,7 +89,6 @@ List<Section> buildMenuSections(
           'Sales and performance',
           Icons.show_chart_rounded,
           const Color(0xFF22C55E),
-          // Reports screen not wired yet — keep inactive.
         ),
         perms.canAccessReports,
       ),
@@ -133,7 +147,6 @@ List<Section> buildMenuSections(
     ].whereType<SectionItem>().toList()),
   ];
 
-  // Drop sections that ended up empty after permission filtering.
   return sections.where((s) => s.items.isNotEmpty).toList();
 }
 

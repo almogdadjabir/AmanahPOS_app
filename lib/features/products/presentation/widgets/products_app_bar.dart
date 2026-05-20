@@ -1,8 +1,12 @@
+// lib/features/products/presentation/widgets/products_app_bar.dart
+
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
+import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ProductsAppBar extends StatelessWidget {
   const ProductsAppBar({super.key});
@@ -23,6 +27,20 @@ class ProductsAppBar extends StatelessWidget {
         ),
       ),
       actions: [
+        TextButton.icon(
+          onPressed: () => showAddProductSheet(context),
+          icon: Icon(SolarIconsOutline.addCircle,
+              size: 18, color: context.appColors.primary),
+          label: Text(
+            'Add product',
+            style: AppTextStyles.bs300(context).copyWith(
+              fontWeight: FontWeight.w800,
+              color: context.appColors.primary,
+            ),
+          ),
+        ),
+
+        // Grid / list toggle.
         BlocBuilder<ProductBloc, ProductState>(
           buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
           builder: (context, state) {

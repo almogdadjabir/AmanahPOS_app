@@ -27,6 +27,7 @@ class OfflineLocalCache {
 
   Future<void> saveBootstrap(OfflineBootstrapDto dto) async {
     final db = await _db.database;
+    final now = DateTime.now().toUtc().toIso8601String();
 
     await db.transaction((txn) async {
       await txn.delete(OfflineConstants.shopsTable);
@@ -35,11 +36,13 @@ class OfflineLocalCache {
       await txn.delete(OfflineConstants.customersTable);
       await txn.delete(OfflineConstants.stockTable);
 
+      final batch = txn.batch();
+
       for (final shop in dto.shops) {
         final id = shop.id;
         if (id == null || id.isEmpty) continue;
 
-        await txn.insert(
+        batch.insert(
           OfflineConstants.shopsTable,
           {
             'id': id,
@@ -51,11 +54,11 @@ class OfflineLocalCache {
         );
       }
 
-      Future<void> saveCategory(CategoryData category) async {
+      void addCategory(CategoryData category) {
         final id = category.id;
         if (id == null || id.isEmpty) return;
 
-        await txn.insert(
+        batch.insert(
           OfflineConstants.categoriesTable,
           {
             'id': id,
@@ -69,19 +72,60 @@ class OfflineLocalCache {
         );
 
         for (final child in category.children ?? const <CategoryData>[]) {
-          await saveCategory(child);
+          addCategory(child);
         }
       }
 
       for (final category in dto.categories) {
-        await saveCategory(category);
+        addCategory(category);
+      }
+
+      // Important:
+      // Stock is the source of truth for offline quantity.
+      // We build this map before saving products so product.stock_level
+      // is never cached as 0 when stock endpoint/bootstrap has the real quantity.
+      final stockByProductId = <String, double>{};
+
+      for (final item in dto.stock) {
+        final productId = item.product;
+        final shopId = item.shop;
+
+        if (productId == null || productId.isEmpty) continue;
+        if (shopId == null || shopId.isEmpty) continue;
+
+        final quantity = item.qty;
+        stockByProductId[productId] = quantity;
+
+        final stockJson = _stockToJson(item);
+        stockJson['quantity'] = quantity;
+        stockJson['is_out_of_stock'] = quantity <= 0;
+
+        batch.insert(
+          OfflineConstants.stockTable,
+          {
+            'id': item.id ?? '$productId-$shopId',
+            'product_id': productId,
+            'shop_id': shopId,
+            'quantity': quantity,
+            'json': jsonEncode(stockJson),
+            'updated_at': item.updatedAt,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
 
       for (final product in dto.products) {
         final id = product.id;
         if (id == null || id.isEmpty) continue;
 
-        await txn.insert(
+        // Same behavior as your old post-stock update logic:
+        // stock table quantity overrides product.stockLevel.
+        final resolvedStockLevel = stockByProductId[id] ?? product.stockLevel ?? 0.0;
+
+        final productJson = _productToJson(product);
+        productJson['stock_level'] = resolvedStockLevel;
+
+        batch.insert(
           OfflineConstants.productsTable,
           {
             'id': id,
@@ -90,10 +134,10 @@ class OfflineLocalCache {
             'sku': product.sku,
             'barcode': product.barcode,
             'price': product.price,
-            'stock_level': product.stockLevel,
+            'stock_level': resolvedStockLevel,
             'thumbnail_url': product.thumbnailUrl,
             'image_url': product.image,
-            'json': jsonEncode(_productToJson(product)),
+            'json': jsonEncode(productJson),
             'updated_at': product.createdAt,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
@@ -104,7 +148,7 @@ class OfflineLocalCache {
         final id = customer.id;
         if (id == null || id.isEmpty) continue;
 
-        await txn.insert(
+        batch.insert(
           OfflineConstants.customersTable,
           {
             'id': id,
@@ -118,81 +162,29 @@ class OfflineLocalCache {
         );
       }
 
-      for (final item in dto.stock) {
-        final productId = item.product;
-        final shopId = item.shop;
-        if (productId == null || productId.isEmpty) continue;
-        if (shopId == null || shopId.isEmpty) continue;
-
-        await txn.insert(
-          OfflineConstants.stockTable,
-          {
-            'id': item.id ?? '$productId-$shopId',
-            'product_id': productId,
-            'shop_id': shopId,
-            'quantity': item.qty,
-            'json': jsonEncode(_stockToJson(item)),
-            'updated_at': item.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-
-      final stockRows = await txn.query(OfflineConstants.stockTable);
-
-      for (final row in stockRows) {
-        final productId = row['product_id']?.toString();
-        if (productId == null || productId.isEmpty) continue;
-
-        final quantity = (row['quantity'] as num?)?.toDouble() ?? 0;
-
-        final productRows = await txn.query(
-          OfflineConstants.productsTable,
-          where: 'id = ?',
-          whereArgs: [productId],
-          limit: 1,
-        );
-
-        if (productRows.isEmpty) continue;
-
-        final productJsonRaw = productRows.first['json'] as String;
-        final productJson = jsonDecode(productJsonRaw) as Map<String, dynamic>;
-
-        productJson['stock_level'] = quantity;
-
-        await txn.update(
-          OfflineConstants.productsTable,
-          {
-            'stock_level': quantity,
-            'json': jsonEncode(productJson),
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          },
-          where: 'id = ?',
-          whereArgs: [productId],
-        );
-      }
-
-      await txn.insert(
+      batch.insert(
         'sync_metadata',
         {
           'key': 'bootstrap_last_synced_at',
-          'value': DateTime.now().toUtc().toIso8601String(),
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+          'value': now,
+          'updated_at': now,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
       if (dto.serverTime != null) {
-        await txn.insert(
+        batch.insert(
           'sync_metadata',
           {
             'key': 'bootstrap_server_time',
             'value': dto.serverTime,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
+            'updated_at': now,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
+
+      await batch.commit(noResult: true);
     });
   }
 

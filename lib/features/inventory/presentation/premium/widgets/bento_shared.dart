@@ -92,3 +92,97 @@ class ShimmerBox extends StatelessWidget {
     );
   }
 }
+
+class CompactCardScrollArea extends StatelessWidget {
+  final Widget child;
+  final bool showHint;
+
+  const CompactCardScrollArea({
+    super.key,
+    required this.child,
+    this.showHint = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Expanded(
+      child: Stack(
+        children: [
+          ScrollConfiguration(
+            behavior: const _NoGlowScrollBehavior(),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(
+                bottom: AppDims.s2,
+              ),
+              child: child,
+            ),
+          ),
+
+          // Soft bottom fade. It makes the card feel premium and hints scroll.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 18,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      colors.surface.withValues(alpha: 0),
+                      colors.surface,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          if (showHint)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: colors.border.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 14,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoGlowScrollBehavior extends ScrollBehavior {
+  const _NoGlowScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context,
+      Widget child,
+      ScrollableDetails details,
+      ) {
+    return child;
+  }
+}

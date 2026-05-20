@@ -43,62 +43,78 @@ class ExpiryTimelineCard extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s3),
           if (isLoading)
-            const ShimmerBox(height: 80)
+            const Expanded(
+              child: Center(
+                child: ShimmerBox(height: 80),
+              ),
+            )
           else if (top3.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDims.s2),
+            Expanded(
+              child: Center(
                 child: Text(
                   'No expiring items',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: colors.textSecondary, fontSize: 12),
+                    color: colors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             )
           else
-            ...top3.map((item) {
-              final chipColor = _chipColor(item);
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppDims.s2),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.productName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+            CompactCardScrollArea(
+              showHint: top3.length > 4,
+              child: Column(
+                children: List.generate(top3.length, (index) {
+                  final item = top3[index];
+                  final chipColor = _chipColor(item);
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index == top3.length - 1 ? 0 : AppDims.s2,
                     ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: chipColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                            color: chipColor.withValues(alpha: 0.25)),
-                      ),
-                      child: Text(
-                        item.isExpired
-                            ? 'Expired'
-                            : '${item.daysRemaining}d',
-                        style: TextStyle(
-                          color: chipColor,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.productName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: chipColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: chipColor.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Text(
+                            item.isExpired ? 'Expired' : '${item.daysRemaining}d',
+                            style: TextStyle(
+                              color: chipColor,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            }),
+                  );
+                }),
+              ),
+            ),
         ],
       ),
     );

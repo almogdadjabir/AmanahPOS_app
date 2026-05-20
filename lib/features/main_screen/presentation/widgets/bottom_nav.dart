@@ -18,14 +18,14 @@ class BottomNav extends StatelessWidget {
           prev.permissions != curr.permissions,
       builder: (context, state) {
         final isPremium = state.permissions.canUseInventoryInboundReceiving;
-        final tabs = _buildTabs(state.permissions, isPremium: isPremium);
+        final tabs = buildTabs(state.permissions, isPremium: isPremium);
         if (tabs.isEmpty) return const SizedBox.shrink();
         return NavShell(tabs: tabs, state: state);
       },
     );
   }
 
-  static List<NavTab> _buildTabs(AppPermissions perms, {bool isPremium = false}) {
+  static List<NavTab> buildTabs(AppPermissions perms, {bool isPremium = false}) {
     final tabs = <NavTab>[];
 
     if (perms.isOwner) {

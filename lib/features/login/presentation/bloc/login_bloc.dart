@@ -93,7 +93,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     try {
       final response = await useCase.userLogin(
-        LoginRequest(phone: '+249$digits'),
+        LoginRequest(phone: '+249$digits')//'+971544097335'),
       );
 
       if (emit.isDone) return;
@@ -167,6 +167,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       final response = await useCase.otpVerify(
         OtpVerifyRequest(
             phone: '+249$digits',
+            // phone: '+971544097335',
             otp: code,
             fcmToken: await fcmTokenService.getToken(),
             platform: 'android',

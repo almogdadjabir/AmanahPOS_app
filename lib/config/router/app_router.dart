@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:amana_pos/barcode_scanner/presentation/screens/barcode_scanner_screen.dart';
+import 'package:amana_pos/config/providers/feature_bloc_providers.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/business_detail_screen.dart';
@@ -11,6 +12,9 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/features/products/presentation/product_detail_screen.dart';
 import 'package:amana_pos/features/products/presentation/product_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
+import 'package:amana_pos/features/returns/presentation/returns_screen.dart';
+import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
+import 'package:amana_pos/features/sales_history/presentation/sales_history_screen.dart';
 import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
@@ -36,11 +40,26 @@ class AppRouter {
 
     switch (settings.name) {
       case RouteStrings.splash:
-        return _buildRoute(const SplashScreen(), settings);
+        return _buildRoute(
+          FeatureBlocProviders.splash(
+            child: const SplashScreen(),
+          ),
+          settings,
+        );
       case RouteStrings.login:
-        return _buildRoute(const LoginScreen(), settings);
+        return _buildRoute(
+          FeatureBlocProviders.login(
+            child: const LoginScreen(),
+          ),
+          settings,
+        );
       case RouteStrings.registration:
-        return _buildRoute(const RegistrationScreen(), settings);
+        return _buildRoute(
+          FeatureBlocProviders.registration(
+            child: const RegistrationScreen(),
+          ),
+          settings,
+        );
       case RouteStrings.mainScreen:
         return _buildRoute(const MainScreen(), settings);
       case RouteStrings.businessDetailScreen:
@@ -65,8 +84,9 @@ class AppRouter {
 
       case RouteStrings.cashiersScreen:
         return MaterialPageRoute(
-          builder: (_) => UsersScreen(isWithAppbar: true),
+          builder: (_) => const UsersScreen(isWithAppbar: true),
         );
+
       case RouteStrings.shopManagementScreen:
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
@@ -77,13 +97,17 @@ class AppRouter {
       case RouteStrings.productDetailScreen:
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
-          builder: (_) => ProductDetailScreen(
-            product: args['product'] as ProductData,
+          builder: (_) => FeatureBlocProviders.inventory(
+            child: ProductDetailScreen(
+              product: args['product'] as ProductData,
+            ),
           ),
         );
       case RouteStrings.settingsScreen:
         return MaterialPageRoute(
-          builder: (_) => SettingsScreen(),
+          builder: (_) => FeatureBlocProviders.settings(
+            child: const SettingsScreen(),
+          ),
         );
 
       case RouteStrings.notificationsScreen:
@@ -93,13 +117,17 @@ class AppRouter {
 
       case RouteStrings.barcodeScannerScreen:
         return MaterialPageRoute<String>(
-          builder: (_) => const BarcodeScannerScreen(),
+          builder: (_) => FeatureBlocProviders.barcodeScanner(
+            child: const BarcodeScannerScreen(),
+          ),
           settings: settings,
         );
 
       case RouteStrings.expiryAlertsScreen:
         return MaterialPageRoute(
-          builder: (_) => const ExpiryAlertsScreen(),
+          builder: (_) => FeatureBlocProviders.expiryAlerts(
+            child: const ExpiryAlertsScreen(),
+          ),
         );
 
       case RouteStrings.pendingSyncScreen:
@@ -108,6 +136,23 @@ class AppRouter {
             create: (_) => getIt<PendingSyncBloc>(),
             child: const PendingSyncScreen(),
           ),
+        );
+
+      case RouteStrings.salesHistoryScreen:
+        return _buildRoute(
+          FeatureBlocProviders.salesHistory(
+            child: const SalesHistoryScreen(),
+          ),
+          settings,
+        );
+
+      case RouteStrings.returnsScreen:
+        final preloadedSale = settings.arguments as SaleHistoryItem?;
+        return _buildRoute(
+          FeatureBlocProviders.returns(
+            child: ReturnsScreen(preloadedSale: preloadedSale),
+          ),
+          settings,
         );
 
       default:

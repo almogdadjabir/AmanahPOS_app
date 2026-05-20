@@ -6,16 +6,16 @@ import 'package:solar_icons/solar_icons.dart';
 
 class QuickActionsCard extends StatelessWidget {
   final VoidCallback? onReceive;
-  final VoidCallback? onAdjust;
+  final VoidCallback? onStockLevels;
   final VoidCallback? onVendors;
-  final VoidCallback? onReport;
+  final VoidCallback? onExpiry;
 
   const QuickActionsCard({
     super.key,
     this.onReceive,
-    this.onAdjust,
+    this.onStockLevels,
     this.onVendors,
-    this.onReport,
+    this.onExpiry,
   });
 
   @override
@@ -43,10 +43,10 @@ class QuickActionsCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _ActionButton(
-                  icon: SolarIconsOutline.settings,
-                  label: 'Adjust',
+                  icon: SolarIconsOutline.layersMinimalistic,
+                  label: 'Stock',
                   color: const Color(0xFF93C5FD),
-                  onTap: onAdjust,
+                  onTap: onStockLevels,
                 ),
               ),
               const SizedBox(width: AppDims.s2),
@@ -61,10 +61,10 @@ class QuickActionsCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _ActionButton(
-                  icon: SolarIconsOutline.notes,
-                  label: 'Report',
+                  icon: SolarIconsOutline.calendarMark,
+                  label: 'Expiry',
                   color: const Color(0xFFFCA5A5),
-                  onTap: onReport,
+                  onTap: onExpiry,
                 ),
               ),
             ],
@@ -91,13 +91,16 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppDims.s3),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppDims.rMd),
-          border: Border.all(color: color.withValues(alpha: 0.18)),
+          border: Border.all(
+            color: color.withValues(alpha: 0.18),
+          ),
         ),
         child: Column(
           children: [
@@ -105,6 +108,8 @@ class _ActionButton extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: color,
                 fontSize: 10,

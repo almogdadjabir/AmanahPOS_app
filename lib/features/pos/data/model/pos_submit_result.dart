@@ -2,20 +2,28 @@ class PosSubmitResult {
   final bool synced;
   final bool queued;
   final String? saleId;
-  final String? clientSaleId;
+  final String clientSaleId;
+  final String? receiptNumber;
 
   const PosSubmitResult._({
     required this.synced,
     required this.queued,
+    required this.clientSaleId,
     this.saleId,
-    this.clientSaleId,
+    this.receiptNumber,
   });
 
-  factory PosSubmitResult.synced(String? saleId) {
+  factory PosSubmitResult.synced({
+    required String clientSaleId,
+    String? saleId,
+    String? receiptNumber,
+  }) {
     return PosSubmitResult._(
       synced: true,
       queued: false,
+      clientSaleId: clientSaleId,
       saleId: saleId,
+      receiptNumber: receiptNumber,
     );
   }
 

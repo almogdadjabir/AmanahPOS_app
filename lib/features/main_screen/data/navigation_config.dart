@@ -1,3 +1,4 @@
+import 'package:amana_pos/config/providers/feature_bloc_providers.dart';
 import 'package:amana_pos/features/business/presentation/business_screen.dart';
 import 'package:amana_pos/features/category/presentation/category_screen.dart';
 import 'package:amana_pos/features/customers/presentation/customers_screen.dart';
@@ -13,18 +14,30 @@ class NavigationConfig {
     switch (feature) {
       case AppFeature.pos:
         return const PosScreen();
+
       case AppFeature.business:
         return const BusinessScreen();
+
       case AppFeature.users:
-        return const UsersScreen();
+        return UsersScreen();
+
       case AppFeature.categories:
-        return const CategoriesScreen();
+        return FeatureBlocProviders.categories(
+          child: const CategoriesScreen(),
+        );
+
       case AppFeature.products:
         return const ProductsScreen();
+
       case AppFeature.inventory:
-        return const InventoryScreen();
+        return FeatureBlocProviders.inventory(
+          child: const InventoryScreen(),
+        );
+
       case AppFeature.customers:
-        return const CustomersScreen();
+        return FeatureBlocProviders.customers(
+          child: const CustomersScreen(),
+        );
     }
   }
 }

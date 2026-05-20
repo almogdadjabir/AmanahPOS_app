@@ -17,7 +17,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: getProviders(context),
+      providers: getAppProviders(context),
       child: BlocBuilder<ThemeBloc, ThemeState>(
         buildWhen: (previous, current) {
           return previous.isDarkTheme != current.isDarkTheme ||

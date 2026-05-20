@@ -117,15 +117,14 @@ class _PremiumBadge extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(SolarIconsOutline.handStars, size: 10, color: Colors.white),
           SizedBox(width: 3),
           Text(
             'PREMIUM',
-            style: TextStyle(
-              fontSize: 9,
+            style: AppTextStyles.sm100(context).copyWith(
               fontWeight: FontWeight.w900,
               color: Colors.white,
               letterSpacing: 0.8,
@@ -187,9 +186,9 @@ class _StatusDotState extends State<_StatusDot>
             ),
           ),
           const SizedBox(width: 5),
-          const Text(
+          Text(
             'Live',
-            style: TextStyle(
+            style: AppTextStyles.sm100(context).copyWith(
               color: Colors.white,
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -211,9 +210,8 @@ class _SubtitleRow extends StatelessWidget {
     final vendors = summary?.activeVendorsCount ?? 0;
     return Text(
       '$skus SKUs · $vendors vendors',
-      style: TextStyle(
+      style: AppTextStyles.bs300(context).copyWith(
         color: Colors.white.withValues(alpha: 0.65),
-        fontSize: 13,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -249,16 +247,15 @@ class _ActionRow extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(SolarIconsOutline.box, color: Colors.white, size: 16),
                 SizedBox(width: 6),
                 Text(
                   'Receive Stock',
-                  style: TextStyle(
+                  style: AppTextStyles.bs300(context).copyWith(
                     color: Colors.white,
-                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -308,9 +305,8 @@ class _GhostButton extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 label,
-                style: const TextStyle(
+                style: AppTextStyles.bs200(context).copyWith(
                   color: Colors.white,
-                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -428,9 +424,8 @@ class _KpiCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
+            style: AppTextStyles.bs200(context).copyWith(
               color: Colors.white.withValues(alpha: 0.60),
-              fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -446,9 +441,8 @@ class _KpiCard extends StatelessWidget {
                 )
               : Text(
                   value,
-                  style: TextStyle(
+            style: AppTextStyles.bs800(context).copyWith(
                     color: accent,
-                    fontSize: 22,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -457,9 +451,8 @@ class _KpiCard extends StatelessWidget {
             sub,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.45),
-              fontSize: 10,
+            style: AppTextStyles.bs300(context).copyWith(
+            color: Colors.white.withValues(alpha: 0.45),
               fontWeight: FontWeight.w500,
             ),
           ),

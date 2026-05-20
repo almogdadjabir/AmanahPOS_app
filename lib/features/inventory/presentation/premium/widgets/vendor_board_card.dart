@@ -36,52 +36,79 @@ class VendorBoardCard extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s3),
           if (isLoading)
-            const ShimmerBox(height: 80)
+            const Expanded(
+              child: Center(
+                child: ShimmerBox(height: 80),
+              ),
+            )
           else if (top3.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDims.s2),
+            Expanded(
+              child: Center(
                 child: Text(
                   'No vendor data',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: colors.textSecondary, fontSize: 12),
+                    color: colors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             )
           else
-            ...List.generate(top3.length, (i) {
-              final v = top3[i];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppDims.s2),
-                child: Row(
-                  children: [
-                    Text(medals[i],
-                        style: const TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        v.vendorName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+            CompactCardScrollArea(
+              showHint: top3.length > 4,
+              child: Column(
+                children: List.generate(top3.length, (i) {
+                  final v = top3[i];
+                  final rank = i < medals.length ? medals[i] : '#${i + 1}';
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: i == top3.length - 1 ? 0 : AppDims.s2,
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 22,
+                          child: Text(
+                            rank,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: i < 3 ? 14 : 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            v.vendorName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${v.transactionsCount}x',
+                          style: const TextStyle(
+                            color: goldDeep,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${v.transactionsCount}x',
-                      style: const TextStyle(
-                        color: goldDeep,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                  );
+                }),
+              ),
+            ),
         ],
       ),
     );

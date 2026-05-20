@@ -16,6 +16,7 @@ class BentoGrid extends StatelessWidget {
   final VoidCallback? onOpenLowStock;
   final VoidCallback? onOpenExpiry;
   final VoidCallback? onOpenVendors;
+  final VoidCallback? onOpenInboundHistory;
 
   const BentoGrid({
     super.key,
@@ -24,92 +25,99 @@ class BentoGrid extends StatelessWidget {
     this.onOpenLowStock,
     this.onOpenExpiry,
     this.onOpenVendors,
+    this.onOpenInboundHistory,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PremiumInventoryBloc, PremiumInventoryState>(
-      builder: (context, state) {
-        final isLoading = state.status == PremiumInventoryStatus.loading;
-        return Padding(
-          padding: const EdgeInsets.all(AppDims.s4),
-          child: Column(
-            children: [
-              // Row 1: Health Ring + Inbound Velocity — IntrinsicHeight keeps both cards equal
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: HealthRingCard(
-                        summary: state.premiumSummary,
-                        isLoading: isLoading,
-                        onTap: onOpenStockLevels,
+    return SafeArea(
+      child: BlocBuilder<PremiumInventoryBloc, PremiumInventoryState>(
+        builder: (context, state) {
+          final isLoading = state.status == PremiumInventoryStatus.loading;
+          return Padding(
+            padding: const EdgeInsets.all(AppDims.s4),
+            child: Column(
+              children: [
+                // Row 1: Health Ring + Inbound Velocity — IntrinsicHeight keeps both cards equal
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: HealthRingCard(
+                          summary: state.premiumSummary,
+                          isLoading: isLoading,
+                          onTap: onOpenStockLevels,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppDims.s3),
-                    Expanded(
-                      child: InboundVelocityCard(
-                        recentInbound: state.recentInbound,
-                        isLoading: isLoading,
-                        onTap: onOpenInbound,
+                      const SizedBox(width: AppDims.s3),
+                      Expanded(
+                        child: InboundVelocityCard(
+                          recentInbound: state.recentInbound,
+                          isLoading: isLoading,
+                          // onTap: onOpenInbound,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppDims.s3),
-              // Row 2: Restock Queue (full width)
-              RestockQueueCard(
-                lowStockItems: state.lowStockItems,
-                isLoading: isLoading,
-                onTap: onOpenLowStock,
-              ),
-              const SizedBox(height: AppDims.s3),
-              // Row 3: Expiry Timeline + Vendor Board (1 col each)
-              Row(
-                children: [
-                  Expanded(
-                    child: ExpiryTimelineCard(
-                      items: state.expiryPreview,
-                      isLoading: isLoading,
-                      onTap: onOpenExpiry,
-                    ),
+                const SizedBox(height: AppDims.s3),
+                // Row 2: Restock Queue (full width)
+                RestockQueueCard(
+                  lowStockItems: state.lowStockItems,
+                  isLoading: isLoading,
+                  onTap: onOpenLowStock,
+                ),
+                const SizedBox(height: AppDims.s3),
+                // Row 3: Expiry Timeline + Vendor Board (1 col each)
+
+                SizedBox(
+                  height: 168,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: ExpiryTimelineCard(
+                          items: state.expiryPreview,
+                          isLoading: isLoading,
+                          onTap: onOpenExpiry,
+                        ),
+                      ),
+                      const SizedBox(width: AppDims.s3),
+                      Expanded(
+                        child: VendorBoardCard(
+                          vendorSummary: state.vendorSummary,
+                          isLoading: isLoading,
+                          onTap: onOpenVendors,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: AppDims.s3),
-                  Expanded(
-                    child: VendorBoardCard(
-                      vendorSummary: state.vendorSummary,
-                      isLoading: isLoading,
-                      onTap: onOpenVendors,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppDims.s3),
-              // Row 4: Recent Receipts (full width)
-              RecentReceiptsCard(
-                recentInbound: state.recentInbound,
-                isLoading: isLoading,
-                onTap: onOpenInbound,
-              ),
-              const SizedBox(height: AppDims.s3),
-              // Row 5: Quick Actions (full width)
-              QuickActionsCard(
-                onReceive: onOpenInbound,
-                onAdjust: onOpenStockLevels,
-                onVendors: onOpenVendors,
-                onReport: onOpenExpiry,
-              ),
-              SizedBox(
-                height: kBottomNavigationBarHeight +
-                    MediaQuery.viewPaddingOf(context).bottom +
-                    AppDims.s4,
-              ),
-            ],
-          ),
-        );
-      },
+                ),
+
+                const SizedBox(height: AppDims.s3),
+                // Row 4: Recent Receipts (full width)
+                RecentReceiptsCard(
+                  recentInbound: state.recentInbound,
+                  isLoading: isLoading,
+                  onTap: onOpenInboundHistory,
+                ),
+                const SizedBox(height: AppDims.s3),
+                // Row 5: Quick Actions (full width)
+                QuickActionsCard(
+                  onReceive: onOpenInbound,
+                  onStockLevels: onOpenStockLevels,
+                  onVendors: onOpenVendors,
+                  onExpiry: onOpenExpiry,
+                ),
+                SizedBox(
+                  height: MediaQuery.viewPaddingOf(context).bottom,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

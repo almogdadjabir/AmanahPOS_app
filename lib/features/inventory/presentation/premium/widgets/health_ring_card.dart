@@ -3,6 +3,7 @@ import 'package:amana_pos/features/inventory/data/models/responses/premium_summa
 import 'package:amana_pos/features/inventory/presentation/premium/premium_colors.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
+import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -50,30 +51,56 @@ class HealthRingCard extends StatelessWidget {
           isLoading
               ? const ShimmerBox(height: 120)
               : SizedBox(
-                  height: 120,
-                  child: PieChart(
-                    PieChartData(
-                      startDegreeOffset: -90,
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 34,
-                      sections: [
-                        PieChartSectionData(
-                          value: pct,
-                          color: goldDeep,
-                          radius: 18,
-                          showTitle: false,
-                        ),
-                        PieChartSectionData(
-                          value: 100 - pct,
-                          color: colors.surface.withValues(alpha: 0.14),
-                          radius: 14,
-                          showTitle: false,
-                        ),
-                      ],
-                    ),
-                    duration: Duration.zero,
+            height: 120,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    startDegreeOffset: -90,
+                    sectionsSpace: 2,
+                    centerSpaceRadius: 34,
+                    sections: [
+                      PieChartSectionData(
+                        value: pct,
+                        color: goldDeep,
+                        radius: 18,
+                        showTitle: false,
+                      ),
+                      PieChartSectionData(
+                        value: 100 - pct,
+                        color: colors.surface.withValues(alpha: 0.14),
+                        radius: 14,
+                        showTitle: false,
+                      ),
+                    ],
                   ),
+                  duration: Duration.zero,
                 ),
+                // 👇 This is what was missing
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${pct.toStringAsFixed(0)}%',
+                      style: AppTextStyles.bs300(context).copyWith(
+                        color: goldDeep,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      'Health',
+                      style: AppTextStyles.bs300(context).copyWith(
+                        color: colors.surface.withValues(alpha: 0.5),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           if (!isLoading) ...[
             const SizedBox(height: AppDims.s2),
             _StatChipRow(
@@ -81,7 +108,7 @@ class HealthRingCard extends StatelessWidget {
                 _StatChip(
                   label: 'Healthy',
                   value:
-                      '${(s?.stockItemsCount ?? 0) - (s?.lowStockCount ?? 0) - (s?.outOfStockCount ?? 0)}',
+                  '${(s?.stockItemsCount ?? 0) - (s?.lowStockCount ?? 0) - (s?.outOfStockCount ?? 0)}',
                   color: const Color(0xFF5EEAD4),
                 ),
                 _StatChip(
@@ -139,9 +166,8 @@ class _StatChip extends StatelessWidget {
       ),
       child: Text(
         '$value $label',
-        style: TextStyle(
+        style: AppTextStyles.bs300(context).copyWith(
           color: color,
-          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),

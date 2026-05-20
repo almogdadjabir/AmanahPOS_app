@@ -1,8 +1,10 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/cart/presentation/cart_line.dart';
 import 'package:amana_pos/features/cart/presentation/payment_selector.dart';
 import 'package:amana_pos/features/cart/presentation/totals_section.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
+import 'package:amana_pos/features/pos/presentation/widgets/sale_receipt_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -71,19 +73,42 @@ class ExpandedCart extends StatelessWidget {
     }
   }
 
+  void _showReceiptSheet(BuildContext context, PosState state) {
+    final businessName = context.read<AuthBloc>().state.defaultBusiness?.name ??
+        context.read<AuthBloc>().state.profile?.fullName ??
+        'AmanaPOS';
+
+    SaleReceiptSheet.show(
+      context,
+      receiptNumber: state.lastReceiptNumber,
+      clientSaleId: state.lastClientSaleId ?? '',
+      items: state.lastCartSnapshot,
+      total: state.lastTotal,
+      paymentMethod: state.lastPaymentMethod,
+      isOffline: state.lastSaleWasOffline,
+      businessName: businessName,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
     return BlocListener<PosBloc, PosState>(
       listenWhen: (prev, curr) =>
-      (prev.submitStatus != curr.submitStatus &&
-          curr.submitStatus == PosSubmitStatus.success) ||
-          (prev.items.isNotEmpty && curr.items.isEmpty),
-      listener: (context, _) {
+          prev.submitStatus != curr.submitStatus &&
+          curr.submitStatus == PosSubmitStatus.success,
+      listener: (context, state) {
+        // Close expanded cart sheet first
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
+        // Then show receipt — use root navigator so it sits above everything
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            _showReceiptSheet(context, state);
+          }
+        });
       },
       child: Container(
         decoration: BoxDecoration(
@@ -101,7 +126,7 @@ class ExpandedCart extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: BlocBuilder<PosBloc, PosState>(
           buildWhen: (prev, curr) =>
-          prev.items != curr.items ||
+              prev.items != curr.items ||
               prev.paymentMethod != curr.paymentMethod ||
               prev.submitStatus != curr.submitStatus,
           builder: (context, state) {
@@ -116,7 +141,6 @@ class ExpandedCart extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: AppDims.s3),
-
                       Container(
                         width: 42,
                         height: 5,
@@ -125,16 +149,10 @@ class ExpandedCart extends StatelessWidget {
                           borderRadius: BorderRadius.circular(99),
                         ),
                       ),
-
                       const SizedBox(height: AppDims.s4),
-
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
-                          AppDims.s4,
-                          0,
-                          AppDims.s4,
-                          AppDims.s4,
-                        ),
+                            AppDims.s4, 0, AppDims.s4, AppDims.s4),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -142,9 +160,7 @@ class ExpandedCart extends StatelessWidget {
                               enabled: !isLoading,
                               onTap: () => _confirmClearCart(context),
                             ),
-
                             const Spacer(),
-
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -171,9 +187,7 @@ class ExpandedCart extends StatelessWidget {
                                 ),
                               ],
                             ),
-
                             const SizedBox(width: AppDims.s3),
-
                             _CollapseButton(onTap: onCollapse),
                           ],
                         ),
@@ -181,27 +195,20 @@ class ExpandedCart extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Divider(
                   height: 1,
                   thickness: 1,
                   color: colors.border.withValues(alpha: 0.75),
                 ),
-
                 Expanded(
                   child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(
-                      AppDims.s4,
-                      AppDims.s3,
-                      AppDims.s4,
-                      AppDims.s3,
-                    ),
+                        AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s3),
                     itemCount: state.items.length,
                     separatorBuilder: (_, __) => const SizedBox(height: AppDims.s3),
                     itemBuilder: (_, index) {
                       final item = state.items[index];
-
                       return CartLine(
                         key: ValueKey(item.product.id ?? index),
                         item: item,
@@ -209,14 +216,12 @@ class ExpandedCart extends StatelessWidget {
                     },
                   ),
                 ),
-
                 Container(
                   decoration: BoxDecoration(
                     color: colors.surface,
                     border: Border(
                       top: BorderSide(
-                        color: colors.border.withValues(alpha: 0.75),
-                      ),
+                          color: colors.border.withValues(alpha: 0.75)),
                     ),
                   ),
                   child: SafeArea(
@@ -225,16 +230,10 @@ class ExpandedCart extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PaymentSelector(paymentMethod: state.paymentMethod),
-
                         TotalsSection(state: state),
-
                         Padding(
                           padding: const EdgeInsets.fromLTRB(
-                            AppDims.s4,
-                            AppDims.s3,
-                            AppDims.s4,
-                            AppDims.s4,
-                          ),
+                              AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s4),
                           child: SizedBox(
                             width: double.infinity,
                             height: 62,
@@ -251,36 +250,38 @@ class ExpandedCart extends StatelessWidget {
                               ),
                               child: isLoading
                                   ? SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: colors.onPrimary,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        color: colors.onPrimary,
+                                        strokeWidth: 2.5,
+                                      ),
+                                    )
                                   : Row(
-                                children: [
-                                  Text(
-                                    money(state.total),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.bs600(context).copyWith(
-                                      color: colors.onPrimary,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.4,
+                                      children: [
+                                        Text(
+                                          money(state.total),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style:
+                                              AppTextStyles.bs600(context).copyWith(
+                                            color: colors.onPrimary,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.4,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          'Complete sale',
+                                          style:
+                                              AppTextStyles.bs500(context).copyWith(
+                                            color: colors.onPrimary,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.25,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    'Complete sale',
-                                    style: AppTextStyles.bs500(context).copyWith(
-                                      color: colors.onPrimary,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.25,
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
                           ),
                         ),
@@ -301,15 +302,11 @@ class _ClearButton extends StatelessWidget {
   final bool enabled;
   final VoidCallback onTap;
 
-  const _ClearButton({
-    required this.enabled,
-    required this.onTap,
-  });
+  const _ClearButton({required this.enabled, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
     return GestureDetector(
       onTap: enabled ? onTap : null,
       behavior: HitTestBehavior.opaque,
@@ -321,18 +318,13 @@ class _ClearButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.danger.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: colors.danger.withValues(alpha: 0.22),
-            ),
+            border: Border.all(color: colors.danger.withValues(alpha: 0.22)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                SolarIconsOutline.trashBinTrash,
-                size: 17,
-                color: colors.danger,
-              ),
+              Icon(SolarIconsOutline.trashBinTrash,
+                  size: 17, color: colors.danger),
               const SizedBox(width: 7),
               Text(
                 'Clear',
@@ -352,14 +344,11 @@ class _ClearButton extends StatelessWidget {
 class _CollapseButton extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _CollapseButton({
-    required this.onTap,
-  });
+  const _CollapseButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,

@@ -29,14 +29,12 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
   void _onShopSelected(PosShopSelected event, Emitter<PosState> emit) {
     emit(state.copyWith(
-      selectedShopId:   event.shopId,
+      selectedShopId: event.shopId,
       selectedShopName: event.shopName,
     ));
   }
 
-  void _onBarcodeScanned(PosBarcodeScanned event, Emitter<PosState> emit) {
-
-  }
+  void _onBarcodeScanned(PosBarcodeScanned event, Emitter<PosState> emit) {}
 
   void _onSearchChanged(PosSearchChanged event, Emitter<PosState> emit) {
     emit(state.copyWith(searchQuery: event.query));
@@ -59,12 +57,8 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     if (productId == null) return;
 
     final existingIndex =
-    state.items.indexWhere((item) => item.product.id == productId);
-
-    final currentQty = existingIndex == -1
-        ? 0
-        : state.items[existingIndex].quantity;
-
+        state.items.indexWhere((item) => item.product.id == productId);
+    final currentQty = existingIndex == -1 ? 0 : state.items[existingIndex].quantity;
     final nextQty = currentQty + 1;
 
     if (!_canUseQuantity(
@@ -72,14 +66,11 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       quantity: nextQty,
       ignoreStockLimit: event.ignoreStockLimit,
     )) {
-      emit(state.copyWith(
-        submitError: _stockLimitMessage(event.product),
-      ));
+      emit(state.copyWith(submitError: _stockLimitMessage(event.product)));
       return;
     }
 
     final updated = [...state.items];
-
     if (existingIndex == -1) {
       updated.add(PosCartItem(product: event.product, quantity: 1));
     } else {
@@ -87,41 +78,28 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       updated[existingIndex] = item.copyWith(quantity: nextQty);
     }
 
-    emit(state.copyWith(
-      items: updated,
-      submitError: null,
-    ));
+    emit(state.copyWith(items: updated, submitError: null));
   }
 
   void _onIncrementItem(PosIncrementItem event, Emitter<PosState> emit) {
     final updated = <PosCartItem>[];
-
     for (final item in state.items) {
       if (item.product.id != event.productId) {
         updated.add(item);
         continue;
       }
-
       final nextQty = item.quantity + 1;
-
       if (!_canUseQuantity(
         product: item.product,
         quantity: nextQty,
         ignoreStockLimit: event.ignoreStockLimit,
       )) {
-        emit(state.copyWith(
-          submitError: _stockLimitMessage(item.product),
-        ));
+        emit(state.copyWith(submitError: _stockLimitMessage(item.product)));
         return;
       }
-
       updated.add(item.copyWith(quantity: nextQty));
     }
-
-    emit(state.copyWith(
-      items: updated,
-      submitError: null,
-    ));
+    emit(state.copyWith(items: updated, submitError: null));
   }
 
   void _onDecrementItem(PosDecrementItem event, Emitter<PosState> emit) {
@@ -139,9 +117,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
   void _onRemoveItem(PosRemoveItem event, Emitter<PosState> emit) {
     emit(state.copyWith(
-      items: state.items
-          .where((item) => item.product.id != event.productId)
-          .toList(),
+      items: state.items.where((i) => i.product.id != event.productId).toList(),
     ));
   }
 
@@ -150,19 +126,23 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   }
 
   Future<void> _onCheckoutSubmitted(
-      PosCheckoutSubmitted event,
-      Emitter<PosState> emit,
-      ) async {
+    PosCheckoutSubmitted event,
+    Emitter<PosState> emit,
+  ) async {
     if (state.items.isEmpty) return;
+
+    // Snapshot BEFORE clearing
+    final cartSnapshot = [...state.items];
+    final saleTotal = state.total;
+    final salePaymentMethod = state.paymentMethod;
+    final soldQuantities = state.currentSoldQuantities;
 
     emit(state.copyWith(
       submitStatus: PosSubmitStatus.loading,
-      submitError:  null,
+      submitError: null,
     ));
 
     try {
-      final soldQuantities = state.currentSoldQuantities;
-
       final response = await useCase.submitSale(
         shopId: event.shopId,
         customerId: event.customerId,
@@ -173,29 +153,37 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       );
 
       response.fold(
-            (error) {
+        (error) {
           emit(state.copyWith(
             submitStatus: PosSubmitStatus.failure,
-            submitError:  error ?? 'Failed to submit sale',
+            submitError: error ?? 'Failed to submit sale',
           ));
         },
-            (result) {
+        (result) {
           emit(state.copyWith(
             items: [],
             lastSoldQuantities: soldQuantities,
             cartExpanded: false,
             submitStatus: PosSubmitStatus.success,
-            submitError: result.queued
-                ? 'Sale saved offline. It will sync automatically when internet is back.'
-                : null,
             clearShop: true,
+            // Receipt snapshot
+            lastReceiptNumber: result.receiptNumber,
+            lastSaleId: result.saleId,
+            lastClientSaleId: result.clientSaleId,
+            lastCartSnapshot: cartSnapshot,
+            lastTotal: saleTotal,
+            lastPaymentMethod: salePaymentMethod,
+            lastSaleWasOffline: result.queued,
+            submitError: result.queued
+                ? 'Sale saved offline. Will sync when internet is restored.'
+                : null,
           ));
         },
       );
     } catch (e) {
       emit(state.copyWith(
         submitStatus: PosSubmitStatus.failure,
-        submitError:  e.toString(),
+        submitError: e.toString(),
       ));
     }
   }
@@ -213,33 +201,31 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     emit(state.copyWith(cartExpanded: event.expanded));
   }
 
+  void _onSessionReset(PosSessionReset event, Emitter<PosState> emit) {
+    // Keep shop selection, wipe everything else
+    emit(PosState(
+      selectedShopId: state.selectedShopId,
+      selectedShopName: state.selectedShopName,
+    ));
+  }
+
   bool _canUseQuantity({
     required ProductData product,
     required int quantity,
     required bool ignoreStockLimit,
   }) {
     if (ignoreStockLimit) return true;
-
     final trackInventory = product.trackInventory ?? true;
     if (!trackInventory) return true;
-
     final stock = product.stockLevel ?? 0;
-
     return quantity <= stock;
   }
 
   String _stockLimitMessage(ProductData product) {
     final stock = product.stockLevel ?? 0;
     final name = product.name ?? 'Product';
-
-    final formattedStock = stock % 1 == 0
-        ? stock.toInt().toString()
-        : stock.toStringAsFixed(1);
-
+    final formattedStock =
+        stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(1);
     return 'Only $formattedStock item(s) available for $name.';
-  }
-
-  void _onSessionReset(PosSessionReset event, Emitter<PosState> emit) {
-    emit(PosState.initial());
   }
 }

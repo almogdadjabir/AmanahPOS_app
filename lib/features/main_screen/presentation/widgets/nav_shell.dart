@@ -1,12 +1,10 @@
 import 'dart:ui';
 
-import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
-import 'package:amana_pos/features/main_screen/data/feature_config.dart';
 import 'package:amana_pos/features/main_screen/data/nav_tab.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/bottom_nav_item.dart';
-import 'package:amana_pos/features/main_screen/presentation/widgets/more_sheet.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_fab_nav_item.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
@@ -64,38 +62,8 @@ class NavShell extends StatelessWidget {
   }
 
   void _openMoreSheet(BuildContext context) {
-    final navBloc = context.read<NavigationBloc>();
-    final authState = context.read<AuthBloc>().state;
-
-    final directFeatures = tabs
-        .where((t) => !t.isMore && t.feature != null)
-        .map((t) => t.feature!)
-        .toSet();
-
-    final moreItems = kFeatureConfigs.entries
-        .where(
-          (e) =>
-      state.permissions.allows(e.key) &&
-          !directFeatures.contains(e.key),
-    )
-        .map((e) => e.value)
-        .toList();
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => BlocProvider.value(
-        value: navBloc,
-        child: MoreSheet(
-          items: moreItems,
-          currentFeature: state.currentFeature,
-          userName: authState.profile?.fullName ?? authState.profile?.phone,
-          isOwner: state.permissions.isOwner,
-          businessName: authState.defaultBusiness?.name,
-        ),
-      ),
+    Navigator.of(context).pushNamed(
+      RouteStrings.settingsScreen,
     );
   }
 

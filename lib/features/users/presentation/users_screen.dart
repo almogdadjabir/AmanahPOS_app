@@ -57,13 +57,6 @@ class _UsersScreenState extends State<UsersScreen> {
             color: colors.textPrimary,
           ),
         ),
-        title: Text(
-          'Cashiers Management',
-          style: AppTextStyles.bs600(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppDims.s2),
@@ -169,7 +162,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
   String get _sectionTitle {
     switch (_selectedFilter) {
       case UserQuickFilter.all:
-        return 'Users';
+        return 'All';
       case UserQuickFilter.active:
         return 'Active Users';
       case UserQuickFilter.cashiers:
@@ -238,6 +231,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
                       ),
                     ),
                   ),
+                  if(widget.isWithAppbar == false)
                   TextButton.icon(
                     onPressed: () => showAddUserSheet(context),
                     style: TextButton.styleFrom(

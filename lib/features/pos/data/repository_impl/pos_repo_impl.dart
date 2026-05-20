@@ -32,15 +32,10 @@ class PosRepoImpl extends PosRepository {
     String taxAmount = '0',
   }) async {
     try {
-      if (items.isEmpty) {
-        return const Left('Cart is empty');
-      }
+      if (items.isEmpty) return const Left('Cart is empty');
 
-      final validItems = items.where((item) => item.product.id != null).toList();
-
-      if (validItems.isEmpty) {
-        return const Left('No valid products in cart');
-      }
+      final validItems = items.where((i) => i.product.id != null).toList();
+      if (validItems.isEmpty) return const Left('No valid products in cart');
 
       final clientSaleId = const Uuid().v4();
 
@@ -118,11 +113,7 @@ class PosRepoImpl extends PosRepository {
     required String discountAmount,
     required String taxAmount,
   }) {
-    final subtotal = items.fold<double>(
-      0,
-          (sum, item) => sum + item.lineTotal,
-    );
-
+    final subtotal = items.fold<double>(0, (sum, i) => sum + i.lineTotal);
     final total = subtotal -
         (double.tryParse(discountAmount) ?? 0) +
         (double.tryParse(taxAmount) ?? 0);
@@ -138,17 +129,15 @@ class PosRepoImpl extends PosRepository {
       total: total.toStringAsFixed(2),
       createdAt: DateTime.now().toUtc(),
       items: items.map((cartItem) {
-        final product = cartItem.product;
         final price = cartItem.price;
-        final quantity = cartItem.quantity.toDouble();
-
+        final qty = cartItem.quantity.toDouble();
         return OfflineSaleItemDto(
-          productId: product.id!,
-          productName: product.name ?? '',
-          quantity: quantity,
+          productId: cartItem.product.id!,
+          productName: cartItem.product.name ?? '',
+          quantity: qty,
           unitPrice: price.toStringAsFixed(2),
-          lineTotal: (price * quantity).toStringAsFixed(2),
-          productSnapshot: product,
+          lineTotal: (price * qty).toStringAsFixed(2),
+          productSnapshot: cartItem.product,
         );
       }).toList(),
     );

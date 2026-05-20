@@ -20,4 +20,18 @@ class AppFormat {
     final letters = parts.map((p) => p.isEmpty ? '' : p[0]).join();
     return letters.substring(0, letters.length < max ? letters.length : max).toUpperCase();
   }
+
+  static String compactMoney(double amount) {
+    final String compact;
+    if (amount >= 1000000000) {
+      compact = '${(amount / 1000000000).toStringAsFixed(amount % 1000000000 == 0 ? 0 : 1)}B';
+    } else if (amount >= 1000000) {
+      compact = '${(amount / 1000000).toStringAsFixed(amount % 1000000 == 0 ? 0 : 1)}M';
+    } else if (amount >= 1000) {
+      compact = '${(amount / 1000).toStringAsFixed(amount % 1000 == 0 ? 0 : 1)}K';
+    } else {
+      compact = amount.toStringAsFixed(0);
+    }
+    return '$compact SDG';
+  }
 }

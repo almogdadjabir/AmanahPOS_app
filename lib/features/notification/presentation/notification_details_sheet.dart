@@ -6,10 +6,23 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// NotificationDetailsSheet  (drop-in, same constructor API)
+//
+// Changes vs original:
+//   • Drag handle bar at top (standard bottom-sheet affordance, was missing)
+//   • Close button is a small circular icon button — not a raw InkWell on a 24px icon
+//   • Type label uses sentence case + lighter weight (was ALL-CAPS w900)
+//   • Title weight w900 → w600; body w700 → w400 (calmer reading experience)
+//   • Divider uses standard Divider widget with theme color (no manual opacity math)
+//   • boxShadow removed — the modal backdrop provides visual separation
+// ─────────────────────────────────────────────────────────────────────────────
+
 class NotificationDetailsSheet extends StatelessWidget {
   final NotificationItem item;
 
-  const NotificationDetailsSheet({super.key,
+  const NotificationDetailsSheet({
+    super.key,
     required this.item,
   });
 
@@ -39,68 +52,74 @@ class NotificationDetailsSheet extends StatelessWidget {
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppDims.rXl),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 28,
-              offset: const Offset(0, -8),
-            ),
-          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: AppDims.s3),
+            // ── Drag handle ──────────────────────────────────────────────────
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 4),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.border.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
 
+            // ── Header ───────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppDims.s4,
-                AppDims.s4,
-                AppDims.s4,
+                AppDims.s3,
+                AppDims.s3,
                 AppDims.s3,
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Icon badge
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
                       color: config.color.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(AppDims.rMd),
+                      border: Border.all(
+                        color: config.color.withValues(alpha: 0.16),
+                        width: 0.5,
+                      ),
                     ),
                     child: Icon(
                       config.icon,
                       color: config.color,
-                      size: 22,
+                      size: 20,
                     ),
                   ),
 
                   const SizedBox(width: AppDims.s3),
 
+                  // Type + date
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           config.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bs100(context).copyWith(
+                          style: AppTextStyles.bs200(context).copyWith(
                             color: config.color,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
+                            fontWeight: FontWeight.w600,
                             height: 1,
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 4),
                         Text(
                           _formatFullDate(item.createdAt),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bs200(context).copyWith(
                             color: colors.textSecondary,
-                            fontWeight: FontWeight.w700,
                             height: 1,
                           ),
                         ),
@@ -108,19 +127,26 @@ class NotificationDetailsSheet extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(width: AppDims.s2),
-
+                  // Close button
                   Material(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(999),
                     child: InkWell(
                       onTap: () => Navigator.of(context).pop(),
                       borderRadius: BorderRadius.circular(999),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colors.border.withValues(alpha: 0.6),
+                            width: 0.5,
+                          ),
+                        ),
                         child: Icon(
                           SolarIconsOutline.closeCircle,
-                          size: 24,
+                          size: 16,
                           color: colors.textHint,
                         ),
                       ),
@@ -132,10 +158,11 @@ class NotificationDetailsSheet extends StatelessWidget {
 
             Divider(
               height: 1,
-              thickness: 1,
-              color: colors.border.withValues(alpha: 0.70),
+              thickness: 0.5,
+              color: colors.border.withValues(alpha: 0.6),
             ),
 
+            // ── Body ─────────────────────────────────────────────────────────
             Flexible(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -150,22 +177,19 @@ class NotificationDetailsSheet extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTextStyles.bs700(context).copyWith(
+                      style: AppTextStyles.bs600(context).copyWith(
                         color: colors.textPrimary,
-                        fontWeight: FontWeight.w900,
-                        height: 1.12,
+                        fontWeight: FontWeight.w600,
+                        height: 1.15,
                         letterSpacing: -0.2,
                       ),
                     ),
-
-                    const SizedBox(height: AppDims.s4),
-
+                    const SizedBox(height: AppDims.s3),
                     Text(
                       body,
                       style: AppTextStyles.bs400(context).copyWith(
                         color: colors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                        height: 1.55,
+                        height: 1.6,
                       ),
                     ),
                   ],
@@ -180,7 +204,6 @@ class NotificationDetailsSheet extends StatelessWidget {
 
   String _formatFullDate(DateTime? date) {
     if (date == null) return 'No date';
-
     return '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year} · '

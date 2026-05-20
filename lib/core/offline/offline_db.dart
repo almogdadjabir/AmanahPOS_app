@@ -9,7 +9,7 @@ class OfflineDb {
   static final OfflineDb instance = OfflineDb._();
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 3;
+  static const int _dbVersion = 5;
 
   Database? _database;
 
@@ -25,6 +25,11 @@ class OfflineDb {
       version: _dbVersion,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
+
+        // Do not run journal_mode=WAL here.
+        // On sqflite/iOS it can throw "not an error" during database open.
+        await db.execute('PRAGMA synchronous = NORMAL');
+        await db.execute('PRAGMA temp_store = MEMORY');
       },
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
@@ -39,8 +44,17 @@ class OfflineDb {
     if (oldVersion < 2) {
       await _createPendingInboundTables(db);
     }
+
     if (oldVersion < 3) {
       await _createPremiumTables(db);
+    }
+
+    if (oldVersion < 4) {
+      await _createPerformanceIndexes(db);
+    }
+
+    if (oldVersion < 5) {
+    await _migrateV5(db);
     }
   }
 
@@ -95,6 +109,56 @@ class OfflineDb {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_pending_inbound_reference ON pending_inbound_transactions(reference)');
   }
 
+  Future<void> _createPerformanceIndexes(Database db) async {
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_products_category_name ON products(category_id, name)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_products_updated_at ON products(updated_at)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_stock_shop ON stock(shop_id)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_stock_product ON stock(product_id)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_pending_sales_created_at ON pending_sales(created_at)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_customers_phone_name ON customers(phone, name)',
+    );
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_offline_assets_url ON offline_assets(url)',
+    );
+  }
+
+  Future<void> _migrateV5(Database db) async {
+    // Add receipt_number to pending_sales so the history screen can display
+    // it offline after a synced sale, without needing a network call.
+    await db.execute('''
+      ALTER TABLE pending_sales
+      ADD COLUMN receipt_number TEXT
+    ''');
+
+    // Add index to speed up receipt number lookups in the history screen
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_pending_sales_receipt_number
+      ON pending_sales(receipt_number)
+    ''');
+  }
+
+  
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE sync_metadata (
@@ -231,6 +295,8 @@ class OfflineDb {
         FOREIGN KEY(client_sale_id) REFERENCES pending_sales(client_sale_id) ON DELETE CASCADE
       )
     ''');
+
+    await _createPerformanceIndexes(db);
   }
 
   Future<int> countRows(String table) async {

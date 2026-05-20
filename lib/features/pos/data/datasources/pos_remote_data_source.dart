@@ -11,34 +11,37 @@ class PosRemoteDataSource {
   Future<PosSubmitResult> createSale(CreateSaleRequestDto dto) async {
     final response = await _requestHandler.handlePostRequest<Map<String, dynamic>>(
       'api/v1/sales/',
-          (data) => Map<String, dynamic>.from(data as Map),
+      (data) => Map<String, dynamic>.from(data as Map),
       data: dto.toJson(),
     );
 
     return response.match(
-          (error) => throw Exception(error ?? 'Failed to create sale'),
-          (data) {
+      (error) => throw Exception(error ?? 'Failed to create sale'),
+      (data) {
         final saleId = data['id']?.toString();
-        return PosSubmitResult.synced(saleId);
+        final receiptNumber = data['receipt_number']?.toString();
+        return PosSubmitResult.synced(
+          clientSaleId: dto.clientSaleId,
+          saleId: saleId,
+          receiptNumber: receiptNumber,
+        );
       },
     );
   }
 
   Future<List<OfflineSaleSyncResult>> syncSales(
-      List<Map<String, dynamic>> sales,
-      ) async {
+    List<Map<String, dynamic>> sales,
+  ) async {
     final response =
-    await _requestHandler.handlePostRequest<OfflineSaleSyncResponseDto>(
+        await _requestHandler.handlePostRequest<OfflineSaleSyncResponseDto>(
       'api/v1/sales/offline-sync/',
       OfflineSaleSyncResponseDto.fromJson,
-      data: {
-        'sales': sales,
-      },
+      data: {'sales': sales},
     );
 
     return response.match(
-          (error) => throw Exception(error ?? 'Failed to sync offline sales'),
-          (data) => data.results,
+      (error) => throw Exception(error ?? 'Failed to sync offline sales'),
+      (data) => data.results,
     );
   }
 }

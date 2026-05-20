@@ -1,4 +1,5 @@
-import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
+// lib/features/products/presentation/widgets/product_details/product_actions_view.dart
+
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/delete_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/edit_product_sheet.dart';
@@ -10,6 +11,10 @@ import 'package:solar_icons/solar_icons.dart';
 
 class ProductActionsView extends StatelessWidget {
   final ProductData product;
+
+  // showStock is kept so the caller doesn't need changing, but it no longer
+  // drives an "Add Stock" button here — stock management belongs in the
+  // Inventory screen, not inside a product detail page.
   final bool showStock;
 
   const ProductActionsView({
@@ -29,28 +34,9 @@ class ProductActionsView extends StatelessWidget {
             icon: SolarIconsOutline.penNewSquare,
             label: 'Edit',
             color: colors.primary,
-            onTap: () {
-              showEditProductSheet(context, product: product);
-            },
+            onTap: () => showEditProductSheet(context, product: product),
           ),
         ),
-
-        if (showStock) ...[
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: _ActionButton(
-              icon: SolarIconsOutline.box,
-              label: 'Add Stock',
-              color: const Color(0xFF16A34A),
-              onTap: () {
-                showAddStockProductSheet(
-                  context,
-                  initialProduct: product,
-                );
-              },
-            ),
-          ),
-        ],
 
         const SizedBox(width: AppDims.s2),
 
@@ -60,9 +46,7 @@ class ProductActionsView extends StatelessWidget {
             label: 'Delete',
             color: const Color(0xFFDC2626),
             isDanger: true,
-            onTap: () {
-              showDeleteProductSheet(context, product: product);
-            },
+            onTap: () => showDeleteProductSheet(context, product: product),
           ),
         ),
       ],
@@ -110,7 +94,6 @@ class _ActionButton extends StatelessWidget {
               color: isDanger
                   ? color.withValues(alpha: 0.22)
                   : colors.border,
-              width: 1,
             ),
           ),
           child: Column(
@@ -123,11 +106,7 @@ class _ActionButton extends StatelessWidget {
                   color: color.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(AppDims.rSm),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 19,
-                ),
+                child: Icon(icon, color: color, size: 19),
               ),
               const SizedBox(height: 7),
               FittedBox(

@@ -20,6 +20,12 @@ import 'package:amana_pos/features/dashboard/data/datasources/dashboard_remote_d
 import 'package:amana_pos/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
+import 'package:amana_pos/features/returns/data/repository_impl/returns_repo_impl.dart';
+import 'package:amana_pos/features/returns/domain/repositories/returns_repository.dart';
+import 'package:amana_pos/features/returns/domain/usecases/returns_usecase.dart';
+import 'package:amana_pos/features/sales_history/data/repository_impl/sales_history_repo_impl.dart';
+import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
+import 'package:amana_pos/features/sales_history/domain/usecases/sales_history_usecase.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
 import 'package:amana_pos/features/business/data/repository_impl/business_repo_impl.dart';
 import 'package:amana_pos/features/business/domain/repositories/business_repository.dart';
@@ -294,6 +300,26 @@ class DependenciesProvider {
           () => GetDashboardSummaryUseCase(
         repository: getIt<DashboardRepository>(),
       ),
+    );
+
+    // Sales History
+    getIt.registerLazySingleton<SalesHistoryRepository>(
+          () => SalesHistoryRepoImpl(
+        requestHandler: getIt<RequestHandler>(),
+        offlineDb: getIt<OfflineDb>(),
+        networkMonitor: getIt<NetworkMonitor>(),
+      ),
+    );
+    getIt.registerLazySingleton<SalesHistoryUseCase>(
+          () => SalesHistoryUseCase(repository: getIt<SalesHistoryRepository>()),
+    );
+
+    // Returns
+    getIt.registerLazySingleton<ReturnsRepository>(
+          () => ReturnsRepoImpl(requestHandler: getIt<RequestHandler>()),
+    );
+    getIt.registerLazySingleton<ReturnsUseCase>(
+          () => ReturnsUseCase(repository: getIt<ReturnsRepository>()),
     );
 
     // Blocs

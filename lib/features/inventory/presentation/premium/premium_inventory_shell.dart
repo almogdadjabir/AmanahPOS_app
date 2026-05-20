@@ -36,6 +36,7 @@ class _PremiumInventoryShellState extends State<PremiumInventoryShell> {
   void _openLowStock() => showLowStockSheet(context);
   void _openExpiry() => showExpiryReportSheet(context);
   void _openVendors() => showVendorsSheet(context);
+  void _openInboundHistory() => showInboundHistorySheet(context);
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +72,8 @@ class _PremiumInventoryShellState extends State<PremiumInventoryShell> {
                 onOpenLowStock: _openLowStock,
                 onOpenExpiry: _openExpiry,
                 onOpenVendors: _openVendors,
-              ),
+                onOpenInboundHistory: _openInboundHistory,
+              )
             ),
           ],
         ),

@@ -52,11 +52,11 @@ class InboundVelocityCard extends StatelessWidget {
             icon: SolarIconsOutline.chart,
             accent: Color(0xFF93C5FD),
           ),
-          const SizedBox(height: AppDims.s3),
+          const Spacer(),
           isLoading
               ? const ShimmerBox(height: 100)
               : SizedBox(
-                  height: 100,
+                  height: 180,
                   child: BarChart(
                     BarChartData(
                       maxY: maxY,
