@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -33,12 +34,13 @@ class ProductBarcodeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final colors = context.appColors;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FieldLabel(label: 'Barcode'),
+        FieldLabel(label: tr.fieldBarcode),
         const SizedBox(height: AppDims.s1),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,

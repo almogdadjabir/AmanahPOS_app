@@ -168,6 +168,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     return BlocListener<ProductBloc, ProductState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
@@ -248,7 +249,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               const SizedBox(height: AppDims.s3),
 
               if (!widget.isRestaurant) ...[
-                FieldLabel(label: 'Unit', required: true),
+                FieldLabel(label: tr.fieldUnit, required: true),
                 const SizedBox(height: AppDims.s2),
                 UnitPicker(
                   units: _units,
@@ -261,7 +262,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               OptionalDivider(),
               const SizedBox(height: AppDims.s4),
 
-              FieldLabel(label: 'Description'),
+              FieldLabel(label: tr.fieldDescription),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _descCtrl,
@@ -275,7 +276,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
               if (!widget.isRestaurant) ...[
                 // SKU — kept in Add, full-width on its own row.
-                FieldLabel(label: 'SKU'),
+                FieldLabel(label: tr.fieldSku),
                 const SizedBox(height: AppDims.s1),
                 AppFormField(
                   controller: _skuCtrl,
