@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -160,12 +161,12 @@ class OwnerTodayCard extends StatelessWidget {
                         children: [
                           _StatPair(
                             value: salesCount.toString(),
-                            label: 'SALES',
+                            label: context.tr.salesChipLabel,
                           ),
                           const SizedBox(width: 22),
                           _StatPair(
                             value: _formatAmountEnglish(_avgSale),
-                            label: 'AVG',
+                            label: context.tr.avgChipLabel,
                           ),
                           const Spacer(),
                           SizedBox(
@@ -306,7 +307,7 @@ class CashierShiftCard extends StatelessWidget {
               ),
               _StatPair(
                 value: salesCount.toString(),
-                label: 'SALES',
+                label: context.tr.salesChipLabel,
               ),
               const SizedBox(width: 12),
               SizedBox(

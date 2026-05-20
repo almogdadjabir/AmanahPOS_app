@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/notification/presentation/widgets/notification_empty_view.dart';
 import 'package:amana_pos/features/notification/presentation/widgets/notification_error_view.dart';
@@ -96,7 +97,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (state.status == NotificationStatus.failure &&
               state.notifications.isEmpty) {
             return NotificationErrorView(
-              message: state.error ?? 'Something went wrong',
+              message: state.error ?? context.tr.somethingWentWrong,
               onRetry: () => context.read<NotificationBloc>().add(
                 const OnNotificationInitial(force: true),
               ),
@@ -144,7 +145,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Loading more',
+                          context.tr.loadingMore,
                           style: AppTextStyles.bs200(context).copyWith(
                             color: colors.textHint,
                           ),
@@ -271,7 +272,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Notifications',
+                    context.tr.notificationsTitle,
                     style: AppTextStyles.bs500(context).copyWith(
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -336,7 +337,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Mark all read',
+                        context.tr.markAllRead,
                         style: AppTextStyles.bs200(context).copyWith(
                           color: colors.primary,
                           fontWeight: FontWeight.w600,

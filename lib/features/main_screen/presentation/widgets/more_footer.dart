@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
@@ -90,7 +91,7 @@ class MoreFooter extends StatelessWidget {
                             icon: const Icon(Icons.receipt_long_rounded,
                                 size: 15),
                             label: Text(
-                              'View ${state.pendingSalesCount} pending',
+                              context.tr.viewPendingCount(state.pendingSalesCount),
                               style: AppTextStyles.sm300(context).copyWith(
                                 fontWeight: FontWeight.w800,
                               ),

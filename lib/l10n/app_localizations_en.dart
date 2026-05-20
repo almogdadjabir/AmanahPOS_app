@@ -802,4 +802,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get amanaPosLabel => 'AMANAPOS';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get posStatusOffline => 'OFFLINE';
+
+  @override
+  String get posStatusSyncIssue => 'SYNC ISSUE';
+
+  @override
+  String get posStatusPending => 'PENDING';
+
+  @override
+  String get posStatusSyncing => 'SYNCING';
+
+  @override
+  String get posStatusSynced => 'SYNCED';
+
+  @override
+  String get clearLocalDataTitle => 'Clear local data?';
+
+  @override
+  String get localDataCleared => 'Local data cleared.';
+
+  @override
+  String get salesChipLabel => 'SALES';
+
+  @override
+  String get avgChipLabel => 'AVG';
+
+  @override
+  String viewPendingCount(int count) {
+    return 'View $count pending';
+  }
+
+  @override
+  String get loadingMore => 'Loading more';
+
+  @override
+  String get markAllRead => 'Mark all read';
 }

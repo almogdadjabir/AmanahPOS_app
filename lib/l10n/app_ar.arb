@@ -278,5 +278,24 @@
   "newSale": "بيعة جديدة",
   "receiptCopied": "تم نسخ رقم الإيصال",
   "saleSearchHint": "بحث في الإيصالات، المبالغ، المدفوعات...",
-  "amanaPosLabel": "أمانة"
+  "amanaPosLabel": "أمانة",
+
+  "notificationsTitle": "الإشعارات",
+  "posStatusOffline": "غير متصل",
+  "posStatusSyncIssue": "مشكلة مزامنة",
+  "posStatusPending": "في الانتظار",
+  "posStatusSyncing": "جارٍ المزامنة",
+  "posStatusSynced": "تمت المزامنة",
+  "clearLocalDataTitle": "مسح البيانات المحلية؟",
+  "localDataCleared": "تم مسح البيانات المحلية.",
+  "salesChipLabel": "المبيعات",
+  "avgChipLabel": "المتوسط",
+  "viewPendingCount": "عرض {count} معلّق",
+  "@viewPendingCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "loadingMore": "تحميل المزيد",
+  "markAllRead": "تعليم الكل كمقروء"
 }

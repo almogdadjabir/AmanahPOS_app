@@ -293,5 +293,24 @@
   "newSale": "New sale",
   "receiptCopied": "Receipt number copied",
   "saleSearchHint": "Search receipt, amount, payment...",
-  "amanaPosLabel": "AMANAPOS"
+  "amanaPosLabel": "AMANAPOS",
+
+  "notificationsTitle": "Notifications",
+  "posStatusOffline": "OFFLINE",
+  "posStatusSyncIssue": "SYNC ISSUE",
+  "posStatusPending": "PENDING",
+  "posStatusSyncing": "SYNCING",
+  "posStatusSynced": "SYNCED",
+  "clearLocalDataTitle": "Clear local data?",
+  "localDataCleared": "Local data cleared.",
+  "salesChipLabel": "SALES",
+  "avgChipLabel": "AVG",
+  "viewPendingCount": "View {count} pending",
+  "@viewPendingCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "loadingMore": "Loading more",
+  "markAllRead": "Mark all read"
 }

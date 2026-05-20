@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/app_assets.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
@@ -445,42 +446,42 @@ class _SyncStatusViewModel {
 
     if (state.isOffline && !state.canUseAppOffline) {
       return _SyncStatusViewModel(
-        label: 'OFFLINE',
+        label: context.tr.posStatusOffline,
         color: colors.danger,
       );
     }
 
     if (state.isOffline && state.canUseAppOffline) {
-      return const _SyncStatusViewModel(
-        label: 'OFFLINE',
-        color: Color(0xFFF59E0B),
+      return _SyncStatusViewModel(
+        label: context.tr.posStatusOffline,
+        color: const Color(0xFFF59E0B),
       );
     }
 
     if (state.hasFailure) {
       return _SyncStatusViewModel(
-        label: 'SYNC ISSUE',
+        label: context.tr.posStatusSyncIssue,
         color: colors.danger,
       );
     }
 
     if (state.pendingSalesCount > 0) {
-      return const _SyncStatusViewModel(
-        label: 'PENDING',
-        color: Color(0xFFF59E0B),
+      return _SyncStatusViewModel(
+        label: context.tr.posStatusPending,
+        color: const Color(0xFFF59E0B),
       );
     }
 
     if (state.isBusy) {
-      return const _SyncStatusViewModel(
-        label: 'SYNCING',
-        color: Color(0xFF38BDF8),
+      return _SyncStatusViewModel(
+        label: context.tr.posStatusSyncing,
+        color: const Color(0xFF38BDF8),
       );
     }
 
-    return const _SyncStatusViewModel(
-      label: 'SYNCED',
-      color: Color(0xFF22C55E),
+    return _SyncStatusViewModel(
+      label: context.tr.posStatusSynced,
+      color: const Color(0xFF22C55E),
     );
   }
 }

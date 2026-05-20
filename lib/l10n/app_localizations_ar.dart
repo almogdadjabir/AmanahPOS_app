@@ -794,4 +794,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get amanaPosLabel => 'أمانة';
+
+  @override
+  String get notificationsTitle => 'الإشعارات';
+
+  @override
+  String get posStatusOffline => 'غير متصل';
+
+  @override
+  String get posStatusSyncIssue => 'مشكلة مزامنة';
+
+  @override
+  String get posStatusPending => 'في الانتظار';
+
+  @override
+  String get posStatusSyncing => 'جارٍ المزامنة';
+
+  @override
+  String get posStatusSynced => 'تمت المزامنة';
+
+  @override
+  String get clearLocalDataTitle => 'مسح البيانات المحلية؟';
+
+  @override
+  String get localDataCleared => 'تم مسح البيانات المحلية.';
+
+  @override
+  String get salesChipLabel => 'المبيعات';
+
+  @override
+  String get avgChipLabel => 'المتوسط';
+
+  @override
+  String viewPendingCount(int count) {
+    return 'عرض $count معلّق';
+  }
+
+  @override
+  String get loadingMore => 'تحميل المزيد';
+
+  @override
+  String get markAllRead => 'تعليم الكل كمقروء';
 }

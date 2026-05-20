@@ -1633,6 +1633,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AMANAPOS'**
   String get amanaPosLabel;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @posStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE'**
+  String get posStatusOffline;
+
+  /// No description provided for @posStatusSyncIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNC ISSUE'**
+  String get posStatusSyncIssue;
+
+  /// No description provided for @posStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'PENDING'**
+  String get posStatusPending;
+
+  /// No description provided for @posStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNCING'**
+  String get posStatusSyncing;
+
+  /// No description provided for @posStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNCED'**
+  String get posStatusSynced;
+
+  /// No description provided for @clearLocalDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear local data?'**
+  String get clearLocalDataTitle;
+
+  /// No description provided for @localDataCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data cleared.'**
+  String get localDataCleared;
+
+  /// No description provided for @salesChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SALES'**
+  String get salesChipLabel;
+
+  /// No description provided for @avgChipLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AVG'**
+  String get avgChipLabel;
+
+  /// No description provided for @viewPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'View {count} pending'**
+  String viewPendingCount(int count);
+
+  /// No description provided for @loadingMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading more'**
+  String get loadingMore;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
 }
 
 class _AppLocalizationsDelegate
