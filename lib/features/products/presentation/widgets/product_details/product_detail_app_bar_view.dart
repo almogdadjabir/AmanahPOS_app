@@ -4,6 +4,7 @@ import 'package:amana_pos/features/products/presentation/utils/product_image_url
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -161,8 +162,8 @@ class _HeroIconButton extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.18),
             ),
           ),
-          child: Icon(
-            icon,
+          child: DirectionalIcon(
+            icon: icon,
             color: Colors.white,
             size: 23,
           ),

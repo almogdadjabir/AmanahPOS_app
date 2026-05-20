@@ -1,4 +1,5 @@
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -23,8 +24,8 @@ class BackButton extends StatelessWidget {
               color: context.appColors.border.withValues(alpha: 0.76),
             ),
           ),
-          child: Icon(
-            SolarIconsOutline.altArrowLeft,
+          child: DirectionalIcon(
+            icon: SolarIconsOutline.altArrowLeft,
             color: context.appColors.textPrimary,
             size: 25,
           ),
