@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -22,30 +23,30 @@ class InfoSection extends StatelessWidget {
         iconColor: isActive
             ? const Color(0xFF22C55E)
             : context.appColors.textHint,
-        label: 'Status',
+        label: context.tr.bizStatusLabel,
         value: isActive ? 'Active' : 'Inactive',
       ),
       if (business.address?.trim().isNotEmpty == true)
         _InfoItem(
           icon: Icons.location_on_outlined,
-          label: 'Address',
+          label: context.tr.bizAddressLabel,
           value: business.address!.trim(),
         ),
       if (business.phone?.trim().isNotEmpty == true)
         _InfoItem(
           icon: Icons.phone_outlined,
-          label: 'Phone',
+          label: context.tr.bizPhoneLabel,
           value: business.phone!.trim(),
         ),
       if (business.email?.trim().isNotEmpty == true)
         _InfoItem(
           icon: Icons.email_outlined,
-          label: 'Email',
+          label: context.tr.bizEmailLabel,
           value: business.email!.trim(),
         ),
       _InfoItem(
         icon: Icons.store_outlined,
-        label: 'Shops',
+        label: context.tr.bizShopsLabel,
         value:
         '${business.shopCount ?? 0} shop${(business.shopCount ?? 0) == 1 ? '' : 's'}',
       ),

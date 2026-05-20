@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/presentation/widgets/add_business_sheet.dart';
 import 'package:amana_pos/features/business/presentation/widgets/feature_slider.dart';
 import 'package:amana_pos/features/business/presentation/widgets/shop/floating_store_hero.dart';
@@ -123,7 +124,7 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                       });
                     },
                     icon: const Icon(Icons.add_business_rounded),
-                    label: const Text('Create My Business'),
+                    label: Text(context.tr.bizCreateMyBusiness),
                     style: FilledButton.styleFrom(
                       backgroundColor: colors.primary,
                       foregroundColor: Colors.white,

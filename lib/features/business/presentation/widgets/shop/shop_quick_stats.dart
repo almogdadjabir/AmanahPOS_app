@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -22,7 +23,7 @@ class ShopQuickStats extends StatelessWidget {
           child: statCard(
             context: context,
             icon: Icons.store_mall_directory_outlined,
-            label: 'Total Shops',
+            label: context.tr.shopStatTotalShops,
             value: '${shops.length}',
           ),
         ),
@@ -31,7 +32,7 @@ class ShopQuickStats extends StatelessWidget {
           child: statCard(
             context: context,
             icon: Icons.check_circle_outline_rounded,
-            label: 'Active',
+            label: context.tr.shopStatActive,
             value: '$activeCount',
           ),
         ),
@@ -40,7 +41,7 @@ class ShopQuickStats extends StatelessWidget {
           child: statCard(
             context: context,
             icon: Icons.pause_circle_outline_rounded,
-            label: 'Inactive',
+            label: context.tr.shopStatInactive,
             value: '$inactiveCount',
           ),
         ),

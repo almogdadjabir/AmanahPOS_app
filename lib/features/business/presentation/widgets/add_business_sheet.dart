@@ -9,6 +9,7 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -150,7 +151,7 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
 
-                        FieldLabel(label: 'Business Name', required: true),
+                        FieldLabel(label: context.tr.bizFieldBusinessName, required: true),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _nameCtrl,
@@ -170,7 +171,7 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Address'),
+                        FieldLabel(label: context.tr.bizFieldAddress),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _addressCtrl,
@@ -209,7 +210,7 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                         ),
                         const SizedBox(height: AppDims.s4),
 
-                        FieldLabel(label: 'Phone'),
+                        FieldLabel(label: context.tr.bizFieldPhone),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _phoneCtrl,
@@ -228,7 +229,7 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Email'),
+                        FieldLabel(label: context.tr.bizFieldEmail),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _emailCtrl,

@@ -966,4 +966,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invVendorDeactivate => 'Deactivate';
+
+  @override
+  String get bizManageLabel => 'MANAGE';
+
+  @override
+  String get bizShopsTitle => 'Shops';
+
+  @override
+  String get bizActiveBranch => 'Active branch';
+
+  @override
+  String get bizActiveBranches => 'Active branches';
+
+  @override
+  String get bizProductsItem => 'Products item';
+
+  @override
+  String get bizProductsItems => 'Products items';
+
+  @override
+  String get bizUserSingular => 'User';
+
+  @override
+  String get bizUserPlural => 'Users';
+
+  @override
+  String get bizReportSubtitle => 'Browse and search all transactions';
+
+  @override
+  String get bizCreateMyBusiness => 'Create My Business';
+
+  @override
+  String get bizAddFirstShop => 'Add First Shop';
+
+  @override
+  String get bizFieldBusinessName => 'Business Name';
+
+  @override
+  String get bizFieldAddress => 'Address';
+
+  @override
+  String get bizFieldPhone => 'Phone';
+
+  @override
+  String get bizFieldEmail => 'Email';
+
+  @override
+  String get bizInfoTitle => 'Business Information';
+
+  @override
+  String get bizInfoSubtitle => 'Basic profile and contact details';
+
+  @override
+  String get bizDeactivateTitle => 'Deactivate Business?';
+
+  @override
+  String get bizFieldShopName => 'Shop Name';
+
+  @override
+  String get shopStatTotalShops => 'Total Shops';
+
+  @override
+  String get shopStatActive => 'Active';
+
+  @override
+  String get shopStatInactive => 'Inactive';
+
+  @override
+  String get bizStatusLabel => 'Status';
+
+  @override
+  String get bizAddressLabel => 'Address';
+
+  @override
+  String get bizPhoneLabel => 'Phone';
+
+  @override
+  String get bizEmailLabel => 'Email';
+
+  @override
+  String get bizShopsLabel => 'Shops';
 }

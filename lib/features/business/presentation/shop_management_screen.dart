@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
@@ -216,7 +217,7 @@ class _EmptyShopManagement extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onAddTap,
               icon: const Icon(Icons.add_business_rounded),
-              label: const Text('Add First Shop'),
+              label: Text(context.tr.bizAddFirstShop),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,
                 foregroundColor: Colors.white,

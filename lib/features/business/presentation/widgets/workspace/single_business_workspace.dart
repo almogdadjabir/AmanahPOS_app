@@ -9,6 +9,7 @@ import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -94,7 +95,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
               0,
             ),
             sliver: SliverToBoxAdapter(
-              child: WorkspaceSectionHeader(title: 'MANAGE'),
+              child: WorkspaceSectionHeader(title: context.tr.bizManageLabel),
             ),
           ),
 
@@ -117,9 +118,9 @@ class SingleBusinessWorkspace extends StatelessWidget {
                 children: [
                   WorkspaceActionCard(
                     icon: const Icon(SolarIconsOutline.shop),
-                    title: 'Shops',
+                    title: context.tr.bizShopsTitle,
                     value: shopCount.toString(),
-                    subtitle: shopCount == 1 ? 'Active branch' : 'Active branches',
+                    subtitle: shopCount == 1 ? context.tr.bizActiveBranch : context.tr.bizActiveBranches,
                     onTap: () => Navigator.of(context).pushNamed(
                       RouteStrings.shopManagementScreen,
                       arguments: {'businessData': data},
@@ -127,26 +128,26 @@ class SingleBusinessWorkspace extends StatelessWidget {
                   ),
                   WorkspaceActionCard(
                     icon: const Icon(SolarIconsOutline.box),
-                    title: 'Products',
+                    title: context.tr.addProduct,
                     value: productCount.toString(),
-                    subtitle: productCount == 1 ? 'Products item' : 'Products items',
+                    subtitle: productCount == 1 ? context.tr.bizProductsItem : context.tr.bizProductsItems,
                     onTap: () {
                       Navigator.of(context).pushNamed(RouteStrings.productScreen);
                     },
                   ),
                   WorkspaceActionCard(
                     icon: const Icon(SolarIconsOutline.usersGroupRounded),
-                    title: 'Cashiers',
+                    title: context.tr.settingsCashiers,
                     value: cashierCount.toString(),
-                    subtitle: cashierCount == 1 ? 'User' : 'Users',
+                    subtitle: cashierCount == 1 ? context.tr.bizUserSingular : context.tr.bizUserPlural,
                     onTap: () {
                       Navigator.of(context).pushNamed(RouteStrings.cashiersScreen);
                     },
                   ),
                   WorkspaceActionCard(
                     icon: const Icon(SolarIconsOutline.notebook),
-                    title: 'Reports',
-                    subtitle: 'Browse and search all transactions',
+                    title: context.tr.navReports,
+                    subtitle: context.tr.bizReportSubtitle,
                     onTap: () => Navigator.of(context).pushNamed(RouteStrings.salesHistoryScreen),
                   ),
                 ],

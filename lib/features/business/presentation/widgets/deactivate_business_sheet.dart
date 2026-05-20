@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
@@ -45,7 +46,7 @@ void showDeactivateBusinessSheet(
               state.submitStatus == BusinessSubmitStatus.loading;
 
           return AppDeactivateBottomSheet(
-            title: 'Deactivate Business?',
+            title: context.tr.bizDeactivateTitle,
             description: '"${business.name}" will be deactivated. '
                 'All associated shops will stop operating. '
                 'You can reactivate it later.',

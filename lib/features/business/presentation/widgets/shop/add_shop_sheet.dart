@@ -2,6 +2,7 @@ import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
@@ -135,7 +136,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        FieldLabel(label: 'Shop Name', required: true),
+                        FieldLabel(label: context.tr.bizFieldShopName, required: true),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _nameCtrl,
@@ -179,7 +180,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                         ),
                         const SizedBox(height: AppDims.s4),
 
-                        FieldLabel(label: 'Address'),
+                        FieldLabel(label: context.tr.bizFieldAddress),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _addressCtrl,
@@ -190,7 +191,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                         ),
                         const SizedBox(height: AppDims.s3),
 
-                        FieldLabel(label: 'Phone'),
+                        FieldLabel(label: context.tr.bizFieldPhone),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _phoneCtrl,

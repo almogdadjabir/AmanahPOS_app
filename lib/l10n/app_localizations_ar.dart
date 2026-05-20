@@ -958,4 +958,85 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invVendorDeactivate => 'إلغاء التفعيل';
+
+  @override
+  String get bizManageLabel => 'الإدارة';
+
+  @override
+  String get bizShopsTitle => 'المتاجر';
+
+  @override
+  String get bizActiveBranch => 'فرع نشط';
+
+  @override
+  String get bizActiveBranches => 'فروع نشطة';
+
+  @override
+  String get bizProductsItem => 'منتج';
+
+  @override
+  String get bizProductsItems => 'منتجات';
+
+  @override
+  String get bizUserSingular => 'مستخدم';
+
+  @override
+  String get bizUserPlural => 'مستخدمون';
+
+  @override
+  String get bizReportSubtitle => 'استعراض وبحث في جميع المعاملات';
+
+  @override
+  String get bizCreateMyBusiness => 'إنشاء نشاطي التجاري';
+
+  @override
+  String get bizAddFirstShop => 'إضافة أول متجر';
+
+  @override
+  String get bizFieldBusinessName => 'اسم النشاط التجاري';
+
+  @override
+  String get bizFieldAddress => 'العنوان';
+
+  @override
+  String get bizFieldPhone => 'الهاتف';
+
+  @override
+  String get bizFieldEmail => 'البريد الإلكتروني';
+
+  @override
+  String get bizInfoTitle => 'معلومات النشاط التجاري';
+
+  @override
+  String get bizInfoSubtitle => 'الملف الأساسي وتفاصيل الاتصال';
+
+  @override
+  String get bizDeactivateTitle => 'إلغاء تفعيل النشاط التجاري؟';
+
+  @override
+  String get bizFieldShopName => 'اسم المتجر';
+
+  @override
+  String get shopStatTotalShops => 'إجمالي المتاجر';
+
+  @override
+  String get shopStatActive => 'نشطة';
+
+  @override
+  String get shopStatInactive => 'غير نشطة';
+
+  @override
+  String get bizStatusLabel => 'الحالة';
+
+  @override
+  String get bizAddressLabel => 'العنوان';
+
+  @override
+  String get bizPhoneLabel => 'الهاتف';
+
+  @override
+  String get bizEmailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get bizShopsLabel => 'المتاجر';
 }

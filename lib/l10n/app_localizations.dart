@@ -1957,6 +1957,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deactivate'**
   String get invVendorDeactivate;
+
+  /// No description provided for @bizManageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MANAGE'**
+  String get bizManageLabel;
+
+  /// No description provided for @bizShopsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get bizShopsTitle;
+
+  /// No description provided for @bizActiveBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Active branch'**
+  String get bizActiveBranch;
+
+  /// No description provided for @bizActiveBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Active branches'**
+  String get bizActiveBranches;
+
+  /// No description provided for @bizProductsItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Products item'**
+  String get bizProductsItem;
+
+  /// No description provided for @bizProductsItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Products items'**
+  String get bizProductsItems;
+
+  /// No description provided for @bizUserSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get bizUserSingular;
+
+  /// No description provided for @bizUserPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get bizUserPlural;
+
+  /// No description provided for @bizReportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse and search all transactions'**
+  String get bizReportSubtitle;
+
+  /// No description provided for @bizCreateMyBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Create My Business'**
+  String get bizCreateMyBusiness;
+
+  /// No description provided for @bizAddFirstShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Add First Shop'**
+  String get bizAddFirstShop;
+
+  /// No description provided for @bizFieldBusinessName.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Name'**
+  String get bizFieldBusinessName;
+
+  /// No description provided for @bizFieldAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get bizFieldAddress;
+
+  /// No description provided for @bizFieldPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get bizFieldPhone;
+
+  /// No description provided for @bizFieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get bizFieldEmail;
+
+  /// No description provided for @bizInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Information'**
+  String get bizInfoTitle;
+
+  /// No description provided for @bizInfoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic profile and contact details'**
+  String get bizInfoSubtitle;
+
+  /// No description provided for @bizDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate Business?'**
+  String get bizDeactivateTitle;
+
+  /// No description provided for @bizFieldShopName.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Name'**
+  String get bizFieldShopName;
+
+  /// No description provided for @shopStatTotalShops.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Shops'**
+  String get shopStatTotalShops;
+
+  /// No description provided for @shopStatActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get shopStatActive;
+
+  /// No description provided for @shopStatInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get shopStatInactive;
+
+  /// No description provided for @bizStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get bizStatusLabel;
+
+  /// No description provided for @bizAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get bizAddressLabel;
+
+  /// No description provided for @bizPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get bizPhoneLabel;
+
+  /// No description provided for @bizEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get bizEmailLabel;
+
+  /// No description provided for @bizShopsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get bizShopsLabel;
 }
 
 class _AppLocalizationsDelegate
