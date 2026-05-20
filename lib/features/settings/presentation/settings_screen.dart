@@ -1,4 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
@@ -8,6 +10,7 @@ import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/edit_bankak_sheet.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/edit_profile_sheet.dart';
+import 'package:amana_pos/features/settings/presentation/widgets/language_picker_sheet.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/owner_header.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/set_password_sheet.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/theme_picker_sheet.dart';
@@ -81,6 +84,18 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _openLanguageSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: context.read<LocaleBloc>(),
+        child: const LanguagePickerSheet(),
+      ),
+    );
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -94,22 +109,22 @@ class SettingsScreen extends StatelessWidget {
       listener: (context, state) {
         if (state.submitStatus == SettingsSubmitStatus.success) {
           Navigator.of(context).maybePop();
-          GlobalSnackBar.show(message: 'Updated successfully', isInfo: true);
+          GlobalSnackBar.show(message: context.tr.profileUpdatedSuccess, isInfo: true);
         }
         if (state.submitStatus == SettingsSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Failed to update',
+            message: state.submitError ?? context.tr.profileUpdateFailed,
             isError: true,
             isAutoDismiss: false,
           );
         }
         if (state.passwordStatus == SettingsSubmitStatus.success) {
           Navigator.of(context).maybePop();
-          GlobalSnackBar.show(message: 'Password updated', isInfo: true);
+          GlobalSnackBar.show(message: context.tr.passwordUpdatedSuccess, isInfo: true);
         }
         if (state.passwordStatus == SettingsSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.passwordError ?? 'Failed to update password',
+            message: state.passwordError ?? context.tr.passwordUpdateFailed,
             isError: true,
             isAutoDismiss: false,
           );
@@ -135,6 +150,7 @@ class SettingsScreen extends StatelessWidget {
 
           return BlocBuilder<NavigationBloc, NavigationState>(
             builder: (context, navState) {
+              final tr = context.tr;
               return Scaffold(
                 backgroundColor: colors.background,
                 appBar: AppBar(
@@ -165,13 +181,13 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: AppDims.s8),
 
                     // ── Manage ──────────────────────────────────────
-                    const _SectionLabel('MANAGE'),
+                    _SectionLabel(tr.settingsSectionManage),
                     const SizedBox(height: AppDims.s2),
                     _GroupCard(items: [
                       _RowItem(
                         icon: SolarIconsOutline.layersMinimalistic,
-                        title: 'Categories',
-                        subtitle: 'Organize products',
+                        title: tr.settingsCategories,
+                        subtitle: tr.settingsCategoriesSubtitle,
                         onTap: () {
                           context.read<NavigationBloc>().add(
                               NavigationFeatureSelected(AppFeature.categories));
@@ -180,8 +196,8 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       _RowItem(
                         icon: SolarIconsOutline.userPlus,
-                        title: 'Cashiers',
-                        subtitle: 'Staff access & shifts',
+                        title: tr.settingsCashiers,
+                        subtitle: tr.settingsCashiersSubtitle,
                         onTap: () {
                           context.read<NavigationBloc>().add(
                               NavigationFeatureSelected(AppFeature.users));
@@ -190,8 +206,8 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       _RowItem(
                         icon: SolarIconsOutline.usersGroupTwoRounded,
-                        title: 'Customers',
-                        subtitle: 'Profiles & loyalty',
+                        title: tr.settingsCustomers,
+                        subtitle: tr.settingsCustomersSubtitle,
                         onTap: () {
                           context.read<NavigationBloc>().add(
                               NavigationFeatureSelected(AppFeature.customers));
@@ -200,14 +216,14 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       _RowItem(
                         icon: SolarIconsOutline.roundArrowLeftUp,
-                        title: 'Returns',
-                        subtitle: 'Process customer item returns',
+                        title: tr.settingsReturns,
+                        subtitle: tr.settingsReturnsSubtitle,
                         onTap: () => Navigator.of(context).pushNamed(RouteStrings.returnsScreen),
                       ),
                       _RowItem(
                         icon: SolarIconsOutline.notebook,
-                        title: 'Sales history',
-                        subtitle: 'Browse and search all transactions',
+                        title: tr.settingsSalesHistory,
+                        subtitle: tr.settingsSalesHistorySubtitle,
                         onTap: () => Navigator.of(context).pushNamed(RouteStrings.salesHistoryScreen),
                       ),
 
@@ -216,12 +232,12 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: AppDims.s5),
 
                     // ── Account & Security ──────────────────────────
-                    const _SectionLabel('ACCOUNT & SECURITY'),
+                    _SectionLabel(tr.settingsSectionAccount),
                     const SizedBox(height: AppDims.s2),
                     _GroupCard(items: [
                       _RowItem(
                         icon: SolarIconsOutline.user,
-                        title: 'Profile',
+                        title: tr.settingsProfile,
                         subtitle: _profileSubtitle(profile),
                         trailing: 'Edit',
                         onTap: () => _openProfileSheet(context, profile),
@@ -230,7 +246,7 @@ class SettingsScreen extends StatelessWidget {
                         _RowItem(
                           icon: SolarIconsOutline.card,
                           iconColor: const Color(0xFF2DD4BF),
-                          title: 'Bankak Payments',
+                          title: tr.settingsBankakPayments,
                           subtitle: _bankakSubtitle(profile),
                           trailing: _hasBankak(profile) ? 'Active' : 'Setup',
                           onTap: () => _openBankakSheet(context, profile),
@@ -238,8 +254,8 @@ class SettingsScreen extends StatelessWidget {
                       _RowItem(
                         icon: SolarIconsOutline.lockPassword,
                         iconColor: const Color(0xFF94A3B8),
-                        title: 'Password',
-                        subtitle: 'Change your account password',
+                        title: tr.settingsPassword,
+                        subtitle: tr.settingsPasswordSubtitle,
                         trailing: 'Change',
                         onTap: () => _openPasswordSheet(context),
                       ),
@@ -248,7 +264,7 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: AppDims.s5),
 
                     // ── Appearance ──────────────────────────────────
-                    const _SectionLabel('APPEARANCE'),
+                    _SectionLabel(tr.settingsSectionAppearance),
                     const SizedBox(height: AppDims.s2),
                     BlocSelector<ThemeBloc, ThemeState, ScreenMode?>(
                       selector: (s) => s.mode,
@@ -263,21 +279,24 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: AppDims.s5),
 
                     // ── Support ─────────────────────────────────────
-                    const _SectionLabel('SUPPORT'),
+                    _SectionLabel(tr.settingsSectionSupport),
                     const SizedBox(height: AppDims.s2),
                     _GroupCard(items: [
                       _RowItem(
                         icon: SolarIconsOutline.chatRound,
                         iconColor: const Color(0xFF25D366),
-                        title: 'WhatsApp Support',
+                        title: tr.settingsWhatsappSupport,
                         subtitle: '+249 91 230 0000',
                         onTap: () {},
                       ),
-                      _RowItem(
-                        icon: SolarIconsOutline.global,
-                        title: 'Language',
-                        subtitle: 'English',
-                        onTap: () {},
+                      BlocSelector<LocaleBloc, LocaleState, Locale>(
+                        selector: (s) => s.locale,
+                        builder: (context, locale) => _RowItem(
+                          icon: SolarIconsOutline.global,
+                          title: tr.settingsLanguage,
+                          subtitle: tr.currentLanguageName,
+                          onTap: () => _openLanguageSheet(context),
+                        ),
                       ),
                     ]),
 
@@ -289,7 +308,7 @@ class SettingsScreen extends StatelessWidget {
                       icon: Icon(Icons.logout_rounded,
                           size: 18, color: colors.danger),
                       label: Text(
-                        'Sign out',
+                        tr.settingsSignOut,
                         style: AppTextStyles.bs200(context).copyWith(
                           fontWeight: FontWeight.w800,
                           color: colors.danger,
@@ -351,7 +370,7 @@ class SettingsScreen extends StatelessWidget {
 // ─── _GroupCard ───────────────────────────────────────────────────────────────
 
 class _GroupCard extends StatelessWidget {
-  final List<_RowItem> items;
+  final List<Widget> items;
   const _GroupCard({required this.items});
 
   @override
