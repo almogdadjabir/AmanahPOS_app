@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/add_category_sheet.dart';
@@ -49,10 +50,6 @@ class _CategoriesContentState extends State<CategoriesContent> {
           return category.isActive != true;
         }).toList(growable: false);
 
-      case CategoryQuickFilter.withSubCategories:
-        return widget.categories.where((category) {
-          return (category.children?.length ?? 0) > 0;
-        }).toList(growable: false);
     }
   }
 
@@ -72,7 +69,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
         ),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: const EdgeInsetsDirectional.fromSTEB(
               AppDims.s4,
               AppDims.s4,
               AppDims.s4,
@@ -96,7 +93,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: const EdgeInsetsDirectional.fromSTEB(
               AppDims.s4,
               AppDims.s5,
               AppDims.s4,
@@ -107,7 +104,9 @@ class _CategoriesContentState extends State<CategoriesContent> {
                 children: [
                   Expanded(
                     child: Text(
-                      _sectionTitle,
+                      _sectionTitle(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs700(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
@@ -115,11 +114,12 @@ class _CategoriesContentState extends State<CategoriesContent> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: AppDims.s2),
                   TextButton.icon(
                     onPressed: () => showAddCategorySheet(context),
                     style: TextButton.styleFrom(
                       foregroundColor: colors.primary,
-                      padding: const EdgeInsets.symmetric(
+                      padding: const EdgeInsetsDirectional.symmetric(
                         horizontal: AppDims.s2,
                       ),
                       minimumSize: const Size(0, 38),
@@ -130,7 +130,9 @@ class _CategoriesContentState extends State<CategoriesContent> {
                       size: 18,
                     ),
                     label: Text(
-                      'Add Category',
+                      context.tr.addCategory,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs300(context).copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -158,16 +160,14 @@ class _CategoriesContentState extends State<CategoriesContent> {
     );
   }
 
-  String get _sectionTitle {
+  String _sectionTitle(BuildContext context) {
     switch (_selectedFilter) {
       case CategoryQuickFilter.all:
-        return 'Categories';
+        return context.tr.all;
       case CategoryQuickFilter.active:
-        return 'Active Categories';
+        return context.tr.activeCategories;
       case CategoryQuickFilter.inactive:
-        return 'Inactive Categories';
-      case CategoryQuickFilter.withSubCategories:
-        return 'Categories With Sub Categories';
+        return context.tr.inactiveCategories;
     }
   }
 }
@@ -182,34 +182,10 @@ class _CategoryFilterEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
-    final title = switch (filter) {
-      CategoryQuickFilter.all => 'No categories yet',
-      CategoryQuickFilter.active => 'No active categories',
-      CategoryQuickFilter.inactive => 'No inactive categories',
-      CategoryQuickFilter.withSubCategories => 'No sub categories found',
-    };
-
-    final message = switch (filter) {
-      CategoryQuickFilter.all =>
-      'Create your first category to organize products.',
-      CategoryQuickFilter.active =>
-      'No categories are currently active.',
-      CategoryQuickFilter.inactive =>
-      'All categories are currently active.',
-      CategoryQuickFilter.withSubCategories =>
-      'No categories have sub categories yet.',
-    };
-
-    final icon = switch (filter) {
-      CategoryQuickFilter.all => SolarIconsOutline.layersMinimalistic,
-      CategoryQuickFilter.active => SolarIconsOutline.checkCircle,
-      CategoryQuickFilter.inactive => SolarIconsOutline.pauseCircle,
-      CategoryQuickFilter.withSubCategories => SolarIconsOutline.widget,
-    };
+    final content = _CategoryEmptyContent.fromFilter(context, filter);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: const EdgeInsetsDirectional.fromSTEB(
         AppDims.s4,
         AppDims.s8,
         AppDims.s4,
@@ -217,23 +193,25 @@ class _CategoryFilterEmptyView extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(
-            width: 72,
-            height: 72,
+          DecoratedBox(
             decoration: BoxDecoration(
               color: colors.surfaceSoft,
               borderRadius: BorderRadius.circular(AppDims.rXl),
               border: Border.all(color: colors.border),
             ),
-            child: Icon(
-              icon,
-              size: 34,
-              color: colors.textSecondary,
+            child: SizedBox(
+              width: 72,
+              height: 72,
+              child: Icon(
+                content.icon,
+                size: 34,
+                color: colors.textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: AppDims.s4),
           Text(
-            title,
+            content.title,
             textAlign: TextAlign.center,
             style: AppTextStyles.bs500(context).copyWith(
               color: colors.textPrimary,
@@ -242,7 +220,7 @@ class _CategoryFilterEmptyView extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s2),
           Text(
-            message,
+            content.message,
             textAlign: TextAlign.center,
             style: AppTextStyles.bs300(context).copyWith(
               color: colors.textSecondary,
@@ -253,5 +231,47 @@ class _CategoryFilterEmptyView extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _CategoryEmptyContent {
+  final String title;
+  final String message;
+  final IconData icon;
+
+  const _CategoryEmptyContent({
+    required this.title,
+    required this.message,
+    required this.icon,
+  });
+
+  factory _CategoryEmptyContent.fromFilter(
+      BuildContext context,
+      CategoryQuickFilter filter,
+      ) {
+    final tr = context.tr;
+
+    switch (filter) {
+      case CategoryQuickFilter.all:
+        return _CategoryEmptyContent(
+          title: tr.noCategoriesYet,
+          message: tr.noCategoriesYetMessage,
+          icon: SolarIconsOutline.layersMinimalistic,
+        );
+
+      case CategoryQuickFilter.active:
+        return _CategoryEmptyContent(
+          title: tr.noActiveCategories,
+          message: tr.noActiveCategoriesMessage,
+          icon: SolarIconsOutline.checkCircle,
+        );
+
+      case CategoryQuickFilter.inactive:
+        return _CategoryEmptyContent(
+          title: tr.noInactiveCategories,
+          message: tr.noInactiveCategoriesMessage,
+          icon: SolarIconsOutline.pauseCircle,
+        );
+    }
   }
 }

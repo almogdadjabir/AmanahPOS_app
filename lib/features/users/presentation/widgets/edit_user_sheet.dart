@@ -18,14 +18,17 @@ import 'package:solar_icons/solar_icons.dart';
 const _kEditRoles = ['cashier', 'manager'];
 
 void showEditUserSheet(BuildContext context, {required UserData user}) {
+  final userBloc = context.read<UserBloc>();
+  final authBloc = context.read<AuthBloc>();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: context.read<UserBloc>()),
-        BlocProvider.value(value: context.read<AuthBloc>()),
+        BlocProvider.value(value: userBloc),
+        BlocProvider.value(value: authBloc),
       ],
       child: _EditUserSheet(user: user),
     ),
@@ -47,53 +50,65 @@ class _EditUserSheetState extends State<_EditUserSheet> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameCtrl;
+  late final List<ShopData> _shops;
+
+  late final String _initialName;
+  late final String _initialRole;
+  late final String? _initialShopId;
 
   late String _selectedRole;
   String? _selectedShopId;
-  bool _shopChanged = false;
-
-  List<ShopData> get _shops {
-    return context.read<AuthBloc>().state.defaultBusiness?.shops
-        ?.where((shop) {
-      final id = shop.id;
-      final isActive = shop.isActive ?? true;
-      return id != null && id.trim().isNotEmpty && isActive;
-    }).toList() ??
-        [];
-  }
 
   bool get _isCashier => _selectedRole == 'cashier';
 
   bool get _hasChanges {
-    final originalName = widget.user.fullName?.trim() ?? '';
-    final originalRole = _safeInitialRole(widget.user.role);
     final currentName = _nameCtrl.text.trim();
 
-    return currentName != originalName ||
-        _selectedRole != originalRole ||
-        _shopChanged;
+    return currentName != _initialName ||
+        _selectedRole != _initialRole ||
+        _selectedShopId != _initialShopId;
   }
 
   @override
   void initState() {
     super.initState();
 
-    _nameCtrl = TextEditingController(text: widget.user.fullName ?? '');
-    _selectedRole = _safeInitialRole(widget.user.role);
-    _selectedShopId = widget.user.defaultShopId;
+    _initialName = widget.user.fullName?.trim() ?? '';
+    _initialRole = _safeInitialRole(widget.user.role);
+    _initialShopId = widget.user.defaultShopId?.trim();
 
-    _nameCtrl.addListener(_onNameChanged);
-  }
+    _nameCtrl = TextEditingController(text: _initialName);
+    _selectedRole = _initialRole;
+    _selectedShopId = _initialShopId;
 
-  void _onNameChanged() {
-    if (mounted) setState(() {});
+    _shops = _activeShopsFromAuth();
   }
 
   @override
   void dispose() {
-    _nameCtrl.removeListener(_onNameChanged);
     _nameCtrl.dispose();
     super.dispose();
+  }
+
+  List<ShopData> _activeShopsFromAuth() {
+    final shops = context.read<AuthBloc>().state.defaultBusiness?.shops;
+
+    if (shops == null || shops.isEmpty) {
+      return const [];
+    }
+
+    final activeShops = <ShopData>[];
+
+    for (final shop in shops) {
+      final id = shop.id?.trim();
+      final isActive = shop.isActive ?? true;
+
+      if (id != null && id.isNotEmpty && isActive) {
+        activeShops.add(shop);
+      }
+    }
+
+    return List.unmodifiable(activeShops);
   }
 
   String _safeInitialRole(String? role) {
@@ -110,7 +125,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
 
     if (!_kEditRoles.contains(normalized)) {
       GlobalSnackBar.show(
-        message: 'Admin role cannot be assigned from the app',
+        message: context.tr.adminRoleCannotBeAssigned,
         isError: true,
       );
       return;
@@ -121,20 +136,22 @@ class _EditUserSheetState extends State<_EditUserSheet> {
 
       if (normalized != 'cashier') {
         _selectedShopId = null;
-        _shopChanged = true;
       }
     });
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() != true) return;
+    final tr = context.tr;
+
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
     if (!_hasChanges) return;
 
-    final userId = widget.user.id;
+    final userId = widget.user.id?.trim();
 
-    if (userId == null || userId.trim().isEmpty) {
+    if (userId == null || userId.isEmpty) {
       GlobalSnackBar.show(
-        message: 'Invalid user selected',
+        message: tr.invalidUserSelected,
         isError: true,
       );
       return;
@@ -142,28 +159,28 @@ class _EditUserSheetState extends State<_EditUserSheet> {
 
     if (!_kEditRoles.contains(_selectedRole)) {
       GlobalSnackBar.show(
-        message: 'Admin role cannot be assigned from the app',
+        message: tr.adminRoleCannotBeAssigned,
         isError: true,
       );
       return;
     }
 
-    final originalName = widget.user.fullName?.trim() ?? '';
-    final originalRole = _safeInitialRole(widget.user.role);
-    final nameChanged = _nameCtrl.text.trim() != originalName;
-    final roleChanged = _selectedRole != originalRole;
+    final currentName = _nameCtrl.text.trim();
+    final nameChanged = currentName != _initialName;
+    final roleChanged = _selectedRole != _initialRole;
+    final shopChanged = _selectedShopId != _initialShopId;
 
     if (nameChanged || roleChanged) {
       context.read<UserBloc>().add(
         OnEditUser(
           userId: userId,
-          fullName: _nameCtrl.text.trim(),
+          fullName: currentName,
           role: _selectedRole,
         ),
       );
     }
 
-    if (_shopChanged) {
+    if (shopChanged) {
       context.read<UserBloc>().add(
         OnAssignUserShop(
           userId: userId,
@@ -175,31 +192,33 @@ class _EditUserSheetState extends State<_EditUserSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
+    final subtitle = widget.user.fullName?.trim();
+
     return BlocListener<UserBloc, UserState>(
-      listenWhen: (prev, curr) {
-        return prev.submitStatus != curr.submitStatus;
-      },
+      listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == UserSubmitStatus.success) {
           Navigator.of(context).pop();
 
           GlobalSnackBar.show(
-            message: 'User updated',
+            message: context.tr.userUpdatedSuccessfully,
             isInfo: true,
           );
+          return;
         }
 
         if (state.submitStatus == UserSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
+            message: state.submitError ?? context.tr.somethingWentWrong,
             isError: true,
             isAutoDismiss: false,
           );
         }
       },
       child: ProductSheetShell(
-        title: context.tr.editUser,
-        subtitle: widget.user.fullName,
+        title: tr.editUser,
+        subtitle: subtitle?.isNotEmpty == true ? subtitle : null,
         body: Form(
           key: _formKey,
           child: Column(
@@ -207,33 +226,32 @@ class _EditUserSheetState extends State<_EditUserSheet> {
             children: [
               _InfoBanner(
                 icon: SolarIconsOutline.penNewSquare,
-                title: context.tr.editStaffAccount,
-                message:
-                'Only cashier and manager roles can be assigned from here.',
+                title: tr.editStaffAccount,
+                message: tr.editStaffAccountMessage,
                 color: context.appColors.primary,
               ),
 
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(
-                label: context.tr.fieldFullName,
+                label: tr.fieldFullName,
                 required: true,
               ),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _nameCtrl,
-                hint: 'Ali Hassan',
+                hint: tr.fullNameHint,
                 prefixIcon: SolarIconsOutline.user,
                 textInputAction: TextInputAction.next,
                 validator: (value) {
                   final text = value?.trim() ?? '';
 
                   if (text.isEmpty) {
-                    return 'Name is required';
+                    return tr.nameRequired;
                   }
 
                   if (text.length < 2) {
-                    return 'Name must be at least 2 characters';
+                    return tr.nameMustBeAtLeast2Characters;
                   }
 
                   return null;
@@ -243,7 +261,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(
-                label: context.tr.fieldRole,
+                label: tr.fieldRole,
                 required: true,
               ),
               const SizedBox(height: AppDims.s2),
@@ -256,16 +274,13 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               const SizedBox(height: AppDims.s4),
 
               if (_shops.isNotEmpty && _isCashier) ...[
-                FieldLabel(label: context.tr.fieldAssignedShop),
+                FieldLabel(label: tr.fieldAssignedShop),
                 const SizedBox(height: AppDims.s1),
                 _ShopDropdown(
                   shops: _shops,
                   selectedShopId: _selectedShopId,
                   onChanged: (shopId) {
-                    setState(() {
-                      _selectedShopId = shopId;
-                      _shopChanged = true;
-                    });
+                    setState(() => _selectedShopId = shopId);
                   },
                 ),
                 const SizedBox(height: AppDims.s2),
@@ -279,18 +294,29 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               if (!_isCashier) ...[
                 _InfoBanner(
                   icon: SolarIconsOutline.shieldUser,
-                  title: context.tr.managerAccess,
-                  message:
-                  'Managers are not assigned to a single shop. They can manage business operations based on their permissions.',
+                  title: tr.managerAccess,
+                  message: tr.managerAccessMessage,
                   color: const Color(0xFF0EA5E9),
                 ),
                 const SizedBox(height: AppDims.s4),
               ],
 
-              UserSubmitButton(
-                label: context.tr.saveChanges,
-                onPressed: _submit,
-                enabled: _hasChanges,
+              AnimatedBuilder(
+                animation: _nameCtrl,
+                builder: (context, _) {
+                  return BlocSelector<UserBloc, UserState, UserSubmitStatus>(
+                    selector: (state) => state.submitStatus,
+                    builder: (context, submitStatus) {
+                      final isLoading = submitStatus == UserSubmitStatus.loading;
+
+                      return UserSubmitButton(
+                        label: tr.saveChanges,
+                        onPressed: isLoading ? null : _submit,
+                        enabled: _hasChanges && !isLoading,
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
@@ -314,78 +340,90 @@ class _ShopDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(AppDims.rMd),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          value: selectedShopId,
-          isExpanded: true,
-          icon: Icon(
-            SolarIconsOutline.altArrowDown,
-            color: colors.textHint,
-            size: 19,
+      child: SizedBox(
+        height: 54,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: AppDims.s3,
           ),
-          style: AppTextStyles.bs400(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w800,
-          ),
-          items: [
-            DropdownMenuItem<String?>(
-              value: null,
-              child: Row(
-                children: [
-                  Icon(
-                    SolarIconsOutline.shop,
-                    size: 18,
-                    color: colors.textHint,
-                  ),
-                  const SizedBox(width: AppDims.s2),
-                  Text(
-                    'Unassigned',
-                    style: AppTextStyles.bs400(context).copyWith(
-                      color: const Color(0xFFF59E0B),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String?>(
+              value: selectedShopId,
+              isExpanded: true,
+              icon: Icon(
+                SolarIconsOutline.altArrowDown,
+                color: colors.textHint,
+                size: 19,
               ),
-            ),
-            ...shops.map((shop) {
-              return DropdownMenuItem<String?>(
-                value: shop.id,
-                child: Row(
-                  children: [
-                    Icon(
-                      SolarIconsOutline.shop,
-                      size: 18,
-                      color: colors.primary,
-                    ),
-                    const SizedBox(width: AppDims.s2),
-                    Expanded(
-                      child: Text(
-                        shop.name ?? 'Shop',
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs400(context).copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w800,
+              style: AppTextStyles.bs400(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+              items: [
+                DropdownMenuItem<String?>(
+                  value: null,
+                  child: Row(
+                    children: [
+                      Icon(
+                        SolarIconsOutline.shop,
+                        size: 18,
+                        color: colors.textHint,
+                      ),
+                      const SizedBox(width: AppDims.s2),
+                      Expanded(
+                        child: Text(
+                          tr.unassigned,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bs400(context).copyWith(
+                            color: const Color(0xFFF59E0B),
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              );
-            }),
-          ],
-          onChanged: onChanged,
+                ...shops.map((shop) {
+                  final shopName = shop.name?.trim();
+
+                  return DropdownMenuItem<String?>(
+                    value: shop.id,
+                    child: Row(
+                      children: [
+                        Icon(
+                          SolarIconsOutline.shop,
+                          size: 18,
+                          color: colors.primary,
+                        ),
+                        const SizedBox(width: AppDims.s2),
+                        Expanded(
+                          child: Text(
+                            shopName?.isNotEmpty == true
+                                ? shopName!
+                                : tr.shop,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bs400(context).copyWith(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+              onChanged: onChanged,
+            ),
+          ),
         ),
       ),
     );
@@ -407,24 +445,34 @@ class _ShopAssignmentHint extends StatelessWidget {
       return _InfoBanner(
         icon: SolarIconsOutline.dangerTriangle,
         title: context.tr.unassignedCashier,
-        message:
-        'This cashier is not assigned to any shop and cannot process sales.',
+        message: context.tr.unassignedCashierMessage,
         color: const Color(0xFFF59E0B),
       );
     }
 
-    final shopName = shops
-        .where((shop) => shop.id == selectedShopId)
-        .map((shop) => shop.name ?? 'Shop')
-        .firstOrNull;
+    final shopName = _findShopName(context, selectedShopId, shops);
 
     return _InfoBanner(
       icon: SolarIconsOutline.checkCircle,
       title: context.tr.shopAssigned,
-      message:
-      'Assigned to ${shopName ?? 'shop'}. Cashier can process sales at this shop.',
+      message: context.tr.cashierAssignedToShopDetailed(shopName),
       color: const Color(0xFF16A34A),
     );
+  }
+
+  String _findShopName(
+      BuildContext context,
+      String? selectedShopId,
+      List<ShopData> shops,
+      ) {
+    for (final shop in shops) {
+      if (shop.id == selectedShopId) {
+        final name = shop.name?.trim();
+        return name?.isNotEmpty == true ? name! : context.tr.shop;
+      }
+    }
+
+    return context.tr.shop;
   }
 }
 
@@ -445,9 +493,7 @@ class _InfoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -455,38 +501,41 @@ class _InfoBanner extends StatelessWidget {
           color: color.withValues(alpha: 0.16),
         ),
       ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 21,
-          ),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.bs300(context).copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  message,
-                  style: AppTextStyles.bs200(context).copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w700,
-                    height: 1.35,
-                  ),
-                ),
-              ],
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s3),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 21,
             ),
-          ),
-        ],
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.bs300(context).copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    style: AppTextStyles.bs200(context).copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

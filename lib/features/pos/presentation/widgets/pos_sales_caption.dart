@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class PosSalesCaption extends StatelessWidget {
@@ -71,8 +72,8 @@ class PosSalesCaption extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 7),
-                  Icon(
-                    SolarIconsOutline.altArrowRight,
+                  DirectionalIcon(
+                    icon: SolarIconsOutline.altArrowRight,
                     size: 15,
                     color: colors.textHint,
                   ),

@@ -1,4 +1,8 @@
+import 'dart:ui' as ui;
+
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
+import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -6,14 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class CartPeek extends StatefulWidget {
-  final PosState state;
-  final VoidCallback onTap;
-
   const CartPeek({
     super.key,
     required this.state,
     required this.onTap,
   });
+
+  final PosState state;
+  final VoidCallback onTap;
 
   @override
   State<CartPeek> createState() => _CartPeekState();
@@ -36,118 +40,109 @@ class _CartPeekState extends State<CartPeek> {
     final isLoading = widget.state.submitStatus == PosSubmitStatus.loading;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
-      child: GestureDetector(
-        onTap: isLoading ? null : widget.onTap,
-        onTapDown: isLoading ? null : (_) => _setPressed(true),
-        onTapCancel: isLoading ? null : () => _setPressed(false),
-        onTapUp: isLoading ? null : (_) => _setPressed(false),
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedScale(
-          duration: const Duration(milliseconds: 130),
-          curve: Curves.easeOut,
-          scale: _pressed ? 0.985 : 1,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            height: _height,
-            decoration: BoxDecoration(
-              color: colors.secondary,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: colors.onSecondary.withValues(
-                  alpha: isDark ? 0.08 : 0.12,
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: AppDims.s4),
+      child: Semantics(
+        button: true,
+        enabled: !isLoading,
+        label: context.tr.reviewCart,
+        child: GestureDetector(
+          onTap: isLoading ? null : widget.onTap,
+          onTapDown: isLoading ? null : (_) => _setPressed(true),
+          onTapCancel: isLoading ? null : () => _setPressed(false),
+          onTapUp: isLoading ? null : (_) => _setPressed(false),
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedScale(
+            duration: const Duration(milliseconds: 130),
+            curve: Curves.easeOut,
+            scale: _pressed ? 0.985 : 1,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              height: _height,
+              decoration: BoxDecoration(
+                color: colors.secondary,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: colors.onSecondary.withValues(
+                    alpha: isDark ? 0.08 : 0.12,
+                  ),
+                  width: 1,
                 ),
-                width: 1,
               ),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          colors.secondary,
-                          colors.secondary.withValues(alpha: 0.94),
-                        ],
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: AlignmentDirectional.centerStart,
+                          end: AlignmentDirectional.centerEnd,
+                          colors: [
+                            colors.secondary,
+                            colors.secondary.withValues(alpha: 0.94),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-
-                Positioned(
-                  right: -22,
-                  top: -34,
-                  child: Container(
-                    width: 128,
-                    height: 128,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colors.onSecondary.withValues(alpha: 0.07),
+                  PositionedDirectional(
+                    end: -22,
+                    top: -34,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colors.onSecondary.withValues(alpha: 0.07),
+                      ),
+                      child: const SizedBox(width: 128, height: 128),
                     ),
                   ),
-                ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
 
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.maxWidth;
+                      final centerGap = width < 350
+                          ? 72.0
+                          : width < 390
+                          ? 86.0
+                          : width < 430
+                          ? 102.0
+                          : 118.0;
 
-                    final centerGap = width < 350
-                        ? 72.0
-                        : width < 390
-                        ? 86.0
-                        : width < 430
-                        ? 102.0
-                        : 118.0;
-
-                    return Row(
-                      children: [
-                        const SizedBox(width: AppDims.s3),
-
-                        Flexible(
-                          flex: 0,
-                          child: _ReviewButton(isLoading: isLoading),
-                        ),
-
-                        const SizedBox(width: AppDims.s2),
-
-                        const Expanded(
-                          flex: 1,
-                          child: SizedBox(),
-                        ),
-
-                        SizedBox(width: centerGap),
-
-                        Expanded(
-                          flex: 3,
-                          child: Align(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: _CartSummary(
-                              itemCount: widget.state.itemCount,
-                              total: widget.state.total,
+                      return Row(
+                        children: [
+                          const SizedBox(width: AppDims.s3),
+                          Flexible(
+                            flex: 0,
+                            child: _ReviewButton(isLoading: isLoading),
+                          ),
+                          const SizedBox(width: AppDims.s2),
+                          const Expanded(child: SizedBox()),
+                          SizedBox(width: centerGap),
+                          Expanded(
+                            flex: 3,
+                            child: Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: _CartSummary(
+                                itemCount: widget.state.itemCount,
+                                total: widget.state.total,
+                              ),
                             ),
                           ),
-                        ),
-
-                        const SizedBox(width: AppDims.s2),
-
-                        Flexible(
-                          flex: 0,
-                          child: _CartIconBadge(
-                            quantity: widget.state.itemCount,
+                          const SizedBox(width: AppDims.s2),
+                          Flexible(
+                            flex: 0,
+                            child: _CartIconBadge(
+                              quantity: widget.state.itemCount,
+                            ),
                           ),
-                        ),
-
-                        const SizedBox(width: AppDims.s2),
-                      ],
-                    );
-                  },
-                ),
-              ],
+                          const SizedBox(width: AppDims.s2),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -157,19 +152,17 @@ class _CartPeekState extends State<CartPeek> {
 }
 
 class _ReviewButton extends StatelessWidget {
-  final bool isLoading;
-
   const _ReviewButton({
     required this.isLoading,
   });
+
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      height: 46,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.background,
         borderRadius: BorderRadius.circular(16),
@@ -181,49 +174,55 @@ class _ReviewButton extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isLoading)
-            SizedBox(
-              width: 15,
-              height: 15,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: colors.secondary,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
+        child: SizedBox(
+          height: 46,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isLoading)
+                SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.secondary,
+                  ),
+                )
+              else
+                Icon(
+                  SolarIconsOutline.altArrowUp,
+                  size: 20,
+                  color: colors.secondary,
+                ),
+              const SizedBox(width: 7),
+              Text(
+                context.tr.review,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bs200(context).copyWith(
+                  color: colors.secondary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.15,
+                ),
               ),
-            )
-          else
-            Icon(
-              SolarIconsOutline.altArrowUp,
-              size: 20,
-              color: colors.secondary,
-            ),
-          const SizedBox(width: 7),
-          Text(
-            'Review',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs200(context).copyWith(
-              color: colors.secondary,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.15,
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _CartSummary extends StatelessWidget {
-  final int itemCount;
-  final double total;
-
   const _CartSummary({
     required this.itemCount,
     required this.total,
   });
+
+  final int itemCount;
+  final double total;
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +238,7 @@ class _CartSummary extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            'Cart',
+            context.tr.cart,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.end,
@@ -251,25 +250,28 @@ class _CartSummary extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerEnd,
-            child: Text(
-              _formatMoney(total),
-              maxLines: 1,
-              softWrap: false,
-              textAlign: TextAlign.end,
-              style: AppTextStyles.bs600(context).copyWith(
-                color: colors.onSecondary,
-                fontWeight: FontWeight.w900,
-                height: 1,
-                letterSpacing: -0.5,
+          Directionality(
+            textDirection: ui.TextDirection.ltr,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerEnd,
+              child: Text(
+                money(total),
+                maxLines: 1,
+                softWrap: false,
+                textAlign: TextAlign.end,
+                style: AppTextStyles.bs600(context).copyWith(
+                  color: colors.onSecondary,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            '$itemCount item${itemCount == 1 ? '' : 's'}',
+            context.tr.itemCount(itemCount),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.end,
@@ -286,11 +288,11 @@ class _CartSummary extends StatelessWidget {
 }
 
 class _CartIconBadge extends StatelessWidget {
-  final int quantity;
-
   const _CartIconBadge({
     required this.quantity,
   });
+
+  final int quantity;
 
   @override
   Widget build(BuildContext context) {
@@ -302,12 +304,12 @@ class _CartIconBadge extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned(
-            left: 0,
-            right: 0,
+          PositionedDirectional(
+            start: 0,
+            end: 0,
             bottom: 0,
             top: 4,
-            child: Container(
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 color: colors.onSecondary.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(18),
@@ -319,15 +321,10 @@ class _CartIconBadge extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
+          PositionedDirectional(
             top: -4,
-            left: -7,
-            child: Container(
-              constraints: const BoxConstraints(
-                minWidth: 27,
-                minHeight: 27,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 7),
+            start: -7,
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 color: colors.background,
                 borderRadius: BorderRadius.circular(999),
@@ -343,13 +340,24 @@ class _CartIconBadge extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Center(
-                child: Text(
-                  '$quantity',
-                  style: AppTextStyles.sm200(context).copyWith(
-                    color: colors.secondary,
-                    fontWeight: FontWeight.w900,
-                    height: 1,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: 27,
+                  minHeight: 27,
+                ),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 7,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$quantity',
+                      style: AppTextStyles.sm200(context).copyWith(
+                        color: colors.secondary,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -359,16 +367,4 @@ class _CartIconBadge extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatMoney(double value) {
-  final hasDecimals = value % 1 != 0;
-  final raw = hasDecimals ? value.toStringAsFixed(2) : value.toStringAsFixed(0);
-
-  final formatted = raw.replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-        (match) => '${match[1]},',
-  );
-
-  return '$formatted SDG';
 }

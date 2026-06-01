@@ -13,13 +13,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 void showAddCategorySheet(BuildContext context) {
+  final categoryBloc = context.read<CategoryBloc>();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
-      value: context.read<CategoryBloc>(),
+      value: categoryBloc,
       child: const _AddCategorySheet(),
     ),
   );
@@ -35,23 +37,37 @@ class _AddCategorySheet extends StatefulWidget {
 class _AddCategorySheetState extends State<_AddCategorySheet> {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _descCtrl;
 
-  final _nameFocus = FocusNode();
-  final _descFocus = FocusNode();
+  late final FocusNode _nameFocus;
+  late final FocusNode _descFocus;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _nameCtrl = TextEditingController();
+    _descCtrl = TextEditingController();
+
+    _nameFocus = FocusNode();
+    _descFocus = FocusNode();
+  }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _descCtrl.dispose();
+
     _nameFocus.dispose();
     _descFocus.dispose();
+
     super.dispose();
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() != true) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final name = _nameCtrl.text.trim();
     final description = _descCtrl.text.trim();
@@ -66,6 +82,8 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
+
     return BlocListener<CategoryBloc, CategoryState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
@@ -73,80 +91,80 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
           Navigator.of(context).pop();
 
           GlobalSnackBar.show(
-            message: 'Category created successfully',
+            message: context.tr.categoryCreatedSuccessfully,
             isInfo: true,
           );
+          return;
         }
 
         if (state.submitStatus == CategorySubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
+            message: state.submitError ?? context.tr.somethingWentWrong,
             isError: true,
             isAutoDismiss: false,
           );
         }
       },
-      child: BlocBuilder<CategoryBloc, CategoryState>(
-        buildWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
-        builder: (context, state) {
-          final isSubmitting =
-              state.submitStatus == CategorySubmitStatus.loading;
+      child: ProductSheetShell(
+        title: tr.newCategory,
+        body: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _CategorySheetIntro(),
 
-          return ProductSheetShell(
-            title: context.tr.newCategory,
-            body: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _CategorySheetIntro(),
-                  const SizedBox(height: AppDims.s5),
+              const SizedBox(height: AppDims.s5),
 
-                  FieldLabel(
-                    label: context.tr.fieldCategoryName,
-                    required: true,
-                  ),
-                  const SizedBox(height: AppDims.s1),
-                  AppFormField(
-                    controller: _nameCtrl,
-                    focusNode: _nameFocus,
-                    nextFocus: _descFocus,
-                    hint: 'Beverages',
-                    prefixIcon: SolarIconsOutline.layersMinimalistic,
-                    validator: CategoryFormValidators.name,
-                  ),
-
-                  const SizedBox(height: AppDims.s4),
-
-                  FieldLabel(label: context.tr.fieldDescription),
-                  const SizedBox(height: AppDims.s1),
-                  AppFormField(
-                    controller: _descCtrl,
-                    focusNode: _descFocus,
-                    hint: 'Drinks, juices, water, and hot beverages',
-                    prefixIcon: SolarIconsOutline.notes,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) {
-                      if (!isSubmitting) _submit();
-                    },
-                  ),
-
-                  const SizedBox(height: AppDims.s4),
-
-                  const _CategoryTipsCard(),
-
-                  const SizedBox(height: AppDims.s5),
-
-                  _AmanaCategorySubmitButton(
-                    label: context.tr.createCategory,
-                    isLoading: isSubmitting,
-                    onPressed: isSubmitting ? null : _submit,
-                  ),
-                ],
+              FieldLabel(
+                label: tr.fieldCategoryName,
+                required: true,
               ),
-            ),
-          );
-        },
+              const SizedBox(height: AppDims.s1),
+              AppFormField(
+                controller: _nameCtrl,
+                focusNode: _nameFocus,
+                nextFocus: _descFocus,
+                hint: tr.categoryNameHint,
+                prefixIcon: SolarIconsOutline.layersMinimalistic,
+                validator: (value) {
+                  return CategoryFormValidators.name(context, value);
+                },
+              ),
+
+              const SizedBox(height: AppDims.s4),
+
+              FieldLabel(label: tr.fieldDescription),
+              const SizedBox(height: AppDims.s1),
+              AppFormField(
+                controller: _descCtrl,
+                focusNode: _descFocus,
+                hint: tr.categoryDescriptionHint,
+                prefixIcon: SolarIconsOutline.notes,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) {
+                  final submitStatus = context.read<CategoryBloc>().state.submitStatus;
+                  final isSubmitting = submitStatus == CategorySubmitStatus.loading;
+
+                  if (!isSubmitting) {
+                    _submit();
+                  }
+                },
+              ),
+
+              const SizedBox(height: AppDims.s4),
+
+              const _CategoryTipsCard(),
+
+              const SizedBox(height: AppDims.s5),
+
+              _AmanaCategorySubmitButton(
+                label: tr.createCategory,
+                onPressed: _submit,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -158,10 +176,9 @@ class _CategorySheetIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s4),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -174,54 +191,74 @@ class _CategorySheetIntro extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(AppDims.rLg),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.16),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s4),
+        child: Row(
+          children: [
+            _IntroIcon(color: colors.primary),
+
+            const SizedBox(width: AppDims.s3),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tr.createProductGroup,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bs500(context).copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    tr.createProductGroupMessage,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bs200(context).copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Icon(
-              SolarIconsOutline.layersMinimalistic,
-              color: colors.primary,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: AppDims.s3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Create product group',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs500(context).copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                    height: 1.05,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Use categories to organize products and speed up checkout.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs200(context).copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w700,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IntroIcon extends StatelessWidget {
+  final Color color;
+
+  const _IntroIcon({
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: color.withValues(alpha: 0.16),
+        ),
+      ),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: Icon(
+          SolarIconsOutline.layersMinimalistic,
+          color: color,
+          size: 28,
+        ),
       ),
     );
   }
@@ -234,9 +271,7 @@ class _CategoryTipsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(AppDims.rMd),
@@ -244,26 +279,31 @@ class _CategoryTipsCard extends StatelessWidget {
           color: colors.primary.withValues(alpha: 0.12),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            SolarIconsOutline.infoCircle,
-            size: 20,
-            color: colors.primary,
-          ),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Text(
-              'Keep category names short and clear, like Snacks, Drinks, Groceries, or Meals.',
-              style: AppTextStyles.bs100(context).copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w700,
-                height: 1.45,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s3),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              SolarIconsOutline.infoCircle,
+              size: 20,
+              color: colors.primary,
+            ),
+
+            const SizedBox(width: AppDims.s2),
+
+            Expanded(
+              child: Text(
+                context.tr.categoryTipsMessage,
+                style: AppTextStyles.bs100(context).copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  height: 1.45,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -271,12 +311,10 @@ class _CategoryTipsCard extends StatelessWidget {
 
 class _AmanaCategorySubmitButton extends StatelessWidget {
   final String label;
-  final bool isLoading;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
 
   const _AmanaCategorySubmitButton({
     required this.label,
-    required this.isLoading,
     required this.onPressed,
   });
 
@@ -284,54 +322,65 @@ class _AmanaCategorySubmitButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          backgroundColor: colors.primary,
-          disabledBackgroundColor: colors.primary.withValues(alpha: 0.55),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDims.rXl),
-          ),
-        ),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 180),
-          child: isLoading
-              ? const SizedBox(
-            key: ValueKey('loading'),
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.4,
-              color: Colors.white,
+    return BlocSelector<CategoryBloc, CategoryState, CategorySubmitStatus>(
+      selector: (state) => state.submitStatus,
+      builder: (context, submitStatus) {
+        final isLoading = submitStatus == CategorySubmitStatus.loading;
+
+        return SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: isLoading ? null : onPressed,
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              backgroundColor: colors.primary,
+              disabledBackgroundColor: colors.primary.withValues(alpha: 0.55),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDims.rXl),
+              ),
             ),
-          )
-              : Row(
-            key: const ValueKey('content'),
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                SolarIconsOutline.addCircle,
-                size: 22,
-                color: Colors.white,
-              ),
-              const SizedBox(width: AppDims.s2),
-              Text(
-                label,
-                style: AppTextStyles.bs300(context).copyWith(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: isLoading
+                  ? const SizedBox(
+                key: ValueKey('loading'),
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
                   color: Colors.white,
-                  fontWeight: FontWeight.w900,
                 ),
+              )
+                  : Row(
+                key: const ValueKey('content'),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    SolarIconsOutline.addCircle,
+                    size: 22,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: AppDims.s2),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bs300(context).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

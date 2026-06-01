@@ -468,6 +468,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldExpiryAlert => 'Expiry Alert';
 
   @override
+  String get menuCatalogTitle => 'Menu Catalog';
+
+  @override
+  String get productCatalogTitle => 'Product Catalog';
+
+  @override
+  String get menuCatalogSubtitle =>
+      'Manage menu items, prices, and categories.';
+
+  @override
+  String get productCatalogSubtitle =>
+      'Manage items, prices, categories, and stock availability.';
+
+  @override
   String get newCategory => 'New Category';
 
   @override
@@ -502,6 +516,246 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catAppBarStatus => 'Status';
+
+  @override
+  String get noCategory => 'No category';
+
+  @override
+  String get expiredBatchOne => '1 batch expired';
+
+  @override
+  String expiredBatchMany(int count) {
+    return '$count batches expired';
+  }
+
+  @override
+  String expiringSoonCount(Object count) {
+    return '$count expiring soon';
+  }
+
+  @override
+  String expiringSoonMany(Object count) {
+    return '$count expiring soon';
+  }
+
+  @override
+  String expiringSoonBatchMany(int count) {
+    return '$count expiring soon';
+  }
+
+  @override
+  String get price => 'Price';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get stock => 'Stock';
+
+  @override
+  String get oneDay => '1 day';
+
+  @override
+  String manyDays(int count) {
+    return '$count days';
+  }
+
+  @override
+  String get productAddedSuccessfully => 'Product added successfully';
+
+  @override
+  String get productNameHint => 'Pepsi 330ml';
+
+  @override
+  String get productDescriptionHint => 'Product description';
+
+  @override
+  String get generalCategory => 'General';
+
+  @override
+  String get autoCreated => 'Auto-created';
+
+  @override
+  String get selectBranch => 'Select branch';
+
+  @override
+  String get businessWorkspace => 'Business workspace';
+
+  @override
+  String get productDeletedSuccessfully => 'Product deleted successfully';
+
+  @override
+  String get deleteProductTitle => 'Delete Product?';
+
+  @override
+  String deleteProductMessage(String name) {
+    return 'Are you sure you want to delete \"$name\"? This action cannot be undone.';
+  }
+
+  @override
+  String get thisProduct => 'this product';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get productCategoriesTitle => 'Product Categories';
+
+  @override
+  String get productCategoriesSubtitle =>
+      'Group products into simple sections for faster checkout and cleaner inventory.';
+
+  @override
+  String get activeCategories => 'Active Categories';
+
+  @override
+  String get inactiveCategories => 'Inactive Categories';
+
+  @override
+  String get categoriesWithSubCategories => 'Categories With Sub Categories';
+
+  @override
+  String get addCategory => 'Add Category';
+
+  @override
+  String get productNameRequired => 'Product name is required';
+
+  @override
+  String get priceRequired => 'Price is required';
+
+  @override
+  String get enterValidPrice => 'Enter a valid price';
+
+  @override
+  String get invalidProduct => 'Invalid product';
+
+  @override
+  String get categoryMissing => 'Category is missing';
+
+  @override
+  String get productUpdatedSuccessfully => 'Product updated successfully';
+
+  @override
+  String get productPhoto => 'Product photo';
+
+  @override
+  String get tapToChangeProductImage => 'Tap to change product image';
+
+  @override
+  String get categoryLocked => 'Category locked';
+
+  @override
+  String get locked => 'Locked';
+
+  @override
+  String get allProducts => 'All Products';
+
+  @override
+  String get unknownCategory => 'Unknown Category';
+
+  @override
+  String get product => 'Product';
+
+  @override
+  String get noCategoriesYetMessage =>
+      'Create your first category to organize products.';
+
+  @override
+  String get noActiveCategories => 'No active categories';
+
+  @override
+  String get noActiveCategoriesMessage => 'No categories are currently active.';
+
+  @override
+  String get noInactiveCategories => 'No inactive categories';
+
+  @override
+  String get noInactiveCategoriesMessage =>
+      'All categories are currently active.';
+
+  @override
+  String get noSubCategoriesFound => 'No sub categories found';
+
+  @override
+  String get noSubCategoriesFoundMessage =>
+      'No categories have sub categories yet.';
+
+  @override
+  String get noDescriptionAdded => 'No description added';
+
+  @override
+  String subCategoryCount(int count) {
+    return '$count sub';
+  }
+
+  @override
+  String get categoryCreatedSuccessfully => 'Category created successfully';
+
+  @override
+  String get categoryNameHint => 'Beverages';
+
+  @override
+  String get categoryDescriptionHint =>
+      'Drinks, juices, water, and hot beverages';
+
+  @override
+  String get createProductGroup => 'Create product group';
+
+  @override
+  String get createProductGroupMessage =>
+      'Use categories to organize products and speed up checkout.';
+
+  @override
+  String get categoryTipsMessage =>
+      'Keep category names short and clear, like Snacks, Drinks, Groceries, or Meals.';
+
+  @override
+  String get categoryNameRequired => 'Category name is required';
+
+  @override
+  String get categoryUpdatedSuccessfully => 'Category updated successfully';
+
+  @override
+  String get invalidCategory => 'Invalid category';
+
+  @override
+  String get categoryDescriptionShortHint => 'Drinks and beverages';
+
+  @override
+  String get categoryDefaultDescription =>
+      'Organize products under this category for faster POS usage.';
+
+  @override
+  String get categoryNoProductsMessage =>
+      'This category is ready. Add the first product here so it appears directly under this category.';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get off => 'Off';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get moreActions => 'More actions';
+
+  @override
+  String productCountLabel(int count) {
+    return '$count products';
+  }
+
+  @override
+  String get categoryDeletedSuccessfully => 'Category deleted successfully';
+
+  @override
+  String get deleteCategoryTitle => 'Delete Category?';
+
+  @override
+  String deleteCategoryMessage(String name) {
+    return '\"$name\" will be permanently deleted. This action cannot be undone.';
+  }
 
   @override
   String get addCashier => 'Add Cashier';
@@ -628,6 +882,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerSalesPrefix => 'Sales';
+
+  @override
+  String get allUsers => 'All Users';
+
+  @override
+  String get activeUsers => 'Active Users';
+
+  @override
+  String get cashiers => 'Cashiers';
+
+  @override
+  String get managers => 'Managers';
+
+  @override
+  String get addUser => 'Add User';
+
+  @override
+  String get usersManagement => 'Users Management';
+
+  @override
+  String get usersManagementSubtitle =>
+      'Manage staff accounts, roles, shop access, and POS permissions.';
+
+  @override
+  String get noUsersYet => 'No users yet';
+
+  @override
+  String get noUsersYetMessage =>
+      'Add your first user so your team can start using the POS.';
+
+  @override
+  String get noActiveUsers => 'No active users';
+
+  @override
+  String get noActiveUsersMessage => 'No users are currently active.';
+
+  @override
+  String get noCashiersFound => 'No cashiers found';
+
+  @override
+  String get noCashiersFoundMessage =>
+      'No cashier accounts are currently available.';
+
+  @override
+  String get noManagersFound => 'No managers found';
+
+  @override
+  String get noManagersFoundMessage =>
+      'No manager accounts are currently available.';
 
   @override
   String get customers => 'Customers';
@@ -974,6 +1277,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bizShopsTitle => 'Shops';
 
   @override
+  String get live => 'LIVE';
+
+  @override
+  String get today => 'Today';
+
+  @override
   String get bizActiveBranch => 'Active branch';
 
   @override
@@ -1025,6 +1334,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bizFieldShopName => 'Shop Name';
 
   @override
+  String get shopManagement => 'Shop Management';
+
+  @override
   String get shopStatTotalShops => 'Total Shops';
 
   @override
@@ -1047,4 +1359,598 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bizShopsLabel => 'Shops';
+
+  @override
+  String get addShop => 'Add Shop';
+
+  @override
+  String get noShopsYet => 'No shops yet';
+
+  @override
+  String get firstShopMessage =>
+      'Add your first shop location to start managing products, sales, and cashiers.';
+
+  @override
+  String get shop => 'Shop';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get inactive => 'Inactive';
+
+  @override
+  String get newShop => 'New Shop';
+
+  @override
+  String get shopAddedSuccessfully => 'Shop added successfully';
+
+  @override
+  String get mainBranchHint => 'Main Branch';
+
+  @override
+  String get shopNameRequired => 'Shop name is required';
+
+  @override
+  String get nameMustBeAtLeast2Characters =>
+      'Name must be at least 2 characters';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get khartoumCentreHint => 'Khartoum Centre';
+
+  @override
+  String get enterValidPhoneNumber => 'Enter a valid phone number';
+
+  @override
+  String get editShop => 'Edit shop';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get address => 'Address';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get createStaffAccountMessage =>
+      'Only cashier and manager accounts can be created here.';
+
+  @override
+  String get fullNameHint => 'Ali Hassan';
+
+  @override
+  String get fullNameRequired => 'Full name is required';
+
+  @override
+  String get invalidRoleSelected => 'Invalid role selected';
+
+  @override
+  String get assignCashierToShopRequired =>
+      'Please assign this cashier to a shop.';
+
+  @override
+  String get userAddedSuccessfully => 'User added successfully';
+
+  @override
+  String autoAssignCashierToShop(String shopName) {
+    return 'Will be assigned to $shopName automatically.';
+  }
+
+  @override
+  String get selectShop => 'Select a shop';
+
+  @override
+  String get cashierShopRequiredMessage =>
+      'Cashiers must be assigned to a shop to process sales.';
+
+  @override
+  String cashierAssignedToShop(String shopName) {
+    return 'Cashier will be assigned to $shopName.';
+  }
+
+  @override
+  String get thisShop => 'this shop';
+
+  @override
+  String get adminRoleHint =>
+      'Full access — can manage everything including users and settings.';
+
+  @override
+  String get managerRoleHint =>
+      'Can view reports, manage inventory and orders.';
+
+  @override
+  String get cashierRoleHint =>
+      'Can process sales and manage the POS terminal.';
+
+  @override
+  String get editStaffAccountMessage =>
+      'Only cashier and manager roles can be assigned from here.';
+
+  @override
+  String get adminRoleCannotBeAssigned =>
+      'Admin role cannot be assigned from the app';
+
+  @override
+  String get invalidUserSelected => 'Invalid user selected';
+
+  @override
+  String get userUpdatedSuccessfully => 'User updated successfully';
+
+  @override
+  String get nameRequired => 'Name is required';
+
+  @override
+  String get unassigned => 'Unassigned';
+
+  @override
+  String get unassignedCashierMessage =>
+      'This cashier is not assigned to any shop and cannot process sales.';
+
+  @override
+  String cashierAssignedToShopDetailed(String shopName) {
+    return 'Assigned to $shopName. Cashier can process sales at this shop.';
+  }
+
+  @override
+  String get managerAccessMessage =>
+      'Managers are not assigned to a single shop. They can manage business operations based on their permissions.';
+
+  @override
+  String get userDeactivatedSuccessfully => 'User deactivated successfully';
+
+  @override
+  String deactivateUserMessage(String name) {
+    return '\"$name\" will lose access immediately. You can reactivate them later.';
+  }
+
+  @override
+  String get invalidUserId => 'Invalid user ID';
+
+  @override
+  String get thisUser => 'this user';
+
+  @override
+  String get noCashiersYet => 'No cashiers yet';
+
+  @override
+  String get noCashiersYetDescription =>
+      'Add your first cashier so your team can start processing sales from the POS.';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get never => 'Never';
+
+  @override
+  String get admin => 'Admin';
+
+  @override
+  String get manager => 'Manager';
+
+  @override
+  String get cashier => 'Cashier';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get managerAccessHint =>
+      'Can manage inventory, reports and operations';
+
+  @override
+  String get cashierAccessHint => 'Can process sales and use POS terminal';
+
+  @override
+  String get adminAccessHint => 'Can manage business settings and staff access';
+
+  @override
+  String get staffAccountHint => 'Staff account';
+
+  @override
+  String get subtotal => 'Subtotal';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get failedToLoadProducts => 'Failed to load products';
+
+  @override
+  String get noProductsFound => 'No products found';
+
+  @override
+  String nothingMatchesQuery(String query) {
+    return 'Nothing matches \"$query\".';
+  }
+
+  @override
+  String get tryAnotherCategoryOrAddProducts =>
+      'Try another category or add products first.';
+
+  @override
+  String get payment => 'Payment';
+
+  @override
+  String get method => 'Method';
+
+  @override
+  String get bankak => 'Bankak';
+
+  @override
+  String get bankTransfer => 'Bank transfer';
+
+  @override
+  String get cash => 'Cash';
+
+  @override
+  String get payNow => 'Pay now';
+
+  @override
+  String bankakReadyAccount(String account) {
+    return 'Bankak ready · Account $account';
+  }
+
+  @override
+  String get bankakAccountSetupBanner =>
+      'Bankak account is not set up. Tap to open settings.';
+
+  @override
+  String get bankakAccountNotSetUpMessage =>
+      'Bankak account is not set up. Go to Settings and add your account number first.';
+
+  @override
+  String get cashierNotAssignedToShopMessage =>
+      'You are not assigned to a shop. Contact your manager.';
+
+  @override
+  String get noShopFoundRefreshMessage =>
+      'No shop found. Please refresh and try again.';
+
+  @override
+  String get clearCartQuestion => 'Clear cart?';
+
+  @override
+  String get clearCartDescription =>
+      'This will remove all items from the current sale.';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get reviewSale => 'Review sale';
+
+  @override
+  String get review => 'Review';
+
+  @override
+  String get reviewCart => 'Review cart';
+
+  @override
+  String get cart => 'Cart';
+
+  @override
+  String get completeSale => 'Complete sale';
+
+  @override
+  String itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+      zero: '0 items',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String eachPrice(String price) {
+    return '$price each';
+  }
+
+  @override
+  String get failedToLoadSales => 'Failed to load sales';
+
+  @override
+  String get searchReceiptAmountPaymentHint =>
+      'Search receipt, amount, payment...';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get returned => 'Returned';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get allLoaded => 'All loaded';
+
+  @override
+  String get todaysSales => 'Today\'s';
+
+  @override
+  String get noMatchingSales => 'No matching sales';
+
+  @override
+  String get tryDifferentSearchTerm => 'Try a different search term';
+
+  @override
+  String get noSalesToday => 'No sales today';
+
+  @override
+  String get salesMadeTodayWillAppearHere =>
+      'Sales made today will appear here';
+
+  @override
+  String get noPendingSales => 'No pending sales';
+
+  @override
+  String get allOfflineSalesSynced => 'All offline sales have been synced';
+
+  @override
+  String get noCompletedSales => 'No completed sales';
+
+  @override
+  String get noReturnedSales => 'No returned sales';
+
+  @override
+  String get noSalesYet => 'No sales yet';
+
+  @override
+  String get matchingSalesWillAppearHere => 'Matching sales will appear here';
+
+  @override
+  String get salesWillAppearHere =>
+      'Sales will appear here once you complete your first checkout';
+
+  @override
+  String get card => 'Card';
+
+  @override
+  String get partiallyReturned => 'Partially returned';
+
+  @override
+  String get cancelled => 'Cancelled';
+
+  @override
+  String get failed => 'Failed';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String todayWithTime(String time) {
+    return 'Today $time';
+  }
+
+  @override
+  String yesterdayWithTime(String time) {
+    return 'Yesterday $time';
+  }
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get allLoadedSales => 'All loaded sales';
+
+  @override
+  String get todaysSalesCount => 'Today\'s sales';
+
+  @override
+  String get completedSalesCount => 'Completed sales';
+
+  @override
+  String get returnedSalesCount => 'Returned sales';
+
+  @override
+  String get pendingSalesCount => 'Pending sales';
+
+  @override
+  String get allLoadedRevenue => 'All loaded revenue';
+
+  @override
+  String get todaysRevenue => 'Today\'s revenue';
+
+  @override
+  String get completedRevenue => 'Completed revenue';
+
+  @override
+  String get returnedRevenue => 'Returned revenue';
+
+  @override
+  String get pendingRevenue => 'Pending revenue';
+
+  @override
+  String get receiptNumberLabel => 'RECEIPT NUMBER';
+
+  @override
+  String get temporaryReferenceLabel => 'TEMPORARY REFERENCE';
+
+  @override
+  String get salePendingSyncDescription =>
+      'This sale is pending sync. Returns and final receipt number are only available after the sale syncs to the server.';
+
+  @override
+  String get saleAlreadyRefunded => 'This sale has already been refunded.';
+
+  @override
+  String get preparingReceipt => 'Preparing receipt...';
+
+  @override
+  String get shareReceiptPdf => 'Share receipt PDF';
+
+  @override
+  String get receiptPdfShareHint =>
+      'The receipt will be shared as a PDF file. Choose WhatsApp from the share options.';
+
+  @override
+  String get noItemDetailsAvailable => 'No item details available';
+
+  @override
+  String get wallet => 'Wallet';
+
+  @override
+  String get receipt => 'Receipt';
+
+  @override
+  String get amanaReceipt => 'AmanaPOS Receipt';
+
+  @override
+  String get salesReceipt => 'Sales Receipt';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get item => 'Item';
+
+  @override
+  String get qty => 'Qty';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get offlineSalePdfWarning =>
+      'Offline sale - final server confirmation may still be pending.';
+
+  @override
+  String get thankYouForPurchase => 'Thank you for your purchase.';
+
+  @override
+  String get poweredByAmanaPOS => 'Powered by AmanaPOS';
+
+  @override
+  String get processReturn => 'Process return';
+
+  @override
+  String get returnSearchHint => 'Receipt number, amount...';
+
+  @override
+  String get returnSearchHelper => 'Receipt number, amount, or customer name';
+
+  @override
+  String get pleaseTryAgain => 'Please try again';
+
+  @override
+  String get returnPendingSyncCannotReturn =>
+      'Pending sync — cannot return yet';
+
+  @override
+  String returnAlreadyProcessed(String status) {
+    return 'Already $status';
+  }
+
+  @override
+  String get originalSale => 'Original sale';
+
+  @override
+  String get tapItemsToSelect => 'Tap items to select';
+
+  @override
+  String get refundTotal => 'Refund total';
+
+  @override
+  String get items => 'items';
+
+  @override
+  String get selectItemsToReturn => 'Select items to return';
+
+  @override
+  String itemsSelected(Object selectedCount, Object totalCount) {
+    return '$selectedCount of $totalCount items selected';
+  }
+
+  @override
+  String get sold => 'sold';
+
+  @override
+  String get returnProcessed => 'Return processed!';
+
+  @override
+  String get stockRestored => 'Stock restored';
+
+  @override
+  String get receiptReady => 'Receipt ready to share';
+
+  @override
+  String get returnReference => 'Return reference';
+
+  @override
+  String get noReturnedItems => 'No returned items found';
+
+  @override
+  String get totalRefunded => 'Total refunded';
+
+  @override
+  String get returnReceipt => 'Return receipt';
+
+  @override
+  String get ref => 'Ref';
+
+  @override
+  String get refund => 'Refund';
+
+  @override
+  String get original => 'Original';
+
+  @override
+  String get cashRefund => 'Cash refund';
+
+  @override
+  String get settingsSynced => 'SYNCED';
+
+  @override
+  String get commonEdit => 'Edit';
+
+  @override
+  String get commonActive => 'Active';
+
+  @override
+  String get commonSetup => 'Setup';
+
+  @override
+  String get commonChange => 'Change';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get settingsBankakNotConfigured =>
+      'Not configured — add Bankak to accept sales';
+
+  @override
+  String settingsBankakReady(String account) {
+    return 'Account $account · ready for POS sales';
+  }
+
+  @override
+  String get settingsProfileSubtitleFallback =>
+      'Name, email and contact details';
+
+  @override
+  String get settingsSignOutTitle => 'Sign out?';
+
+  @override
+  String get settingsSignOutMessage =>
+      'Make sure all your sales are synced before signing out. Offline sales that have not synced will be lost.';
 }

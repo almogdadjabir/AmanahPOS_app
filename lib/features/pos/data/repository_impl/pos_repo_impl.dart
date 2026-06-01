@@ -1,5 +1,6 @@
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/features/pos/data/datasources/pos_remote_data_source.dart';
+import 'package:amana_pos/features/pos/data/datasources/pos_submit_exception.dart';
 import 'package:amana_pos/features/pos/data/model/offline/offline_sale_dto.dart';
 import 'package:amana_pos/features/pos/data/model/offline/offline_sales_queue.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
@@ -31,51 +32,121 @@ class PosRepoImpl extends PosRepository {
     String discountAmount = '0',
     String taxAmount = '0',
   }) async {
-    try {
-      if (items.isEmpty) return const Left('Cart is empty');
+    final validationError = _validateSaleInput(
+      shopId: shopId,
+      paymentMethod: paymentMethod,
+      items: items,
+    );
 
-      final validItems = items.where((i) => i.product.id != null).toList();
-      if (validItems.isEmpty) return const Left('No valid products in cart');
-
-      final clientSaleId = const Uuid().v4();
-
-      final createSaleDto = _buildCreateSaleDto(
-        clientSaleId: clientSaleId,
-        shopId: shopId,
-        customerId: customerId,
-        paymentMethod: paymentMethod,
-        items: validItems,
-        discountAmount: discountAmount,
-        taxAmount: taxAmount,
-      );
-
-      final offlineSaleDto = _buildOfflineSaleDto(
-        clientSaleId: clientSaleId,
-        shopId: shopId,
-        customerId: customerId,
-        paymentMethod: paymentMethod,
-        items: validItems,
-        discountAmount: discountAmount,
-        taxAmount: taxAmount,
-      );
-
-      final isOnline = await _networkMonitor.isOnline;
-
-      if (!isOnline) {
-        await _offlineSalesQueue.enqueueSale(offlineSaleDto);
-        return Right(PosSubmitResult.offlineQueued(clientSaleId));
-      }
-
-      try {
-        final result = await _remoteDataSource.createSale(createSaleDto);
-        return Right(result);
-      } catch (_) {
-        await _offlineSalesQueue.enqueueSale(offlineSaleDto);
-        return Right(PosSubmitResult.offlineQueued(clientSaleId));
-      }
-    } catch (e) {
-      return Left(e.toString());
+    if (validationError != null) {
+      return Left(validationError);
     }
+
+    final validItems = items.where((item) => item.product.id != null).toList();
+    final clientSaleId = const Uuid().v4();
+
+    final createSaleDto = _buildCreateSaleDto(
+      clientSaleId: clientSaleId,
+      shopId: shopId,
+      customerId: customerId,
+      paymentMethod: paymentMethod,
+      items: validItems,
+      discountAmount: discountAmount,
+      taxAmount: taxAmount,
+    );
+
+    final isOnline = await _networkMonitor.isOnline;
+
+    if (!isOnline) {
+      return _queueOfflineSale(
+        clientSaleId: clientSaleId,
+        shopId: shopId,
+        customerId: customerId,
+        paymentMethod: paymentMethod,
+        items: validItems,
+        discountAmount: discountAmount,
+        taxAmount: taxAmount,
+      );
+    }
+
+    try {
+      final result = await _remoteDataSource.createSale(createSaleDto);
+      return Right(result);
+    } on PosSubmitException catch (e) {
+      if (!e.canQueueOffline) {
+        return Left(e.message);
+      }
+
+      return _queueOfflineSale(
+        clientSaleId: clientSaleId,
+        shopId: shopId,
+        customerId: customerId,
+        paymentMethod: paymentMethod,
+        items: validItems,
+        discountAmount: discountAmount,
+        taxAmount: taxAmount,
+      );
+    } catch (_) {
+      return const Left('Failed to submit sale. Please try again.');
+    }
+  }
+
+  String? _validateSaleInput({
+    required String shopId,
+    required String paymentMethod,
+    required List<PosCartItem> items,
+  }) {
+    if (shopId.trim().isEmpty) {
+      return 'Shop is required';
+    }
+
+    if (paymentMethod.trim().isEmpty) {
+      return 'Payment method is required';
+    }
+
+    if (items.isEmpty) {
+      return 'Cart is empty';
+    }
+
+    final hasValidProduct = items.any((item) {
+      final productId = item.product.id?.trim();
+      return productId != null && productId.isNotEmpty;
+    });
+
+    if (!hasValidProduct) {
+      return 'No valid products in cart';
+    }
+
+    final hasInvalidQuantity = items.any((item) => item.quantity <= 0);
+    if (hasInvalidQuantity) {
+      return 'Invalid product quantity';
+    }
+
+    return null;
+  }
+
+  Future<Either<String?, PosSubmitResult>> _queueOfflineSale({
+    required String clientSaleId,
+    required String shopId,
+    required String? customerId,
+    required String paymentMethod,
+    required List<PosCartItem> items,
+    required String discountAmount,
+    required String taxAmount,
+  }) async {
+    final offlineSaleDto = _buildOfflineSaleDto(
+      clientSaleId: clientSaleId,
+      shopId: shopId,
+      customerId: customerId,
+      paymentMethod: paymentMethod,
+      items: items,
+      discountAmount: discountAmount,
+      taxAmount: taxAmount,
+    );
+
+    await _offlineSalesQueue.enqueueSale(offlineSaleDto);
+
+    return Right(PosSubmitResult.offlineQueued(clientSaleId));
   }
 
   CreateSaleRequestDto _buildCreateSaleDto({
@@ -96,7 +167,7 @@ class PosRepoImpl extends PosRepository {
       taxAmount: taxAmount,
       items: items.map((item) {
         return CreateSaleItemDto(
-          productId: item.product.id!,
+          productId: item.product.id!.trim(),
           quantity: item.quantity.toString(),
           unitPrice: item.price.toStringAsFixed(2),
         );
@@ -113,10 +184,14 @@ class PosRepoImpl extends PosRepository {
     required String discountAmount,
     required String taxAmount,
   }) {
-    final subtotal = items.fold<double>(0, (sum, i) => sum + i.lineTotal);
-    final total = subtotal -
-        (double.tryParse(discountAmount) ?? 0) +
-        (double.tryParse(taxAmount) ?? 0);
+    final subtotal = items.fold<double>(
+      0,
+          (sum, item) => sum + item.lineTotal,
+    );
+
+    final discount = double.tryParse(discountAmount) ?? 0;
+    final tax = double.tryParse(taxAmount) ?? 0;
+    final total = subtotal - discount + tax;
 
     return OfflineSaleDto(
       clientSaleId: clientSaleId,
@@ -130,13 +205,14 @@ class PosRepoImpl extends PosRepository {
       createdAt: DateTime.now().toUtc(),
       items: items.map((cartItem) {
         final price = cartItem.price;
-        final qty = cartItem.quantity.toDouble();
+        final quantity = cartItem.quantity.toDouble();
+
         return OfflineSaleItemDto(
-          productId: cartItem.product.id!,
+          productId: cartItem.product.id!.trim(),
           productName: cartItem.product.name ?? '',
-          quantity: qty,
+          quantity: quantity,
           unitPrice: price.toStringAsFixed(2),
-          lineTotal: (price * qty).toStringAsFixed(2),
+          lineTotal: (price * quantity).toStringAsFixed(2),
           productSnapshot: cartItem.product,
         );
       }).toList(),

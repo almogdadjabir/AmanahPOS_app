@@ -12,6 +12,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -257,8 +258,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    SolarIconsOutline.altArrowLeft,
+                  child: DirectionalIcon(
+                    icon: SolarIconsOutline.altArrowLeft,
                     size: 18,
                     color: colors.textPrimary,
                   ),

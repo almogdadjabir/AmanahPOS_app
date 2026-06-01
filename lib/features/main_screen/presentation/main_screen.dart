@@ -23,14 +23,14 @@ class MainScreen extends StatelessWidget {
       systemNavigationBarColor: colors.surface,
       systemNavigationBarIconBrightness: Brightness.light,
       statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark, // iOS
+      statusBarBrightness: Brightness.dark,
     )
         : SystemUiOverlayStyle.dark.copyWith(
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: colors.surface,
       systemNavigationBarIconBrightness: Brightness.dark,
       statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light, // iOS
+      statusBarBrightness: Brightness.light,
     );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(

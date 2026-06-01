@@ -1,5 +1,4 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/business/presentation/widgets/shop/add_shop_sheet.dart';
@@ -8,9 +7,11 @@ import 'package:amana_pos/features/business/presentation/widgets/shop/shop_quick
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ShopManagementScreen extends StatelessWidget {
   final BusinessData business;
@@ -44,13 +45,14 @@ class ShopManagementScreen extends StatelessWidget {
                 surfaceTintColor: Colors.transparent,
                 leading: IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(
-                    Icons.arrow_back_rounded,
+                  icon: DirectionalIcon(
+                    icon: SolarIconsOutline.arrowLeft,
                     color: context.appColors.textPrimary,
+                    size: 22,
                   ),
                 ),
                 title: Text(
-                  'Shop Management',
+                  context.tr.shopManagement,
                   style: AppTextStyles.bs500(context).copyWith(
                     color: context.appColors.textPrimary,
                     fontWeight: FontWeight.w900,
@@ -58,7 +60,7 @@ class ShopManagementScreen extends StatelessWidget {
                 ),
                 actions: [
                   Padding(
-                    padding: const EdgeInsets.only(right: AppDims.s2),
+                    padding: const EdgeInsetsDirectional.only(end: AppDims.s6),
                     child: TextButton.icon(
                       onPressed: () => showAddShopSheet(context, data.id),
                       style: TextButton.styleFrom(
@@ -68,7 +70,7 @@ class ShopManagementScreen extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.add_rounded, size: 17),
                       label: Text(
-                        'Add Shop',
+                        context.tr.addShop,
                         style: AppTextStyles.bs300(context).copyWith(
                           fontWeight: FontWeight.w900,
                         ),
@@ -187,14 +189,14 @@ class _EmptyShopManagement extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.storefront_outlined,
+              SolarIconsOutline.shop,
               size: 34,
               color: colors.primary,
             ),
           ),
           const SizedBox(height: AppDims.s3),
           Text(
-            'No shops yet',
+            context.tr.noShopsYet,
             style: AppTextStyles.bs600(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
@@ -202,7 +204,7 @@ class _EmptyShopManagement extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s1),
           Text(
-            'Add your first shop location to start managing products, sales, and cashiers.',
+            context.tr.firstShopMessage,
             textAlign: TextAlign.center,
             style: AppTextStyles.bs300(context).copyWith(
               color: colors.textSecondary,
@@ -216,7 +218,7 @@ class _EmptyShopManagement extends StatelessWidget {
             height: 48,
             child: FilledButton.icon(
               onPressed: onAddTap,
-              icon: const Icon(Icons.add_business_rounded),
+              icon: const Icon(SolarIconsOutline.addCircle),
               label: Text(context.tr.bizAddFirstShop),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,

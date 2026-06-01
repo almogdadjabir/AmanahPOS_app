@@ -1,5 +1,3 @@
-// lib/features/products/presentation/widgets/products_app_bar.dart
-
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
@@ -21,7 +19,7 @@ class ProductsAppBar extends StatelessWidget {
       backgroundColor: context.appColors.background,
       surfaceTintColor: Colors.transparent,
       title: Text(
-        'Products',
+        context.tr.catAppBarProducts,
         style: AppTextStyles.bs600(context).copyWith(
           fontWeight: FontWeight.w900,
           color: context.appColors.textPrimary,
@@ -33,7 +31,7 @@ class ProductsAppBar extends StatelessWidget {
           icon: Icon(SolarIconsOutline.addCircle,
               size: 18, color: context.appColors.primary),
           label: Text(
-            'Add product',
+            context.tr.addProduct,
             style: AppTextStyles.bs300(context).copyWith(
               fontWeight: FontWeight.w800,
               color: context.appColors.primary,
@@ -41,7 +39,6 @@ class ProductsAppBar extends StatelessWidget {
           ),
         ),
 
-        // Grid / list toggle.
         BlocBuilder<ProductBloc, ProductState>(
           buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
           builder: (context, state) {
@@ -54,9 +51,10 @@ class ProductsAppBar extends StatelessWidget {
               },
               icon: Icon(
                 state.isGrid
-                    ? Icons.view_list_rounded
-                    : Icons.grid_view_rounded,
+                    ? SolarIconsOutline.list
+                    : SolarIconsOutline.widget,
                 color: context.appColors.textPrimary,
+                size: 22,
               ),
             );
           },

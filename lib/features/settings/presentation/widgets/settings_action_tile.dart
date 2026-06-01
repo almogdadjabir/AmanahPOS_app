@@ -1,4 +1,5 @@
 import 'package:amana_pos/theme/app_spacing.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
@@ -210,8 +211,8 @@ class _TrailingAction extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          Icon(
-            SolarIconsOutline.altArrowRight,
+          DirectionalIcon(
+            icon: SolarIconsOutline.altArrowRight,
             color: colors.textPrimary,
             size: 16,
           ),

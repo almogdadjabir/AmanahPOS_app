@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/common/localization/app_localizations_product_extensions.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -19,17 +20,17 @@ class ProductSummaryCardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final stock = product.stockLevel ?? 0;
+    final tr = context.tr;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s4),
+    final stock = product.stockLevel ?? 0;
+    final categoryName = product.categoryName?.trim();
+    final isActive = product.isActive != false;
+
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.035),
@@ -38,151 +39,161 @@ class ProductSummaryCardView extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _InfoTile(
-                  icon: SolarIconsOutline.walletMoney,
-                  label: 'Price',
-                  value: _formatPrice(product.price),
-                  color: colors.primary,
-                ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _InfoTile(
-                  icon: SolarIconsOutline.layersMinimalistic,
-                  label: 'Category',
-                  value: product.categoryName?.trim().isNotEmpty == true
-                      ? product.categoryName!.trim()
-                      : 'No category',
-                  color: const Color(0xFF8B5CF6),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppDims.s2),
-
-          if (showStock)
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s4),
+        child: Column(
+          children: [
             Row(
               children: [
                 Expanded(
                   child: _InfoTile(
-                    icon: SolarIconsOutline.box,
-                    label: 'Stock',
-                    value: _formatQty(stock),
-                    color: _stockColor(stock),
+                    icon: SolarIconsOutline.walletMoney,
+                    label: tr.price,
+                    value: _formatPrice(product.price),
+                    color: colors.primary,
                   ),
                 ),
                 const SizedBox(width: AppDims.s2),
                 Expanded(
-                  child: _statusTile(context),
+                  child: _InfoTile(
+                    icon: SolarIconsOutline.tag,
+                    label: tr.category,
+                    value: categoryName?.isNotEmpty == true
+                        ? categoryName!
+                        : tr.noCategory,
+                    color: const Color(0xFF8B5CF6),
+                  ),
                 ),
               ],
-            )
-          else
-            _statusTile(context),
+            ),
 
-          if (showStock) _buildAlertRow(context),
-        ],
+            const SizedBox(height: AppDims.s2),
+
+            if (showStock)
+              Row(
+                children: [
+                  Expanded(
+                    child: _InfoTile(
+                      icon: SolarIconsOutline.box,
+                      label: tr.stock,
+                      value: _formatQty(stock),
+                      color: _stockColor(stock),
+                    ),
+                  ),
+                  const SizedBox(width: AppDims.s2),
+                  Expanded(
+                    child: _StatusTile(isActive: isActive),
+                  ),
+                ],
+              )
+            else
+              _StatusTile(isActive: isActive),
+
+            if (showStock)
+              _AlertRow(
+                minStock: product.minStockLevel,
+                expiryDays: product.expiryAlertDays,
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAlertRow(BuildContext context) {
-    final minStock = product.minStockLevel;
-    final expiryDays = product.expiryAlertDays;
+  static Color _stockColor(double value) {
+    if (value <= 0) return const Color(0xFFDC2626);
+    if (value <= 5) return const Color(0xFFEA580C);
+    return const Color(0xFF16A34A);
+  }
 
-    final hasMin = minStock != null;
-    final hasExpiry = expiryDays != null;
+  static String _formatPrice(dynamic value) {
+    if (value == null) return '0.00';
 
-    if (!hasMin && !hasExpiry) {
+    if (value is num) {
+      return value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+    }
+
+    return value.toString();
+  }
+
+  static String _formatQty(num value) {
+    if (value % 1 == 0) return value.toInt().toString();
+    return value.toStringAsFixed(2);
+  }
+}
+
+class _AlertRow extends StatelessWidget {
+  final double? minStock;
+  final int? expiryDays;
+
+  const _AlertRow({
+    required this.minStock,
+    required this.expiryDays,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasMinStock = minStock != null;
+    final hasExpiryAlert = expiryDays != null;
+
+    if (!hasMinStock && !hasExpiryAlert) {
       return const SizedBox.shrink();
     }
 
     const amber = Color(0xFFF59E0B);
     const orange = Color(0xFFEA580C);
 
-    final minTile = hasMin
+    final minTile = hasMinStock
         ? _InfoTile(
       icon: SolarIconsOutline.dangerTriangle,
       label: context.tr.fieldMinStockLevel,
-      value: _formatQty(minStock),
+      value: ProductSummaryCardView._formatQty(minStock!),
       color: amber,
     )
         : null;
 
-    final expiryTile = hasExpiry
+    final expiryTile = hasExpiryAlert
         ? _InfoTile(
       icon: SolarIconsOutline.calendarMark,
       label: context.tr.fieldExpiryAlert,
-      value: '$expiryDays day${expiryDays == 1 ? '' : 's'}',
+      value: context.tr.dayCountLabel(expiryDays!),
       color: orange,
     )
         : null;
 
-    if (minTile != null && expiryTile == null) {
-      return Column(
+    return Padding(
+      padding: const EdgeInsets.only(top: AppDims.s2),
+      child: Row(
         children: [
-          const SizedBox(height: AppDims.s2),
-          minTile,
-        ],
-      );
-    }
-
-    if (expiryTile != null && minTile == null) {
-      return Column(
-        children: [
-          const SizedBox(height: AppDims.s2),
-          expiryTile,
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        const SizedBox(height: AppDims.s2),
-        Row(
-          children: [
-            Expanded(child: minTile!),
+          if (minTile != null) Expanded(child: minTile),
+          if (minTile != null && expiryTile != null)
             const SizedBox(width: AppDims.s2),
-            Expanded(child: expiryTile!),
-          ],
-        ),
-      ],
+          if (expiryTile != null) Expanded(child: expiryTile),
+        ],
+      ),
     );
   }
+}
 
-  Widget _statusTile(BuildContext context) {
-    final isActive = product.isActive != false;
+class _StatusTile extends StatelessWidget {
+  final bool isActive;
+
+  const _StatusTile({
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
 
     return _InfoTile(
       icon: isActive
           ? SolarIconsOutline.checkCircle
           : SolarIconsOutline.pauseCircle,
-      label: 'Status',
-      value: isActive ? 'Active' : 'Inactive',
-      color: isActive ? const Color(0xFF16A34A) : context.appColors.textHint,
+      label: context.tr.status,
+      value: isActive ? context.tr.active : context.tr.inactive,
+      color: isActive ? const Color(0xFF16A34A) : colors.textHint,
     );
-  }
-
-  Color _stockColor(double value) {
-    if (value <= 0) return const Color(0xFFDC2626);
-    if (value <= 5) return const Color(0xFFEA580C);
-    return const Color(0xFF16A34A);
-  }
-
-  String _formatPrice(dynamic value) {
-    if (value == null) return '0.00';
-    return '$value';
-  }
-
-  String _formatQty(double value) {
-    if (value % 1 == 0) return value.toInt().toString();
-    return value.toStringAsFixed(2);
   }
 }
 
@@ -203,8 +214,7 @@ class _InfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      padding: const EdgeInsets.all(AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDims.rMd),
@@ -212,52 +222,57 @@ class _InfoTile extends StatelessWidget {
           color: color.withValues(alpha: 0.12),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(AppDims.rSm),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs400(context).copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                    height: 1.05,
-                  ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s3),
+        child: Row(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppDims.rSm),
+              ),
+              child: SizedBox(
+                width: 36,
+                height: 36,
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs100(context).copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bs400(context).copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bs100(context).copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

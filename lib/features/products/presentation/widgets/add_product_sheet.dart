@@ -21,19 +21,23 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:amana_pos/widgets/optional_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 void showAddProductSheet(
     BuildContext context, {
       CategoryData? initialCategory,
     }) {
+  final productBloc = context.read<ProductBloc>();
+  final isRestaurant = context.read<AuthBloc>().state.permissions.isRestaurant;
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
-      value: context.read<ProductBloc>(),
+      value: productBloc,
       child: _AddProductSheet(
-        isRestaurant: context.read<AuthBloc>().state.permissions.isRestaurant,
+        isRestaurant: isRestaurant,
         initialCategory: initialCategory,
       ),
     ),
@@ -56,55 +60,68 @@ class _AddProductSheet extends StatefulWidget {
 class _AddProductSheetState extends State<_AddProductSheet> {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameCtrl     = TextEditingController();
-  final _priceCtrl    = TextEditingController();
-  final _costCtrl     = TextEditingController();
-  final _descCtrl     = TextEditingController();
-  final _skuCtrl      = TextEditingController();
-  final _barcodeCtrl  = TextEditingController();
-  final _minStockCtrl = TextEditingController();
-  final _expiryCtrl   = TextEditingController();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _priceCtrl;
+  late final TextEditingController _costCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _skuCtrl;
+  late final TextEditingController _barcodeCtrl;
+  late final TextEditingController _minStockCtrl;
+  late final TextEditingController _expiryCtrl;
 
-  final _nameFocus     = FocusNode();
-  final _priceFocus    = FocusNode();
-  final _costFocus     = FocusNode();
-  final _descFocus     = FocusNode();
-  final _skuFocus      = FocusNode();
-  final _barcodeFocus  = FocusNode();
-  final _minStockFocus = FocusNode();
-  final _expiryFocus   = FocusNode();
+  late final FocusNode _nameFocus;
+  late final FocusNode _priceFocus;
+  late final FocusNode _costFocus;
+  late final FocusNode _descFocus;
+  late final FocusNode _skuFocus;
+  late final FocusNode _barcodeFocus;
+  late final FocusNode _minStockFocus;
+  late final FocusNode _expiryFocus;
+
+  late final List<String> _units;
 
   CategoryData? _selectedCategory;
   String _selectedUnit = 'pcs';
   bool _trackInventory = true;
   PickedAppImage? _pickedImage;
 
-  late final List<String> _units;
-
   @override
   void initState() {
     super.initState();
 
+    _nameCtrl = TextEditingController();
+    _priceCtrl = TextEditingController();
+    _costCtrl = TextEditingController();
+    _descCtrl = TextEditingController();
+    _skuCtrl = TextEditingController();
+    _barcodeCtrl = TextEditingController();
+    _minStockCtrl = TextEditingController();
+    _expiryCtrl = TextEditingController();
+
+    _nameFocus = FocusNode();
+    _priceFocus = FocusNode();
+    _costFocus = FocusNode();
+    _descFocus = FocusNode();
+    _skuFocus = FocusNode();
+    _barcodeFocus = FocusNode();
+    _minStockFocus = FocusNode();
+    _expiryFocus = FocusNode();
+
     _units = widget.isRestaurant ? kUnitsRestaurant : kUnitsShop;
 
-    final cats = context.read<ProductBloc>().state.categories;
+    final categories = context.read<ProductBloc>().state.categories;
+    final initialCategory = widget.initialCategory;
 
-    if (widget.initialCategory != null) {
-      final initialId = widget.initialCategory!.id;
-
-      final matched = cats.where((category) {
-        return category.id == initialId;
-      }).toList();
-
-      _selectedCategory = matched.isNotEmpty
-          ? matched.first
-          : widget.initialCategory;
-
+    if (initialCategory != null) {
+      _selectedCategory = _findCategoryById(
+        categories,
+        initialCategory.id,
+      ) ?? initialCategory;
       return;
     }
 
-    if (cats.isNotEmpty) {
-      _selectedCategory = cats.first;
+    if (categories.isNotEmpty) {
+      _selectedCategory = categories.first;
     }
   }
 
@@ -118,6 +135,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _barcodeCtrl.dispose();
     _minStockCtrl.dispose();
     _expiryCtrl.dispose();
+
     _nameFocus.dispose();
     _priceFocus.dispose();
     _costFocus.dispose();
@@ -126,67 +144,93 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _barcodeFocus.dispose();
     _minStockFocus.dispose();
     _expiryFocus.dispose();
+
     super.dispose();
   }
 
+  CategoryData? _findCategoryById(
+      List<CategoryData> categories,
+      String? categoryId,
+      ) {
+    if (categoryId == null || categoryId.isEmpty) return null;
+
+    for (final category in categories) {
+      if (category.id == categoryId) return category;
+    }
+
+    return null;
+  }
+
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
+
+    final name = _nameCtrl.text.trim();
+    final price = _priceCtrl.text.trim();
+    final cost = _costCtrl.text.trim();
+    final description = _descCtrl.text.trim();
+    final sku = _skuCtrl.text.trim();
+    final barcode = _barcodeCtrl.text.trim();
+    final minStock = _minStockCtrl.text.trim();
+    final expiryDays = _expiryCtrl.text.trim();
+
+    final shouldTrackInventory = !widget.isRestaurant && _trackInventory;
 
     final dto = AddProductRequestDto(
-      name: _nameCtrl.text.trim(),
-      price: _priceCtrl.text.trim(),
-      costPrice: _costCtrl.text.trim().isEmpty
-          ? null
-          : _costCtrl.text.trim(),
+      name: name,
+      price: price,
+      costPrice: cost.isEmpty ? null : cost,
       category: _selectedCategory?.id ?? '',
       unit: _selectedUnit,
-      trackInventory: !widget.isRestaurant && _trackInventory,
-      minStockLevel: (!widget.isRestaurant &&
-              _minStockCtrl.text.trim().isNotEmpty)
-          ? _minStockCtrl.text.trim()
+      trackInventory: shouldTrackInventory,
+      minStockLevel: shouldTrackInventory && minStock.isNotEmpty
+          ? minStock
           : null,
-      description: _descCtrl.text.trim().isEmpty
-          ? null
-          : _descCtrl.text.trim(),
-      sku: _skuCtrl.text.trim().isEmpty ? null : _skuCtrl.text.trim(),
-      barcode: _barcodeCtrl.text.trim().isEmpty
-          ? null
-          : _barcodeCtrl.text.trim(),
-      expiryAlertDays: (!widget.isRestaurant &&
-              _expiryCtrl.text.trim().isNotEmpty)
-          ? _expiryCtrl.text.trim()
+      description: description.isEmpty ? null : description,
+      sku: sku.isEmpty ? null : sku,
+      barcode: barcode.isEmpty ? null : barcode,
+      expiryAlertDays: shouldTrackInventory && expiryDays.isNotEmpty
+          ? expiryDays
           : null,
       imageUpload: _pickedImage,
     );
 
+    final bloc = context.read<ProductBloc>();
+
     if (_selectedCategory == null) {
-      context.read<ProductBloc>().add(OnAddProductWithAutoCategory(dto: dto));
-    } else {
-      context.read<ProductBloc>().add(OnAddProduct(dto: dto));
+      bloc.add(OnAddProductWithAutoCategory(dto: dto));
+      return;
     }
+
+    bloc.add(OnAddProduct(dto: dto));
   }
 
   @override
   Widget build(BuildContext context) {
     final tr = context.tr;
+
     return BlocListener<ProductBloc, ProductState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == ProductSubmitStatus.success) {
           Navigator.of(context).pop();
           GlobalSnackBar.show(
-              message: 'Product added successfully', isInfo: true);
+            message: context.tr.productAddedSuccessfully,
+            isInfo: true,
+          );
+          return;
         }
+
         if (state.submitStatus == ProductSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
+            message: state.submitError ?? context.tr.somethingWentWrong,
             isError: true,
             isAutoDismiss: false,
           );
         }
       },
       child: ProductSheetShell(
-        title: context.tr.newProduct,
+        title: tr.newProduct,
         body: Form(
           key: _formKey,
           child: Column(
@@ -195,22 +239,29 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               ImageUploadBox(
                 pickedImage: _pickedImage,
                 imageUrl: null,
-                title: context.tr.addProductPhoto,
-                subtitle: 'Use a clear image for faster cashier selection',
-                onChanged: (img) => setState(() => _pickedImage = img),
+                title: tr.addProductPhoto,
+                subtitle: tr.productPhotoSubtitle,
+                onChanged: (image) {
+                  setState(() => _pickedImage = image);
+                },
               ),
+
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: context.tr.fieldProductName, required: true),
+              FieldLabel(
+                label: tr.fieldProductName,
+                required: true,
+              ),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _nameCtrl,
                 focusNode: _nameFocus,
                 nextFocus: _priceFocus,
-                hint: 'Pepsi 330ml',
-                prefixIcon: Icons.inventory_2_outlined,
-                validator: ProductFormValidators.name,
+                hint: tr.productNameHint,
+                prefixIcon: SolarIconsOutline.box,
+                validator: (value) => ProductFormValidators.name(context, value),
               ),
+
               const SizedBox(height: AppDims.s3),
 
               ProductPriceRow(
@@ -220,25 +271,30 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                 costFocus: _costFocus,
                 nextFocus: _descFocus,
               ),
+
               const SizedBox(height: AppDims.s3),
 
               BlocBuilder<ProductBloc, ProductState>(
-                buildWhen: (prev, curr) =>
-                    prev.categories != curr.categories,
+                buildWhen: (prev, curr) => prev.categories != curr.categories,
                 builder: (context, state) {
-                  final hasCategories = state.categories.isNotEmpty;
+                  final categories = state.categories;
+                  final hasCategories = categories.isNotEmpty;
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       FieldLabel(
-                          label: 'Category', required: hasCategories),
+                        label: tr.category,
+                        required: hasCategories,
+                      ),
                       const SizedBox(height: AppDims.s1),
                       if (hasCategories)
                         CategoryPicker(
-                          categories: state.categories,
+                          categories: categories,
                           selected: _selectedCategory,
-                          onSelected: (c) =>
-                              setState(() => _selectedCategory = c),
+                          onSelected: (category) {
+                            setState(() => _selectedCategory = category);
+                          },
                         )
                       else
                         const _AutoCategoryInfo(),
@@ -246,20 +302,26 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                   );
                 },
               ),
+
               const SizedBox(height: AppDims.s3),
 
               if (!widget.isRestaurant) ...[
-                FieldLabel(label: tr.fieldUnit, required: true),
+                FieldLabel(
+                  label: tr.fieldUnit,
+                  required: true,
+                ),
                 const SizedBox(height: AppDims.s2),
                 UnitPicker(
                   units: _units,
                   selected: _selectedUnit,
-                  onSelected: (u) => setState(() => _selectedUnit = u),
+                  onSelected: (unit) {
+                    setState(() => _selectedUnit = unit);
+                  },
                 ),
               ],
 
               const SizedBox(height: AppDims.s4),
-              OptionalDivider(),
+              const OptionalDivider(),
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(label: tr.fieldDescription),
@@ -268,14 +330,14 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                 controller: _descCtrl,
                 focusNode: _descFocus,
                 nextFocus: _skuFocus,
-                hint: 'Product description',
-                prefixIcon: Icons.notes_rounded,
+                hint: tr.productDescriptionHint,
+                prefixIcon: SolarIconsOutline.notes,
                 maxLines: 3,
               ),
+
               const SizedBox(height: AppDims.s3),
 
               if (!widget.isRestaurant) ...[
-                // SKU — kept in Add, full-width on its own row.
                 FieldLabel(label: tr.fieldSku),
                 const SizedBox(height: AppDims.s1),
                 AppFormField(
@@ -283,22 +345,27 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                   focusNode: _skuFocus,
                   nextFocus: _barcodeFocus,
                   hint: 'SKU-001',
-                  prefixIcon: Icons.qr_code_rounded,
+                  prefixIcon: SolarIconsOutline.qrCode,
                 ),
+
                 const SizedBox(height: AppDims.s3),
 
-                // Barcode — full-width with scan button.
                 ProductBarcodeField(
                   controller: _barcodeCtrl,
                   focusNode: _barcodeFocus,
                 ),
+
                 const SizedBox(height: AppDims.s3),
 
                 TrackInventoryToggle(
                   value: _trackInventory,
-                  onChanged: (v) => setState(() => _trackInventory = v),
+                  onChanged: (value) {
+                    setState(() => _trackInventory = value);
+                  },
                 ),
+
                 const SizedBox(height: AppDims.s3),
+
                 ProductInventoryAlertsSection(
                   minStockCtrl: _minStockCtrl,
                   expiryAlertCtrl: _expiryCtrl,
@@ -309,7 +376,11 @@ class _AddProductSheetState extends State<_AddProductSheet> {
               ],
 
               const SizedBox(height: AppDims.s5),
-              ProductSubmitButton(label: context.tr.addProduct, onPressed: _submit),
+
+              ProductSubmitButton(
+                label: tr.addProduct,
+                onPressed: _submit,
+              ),
             ],
           ),
         ),
@@ -324,44 +395,70 @@ class _AutoCategoryInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.primaryContainer.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(AppDims.rMd),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.22)),
+        border: Border.all(
+          color: colors.primary.withValues(alpha: 0.22),
+        ),
       ),
-      child: Row(
-        children: [
-          Icon(Icons.auto_awesome_rounded, size: 18, color: colors.primary),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Text(
-              'General',
-              style: AppTextStyles.bs100(context).copyWith(
-                fontWeight: FontWeight.w700,
+      child: SizedBox(
+        height: 52,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: AppDims.s3,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                SolarIconsOutline.magicStick_3,
+                size: 18,
                 color: colors.primary,
               ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppDims.s2, vertical: 3),
-            decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'Auto-created',
-              style: AppTextStyles.sm200(context).copyWith(
-                fontWeight: FontWeight.w800,
-                color: colors.primary,
+
+              const SizedBox(width: AppDims.s2),
+
+              Expanded(
+                child: Text(
+                  tr.generalCategory,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs100(context).copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.primary,
+                  ),
+                ),
               ),
-            ),
+
+              const SizedBox(width: AppDims.s2),
+
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDims.s2,
+                    vertical: 3,
+                  ),
+                  child: Text(
+                    tr.autoCreated,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.sm200(context).copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/presentation/widgets/add_user_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -11,84 +12,134 @@ class UserEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     return Center(
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(AppDims.s6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 86,
-              height: 86,
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.18),
-                ),
-              ),
-              child: Icon(
-                SolarIconsOutline.usersGroupRounded,
-                size: 38,
-                color: colors.primary,
-              ),
-            ),
+        padding: const EdgeInsetsDirectional.all(AppDims.s6),
+        child: RepaintBoundary(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _EmptyIcon(colors: colors),
+              const SizedBox(height: AppDims.s4),
+              _EmptyTitle(title: tr.noCashiersYet),
+              const SizedBox(height: AppDims.s2),
+              _EmptyDescription(description: tr.noCashiersYetDescription),
+              const SizedBox(height: AppDims.s5),
+              _AddCashierButton(onPressed: () => showAddUserSheet(context)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-            const SizedBox(height: AppDims.s4),
+class _EmptyIcon extends StatelessWidget {
+  const _EmptyIcon({required this.colors});
 
-            Text(
-              'No cashiers yet',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bs700(context).copyWith(
-                fontWeight: FontWeight.w900,
-                color: colors.textPrimary,
-                height: 1.1,
-              ),
-            ),
+  final AppThemeColors colors;
 
-            const SizedBox(height: AppDims.s2),
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.10),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: colors.primary.withValues(alpha: 0.18),
+        ),
+      ),
+      child: SizedBox(
+        width: 86,
+        height: 86,
+        child: Icon(
+          SolarIconsOutline.usersGroupRounded,
+          size: 38,
+          color: colors.primary,
+        ),
+      ),
+    );
+  }
+}
 
-            Text(
-              'Add your first cashier so your team can start processing sales from the POS.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bs300(context).copyWith(
-                fontWeight: FontWeight.w700,
-                color: colors.textSecondary,
-                height: 1.4,
-              ),
-            ),
+class _EmptyTitle extends StatelessWidget {
+  const _EmptyTitle({required this.title});
 
-            const SizedBox(height: AppDims.s5),
+  final String title;
 
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton.icon(
-                onPressed: () => showAddUserSheet(context),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDims.rMd),
-                  ),
-                ),
-                icon: const Icon(
-                  SolarIconsOutline.userPlus,
-                  size: 19,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  'Add Cashier',
-                  style: AppTextStyles.bs500(context).copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-          ],
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Text(
+      title,
+      textAlign: TextAlign.center,
+      style: AppTextStyles.bs700(context).copyWith(
+        fontWeight: FontWeight.w900,
+        color: colors.textPrimary,
+        height: 1.1,
+      ),
+    );
+  }
+}
+
+class _EmptyDescription extends StatelessWidget {
+  const _EmptyDescription({required this.description});
+
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Text(
+      description,
+      textAlign: TextAlign.center,
+      style: AppTextStyles.bs300(context).copyWith(
+        fontWeight: FontWeight.w700,
+        color: colors.textSecondary,
+        height: 1.4,
+      ),
+    );
+  }
+}
+
+class _AddCashierButton extends StatelessWidget {
+  const _AddCashierButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: colors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDims.rMd),
+          ),
+        ),
+        icon: const Icon(
+          SolarIconsOutline.userPlus,
+          size: 19,
+          color: Colors.white,
+        ),
+        label: Text(
+          tr.addCashier,
+          style: AppTextStyles.bs500(context).copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ),
     );

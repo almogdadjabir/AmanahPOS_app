@@ -9,6 +9,7 @@ import 'package:amana_pos/features/users/presentation/widgets/user_list.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,20 +53,21 @@ class _UsersScreenState extends State<UsersScreen> {
         backgroundColor: colors.background,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
+          tooltip: context.tr.back,
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(
-            SolarIconsOutline.altArrowLeft,
+          icon: DirectionalIcon(
+            icon: SolarIconsOutline.altArrowLeft,
             color: colors.textPrimary,
           ),
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: AppDims.s2),
+            padding: const EdgeInsetsDirectional.only(end: AppDims.s2),
             child: TextButton.icon(
               onPressed: () => showAddUserSheet(context),
               style: TextButton.styleFrom(
                 foregroundColor: colors.primary,
-                padding: const EdgeInsets.symmetric(
+                padding: const EdgeInsetsDirectional.symmetric(
                   horizontal: AppDims.s2,
                 ),
                 minimumSize: const Size(0, 38),
@@ -77,6 +79,8 @@ class _UsersScreenState extends State<UsersScreen> {
               ),
               label: Text(
                 context.tr.addCashier,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bs300(context).copyWith(
                   fontWeight: FontWeight.w900,
                 ),
@@ -94,11 +98,7 @@ class _UsersScreenState extends State<UsersScreen> {
         builder: (context, state) {
           return switch (state.userStatus) {
             UserStatus.initial || UserStatus.loading => const _LoadingView(),
-
-            UserStatus.failure => UserErrorView(
-              message: state.responseError,
-            ),
-
+            UserStatus.failure => UserErrorView(message: state.responseError),
             UserStatus.success => state.userList.isEmpty
                 ? const UserEmptyView()
                 : _CashierManagementContent(
@@ -131,10 +131,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
 
   void _onFilterChanged(UserQuickFilter filter) {
     if (_selectedFilter == filter) return;
-
-    setState(() {
-      _selectedFilter = filter;
-    });
+    setState(() => _selectedFilter = filter);
   }
 
   List<UserData> get _filteredUsers {
@@ -160,16 +157,16 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
     }
   }
 
-  String get _sectionTitle {
+  String _sectionTitle(BuildContext context) {
     switch (_selectedFilter) {
       case UserQuickFilter.all:
-        return 'All';
+        return context.tr.allUsers;
       case UserQuickFilter.active:
-        return 'Active Users';
+        return context.tr.activeUsers;
       case UserQuickFilter.cashiers:
-        return 'Cashiers';
+        return context.tr.cashiers;
       case UserQuickFilter.managers:
-        return 'Managers';
+        return context.tr.managers;
     }
   }
 
@@ -189,7 +186,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
         ),
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: const EdgeInsetsDirectional.fromSTEB(
               AppDims.s4,
               AppDims.s4,
               AppDims.s4,
@@ -213,7 +210,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: const EdgeInsetsDirectional.fromSTEB(
               AppDims.s4,
               AppDims.s5,
               AppDims.s4,
@@ -224,7 +221,9 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
                 children: [
                   Expanded(
                     child: Text(
-                      _sectionTitle,
+                      _sectionTitle(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs700(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
@@ -232,28 +231,33 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
                       ),
                     ),
                   ),
-                  if(widget.isWithAppbar == false)
-                  TextButton.icon(
-                    onPressed: () => showAddUserSheet(context),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colors.primary,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDims.s2,
+
+                  if (!widget.isWithAppbar) ...[
+                    const SizedBox(width: AppDims.s2),
+                    TextButton.icon(
+                      onPressed: () => showAddUserSheet(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colors.primary,
+                        padding: const EdgeInsetsDirectional.symmetric(
+                          horizontal: AppDims.s2,
+                        ),
+                        minimumSize: const Size(0, 38),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      minimumSize: const Size(0, 38),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: const Icon(
-                      SolarIconsOutline.userPlus,
-                      size: 18,
-                    ),
-                    label: Text(
-                      'Add User',
-                      style: AppTextStyles.bs300(context).copyWith(
-                        fontWeight: FontWeight.w900,
+                      icon: const Icon(
+                        SolarIconsOutline.userPlus,
+                        size: 18,
+                      ),
+                      label: Text(
+                        context.tr.addUser,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bs300(context).copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -293,22 +297,33 @@ class _UsersHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stats = _UserHeaderStats.fromUsers(users);
+
+    return _UsersHeaderContent(
+      stats: stats,
+      selectedFilter: selectedFilter,
+      onFilterChanged: onFilterChanged,
+    );
+  }
+}
+
+class _UsersHeaderContent extends StatelessWidget {
+  final _UserHeaderStats stats;
+  final UserQuickFilter selectedFilter;
+  final ValueChanged<UserQuickFilter> onFilterChanged;
+
+  const _UsersHeaderContent({
+    required this.stats,
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
-    final active = users.where((user) => user.isActive == true).length;
-
-    final cashiers = users.where((user) {
-      return user.role?.toLowerCase().trim() == 'cashier';
-    }).length;
-
-    final managers = users.where((user) {
-      final role = user.role?.toLowerCase().trim();
-      return role == 'manager' || role == 'admin';
-    }).length;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s4),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -321,107 +336,147 @@ class _UsersHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(AppDims.rLg),
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.16),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s4),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                _HeaderIcon(color: colors.primary),
+                const SizedBox(width: AppDims.s3),
+                Expanded(
+                  child: _HeaderText(
+                    title: tr.usersManagement,
+                    subtitle: tr.usersManagementSubtitle,
                   ),
                 ),
-                child: Icon(
-                  SolarIconsOutline.usersGroupRounded,
-                  color: colors.primary,
-                  size: 30,
+              ],
+            ),
+
+            const SizedBox(height: AppDims.s4),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _UserMiniStat(
+                    label: tr.userStatTotal,
+                    value: stats.total.toString(),
+                    icon: SolarIconsOutline.usersGroupRounded,
+                    color: colors.primary,
+                    isSelected: selectedFilter == UserQuickFilter.all,
+                    onTap: () => onFilterChanged(UserQuickFilter.all),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Users Management',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs700(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w900,
-                        height: 1.05,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Manage staff accounts, roles, shop access, and POS permissions.',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs300(context).copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: _UserMiniStat(
+                    label: tr.userStatActive,
+                    value: stats.active.toString(),
+                    icon: SolarIconsOutline.checkCircle,
+                    color: const Color(0xFF16A34A),
+                    isSelected: selectedFilter == UserQuickFilter.active,
+                    onTap: () => onFilterChanged(UserQuickFilter.active),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDims.s4),
-          Row(
-            children: [
-              Expanded(
-                child: _UserMiniStat(
-                  label: context.tr.userStatTotal,
-                  value: '${users.length}',
-                  icon: SolarIconsOutline.usersGroupRounded,
-                  color: colors.primary,
-                  isSelected: selectedFilter == UserQuickFilter.all,
-                  onTap: () => onFilterChanged(UserQuickFilter.all),
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: _UserMiniStat(
+                    label: tr.userStatCashiers,
+                    value: stats.cashiers.toString(),
+                    icon: SolarIconsOutline.userSpeakRounded,
+                    color: const Color(0xFF0EA5E9),
+                    isSelected: selectedFilter == UserQuickFilter.cashiers,
+                    onTap: () => onFilterChanged(UserQuickFilter.cashiers),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _UserMiniStat(
-                  label: context.tr.userStatActive,
-                  value: '$active',
-                  icon: SolarIconsOutline.checkCircle,
-                  color: const Color(0xFF16A34A),
-                  isSelected: selectedFilter == UserQuickFilter.active,
-                  onTap: () => onFilterChanged(UserQuickFilter.active),
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: _UserMiniStat(
+                    label: tr.userStatManagers,
+                    value: stats.managers.toString(),
+                    icon: SolarIconsOutline.shieldUser,
+                    color: const Color(0xFF8B5CF6),
+                    isSelected: selectedFilter == UserQuickFilter.managers,
+                    onTap: () => onFilterChanged(UserQuickFilter.managers),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _UserMiniStat(
-                  label: context.tr.userStatCashiers,
-                  value: '$cashiers',
-                  icon: SolarIconsOutline.userSpeakRounded,
-                  color: const Color(0xFF0EA5E9),
-                  isSelected: selectedFilter == UserQuickFilter.cashiers,
-                  onTap: () => onFilterChanged(UserQuickFilter.cashiers),
-                ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _UserMiniStat(
-                  label: context.tr.userStatManagers,
-                  value: '$managers',
-                  icon: SolarIconsOutline.shieldUser,
-                  color: const Color(0xFF8B5CF6),
-                  isSelected: selectedFilter == UserQuickFilter.managers,
-                  onTap: () => onFilterChanged(UserQuickFilter.managers),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _HeaderIcon extends StatelessWidget {
+  final Color color;
+
+  const _HeaderIcon({
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: color.withValues(alpha: 0.16),
+        ),
+      ),
+      child: SizedBox(
+        width: 60,
+        height: 60,
+        child: Icon(
+          SolarIconsOutline.usersGroupRounded,
+          color: color,
+          size: 30,
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderText extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _HeaderText({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bs700(context).copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w900,
+            height: 1.05,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bs300(context).copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w700,
+            height: 1.35,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -498,6 +553,7 @@ class _UserMiniStat extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: AppTextStyles.bs100(context).copyWith(
                   color: isSelected ? color : colors.textSecondary,
                   fontWeight: FontWeight.w900,
@@ -511,7 +567,6 @@ class _UserMiniStat extends StatelessWidget {
     );
   }
 }
-
 
 class _LoadingView extends StatelessWidget {
   const _LoadingView();
@@ -540,34 +595,10 @@ class _UserFilterEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
-    final title = switch (filter) {
-      UserQuickFilter.all => 'No users yet',
-      UserQuickFilter.active => 'No active users',
-      UserQuickFilter.cashiers => 'No cashiers found',
-      UserQuickFilter.managers => 'No managers found',
-    };
-
-    final message = switch (filter) {
-      UserQuickFilter.all =>
-      'Add your first user so your team can start using the POS.',
-      UserQuickFilter.active =>
-      'No users are currently active.',
-      UserQuickFilter.cashiers =>
-      'No cashier accounts are currently available.',
-      UserQuickFilter.managers =>
-      'No manager accounts are currently available.',
-    };
-
-    final icon = switch (filter) {
-      UserQuickFilter.all => SolarIconsOutline.usersGroupRounded,
-      UserQuickFilter.active => SolarIconsOutline.checkCircle,
-      UserQuickFilter.cashiers => SolarIconsOutline.userSpeakRounded,
-      UserQuickFilter.managers => SolarIconsOutline.shieldUser,
-    };
+    final content = _UserEmptyContent.fromFilter(context, filter);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: const EdgeInsetsDirectional.fromSTEB(
         AppDims.s4,
         AppDims.s8,
         AppDims.s4,
@@ -575,23 +606,25 @@ class _UserFilterEmptyView extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(
-            width: 72,
-            height: 72,
+          DecoratedBox(
             decoration: BoxDecoration(
               color: colors.surfaceSoft,
               borderRadius: BorderRadius.circular(AppDims.rXl),
               border: Border.all(color: colors.border),
             ),
-            child: Icon(
-              icon,
-              size: 34,
-              color: colors.textSecondary,
+            child: SizedBox(
+              width: 72,
+              height: 72,
+              child: Icon(
+                content.icon,
+                size: 34,
+                color: colors.textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: AppDims.s4),
           Text(
-            title,
+            content.title,
             textAlign: TextAlign.center,
             style: AppTextStyles.bs500(context).copyWith(
               color: colors.textPrimary,
@@ -600,7 +633,7 @@ class _UserFilterEmptyView extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s2),
           Text(
-            message,
+            content.message,
             textAlign: TextAlign.center,
             style: AppTextStyles.bs300(context).copyWith(
               color: colors.textSecondary,
@@ -610,6 +643,98 @@ class _UserFilterEmptyView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _UserEmptyContent {
+  final String title;
+  final String message;
+  final IconData icon;
+
+  const _UserEmptyContent({
+    required this.title,
+    required this.message,
+    required this.icon,
+  });
+
+  factory _UserEmptyContent.fromFilter(
+      BuildContext context,
+      UserQuickFilter filter,
+      ) {
+    final tr = context.tr;
+
+    switch (filter) {
+      case UserQuickFilter.all:
+        return _UserEmptyContent(
+          title: tr.noUsersYet,
+          message: tr.noUsersYetMessage,
+          icon: SolarIconsOutline.usersGroupRounded,
+        );
+
+      case UserQuickFilter.active:
+        return _UserEmptyContent(
+          title: tr.noActiveUsers,
+          message: tr.noActiveUsersMessage,
+          icon: SolarIconsOutline.checkCircle,
+        );
+
+      case UserQuickFilter.cashiers:
+        return _UserEmptyContent(
+          title: tr.noCashiersFound,
+          message: tr.noCashiersFoundMessage,
+          icon: SolarIconsOutline.userSpeakRounded,
+        );
+
+      case UserQuickFilter.managers:
+        return _UserEmptyContent(
+          title: tr.noManagersFound,
+          message: tr.noManagersFoundMessage,
+          icon: SolarIconsOutline.shieldUser,
+        );
+    }
+  }
+}
+
+class _UserHeaderStats {
+  final int total;
+  final int active;
+  final int cashiers;
+  final int managers;
+
+  const _UserHeaderStats({
+    required this.total,
+    required this.active,
+    required this.cashiers,
+    required this.managers,
+  });
+
+  factory _UserHeaderStats.fromUsers(List<UserData> users) {
+    var active = 0;
+    var cashiers = 0;
+    var managers = 0;
+
+    for (final user in users) {
+      if (user.isActive == true) {
+        active++;
+      }
+
+      final role = user.role?.toLowerCase().trim();
+
+      if (role == 'cashier') {
+        cashiers++;
+      }
+
+      if (role == 'manager' || role == 'admin') {
+        managers++;
+      }
+    }
+
+    return _UserHeaderStats(
+      total: users.length,
+      active: active,
+      cashiers: cashiers,
+      managers: managers,
     );
   }
 }

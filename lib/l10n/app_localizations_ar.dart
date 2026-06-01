@@ -81,7 +81,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsSectionSupport => 'الدعم';
 
   @override
-  String get settingsCategories => 'الفئات';
+  String get settingsCategories => 'التصنيفات';
 
   @override
   String get settingsCategoriesSubtitle => 'تنظيم المنتجات';
@@ -413,7 +413,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fieldProductName => 'اسم المنتج';
 
   @override
-  String get fieldCategory => 'الفئة';
+  String get fieldCategory => 'التصنيف';
 
   @override
   String get fieldUnit => 'الوحدة';
@@ -463,19 +463,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fieldExpiryAlert => 'تنبيه انتهاء الصلاحية';
 
   @override
-  String get newCategory => 'فئة جديدة';
+  String get menuCatalogTitle => 'كتالوج القائمة';
 
   @override
-  String get editCategory => 'تعديل الفئة';
+  String get productCatalogTitle => 'كتالوج المنتجات';
 
   @override
-  String get noCategoriesYet => 'لا توجد فئات بعد';
+  String get menuCatalogSubtitle => 'إدارة عناصر القائمة والأسعار والتصنيفات.';
 
   @override
-  String get fieldCategoryName => 'اسم الفئة';
+  String get productCatalogSubtitle =>
+      'إدارة المنتجات والأسعار والتصنيفات وتوفر المخزون.';
 
   @override
-  String get createCategory => 'إنشاء فئة';
+  String get newCategory => 'تصنيف جديدة';
+
+  @override
+  String get editCategory => 'تعديل التصنيف';
+
+  @override
+  String get noCategoriesYet => 'لا توجد تصنيفات بعد';
+
+  @override
+  String get fieldCategoryName => 'اسم التصنيف';
+
+  @override
+  String get createCategory => 'إنشاء تصنيف';
 
   @override
   String get catStatTotal => 'الإجمالي';
@@ -497,6 +510,244 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get catAppBarStatus => 'الحالة';
+
+  @override
+  String get noCategory => 'بدون تصنيف';
+
+  @override
+  String get expiredBatchOne => 'انتهت صلاحية دفعة واحدة';
+
+  @override
+  String expiredBatchMany(int count) {
+    return 'انتهت صلاحية $count دفعات';
+  }
+
+  @override
+  String expiringSoonCount(Object count) {
+    return '$count ستنتهي صلاحيتها قريباً';
+  }
+
+  @override
+  String expiringSoonMany(Object count) {
+    return '$count ستنتهي صلاحيتها قريباً';
+  }
+
+  @override
+  String expiringSoonBatchMany(int count) {
+    return '$count ستنتهي صلاحيتها قريباً';
+  }
+
+  @override
+  String get price => 'السعر';
+
+  @override
+  String get category => 'التصنيف';
+
+  @override
+  String get stock => 'المخزون';
+
+  @override
+  String get oneDay => 'يوم واحد';
+
+  @override
+  String manyDays(int count) {
+    return '$count أيام';
+  }
+
+  @override
+  String get productAddedSuccessfully => 'تمت إضافة المنتج بنجاح';
+
+  @override
+  String get productNameHint => 'بيبسي 330 مل';
+
+  @override
+  String get productDescriptionHint => 'وصف المنتج';
+
+  @override
+  String get generalCategory => 'عام';
+
+  @override
+  String get autoCreated => 'تم إنشاؤه تلقائياً';
+
+  @override
+  String get selectBranch => 'اختر الفرع';
+
+  @override
+  String get businessWorkspace => 'مساحة العمل';
+
+  @override
+  String get productDeletedSuccessfully => 'تم حذف المنتج بنجاح';
+
+  @override
+  String get deleteProductTitle => 'حذف المنتج؟';
+
+  @override
+  String deleteProductMessage(String name) {
+    return 'هل أنت متأكد أنك تريد حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get thisProduct => 'هذا المنتج';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get productCategoriesTitle => 'تصنيفات المنتجات';
+
+  @override
+  String get productCategoriesSubtitle =>
+      'نظّم المنتجات في أقسام بسيطة لتسريع البيع وترتيب المخزون.';
+
+  @override
+  String get activeCategories => 'التصنيفات النشطة';
+
+  @override
+  String get inactiveCategories => 'التصنيفات غير النشطة';
+
+  @override
+  String get categoriesWithSubCategories =>
+      'التصنيفات التي تحتوي على تصنيفات فرعية';
+
+  @override
+  String get addCategory => 'إضافة تصنيف';
+
+  @override
+  String get productNameRequired => 'اسم المنتج مطلوب';
+
+  @override
+  String get priceRequired => 'السعر مطلوب';
+
+  @override
+  String get enterValidPrice => 'أدخل سعراً صحيحاً';
+
+  @override
+  String get invalidProduct => 'المنتج غير صالح';
+
+  @override
+  String get categoryMissing => 'التصنيف مفقود';
+
+  @override
+  String get productUpdatedSuccessfully => 'تم تحديث المنتج بنجاح';
+
+  @override
+  String get productPhoto => 'صورة المنتج';
+
+  @override
+  String get tapToChangeProductImage => 'اضغط لتغيير صورة المنتج';
+
+  @override
+  String get categoryLocked => 'التصنيف مقفل';
+
+  @override
+  String get locked => 'مقفل';
+
+  @override
+  String get allProducts => 'كل المنتجات';
+
+  @override
+  String get unknownCategory => 'تصنيف غير معروف';
+
+  @override
+  String get product => 'منتج';
+
+  @override
+  String get noCategoriesYetMessage => 'أنشئ أول تصنيف لتنظيم المنتجات.';
+
+  @override
+  String get noActiveCategories => 'لا توجد تصنيفات نشطة';
+
+  @override
+  String get noActiveCategoriesMessage => 'لا توجد تصنيفات نشطة حالياً.';
+
+  @override
+  String get noInactiveCategories => 'لا توجد تصنيفات غير نشطة';
+
+  @override
+  String get noInactiveCategoriesMessage => 'كل التصنيفات نشطة حالياً.';
+
+  @override
+  String get noSubCategoriesFound => 'لا توجد تصنيفات فرعية';
+
+  @override
+  String get noSubCategoriesFoundMessage =>
+      'لا توجد تصنيفات تحتوي على تصنيفات فرعية بعد.';
+
+  @override
+  String get noDescriptionAdded => 'لم تتم إضافة وصف';
+
+  @override
+  String subCategoryCount(int count) {
+    return '$count فرعي';
+  }
+
+  @override
+  String get categoryCreatedSuccessfully => 'تم إنشاء التصنيف بنجاح';
+
+  @override
+  String get categoryNameHint => 'المشروبات';
+
+  @override
+  String get categoryDescriptionHint => 'مشروبات، عصائر، مياه، ومشروبات ساخنة';
+
+  @override
+  String get createProductGroup => 'إنشاء مجموعة منتجات';
+
+  @override
+  String get createProductGroupMessage =>
+      'استخدم التصنيفات لتنظيم المنتجات وتسريع عملية البيع.';
+
+  @override
+  String get categoryTipsMessage =>
+      'اجعل أسماء التصنيفات قصيرة وواضحة، مثل الوجبات الخفيفة، المشروبات، البقالة، أو الوجبات.';
+
+  @override
+  String get categoryNameRequired => 'اسم التصنيف مطلوب';
+
+  @override
+  String get categoryUpdatedSuccessfully => 'تم تحديث التصنيف بنجاح';
+
+  @override
+  String get invalidCategory => 'التصنيف غير صالح';
+
+  @override
+  String get categoryDescriptionShortHint => 'مشروبات ومياه وعصائر';
+
+  @override
+  String get categoryDefaultDescription =>
+      'نظّم المنتجات داخل هذا التصنيف لاستخدام أسرع في نقطة البيع.';
+
+  @override
+  String get categoryNoProductsMessage =>
+      'هذا التصنيف جاهز. أضف أول منتج هنا ليظهر مباشرة داخل هذا التصنيف.';
+
+  @override
+  String get back => 'رجوع';
+
+  @override
+  String get off => 'متوقف';
+
+  @override
+  String get offline => 'بدون اتصال';
+
+  @override
+  String get moreActions => 'المزيد من الخيارات';
+
+  @override
+  String productCountLabel(int count) {
+    return '$count منتج';
+  }
+
+  @override
+  String get categoryDeletedSuccessfully => 'تم حذف التصنيف بنجاح';
+
+  @override
+  String get deleteCategoryTitle => 'حذف التصنيف؟';
+
+  @override
+  String deleteCategoryMessage(String name) {
+    return 'سيتم حذف \"$name\" نهائياً. لا يمكن التراجع عن هذا الإجراء.';
+  }
 
   @override
   String get addCashier => 'إضافة كاشير';
@@ -624,6 +875,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerSalesPrefix => 'المبيعات';
+
+  @override
+  String get allUsers => 'كل المستخدمين';
+
+  @override
+  String get activeUsers => 'المستخدمون النشطون';
+
+  @override
+  String get cashiers => 'الكاشير';
+
+  @override
+  String get managers => 'المديرون';
+
+  @override
+  String get addUser => 'إضافة مستخدم';
+
+  @override
+  String get usersManagement => 'إدارة المستخدمين';
+
+  @override
+  String get usersManagementSubtitle =>
+      'إدارة حسابات الموظفين والأدوار والوصول إلى الفروع وصلاحيات نقطة البيع.';
+
+  @override
+  String get noUsersYet => 'لا يوجد مستخدمون بعد';
+
+  @override
+  String get noUsersYetMessage =>
+      'أضف أول مستخدم ليبدأ فريقك باستخدام نظام نقطة البيع.';
+
+  @override
+  String get noActiveUsers => 'لا يوجد مستخدمون نشطون';
+
+  @override
+  String get noActiveUsersMessage => 'لا يوجد مستخدمون نشطون حالياً.';
+
+  @override
+  String get noCashiersFound => 'لا يوجد كاشير';
+
+  @override
+  String get noCashiersFoundMessage => 'لا توجد حسابات كاشير حالياً.';
+
+  @override
+  String get noManagersFound => 'لا يوجد مديرون';
+
+  @override
+  String get noManagersFoundMessage => 'لا توجد حسابات مديرين حالياً.';
 
   @override
   String get customers => 'العملاء';
@@ -966,6 +1264,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bizShopsTitle => 'المتاجر';
 
   @override
+  String get live => 'مباشر';
+
+  @override
+  String get today => 'اليوم';
+
+  @override
   String get bizActiveBranch => 'فرع نشط';
 
   @override
@@ -990,7 +1294,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bizCreateMyBusiness => 'إنشاء نشاطي التجاري';
 
   @override
-  String get bizAddFirstShop => 'إضافة أول متجر';
+  String get bizAddFirstShop => 'إضافة أول فرع';
 
   @override
   String get bizFieldBusinessName => 'اسم النشاط التجاري';
@@ -1014,10 +1318,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bizDeactivateTitle => 'إلغاء تفعيل النشاط التجاري؟';
 
   @override
-  String get bizFieldShopName => 'اسم المتجر';
+  String get bizFieldShopName => 'اسم الفرع';
 
   @override
-  String get shopStatTotalShops => 'إجمالي المتاجر';
+  String get shopManagement => 'إدارة الفروع';
+
+  @override
+  String get shopStatTotalShops => 'إجمالي الفروع';
 
   @override
   String get shopStatActive => 'نشطة';
@@ -1038,5 +1345,595 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bizEmailLabel => 'البريد الإلكتروني';
 
   @override
-  String get bizShopsLabel => 'المتاجر';
+  String get bizShopsLabel => 'الفروع';
+
+  @override
+  String get addShop => 'إضافة فرع';
+
+  @override
+  String get noShopsYet => 'لا يوجد فرع';
+
+  @override
+  String get firstShopMessage =>
+      'اضف اول فرع لك لتتمكن من اداره منتجاتك او مبيعاتك او المستخدمين';
+
+  @override
+  String get shop => 'الفرع';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get inactive => 'غير نشط';
+
+  @override
+  String get newShop => 'فرع جديد';
+
+  @override
+  String get shopAddedSuccessfully => 'تمت إضافة الفرع بنجاح';
+
+  @override
+  String get mainBranchHint => 'الفرع الرئيسي';
+
+  @override
+  String get shopNameRequired => 'اسم الفرع مطلوب';
+
+  @override
+  String get nameMustBeAtLeast2Characters =>
+      'يجب أن يكون الاسم مكوّناً من حرفين على الأقل';
+
+  @override
+  String get optional => 'اختياري';
+
+  @override
+  String get khartoumCentreHint => 'وسط الخرطوم';
+
+  @override
+  String get enterValidPhoneNumber => 'أدخل رقم هاتف صحيح';
+
+  @override
+  String get editShop => 'تعديل المتجر';
+
+  @override
+  String get status => 'الحالة';
+
+  @override
+  String get address => 'العنوان';
+
+  @override
+  String get phone => 'الهاتف';
+
+  @override
+  String get createStaffAccountMessage =>
+      'يمكن إنشاء حسابات الكاشير والمدير فقط من هنا.';
+
+  @override
+  String get fullNameHint => 'علي حسن';
+
+  @override
+  String get fullNameRequired => 'الاسم الكامل مطلوب';
+
+  @override
+  String get invalidRoleSelected => 'تم اختيار دور غير صالح';
+
+  @override
+  String get assignCashierToShopRequired => 'يرجى تعيين هذا الكاشير إلى فرع.';
+
+  @override
+  String get userAddedSuccessfully => 'تمت إضافة المستخدم بنجاح';
+
+  @override
+  String autoAssignCashierToShop(String shopName) {
+    return 'سيتم تعيينه إلى $shopName تلقائياً.';
+  }
+
+  @override
+  String get selectShop => 'اختر فرعاً';
+
+  @override
+  String get cashierShopRequiredMessage =>
+      'يجب تعيين الكاشير إلى فرع حتى يتمكن من معالجة المبيعات.';
+
+  @override
+  String cashierAssignedToShop(String shopName) {
+    return 'سيتم تعيين الكاشير إلى $shopName.';
+  }
+
+  @override
+  String get thisShop => 'هذا الفرع';
+
+  @override
+  String get adminRoleHint =>
+      'صلاحية كاملة — يمكنه إدارة كل شيء بما في ذلك المستخدمون والإعدادات.';
+
+  @override
+  String get managerRoleHint => 'يمكنه عرض التقارير وإدارة المخزون والطلبات.';
+
+  @override
+  String get cashierRoleHint => 'يمكنه معالجة المبيعات وإدارة جهاز نقطة البيع.';
+
+  @override
+  String get editStaffAccountMessage =>
+      'يمكن تعيين أدوار الكاشير والمدير فقط من هنا.';
+
+  @override
+  String get adminRoleCannotBeAssigned =>
+      'لا يمكن تعيين دور المدير العام من التطبيق';
+
+  @override
+  String get invalidUserSelected => 'المستخدم المحدد غير صالح';
+
+  @override
+  String get userUpdatedSuccessfully => 'تم تحديث المستخدم بنجاح';
+
+  @override
+  String get nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get unassigned => 'غير معيّن';
+
+  @override
+  String get unassignedCashierMessage =>
+      'هذا الكاشير غير معيّن لأي فرع ولا يمكنه معالجة المبيعات.';
+
+  @override
+  String cashierAssignedToShopDetailed(String shopName) {
+    return 'تم تعيينه إلى $shopName. يمكن للكاشير معالجة المبيعات في هذا الفرع.';
+  }
+
+  @override
+  String get managerAccessMessage =>
+      'المديرون غير مرتبطين بفرع واحد. يمكنهم إدارة عمليات النشاط التجاري حسب صلاحياتهم.';
+
+  @override
+  String get userDeactivatedSuccessfully => 'User deactivated successfully';
+
+  @override
+  String deactivateUserMessage(String name) {
+    return '\"$name\" will lose access immediately. You can reactivate them later.';
+  }
+
+  @override
+  String get invalidUserId => 'Invalid user ID';
+
+  @override
+  String get thisUser => 'this user';
+
+  @override
+  String get noCashiersYet => 'لا يوجد كاشير بعد';
+
+  @override
+  String get noCashiersYetDescription =>
+      'أضف أول كاشير حتى يتمكن فريقك من بدء معالجة المبيعات من نقطة البيع.';
+
+  @override
+  String get yes => 'نعم';
+
+  @override
+  String get no => 'لا';
+
+  @override
+  String get never => 'أبداً';
+
+  @override
+  String get admin => 'مدير النظام';
+
+  @override
+  String get manager => 'مدير';
+
+  @override
+  String get cashier => 'كاشير';
+
+  @override
+  String get deactivate => 'إلغاء التفعيل';
+
+  @override
+  String get managerAccessHint => 'يمكنه إدارة المخزون والتقارير والعمليات';
+
+  @override
+  String get cashierAccessHint => 'يمكنه معالجة المبيعات واستخدام نقطة البيع';
+
+  @override
+  String get adminAccessHint => 'يمكنه إدارة إعدادات العمل وصلاحيات الموظفين';
+
+  @override
+  String get staffAccountHint => 'حساب موظف';
+
+  @override
+  String get subtotal => 'المجموع الفرعي';
+
+  @override
+  String get total => 'الإجمالي';
+
+  @override
+  String get failedToLoadProducts => 'فشل تحميل المنتجات';
+
+  @override
+  String get noProductsFound => 'لا توجد منتجات';
+
+  @override
+  String nothingMatchesQuery(String query) {
+    return 'لا توجد نتائج تطابق \"$query\".';
+  }
+
+  @override
+  String get tryAnotherCategoryOrAddProducts =>
+      'جرّب تصنيفاً آخر أو أضف منتجات أولاً.';
+
+  @override
+  String get payment => 'الدفع';
+
+  @override
+  String get method => 'الطريقة';
+
+  @override
+  String get bankak => 'بنكك';
+
+  @override
+  String get bankTransfer => 'تحويل بنكي';
+
+  @override
+  String get cash => 'نقداً';
+
+  @override
+  String get payNow => 'ادفع الآن';
+
+  @override
+  String bankakReadyAccount(String account) {
+    return 'بنكك جاهز · الحساب $account';
+  }
+
+  @override
+  String get bankakAccountSetupBanner =>
+      'حساب بنكك غير مضاف. اضغط لفتح الإعدادات.';
+
+  @override
+  String get bankakAccountNotSetUpMessage =>
+      'حساب بنكك غير مضاف. انتقل إلى الإعدادات وأضف رقم الحساب أولاً.';
+
+  @override
+  String get cashierNotAssignedToShopMessage =>
+      'أنت غير مخصص لأي متجر. تواصل مع المدير.';
+
+  @override
+  String get noShopFoundRefreshMessage =>
+      'لم يتم العثور على متجر. يرجى التحديث والمحاولة مرة أخرى.';
+
+  @override
+  String get clearCartQuestion => 'مسح السلة؟';
+
+  @override
+  String get clearCartDescription =>
+      'سيتم حذف كل العناصر من عملية البيع الحالية.';
+
+  @override
+  String get clear => 'مسح';
+
+  @override
+  String get reviewSale => 'مراجعة البيع';
+
+  @override
+  String get review => 'مراجعة';
+
+  @override
+  String get reviewCart => 'مراجعة السلة';
+
+  @override
+  String get cart => 'السلة';
+
+  @override
+  String get completeSale => 'إكمال البيع';
+
+  @override
+  String itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+      zero: '0 عناصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remove => 'حذف';
+
+  @override
+  String eachPrice(String price) {
+    return '$price لكل وحدة';
+  }
+
+  @override
+  String get failedToLoadSales => 'فشل تحميل المبيعات';
+
+  @override
+  String get searchReceiptAmountPaymentHint =>
+      'ابحث برقم الإيصال أو المبلغ أو طريقة الدفع...';
+
+  @override
+  String get clearSearch => 'مسح البحث';
+
+  @override
+  String get completed => 'مكتملة';
+
+  @override
+  String get returned => 'مرتجعة';
+
+  @override
+  String get pending => 'قيد الانتظار';
+
+  @override
+  String get allLoaded => 'كل المحمّل';
+
+  @override
+  String get todaysSales => 'مبيعات اليوم';
+
+  @override
+  String get noMatchingSales => 'لا توجد مبيعات مطابقة';
+
+  @override
+  String get tryDifferentSearchTerm => 'جرّب كلمة بحث مختلفة';
+
+  @override
+  String get noSalesToday => 'لا توجد مبيعات اليوم';
+
+  @override
+  String get salesMadeTodayWillAppearHere => 'ستظهر مبيعات اليوم هنا';
+
+  @override
+  String get noPendingSales => 'لا توجد مبيعات معلّقة';
+
+  @override
+  String get allOfflineSalesSynced => 'تمت مزامنة جميع المبيعات غير المتصلة';
+
+  @override
+  String get noCompletedSales => 'لا توجد مبيعات مكتملة';
+
+  @override
+  String get noReturnedSales => 'لا توجد مبيعات مرتجعة';
+
+  @override
+  String get noSalesYet => 'لا توجد مبيعات بعد';
+
+  @override
+  String get matchingSalesWillAppearHere => 'ستظهر المبيعات المطابقة هنا';
+
+  @override
+  String get salesWillAppearHere =>
+      'ستظهر المبيعات هنا بعد إكمال أول عملية بيع';
+
+  @override
+  String get card => 'بطاقة';
+
+  @override
+  String get partiallyReturned => 'مرتجعة جزئياً';
+
+  @override
+  String get cancelled => 'ملغاة';
+
+  @override
+  String get failed => 'فشلت';
+
+  @override
+  String get unknown => 'غير معروف';
+
+  @override
+  String todayWithTime(String time) {
+    return 'اليوم $time';
+  }
+
+  @override
+  String yesterdayWithTime(String time) {
+    return 'أمس $time';
+  }
+
+  @override
+  String get yesterday => 'أمس';
+
+  @override
+  String get allLoadedSales => 'كل المبيعات المحمّلة';
+
+  @override
+  String get todaysSalesCount => 'مبيعات اليوم';
+
+  @override
+  String get completedSalesCount => 'المبيعات المكتملة';
+
+  @override
+  String get returnedSalesCount => 'المبيعات المرتجعة';
+
+  @override
+  String get pendingSalesCount => 'المبيعات المعلّقة';
+
+  @override
+  String get allLoadedRevenue => 'كل الإيرادات المحمّلة';
+
+  @override
+  String get todaysRevenue => 'إيرادات اليوم';
+
+  @override
+  String get completedRevenue => 'إيرادات المبيعات المكتملة';
+
+  @override
+  String get returnedRevenue => 'إيرادات المبيعات المرتجعة';
+
+  @override
+  String get pendingRevenue => 'إيرادات المبيعات المعلّقة';
+
+  @override
+  String get receiptNumberLabel => 'رقم الإيصال';
+
+  @override
+  String get temporaryReferenceLabel => 'مرجع مؤقت';
+
+  @override
+  String get salePendingSyncDescription =>
+      'عملية البيع بانتظار المزامنة. لا يمكن إرجاع العناصر أو عرض رقم الإيصال النهائي إلا بعد مزامنة العملية مع الخادم.';
+
+  @override
+  String get saleAlreadyRefunded => 'تم إرجاع هذه العملية مسبقاً.';
+
+  @override
+  String get preparingReceipt => 'جاري تجهيز الإيصال...';
+
+  @override
+  String get shareReceiptPdf => 'مشاركة الإيصال PDF';
+
+  @override
+  String get receiptPdfShareHint =>
+      'سيتم مشاركة الإيصال كملف PDF. اختر واتساب من خيارات المشاركة.';
+
+  @override
+  String get noItemDetailsAvailable => 'لا توجد تفاصيل للعناصر';
+
+  @override
+  String get wallet => 'محفظة';
+
+  @override
+  String get receipt => 'إيصال';
+
+  @override
+  String get amanaReceipt => 'إيصال AmanaPOS';
+
+  @override
+  String get salesReceipt => 'إيصال البيع';
+
+  @override
+  String get date => 'التاريخ';
+
+  @override
+  String get item => 'العنصر';
+
+  @override
+  String get qty => 'الكمية';
+
+  @override
+  String get amount => 'المبلغ';
+
+  @override
+  String get offlineSalePdfWarning =>
+      'عملية بيع غير متصلة - قد يكون تأكيد الخادم النهائي ما زال معلقاً.';
+
+  @override
+  String get thankYouForPurchase => 'شكراً لعملية الشراء.';
+
+  @override
+  String get poweredByAmanaPOS => 'مدعوم بواسطة AmanaPOS';
+
+  @override
+  String get processReturn => 'معالجة الإرجاع';
+
+  @override
+  String get returnSearchHint => 'رقم الإيصال أو المبلغ...';
+
+  @override
+  String get returnSearchHelper => 'رقم الإيصال أو المبلغ أو اسم العميل';
+
+  @override
+  String get pleaseTryAgain => 'يرجى المحاولة مرة أخرى';
+
+  @override
+  String get returnPendingSyncCannotReturn =>
+      'بانتظار المزامنة — لا يمكن الإرجاع حالياً';
+
+  @override
+  String returnAlreadyProcessed(String status) {
+    return 'تمت معالجتها مسبقاً: $status';
+  }
+
+  @override
+  String get originalSale => 'البيع الأصلي';
+
+  @override
+  String get tapItemsToSelect => 'اضغط على العناصر للاختيار';
+
+  @override
+  String get refundTotal => 'مجموع الاسترجاع';
+
+  @override
+  String get items => 'عناصر';
+
+  @override
+  String get selectItemsToReturn => 'اختر العناصر للإرجاع';
+
+  @override
+  String itemsSelected(Object selectedCount, Object totalCount) {
+    return 'تم اختيار $selectedCount من أصل $totalCount عنصر';
+  }
+
+  @override
+  String get sold => 'مباعة';
+
+  @override
+  String get returnProcessed => 'تمت معالجة الإرجاع!';
+
+  @override
+  String get stockRestored => 'تمت استعادة المخزون';
+
+  @override
+  String get receiptReady => 'الإيصال جاهز للمشاركة';
+
+  @override
+  String get returnReference => 'مرجع الإرجاع';
+
+  @override
+  String get noReturnedItems => 'لا توجد عناصر مرتجعة';
+
+  @override
+  String get totalRefunded => 'إجمالي المبلغ المسترجع';
+
+  @override
+  String get returnReceipt => 'إيصال الإرجاع';
+
+  @override
+  String get ref => 'المرجع';
+
+  @override
+  String get refund => 'استرجاع';
+
+  @override
+  String get original => 'الأصلي';
+
+  @override
+  String get cashRefund => 'استرجاع نقدي';
+
+  @override
+  String get settingsSynced => 'متزامن';
+
+  @override
+  String get commonEdit => 'تعديل';
+
+  @override
+  String get commonActive => 'مفعل';
+
+  @override
+  String get commonSetup => 'إعداد';
+
+  @override
+  String get commonChange => 'تغيير';
+
+  @override
+  String get commonCancel => 'إلغاء';
+
+  @override
+  String get settingsBankakNotConfigured =>
+      'غير مفعّل — أضف حساب بنكك لقبول المبيعات';
+
+  @override
+  String settingsBankakReady(String account) {
+    return 'الحساب $account · جاهز لمبيعات نقطة البيع';
+  }
+
+  @override
+  String get settingsProfileSubtitleFallback =>
+      'الاسم والبريد الإلكتروني وبيانات التواصل';
+
+  @override
+  String get settingsSignOutTitle => 'تسجيل الخروج؟';
+
+  @override
+  String get settingsSignOutMessage =>
+      'تأكد من مزامنة كل المبيعات قبل تسجيل الخروج. المبيعات غير المتزامنة قد يتم فقدانها.';
 }

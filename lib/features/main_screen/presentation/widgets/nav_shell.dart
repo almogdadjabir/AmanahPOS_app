@@ -258,13 +258,17 @@ class _SlidingActiveIndicator extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
     final gapIndex = hasCenterFab ? (tabsCount / 2).ceil() : -1;
     final availableWidth = hasCenterFab ? width - centerGapWidth : width;
     final itemWidth = availableWidth / tabsCount;
 
-    var left = itemWidth * activeIndex;
 
-    if (hasCenterFab && activeIndex >= gapIndex) {
+    final effectiveIndex = isRtl ? (tabsCount - 1) - activeIndex : activeIndex;
+
+    var left = itemWidth * effectiveIndex;
+    if (hasCenterFab && effectiveIndex >= gapIndex) {
       left += centerGapWidth;
     }
 

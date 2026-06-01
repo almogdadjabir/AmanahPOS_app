@@ -28,7 +28,7 @@
   "settingsSectionAppearance": "المظهر",
   "settingsSectionSupport": "الدعم",
 
-  "settingsCategories": "الفئات",
+  "settingsCategories": "التصنيفات",
   "settingsCategoriesSubtitle": "تنظيم المنتجات",
   "settingsCashiers": "الكاشيرات",
   "settingsCashiersSubtitle": "صلاحيات الموظفين والمناوبات",
@@ -136,6 +136,140 @@
   "posFailedSale": "فشل إتمام البيعة",
   "posBankakRequired": "يرجى إضافة رقم حساب بنكك في الإعدادات.",
   "posShopMismatch": "لست مُعيَّناً لهذا المتجر. تواصل مع مديرك.",
+  "product": "منتج",
+  "noCategory": "بدون تصنيف",
+  "expiredBatchOne": "انتهت صلاحية دفعة واحدة",
+  "expiredBatchMany": "انتهت صلاحية {count} دفعات",
+  "expiringSoonCount": "{count} ستنتهي صلاحيتها قريباً",
+  "expiringSoonMany": "{count} ستنتهي صلاحيتها قريباً",
+
+  "@expiredBatchMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expiringSoonBatchMany": "{count} ستنتهي صلاحيتها قريباً",
+  "@expiringSoonBatchMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "price": "السعر",
+  "category": "التصنيف",
+  "stock": "المخزون",
+
+  "oneDay": "يوم واحد",
+  "manyDays": "{count} أيام",
+  "@manyDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "productAddedSuccessfully": "تمت إضافة المنتج بنجاح",
+  "productNameHint": "بيبسي 330 مل",
+  "productDescriptionHint": "وصف المنتج",
+  "generalCategory": "عام",
+  "autoCreated": "تم إنشاؤه تلقائياً",
+
+  "productNameRequired": "اسم المنتج مطلوب",
+  "priceRequired": "السعر مطلوب",
+  "enterValidPrice": "أدخل سعراً صحيحاً",
+  "invalidProduct": "المنتج غير صالح",
+  "categoryMissing": "التصنيف مفقود",
+  "productUpdatedSuccessfully": "تم تحديث المنتج بنجاح",
+  "productPhoto": "صورة المنتج",
+  "tapToChangeProductImage": "اضغط لتغيير صورة المنتج",
+  "categoryLocked": "التصنيف مقفل",
+  "locked": "مقفل",
+  "selectBranch": "اختر الفرع",
+  "businessWorkspace": "مساحة العمل",
+
+  "productDeletedSuccessfully": "تم حذف المنتج بنجاح",
+  "deleteProductTitle": "حذف المنتج؟",
+  "deleteProductMessage": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+  "@deleteProductMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "thisProduct": "هذا المنتج",
+  "all": "الكل",
+
+
+  "activeCategories": "التصنيفات النشطة",
+  "inactiveCategories": "التصنيفات غير النشطة",
+  "categoriesWithSubCategories": "التصنيفات التي تحتوي على تصنيفات فرعية",
+  "addCategory": "إضافة تصنيف",
+
+  "productCategoriesTitle": "تصنيفات المنتجات",
+  "productCategoriesSubtitle": "نظّم المنتجات في أقسام بسيطة لتسريع البيع وترتيب المخزون.",
+
+  "noCategoriesYetMessage": "أنشئ أول تصنيف لتنظيم المنتجات.",
+  "noActiveCategories": "لا توجد تصنيفات نشطة",
+  "noActiveCategoriesMessage": "لا توجد تصنيفات نشطة حالياً.",
+  "noInactiveCategories": "لا توجد تصنيفات غير نشطة",
+  "noInactiveCategoriesMessage": "كل التصنيفات نشطة حالياً.",
+  "noSubCategoriesFound": "لا توجد تصنيفات فرعية",
+  "noSubCategoriesFoundMessage": "لا توجد تصنيفات تحتوي على تصنيفات فرعية بعد.",
+
+  "noDescriptionAdded": "لم تتم إضافة وصف",
+  "subCategoryCount": "{count} فرعي",
+  "@subCategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "categoryCreatedSuccessfully": "تم إنشاء التصنيف بنجاح",
+  "categoryNameHint": "المشروبات",
+  "categoryDescriptionHint": "مشروبات، عصائر، مياه، ومشروبات ساخنة",
+  "createProductGroup": "إنشاء مجموعة منتجات",
+  "createProductGroupMessage": "استخدم التصنيفات لتنظيم المنتجات وتسريع عملية البيع.",
+  "categoryTipsMessage": "اجعل أسماء التصنيفات قصيرة وواضحة، مثل الوجبات الخفيفة، المشروبات، البقالة، أو الوجبات.",
+  "categoryNameRequired": "اسم التصنيف مطلوب",
+
+  "categoryUpdatedSuccessfully": "تم تحديث التصنيف بنجاح",
+  "invalidCategory": "التصنيف غير صالح",
+  "categoryDescriptionShortHint": "مشروبات ومياه وعصائر",
+
+  "categoryDefaultDescription": "نظّم المنتجات داخل هذا التصنيف لاستخدام أسرع في نقطة البيع.",
+  "categoryNoProductsMessage": "هذا التصنيف جاهز. أضف أول منتج هنا ليظهر مباشرة داخل هذا التصنيف.",
+  "back": "رجوع",
+  "off": "متوقف",
+  "offline": "بدون اتصال",
+
+  "moreActions": "المزيد من الخيارات",
+  "productCountLabel": "{count} منتج",
+  "@productCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "categoryDeletedSuccessfully": "تم حذف التصنيف بنجاح",
+  "deleteCategoryTitle": "حذف التصنيف؟",
+  "deleteCategoryMessage": "سيتم حذف \"{name}\" نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+  "@deleteCategoryMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
 
   "productsManagement": "إدارة المنتجات",
   "addProduct": "إضافة منتج",
@@ -151,7 +285,7 @@
   "addProductPhoto": "إضافة صورة المنتج",
   "tapToChangePhoto": "اضغط لتغيير صورة المنتج",
   "fieldProductName": "اسم المنتج",
-  "fieldCategory": "الفئة",
+  "fieldCategory": "التصنيف",
   "fieldUnit": "الوحدة",
   "fieldDescription": "الوصف",
   "fieldPrice": "السعر",
@@ -168,11 +302,37 @@
   "inventoryAlertsExpiryHint": "ستتلقى إشعارًا عندما تكون دفعة المنتج ضمن الأيام المحددة من تاريخ انتهاء صلاحيتها.",
   "fieldExpiryAlert": "تنبيه انتهاء الصلاحية",
 
-  "newCategory": "فئة جديدة",
-  "editCategory": "تعديل الفئة",
-  "noCategoriesYet": "لا توجد فئات بعد",
-  "fieldCategoryName": "اسم الفئة",
-  "createCategory": "إنشاء فئة",
+
+  "allUsers": "كل المستخدمين",
+  "activeUsers": "المستخدمون النشطون",
+  "cashiers": "الكاشير",
+  "managers": "المديرون",
+  "addUser": "إضافة مستخدم",
+
+  "usersManagement": "إدارة المستخدمين",
+  "usersManagementSubtitle": "إدارة حسابات الموظفين والأدوار والوصول إلى الفروع وصلاحيات نقطة البيع.",
+
+  "noUsersYet": "لا يوجد مستخدمون بعد",
+  "noUsersYetMessage": "أضف أول مستخدم ليبدأ فريقك باستخدام نظام نقطة البيع.",
+  "noActiveUsers": "لا يوجد مستخدمون نشطون",
+  "noActiveUsersMessage": "لا يوجد مستخدمون نشطون حالياً.",
+  "noCashiersFound": "لا يوجد كاشير",
+  "noCashiersFoundMessage": "لا توجد حسابات كاشير حالياً.",
+  "noManagersFound": "لا يوجد مديرون",
+  "noManagersFoundMessage": "لا توجد حسابات مديرين حالياً.",
+
+  "menuCatalogTitle": "كتالوج القائمة",
+  "productCatalogTitle": "كتالوج المنتجات",
+  "menuCatalogSubtitle": "إدارة عناصر القائمة والأسعار والتصنيفات.",
+  "productCatalogSubtitle": "إدارة المنتجات والأسعار والتصنيفات وتوفر المخزون.",
+  "allProducts": "كل المنتجات",
+  "unknownCategory": "تصنيف غير معروف",
+
+  "newCategory": "تصنيف جديدة",
+  "editCategory": "تعديل التصنيف",
+  "noCategoriesYet": "لا توجد تصنيفات بعد",
+  "fieldCategoryName": "اسم التصنيف",
+  "createCategory": "إنشاء تصنيف",
   "catStatTotal": "الإجمالي",
   "catStatActive": "نشطة",
   "catStatInactive": "غير نشطة",
@@ -343,6 +503,8 @@
 
   "bizManageLabel": "الإدارة",
   "bizShopsTitle": "المتاجر",
+  "live": "مباشر",
+  "today": "اليوم",
   "bizActiveBranch": "فرع نشط",
   "bizActiveBranches": "فروع نشطة",
   "bizProductsItem": "منتج",
@@ -351,7 +513,7 @@
   "bizUserPlural": "مستخدمون",
   "bizReportSubtitle": "استعراض وبحث في جميع المعاملات",
   "bizCreateMyBusiness": "إنشاء نشاطي التجاري",
-  "bizAddFirstShop": "إضافة أول متجر",
+  "bizAddFirstShop": "إضافة أول فرع",
   "bizFieldBusinessName": "اسم النشاط التجاري",
   "bizFieldAddress": "العنوان",
   "bizFieldPhone": "الهاتف",
@@ -359,13 +521,295 @@
   "bizInfoTitle": "معلومات النشاط التجاري",
   "bizInfoSubtitle": "الملف الأساسي وتفاصيل الاتصال",
   "bizDeactivateTitle": "إلغاء تفعيل النشاط التجاري؟",
-  "bizFieldShopName": "اسم المتجر",
-  "shopStatTotalShops": "إجمالي المتاجر",
+  "bizFieldShopName": "اسم الفرع",
+
+  "shopManagement": "إدارة الفروع",
+  "shopStatTotalShops": "إجمالي الفروع",
   "shopStatActive": "نشطة",
   "shopStatInactive": "غير نشطة",
   "bizStatusLabel": "الحالة",
   "bizAddressLabel": "العنوان",
   "bizPhoneLabel": "الهاتف",
   "bizEmailLabel": "البريد الإلكتروني",
-  "bizShopsLabel": "المتاجر"
+  "bizShopsLabel": "الفروع",
+  "addShop": "إضافة فرع",
+  "noShopsYet": "لا يوجد فرع",
+  "firstShopMessage": "اضف اول فرع لك لتتمكن من اداره منتجاتك او مبيعاتك او المستخدمين",
+  "shop": "الفرع",
+  "active": "نشط",
+  "inactive": "غير نشط",
+  "newShop": "فرع جديد",
+  "shopAddedSuccessfully": "تمت إضافة الفرع بنجاح",
+  "mainBranchHint": "الفرع الرئيسي",
+  "shopNameRequired": "اسم الفرع مطلوب",
+  "nameMustBeAtLeast2Characters": "يجب أن يكون الاسم مكوّناً من حرفين على الأقل",
+  "optional": "اختياري",
+  "khartoumCentreHint": "وسط الخرطوم",
+  "enterValidPhoneNumber": "أدخل رقم هاتف صحيح",
+
+  "editShop": "تعديل المتجر",
+  "status": "الحالة",
+  "address": "العنوان",
+  "phone": "الهاتف",
+
+
+  "createStaffAccountMessage": "يمكن إنشاء حسابات الكاشير والمدير فقط من هنا.",
+  "fullNameHint": "علي حسن",
+  "fullNameRequired": "الاسم الكامل مطلوب",
+  "invalidRoleSelected": "تم اختيار دور غير صالح",
+  "assignCashierToShopRequired": "يرجى تعيين هذا الكاشير إلى فرع.",
+  "userAddedSuccessfully": "تمت إضافة المستخدم بنجاح",
+  "autoAssignCashierToShop": "سيتم تعيينه إلى {shopName} تلقائياً.",
+  "@autoAssignCashierToShop": {
+    "placeholders": {
+      "shopName": {
+        "type": "String"
+      }
+    }
+  },
+  "selectShop": "اختر فرعاً",
+  "cashierShopRequiredMessage": "يجب تعيين الكاشير إلى فرع حتى يتمكن من معالجة المبيعات.",
+  "cashierAssignedToShop": "سيتم تعيين الكاشير إلى {shopName}.",
+  "@cashierAssignedToShop": {
+    "placeholders": {
+      "shopName": {
+        "type": "String"
+      }
+    }
+  },
+  "thisShop": "هذا الفرع",
+  "adminRoleHint": "صلاحية كاملة — يمكنه إدارة كل شيء بما في ذلك المستخدمون والإعدادات.",
+  "managerRoleHint": "يمكنه عرض التقارير وإدارة المخزون والطلبات.",
+  "cashierRoleHint": "يمكنه معالجة المبيعات وإدارة جهاز نقطة البيع.",
+  "editStaffAccountMessage": "يمكن تعيين أدوار الكاشير والمدير فقط من هنا.",
+  "adminRoleCannotBeAssigned": "لا يمكن تعيين دور المدير العام من التطبيق",
+  "invalidUserSelected": "المستخدم المحدد غير صالح",
+  "userUpdatedSuccessfully": "تم تحديث المستخدم بنجاح",
+  "nameRequired": "الاسم مطلوب",
+  "unassigned": "غير معيّن",
+  "unassignedCashierMessage": "هذا الكاشير غير معيّن لأي فرع ولا يمكنه معالجة المبيعات.",
+  "cashierAssignedToShopDetailed": "تم تعيينه إلى {shopName}. يمكن للكاشير معالجة المبيعات في هذا الفرع.",
+  "@cashierAssignedToShopDetailed": {
+    "placeholders": {
+      "shopName": {
+        "type": "String"
+      }
+    }
+  },
+  "managerAccessMessage": "المديرون غير مرتبطين بفرع واحد. يمكنهم إدارة عمليات النشاط التجاري حسب صلاحياتهم.",
+  "userDeactivatedSuccessfully": "User deactivated successfully",
+  "deactivateUserMessage": "\"{name}\" will lose access immediately. You can reactivate them later.",
+  "@deactivateUserMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidUserId": "Invalid user ID",
+  "thisUser": "this user",
+  "noCashiersYet": "لا يوجد كاشير بعد",
+  "noCashiersYetDescription": "أضف أول كاشير حتى يتمكن فريقك من بدء معالجة المبيعات من نقطة البيع.",
+
+  "yes": "نعم",
+  "no": "لا",
+  "never": "أبداً",
+  "admin": "مدير النظام",
+  "manager": "مدير",
+  "cashier": "كاشير",
+  "deactivate": "إلغاء التفعيل",
+  "managerAccessHint": "يمكنه إدارة المخزون والتقارير والعمليات",
+  "cashierAccessHint": "يمكنه معالجة المبيعات واستخدام نقطة البيع",
+  "adminAccessHint": "يمكنه إدارة إعدادات العمل وصلاحيات الموظفين",
+  "staffAccountHint": "حساب موظف",
+
+
+  "subtotal": "المجموع الفرعي",
+  "total": "الإجمالي",
+  "failedToLoadProducts": "فشل تحميل المنتجات",
+  "noProductsFound": "لا توجد منتجات",
+  "nothingMatchesQuery": "لا توجد نتائج تطابق \"{query}\".",
+  "@nothingMatchesQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "tryAnotherCategoryOrAddProducts": "جرّب تصنيفاً آخر أو أضف منتجات أولاً.",
+  "payment": "الدفع",
+  "method": "الطريقة",
+  "bankak": "بنكك",
+  "bankTransfer": "تحويل بنكي",
+  "cash": "نقداً",
+  "payNow": "ادفع الآن",
+  "bankakReadyAccount": "بنكك جاهز · الحساب {account}",
+  "@bankakReadyAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "bankakAccountSetupBanner": "حساب بنكك غير مضاف. اضغط لفتح الإعدادات.",
+  "bankakAccountNotSetUpMessage": "حساب بنكك غير مضاف. انتقل إلى الإعدادات وأضف رقم الحساب أولاً.",
+  "cashierNotAssignedToShopMessage": "أنت غير مخصص لأي متجر. تواصل مع المدير.",
+  "noShopFoundRefreshMessage": "لم يتم العثور على متجر. يرجى التحديث والمحاولة مرة أخرى.",
+  "clearCartQuestion": "مسح السلة؟",
+  "clearCartDescription": "سيتم حذف كل العناصر من عملية البيع الحالية.",
+  "clear": "مسح",
+  "reviewSale": "مراجعة البيع",
+  "review": "مراجعة",
+  "reviewCart": "مراجعة السلة",
+  "cart": "السلة",
+  "completeSale": "إكمال البيع",
+  "itemCount": "{count, plural, =0{0 عناصر} =1{عنصر واحد} =2{عنصران} other{{count} عناصر}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remove": "حذف",
+  "eachPrice": "{price} لكل وحدة",
+  "@eachPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToLoadSales": "فشل تحميل المبيعات",
+  "searchReceiptAmountPaymentHint": "ابحث برقم الإيصال أو المبلغ أو طريقة الدفع...",
+  "clearSearch": "مسح البحث",
+  "completed": "مكتملة",
+  "returned": "مرتجعة",
+  "pending": "قيد الانتظار",
+  "allLoaded": "كل المحمّل",
+  "todaysSales": "مبيعات اليوم",
+  "noMatchingSales": "لا توجد مبيعات مطابقة",
+  "tryDifferentSearchTerm": "جرّب كلمة بحث مختلفة",
+  "noSalesToday": "لا توجد مبيعات اليوم",
+  "salesMadeTodayWillAppearHere": "ستظهر مبيعات اليوم هنا",
+  "noPendingSales": "لا توجد مبيعات معلّقة",
+  "allOfflineSalesSynced": "تمت مزامنة جميع المبيعات غير المتصلة",
+  "noCompletedSales": "لا توجد مبيعات مكتملة",
+  "noReturnedSales": "لا توجد مبيعات مرتجعة",
+  "noSalesYet": "لا توجد مبيعات بعد",
+  "matchingSalesWillAppearHere": "ستظهر المبيعات المطابقة هنا",
+  "salesWillAppearHere": "ستظهر المبيعات هنا بعد إكمال أول عملية بيع",
+
+  "card": "بطاقة",
+  "partiallyReturned": "مرتجعة جزئياً",
+  "cancelled": "ملغاة",
+  "failed": "فشلت",
+  "unknown": "غير معروف",
+  "todayWithTime": "اليوم {time}",
+  "@todayWithTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "yesterdayWithTime": "أمس {time}",
+  "@yesterdayWithTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "yesterday": "أمس",
+  "allLoadedSales": "كل المبيعات المحمّلة",
+  "todaysSalesCount": "مبيعات اليوم",
+  "completedSalesCount": "المبيعات المكتملة",
+  "returnedSalesCount": "المبيعات المرتجعة",
+  "pendingSalesCount": "المبيعات المعلّقة",
+  "allLoadedRevenue": "كل الإيرادات المحمّلة",
+  "todaysRevenue": "إيرادات اليوم",
+  "completedRevenue": "إيرادات المبيعات المكتملة",
+  "returnedRevenue": "إيرادات المبيعات المرتجعة",
+  "pendingRevenue": "إيرادات المبيعات المعلّقة",
+  "receiptNumberLabel": "رقم الإيصال",
+  "temporaryReferenceLabel": "مرجع مؤقت",
+  "salePendingSyncDescription": "عملية البيع بانتظار المزامنة. لا يمكن إرجاع العناصر أو عرض رقم الإيصال النهائي إلا بعد مزامنة العملية مع الخادم.",
+  "saleAlreadyRefunded": "تم إرجاع هذه العملية مسبقاً.",
+  "preparingReceipt": "جاري تجهيز الإيصال...",
+  "shareReceiptPdf": "مشاركة الإيصال PDF",
+  "receiptPdfShareHint": "سيتم مشاركة الإيصال كملف PDF. اختر واتساب من خيارات المشاركة.",
+  "noItemDetailsAvailable": "لا توجد تفاصيل للعناصر",
+  "wallet": "محفظة",
+  "receipt": "إيصال",
+  "amanaReceipt": "إيصال AmanaPOS",
+  "salesReceipt": "إيصال البيع",
+  "date": "التاريخ",
+  "item": "العنصر",
+  "qty": "الكمية",
+  "amount": "المبلغ",
+  "offlineSalePdfWarning": "عملية بيع غير متصلة - قد يكون تأكيد الخادم النهائي ما زال معلقاً.",
+  "thankYouForPurchase": "شكراً لعملية الشراء.",
+  "poweredByAmanaPOS": "مدعوم بواسطة AmanaPOS",
+  "processReturn": "معالجة الإرجاع",
+
+  "returnSearchHint": "رقم الإيصال أو المبلغ...",
+  "returnSearchHelper": "رقم الإيصال أو المبلغ أو اسم العميل",
+  "pleaseTryAgain": "يرجى المحاولة مرة أخرى",
+  "returnPendingSyncCannotReturn": "بانتظار المزامنة — لا يمكن الإرجاع حالياً",
+  "returnAlreadyProcessed": "تمت معالجتها مسبقاً: {status}",
+  "@returnAlreadyProcessed": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "originalSale": "البيع الأصلي",
+  "tapItemsToSelect": "اضغط على العناصر للاختيار",
+  "refundTotal": "مجموع الاسترجاع",
+  "items": "عناصر",
+  "selectItemsToReturn": "اختر العناصر للإرجاع",
+  "itemsSelected": "تم اختيار {selectedCount} من أصل {totalCount} عنصر",
+  "@itemsSelected": {
+    "description": "Shows number of items selected out of total in Arabic",
+    "placeholders": {
+      "selectedCount": {},
+      "totalCount": {}
+    }
+  },
+  "sold": "مباعة",
+  "returnProcessed": "تمت معالجة الإرجاع!",
+  "stockRestored": "تمت استعادة المخزون",
+  "receiptReady": "الإيصال جاهز للمشاركة",
+  "returnReference": "مرجع الإرجاع",
+  "noReturnedItems": "لا توجد عناصر مرتجعة",
+  "totalRefunded": "إجمالي المبلغ المسترجع",
+  "returnReceipt": "إيصال الإرجاع",
+  "ref": "المرجع",
+  "refund": "استرجاع",
+  "original": "الأصلي",
+  "cashRefund": "استرجاع نقدي",
+  "settingsSynced": "متزامن",
+  "commonEdit": "تعديل",
+  "commonActive": "مفعل",
+  "commonSetup": "إعداد",
+  "commonChange": "تغيير",
+  "commonCancel": "إلغاء",
+  "settingsBankakNotConfigured": "غير مفعّل — أضف حساب بنكك لقبول المبيعات",
+  "settingsBankakReady": "الحساب {account} · جاهز لمبيعات نقطة البيع",
+  "@settingsBankakReady": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsProfileSubtitleFallback": "الاسم والبريد الإلكتروني وبيانات التواصل",
+  "settingsSignOutTitle": "تسجيل الخروج؟",
+  "settingsSignOutMessage": "تأكد من مزامنة كل المبيعات قبل تسجيل الخروج. المبيعات غير المتزامنة قد يتم فقدانها."
+
+
 }

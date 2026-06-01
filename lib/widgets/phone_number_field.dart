@@ -3,6 +3,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 int phoneMaxLength(String value) => value.startsWith('0') ? 10 : 9;
 
@@ -128,24 +129,39 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                   borderRadius: AppRadius.borderMd,
                   border: Border.all(color: borderColor, width: 1.5),
                 ),
+                child: Directionality(
+                textDirection: TextDirection.ltr,
                 child: Row(
                   children: [
-                    const SizedBox(width: AppSpacing.lg),
+                    const SizedBox(width: AppSpacing.md),
 
-                    const Text('🇸🇩', style: TextStyle(fontSize: 18)),
+                    const Text(
+                      '🇸🇩',
+                      style: TextStyle(fontSize: 18),
+                    ),
+
                     const SizedBox(width: 6),
+
                     Text(
                       '+249',
-                      style: AppTextStyles.bs400(context,
-                          weight: AppTextStyles.bold,
-                          color: colors.textPrimary),
+                      textDirection: TextDirection.ltr,
+                      style: AppTextStyles.bs400(
+                        context,
+                        weight: AppTextStyles.bold,
+                        color: colors.textPrimary,
+                      ),
                     ),
 
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm, vertical: 10),
+                        horizontal: AppSpacing.sm,
+                        vertical: 10,
+                      ),
                       child: VerticalDivider(
-                          width: 1, thickness: 1, color: colors.border),
+                        width: 1,
+                        thickness: 1,
+                        color: colors.border,
+                      ),
                     ),
 
                     Expanded(
@@ -156,19 +172,26 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                             controller: widget.controller,
                             focusNode: _focusNode,
                             keyboardType: TextInputType.phone,
+                            textDirection: TextDirection.ltr,
+                            textAlign: TextAlign.left,
                             maxLength: maxLen,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(maxLen),
                             ],
-                            style: AppTextStyles.bs400(context,
-                                weight: AppTextStyles.semibold,
-                                color: colors.textPrimary),
+                            style: AppTextStyles.bs400(
+                              context,
+                              weight: AppTextStyles.semibold,
+                              color: colors.textPrimary,
+                            ),
                             decoration: InputDecoration(
                               filled: false,
                               hintText: '912345678',
+                              hintTextDirection: TextDirection.ltr,
                               hintStyle: AppTextStyles.bs400(
-                                  context, color: colors.textHint),
+                                context,
+                                color: colors.textHint,
+                              ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -185,19 +208,25 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                       valueListenable: _hasContent,
                       builder: (context, hasContent, _) {
                         if (!hasContent) return const SizedBox.shrink();
+
                         return GestureDetector(
                           onTap: _clearField,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.xs),
-                            child: Icon(Icons.cancel_rounded,
-                                size: 18, color: colors.textHint),
+                              horizontal: AppSpacing.xs,
+                            ),
+                            child: Icon(
+                              SolarIconsOutline.closeCircle,
+                              size: 18,
+                              color: colors.textHint,
+                            ),
                           ),
                         );
                       },
                     ),
                   ],
                 ),
+              ),
               );
             },
           ),

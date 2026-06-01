@@ -9,15 +9,20 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
-void showEditCategorySheet(BuildContext context,
-    {required CategoryData category}) {
+void showEditCategorySheet(
+    BuildContext context, {
+      required CategoryData category,
+    }) {
+  final categoryBloc = context.read<CategoryBloc>();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
-      value: context.read<CategoryBloc>(),
+      value: categoryBloc,
       child: _EditCategorySheet(category: category),
     ),
   );
@@ -25,102 +30,170 @@ void showEditCategorySheet(BuildContext context,
 
 class _EditCategorySheet extends StatefulWidget {
   final CategoryData category;
-  const _EditCategorySheet({required this.category});
+
+  const _EditCategorySheet({
+    required this.category,
+  });
 
   @override
   State<_EditCategorySheet> createState() => _EditCategorySheetState();
 }
 
 class _EditCategorySheetState extends State<_EditCategorySheet> {
-  final _formKey   = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
+
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descCtrl;
-  final _nameFocus = FocusNode();
-  final _descFocus = FocusNode();
 
-  bool get _hasChanges =>
-      _nameCtrl.text.trim() != (widget.category.name ?? '') ||
-          _descCtrl.text.trim() != (widget.category.description ?? '');
+  late final FocusNode _nameFocus;
+  late final FocusNode _descFocus;
+
+  late final String _initialName;
+  late final String _initialDescription;
+
+  bool get _hasChanges {
+    return _nameCtrl.text.trim() != _initialName ||
+        _descCtrl.text.trim() != _initialDescription;
+  }
 
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.category.name ?? '');
-    _descCtrl = TextEditingController(text: widget.category.description ?? '');
-    _nameCtrl.addListener(() => setState(() {}));
-    _descCtrl.addListener(() => setState(() {}));
+
+    _initialName = widget.category.name?.trim() ?? '';
+    _initialDescription = widget.category.description?.trim() ?? '';
+
+    _nameCtrl = TextEditingController(text: _initialName);
+    _descCtrl = TextEditingController(text: _initialDescription);
+
+    _nameFocus = FocusNode();
+    _descFocus = FocusNode();
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _descCtrl.dispose();
-    _nameFocus.dispose(); _descFocus.dispose();
+    _nameCtrl.dispose();
+    _descCtrl.dispose();
+
+    _nameFocus.dispose();
+    _descFocus.dispose();
+
     super.dispose();
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    final categoryId = widget.category.id?.trim();
+
+    if (categoryId == null || categoryId.isEmpty) {
+      GlobalSnackBar.show(
+        message: context.tr.invalidCategory,
+        isError: true,
+      );
+      return;
+    }
+
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
+
     if (!_hasChanges) return;
-    context.read<CategoryBloc>().add(OnEditCategory(
-      categoryId:  widget.category.id!,
-      name:        _nameCtrl.text.trim(),
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-    ));
+
+    final name = _nameCtrl.text.trim();
+    final description = _descCtrl.text.trim();
+
+    context.read<CategoryBloc>().add(
+      OnEditCategory(
+        categoryId: categoryId,
+        name: name,
+        description: description.isEmpty ? null : description,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
+
     return BlocListener<CategoryBloc, CategoryState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == CategorySubmitStatus.success) {
           Navigator.of(context).pop();
-          GlobalSnackBar.show(message: 'Category updated', isInfo: true);
+
+          GlobalSnackBar.show(
+            message: context.tr.categoryUpdatedSuccessfully,
+            isInfo: true,
+          );
+          return;
         }
+
         if (state.submitStatus == CategorySubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
-            isError: true, isAutoDismiss: false,
+            message: state.submitError ?? context.tr.somethingWentWrong,
+            isError: true,
+            isAutoDismiss: false,
           );
         }
       },
       child: ProductSheetShell(
-        title: context.tr.editCategory,
-        subtitle: widget.category.name,
+        title: tr.editCategory,
+        subtitle: _initialName.isEmpty ? null : _initialName,
         body: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              FieldLabel(label: context.tr.fieldCategoryName, required: true),
+              FieldLabel(
+                label: tr.fieldCategoryName,
+                required: true,
+              ),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _nameCtrl,
-                focusNode:  _nameFocus,
-                nextFocus:  _descFocus,
-                hint: 'Beverages',
-                prefixIcon: Icons.layers_rounded,
-                validator:  CategoryFormValidators.name,
+                focusNode: _nameFocus,
+                nextFocus: _descFocus,
+                hint: tr.categoryNameHint,
+                prefixIcon: SolarIconsOutline.layersMinimalistic,
+                validator: (value) {
+                  return CategoryFormValidators.name(context, value);
+                },
               ),
+
               const SizedBox(height: AppDims.s3),
 
-              FieldLabel(label: context.tr.fieldDescription),
+              FieldLabel(label: tr.fieldDescription),
               const SizedBox(height: AppDims.s1),
               AppFormField(
                 controller: _descCtrl,
                 focusNode: _descFocus,
-                hint: 'Drinks and beverages',
-                prefixIcon: Icons.notes_rounded,
+                hint: tr.categoryDescriptionShortHint,
+                prefixIcon: SolarIconsOutline.notes,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _submit(),
               ),
+
               const SizedBox(height: AppDims.s5),
 
-              CategorySubmitButton(
-                label: context.tr.saveChanges,
-                onPressed: _submit,
-                enabled: _hasChanges,
+              AnimatedBuilder(
+                animation: Listenable.merge([
+                  _nameCtrl,
+                  _descCtrl,
+                ]),
+                builder: (context, _) {
+                  return BlocSelector<CategoryBloc, CategoryState,
+                      CategorySubmitStatus>(
+                    selector: (state) => state.submitStatus,
+                    builder: (context, submitStatus) {
+                      final isSubmitting =
+                          submitStatus == CategorySubmitStatus.loading;
+
+                      return CategorySubmitButton(
+                        label: tr.saveChanges,
+                        onPressed: isSubmitting ? null : _submit,
+                        enabled: _hasChanges && !isSubmitting,
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),

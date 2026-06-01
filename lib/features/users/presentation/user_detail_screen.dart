@@ -7,24 +7,33 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/extension.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:solar_icons/solar_icons.dart';
+import 'dart:ui' as ui;
 
 class UserDetailScreen extends StatelessWidget {
-  final UserData user;
-
   const UserDetailScreen({
     super.key,
     required this.user,
   });
 
+  final UserData user;
+
   @override
   Widget build(BuildContext context) {
     return BlocSelector<UserBloc, UserState, UserData?>(
       selector: (state) {
-        final matches = state.userList.where((item) => item.id == user.id);
-        return matches.isEmpty ? null : matches.first;
+        final userId = user.id?.trim();
+        if (userId == null || userId.isEmpty) return null;
+
+        for (final item in state.userList) {
+          if (item.id == userId) return item;
+        }
+
+        return null;
       },
       builder: (context, data) {
         final currentUser = data ?? user;
@@ -35,34 +44,29 @@ class UserDetailScreen extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             slivers: [
               _UserAppBar(user: currentUser),
-
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: const EdgeInsetsDirectional.fromSTEB(
                   AppDims.s4,
                   AppDims.s4,
                   AppDims.s4,
                   AppDims.s6,
                 ),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      _SectionTitle(
-                        title: context.tr.userInfoTitle,
-                        subtitle: context.tr.userInfoSubtitle,
-                      ),
-                      const SizedBox(height: AppDims.s2),
-                      _InfoSection(user: currentUser),
-
-                      const SizedBox(height: AppDims.s5),
-
-                      _SectionTitle(
-                        title: context.tr.userActivityTitle,
-                        subtitle: context.tr.userActivitySubtitle,
-                      ),
-                      const SizedBox(height: AppDims.s2),
-                      _ActivitySection(user: currentUser),
-                    ],
-                  ),
+                sliver: SliverList.list(
+                  children: [
+                    _SectionTitle(
+                      title: context.tr.userInfoTitle,
+                      subtitle: context.tr.userInfoSubtitle,
+                    ),
+                    const SizedBox(height: AppDims.s2),
+                    _InfoSection(user: currentUser),
+                    const SizedBox(height: AppDims.s5),
+                    _SectionTitle(
+                      title: context.tr.userActivityTitle,
+                      subtitle: context.tr.userActivitySubtitle,
+                    ),
+                    const SizedBox(height: AppDims.s2),
+                    _ActivitySection(user: currentUser),
+                  ],
                 ),
               ),
             ],
@@ -74,11 +78,11 @@ class UserDetailScreen extends StatelessWidget {
 }
 
 class _UserAppBar extends StatelessWidget {
-  final UserData user;
-
   const _UserAppBar({
     required this.user,
   });
+
+  final UserData user;
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +90,10 @@ class _UserAppBar extends StatelessWidget {
     final isActive = user.isActive ?? false;
     final roleColor = _roleColor(context, user.role);
 
-    final fullName = user.fullName?.trim().isNotEmpty == true
-        ? user.fullName!.trim()
-        : 'Cashier';
+    final fullName = _safeText(
+      user.fullName,
+      context.tr.cashier,
+    );
 
     return SliverAppBar(
       expandedHeight: 235,
@@ -99,27 +104,31 @@ class _UserAppBar extends StatelessWidget {
       automaticallyImplyLeading: false,
       titleSpacing: 0,
       title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: AppDims.s4,
+        ),
         child: Row(
           children: [
             _AppBarIconButton(
               icon: SolarIconsOutline.altArrowLeft,
+              semanticLabel: context.tr.back,
+              flipInRtl: true,
               onTap: () => Navigator.of(context).pop(),
             ),
             const Spacer(),
             _AppBarIconButton(
               icon: SolarIconsOutline.penNewSquare,
+              semanticLabel: context.tr.edit,
               onTap: () => showEditUserSheet(context, user: user),
             ),
             if (isActive) ...[
               const SizedBox(width: AppDims.s2),
               _AppBarIconButton(
                 icon: SolarIconsOutline.forbiddenCircle,
+                semanticLabel: context.tr.deactivateUser,
                 color: const Color(0xFFDC2626),
-                backgroundColor:
-                const Color(0xFFDC2626).withValues(alpha: 0.08),
-                borderColor:
-                const Color(0xFFDC2626).withValues(alpha: 0.18),
+                backgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.08),
+                borderColor: const Color(0xFFDC2626).withValues(alpha: 0.18),
                 onTap: () => showDeactivateUserSheet(context, user),
               ),
             ],
@@ -127,68 +136,99 @@ class _UserAppBar extends StatelessWidget {
         ),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        background: Container(
+        background: ColoredBox(
           color: colors.background,
-          padding: const EdgeInsets.fromLTRB(
-            AppDims.s4,
-            0,
-            AppDims.s4,
-            AppDims.s4,
-          ),
           child: SafeArea(
             bottom: false,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  width: 86,
-                  height: 86,
-                  decoration: BoxDecoration(
-                    color: roleColor.withValues(alpha: 0.10),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: roleColor.withValues(alpha: 0.24),
-                      width: 1.2,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    user.fullName?.initials ?? '?',
-                    style: AppTextStyles.lg100(context).copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: roleColor,
-                      height: 1,
-                    ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                AppDims.s4,
+                0,
+                AppDims.s4,
+                AppDims.s4,
+              ),
+              child: Align(
+                alignment: AlignmentDirectional.bottomCenter,
+                child: RepaintBoundary(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _Avatar(
+                        initials: user.fullName?.initials ?? '?',
+                        color: roleColor,
+                      ),
+                      const SizedBox(height: AppDims.s3),
+                      Text(
+                        fullName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bs700(context).copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: colors.textPrimary,
+                          height: 1.05,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: AppDims.s2),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: AppDims.s2,
+                        runSpacing: AppDims.s1,
+                        children: [
+                          _RoleBadge(role: user.role),
+                          _StatusBadge(active: isActive),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                const SizedBox(height: AppDims.s3),
+class _Avatar extends StatelessWidget {
+  const _Avatar({
+    required this.initials,
+    required this.color,
+  });
 
-                Text(
-                  fullName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bs700(context).copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: colors.textPrimary,
-                    height: 1.05,
-                    letterSpacing: -0.3,
-                  ),
-                ),
+  final String initials;
+  final Color color;
 
-                const SizedBox(height: AppDims.s2),
-
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: AppDims.s2,
-                  runSpacing: AppDims.s1,
-                  children: [
-                    _RoleBadge(role: user.role),
-                    _StatusBadge(active: isActive),
-                  ],
-                ),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: color.withValues(alpha: 0.24),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        width: 86,
+        height: 86,
+        child: Center(
+          child: Text(
+            initials,
+            style: AppTextStyles.lg100(context).copyWith(
+              fontWeight: FontWeight.w900,
+              color: color,
+              height: 1,
             ),
           ),
         ),
@@ -198,11 +238,11 @@ class _UserAppBar extends StatelessWidget {
 }
 
 class _InfoSection extends StatelessWidget {
-  final UserData user;
-
   const _InfoSection({
     required this.user,
   });
+
+  final UserData user;
 
   @override
   Widget build(BuildContext context) {
@@ -214,19 +254,20 @@ class _InfoSection extends StatelessWidget {
         _InfoRow(
           icon: SolarIconsOutline.phone,
           label: context.tr.userDetailPhone,
-          value: user.phone?.trim().isNotEmpty == true ? user.phone!.trim() : '—',
+          value: _safeText(user.phone, '—'),
+          forceValueLtr: true,
         ),
         _InfoRow(
           icon: SolarIconsOutline.userId,
           label: context.tr.userDetailRole,
-          value: _capitalize(user.role),
+          value: _localizedRole(context, user.role),
         ),
         _InfoRow(
           icon: verified
               ? SolarIconsOutline.verifiedCheck
               : SolarIconsOutline.closeCircle,
           label: context.tr.userDetailVerified,
-          value: verified ? 'Yes' : 'No',
+          value: verified ? context.tr.yes : context.tr.no,
           valueColor: verified ? const Color(0xFF16A34A) : null,
           iconColor: verified ? const Color(0xFF16A34A) : null,
         ),
@@ -234,90 +275,54 @@ class _InfoSection extends StatelessWidget {
           icon: SolarIconsOutline.recordCircle,
           iconColor: active ? const Color(0xFF16A34A) : null,
           label: context.tr.userDetailStatus,
-          value: active ? 'Active' : 'Inactive',
+          value: active ? context.tr.active : context.tr.inactive,
           valueColor: active ? const Color(0xFF16A34A) : null,
           isLast: true,
         ),
       ],
     );
   }
-
-  String _capitalize(String? value) {
-    final text = value?.trim();
-    if (text == null || text.isEmpty) return '—';
-    return text[0].toUpperCase() + text.substring(1);
-  }
 }
 
 class _ActivitySection extends StatelessWidget {
-  final UserData user;
-
   const _ActivitySection({
     required this.user,
   });
 
+  final UserData user;
+
   @override
   Widget build(BuildContext context) {
+    final lastLogin = _formatDate(context, user.lastLoginAt);
+    final joined = _formatDate(context, user.createdAt);
+
     return _Card(
       children: [
         _InfoRow(
           icon: SolarIconsOutline.login,
           label: context.tr.userDetailLastLogin,
-          value: _formatDate(user.lastLoginAt) ?? 'Never',
-          valueColor:
-          user.lastLoginAt == null ? context.appColors.textHint : null,
+          value: lastLogin ?? context.tr.never,
+          valueColor: lastLogin == null ? context.appColors.textHint : null,
         ),
         _InfoRow(
           icon: SolarIconsOutline.calendar,
           label: context.tr.userDetailJoined,
-          value: _formatDate(user.createdAt) ?? '—',
+          value: joined ?? '—',
           isLast: true,
         ),
       ],
     );
   }
-
-  String? _formatDate(String? iso) {
-    if (iso == null) return null;
-
-    try {
-      final date = DateTime.parse(iso).toLocal();
-
-      return '${date.day} ${_month(date.month)} ${date.year}  '
-          '${date.hour.toString().padLeft(2, '0')}:'
-          '${date.minute.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return iso;
-    }
-  }
-
-  String _month(int month) {
-    return const [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ][month];
-  }
 }
 
 class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
   const _SectionTitle({
     required this.title,
     required this.subtitle,
   });
+
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -349,80 +354,84 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _Card extends StatelessWidget {
-  final List<Widget> children;
-
   const _Card({
     required this.children,
   });
+
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(
-          color: colors.border,
+    return RepaintBoundary(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(AppDims.rLg),
+          border: Border.all(color: colors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 14,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.025),
-            blurRadius: 14,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: children,
+        child: Column(
+          children: children,
+        ),
       ),
     );
   }
 }
 
 class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final Color? iconColor;
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final bool isLast;
-
   const _InfoRow({
     required this.icon,
     required this.label,
     required this.value,
     this.iconColor,
     this.valueColor,
+    this.forceValueLtr = false,
     this.isLast = false,
   });
+
+  final IconData icon;
+  final Color? iconColor;
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool forceValueLtr;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final valueWidget = Text(
+      value,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.end,
+      style: AppTextStyles.bs300(context).copyWith(
+        fontWeight: FontWeight.w900,
+        color: valueColor ?? colors.textPrimary,
+      ),
+    );
+
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
+          padding: const EdgeInsetsDirectional.symmetric(
             horizontal: AppDims.s4,
             vertical: AppDims.s3,
           ),
           child: Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: (iconColor ?? colors.primary).withValues(alpha: 0.09),
-                  borderRadius: BorderRadius.circular(AppDims.rSm),
-                ),
-                child: Icon(
-                  icon,
-                  size: 17,
-                  color: iconColor ?? colors.textHint,
-                ),
+              _InfoIcon(
+                icon: icon,
+                iconColor: iconColor,
               ),
               const SizedBox(width: AppDims.s3),
               Expanded(
@@ -436,16 +445,12 @@ class _InfoRow extends StatelessWidget {
               ),
               const SizedBox(width: AppDims.s3),
               Flexible(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: AppTextStyles.bs300(context).copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: valueColor ?? colors.textPrimary,
-                  ),
-                ),
+                child: forceValueLtr
+                    ? Directionality(
+                  textDirection: ui.TextDirection.ltr,
+                  child: valueWidget,
+                )
+                    : valueWidget,
               ),
             ],
           ),
@@ -455,6 +460,7 @@ class _InfoRow extends StatelessWidget {
             height: 1,
             thickness: 1,
             indent: AppDims.s4 + 34 + AppDims.s3,
+            endIndent: AppDims.s4,
             color: colors.border,
           ),
       ],
@@ -462,12 +468,44 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _RoleBadge extends StatelessWidget {
-  final String? role;
+class _InfoIcon extends StatelessWidget {
+  const _InfoIcon({
+    required this.icon,
+    this.iconColor,
+  });
 
+  final IconData icon;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final color = iconColor ?? colors.primary;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(AppDims.rSm),
+      ),
+      child: SizedBox(
+        width: 34,
+        height: 34,
+        child: Icon(
+          icon,
+          size: 17,
+          color: iconColor ?? colors.textHint,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleBadge extends StatelessWidget {
   const _RoleBadge({
     this.role,
   });
+
+  final String? role;
 
   @override
   Widget build(BuildContext context) {
@@ -479,18 +517,47 @@ class _RoleBadge extends StatelessWidget {
 
     final color = _roleColor(context, normalizedRole);
 
-    final label = switch (normalizedRole) {
-      'admin' => 'Admin',
-      'manager' => 'Manager',
-      'cashier' => 'Cashier',
-      _ => normalizedRole,
-    };
+    return _Badge(
+      label: _localizedRole(context, normalizedRole),
+      color: color,
+    );
+  }
+}
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDims.s2,
-        vertical: 5,
-      ),
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({
+    required this.active,
+  });
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final color = active ? const Color(0xFF16A34A) : colors.textHint;
+
+    return _Badge(
+      label: active ? context.tr.active : context.tr.inactive,
+      color: color,
+      showDot: true,
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    required this.color,
+    this.showDot = false,
+  });
+
+  final String label;
+  final Color color;
+  final bool showDot;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
@@ -498,110 +565,119 @@ class _RoleBadge extends StatelessWidget {
           color: color.withValues(alpha: 0.20),
         ),
       ),
-      child: Text(
-        label,
-        style: AppTextStyles.bs100(context).copyWith(
-          fontWeight: FontWeight.w900,
-          color: color,
-          height: 1,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: AppDims.s2,
+          vertical: 5,
         ),
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final bool active;
-
-  const _StatusBadge({
-    required this.active,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final color = active ? const Color(0xFF16A34A) : colors.textHint;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDims.s2,
-        vertical: 5,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: active ? 0.12 : 0.08),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withValues(alpha: active ? 0.20 : 0.12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showDot) ...[
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+                child: const SizedBox(width: 6, height: 6),
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: AppTextStyles.bs100(context).copyWith(
+                fontWeight: FontWeight.w900,
+                color: color,
+                height: 1,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            active ? 'Active' : 'Inactive',
-            style: AppTextStyles.bs100(context).copyWith(
-              fontWeight: FontWeight.w900,
-              color: color,
-              height: 1,
-            ),
-          ),
-        ],
       ),
     );
   }
 }
 
 class _AppBarIconButton extends StatelessWidget {
+  const _AppBarIconButton({
+    required this.icon,
+    required this.onTap,
+    required this.semanticLabel,
+    this.color,
+    this.backgroundColor,
+    this.borderColor,
+    this.flipInRtl = false,
+  });
+
   final IconData icon;
   final Color? color;
   final Color? backgroundColor;
   final Color? borderColor;
+  final bool flipInRtl;
+  final String semanticLabel;
   final VoidCallback onTap;
-
-  const _AppBarIconButton({
-    required this.icon,
-    required this.onTap,
-    this.color,
-    this.backgroundColor,
-    this.borderColor,
-  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Material(
-      color: backgroundColor ?? colors.surface,
-      borderRadius: BorderRadius.circular(AppDims.rMd),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: Material(
+        color: backgroundColor ?? colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rMd),
-        child: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDims.rMd),
-            border: Border.all(
-              color: borderColor ?? colors.border,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDims.rMd),
+              border: Border.all(
+                color: borderColor ?? colors.border,
+              ),
             ),
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: color ?? colors.textPrimary,
+            child: DirectionalIcon(
+              icon: icon,
+              size: 20,
+              color: color ?? colors.textPrimary,
+              flipInRtl: flipInRtl,
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+String _safeText(String? value, String fallback) {
+  final text = value?.trim();
+  if (text == null || text.isEmpty) return fallback;
+  return text;
+}
+
+String _localizedRole(BuildContext context, String? role) {
+  return switch (role?.toLowerCase().trim()) {
+    'admin' => context.tr.admin,
+    'manager' => context.tr.manager,
+    'cashier' => context.tr.cashier,
+    _ => '—',
+  };
+}
+
+String? _formatDate(BuildContext context, String? iso) {
+  final value = iso?.trim();
+  if (value == null || value.isEmpty) return null;
+
+  try {
+    final date = DateTime.parse(value).toLocal();
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
+    return DateFormat.yMMMd(locale).add_Hm().format(date);
+  } catch (_) {
+    return value;
   }
 }
 

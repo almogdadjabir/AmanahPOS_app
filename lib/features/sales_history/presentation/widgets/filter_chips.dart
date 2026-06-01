@@ -46,7 +46,7 @@ class FilterChips extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 6),
             child: _Chip(
-              label: f.label,
+              label: f.label(context),
               icon: _iconFor(f),
               active: active == f,
               count: counts?[f],

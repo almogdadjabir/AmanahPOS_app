@@ -10,51 +10,76 @@ void showDeactivateUserSheet(
     BuildContext context,
     UserData user,
     ) {
+  final userBloc = context.read<UserBloc>();
+
   AppDeactivateBottomSheet.show(
     context: context,
     child: BlocProvider.value(
-      value: context.read<UserBloc>(),
-      child: BlocConsumer<UserBloc, UserState>(
-        listenWhen: (previous, current) =>
-        previous.submitStatus != current.submitStatus,
-        listener: (context, state) {
-          if (state.submitStatus == UserSubmitStatus.success) {
-            Navigator.of(context)
-              ..pop()
-              ..pop();
+      value: userBloc,
+      child: _DeactivateUserSheetContent(user: user),
+    ),
+  );
+}
 
-            GlobalSnackBar.show(
-              message: 'User deactivated',
-              isInfo: true,
-            );
-          }
+class _DeactivateUserSheetContent extends StatelessWidget {
+  final UserData user;
 
-          if (state.submitStatus == UserSubmitStatus.failure) {
-            Navigator.of(context).pop();
+  const _DeactivateUserSheetContent({
+    required this.user,
+  });
 
-            GlobalSnackBar.show(
-              message: state.submitError ?? 'Something went wrong',
-              isError: true,
-              isAutoDismiss: false,
-            );
-          }
-        },
-        buildWhen: (previous, current) =>
-        previous.submitStatus != current.submitStatus,
-        builder: (context, state) {
-          final isLoading = state.submitStatus == UserSubmitStatus.loading;
+  @override
+  Widget build(BuildContext context) {
+    final tr = context.tr;
+
+    final userName = user.fullName?.trim();
+    final displayName = userName?.isNotEmpty == true
+        ? userName!
+        : tr.thisUser;
+
+    return BlocListener<UserBloc, UserState>(
+      listenWhen: (previous, current) {
+        return previous.submitStatus != current.submitStatus;
+      },
+      listener: (context, state) {
+        if (state.submitStatus == UserSubmitStatus.success) {
+          Navigator.of(context).pop();
+          Navigator.of(context).maybePop();
+
+          GlobalSnackBar.show(
+            message: context.tr.userDeactivatedSuccessfully,
+            isInfo: true,
+          );
+          return;
+        }
+
+        if (state.submitStatus == UserSubmitStatus.failure) {
+          Navigator.of(context).pop();
+
+          GlobalSnackBar.show(
+            message: state.submitError ?? context.tr.somethingWentWrong,
+            isError: true,
+            isAutoDismiss: false,
+          );
+        }
+      },
+      child: BlocSelector<UserBloc, UserState, UserSubmitStatus>(
+        selector: (state) => state.submitStatus,
+        builder: (context, submitStatus) {
+          final isLoading = submitStatus == UserSubmitStatus.loading;
 
           return AppDeactivateBottomSheet(
-            title: context.tr.deactivateUser,
-            description: '"${user.fullName}" will lose access immediately. '
-                'You can reactivate them later.',
+            title: tr.deactivateUser,
+            description: tr.deactivateUserMessage(displayName),
             isLoading: isLoading,
-            onConfirm: () {
-              final userId = user.id;
+            onConfirm: isLoading
+                ? null
+                : () {
+              final userId = user.id?.trim();
 
-              if (userId == null) {
+              if (userId == null || userId.isEmpty) {
                 GlobalSnackBar.show(
-                  message: 'Invalid user ID',
+                  message: context.tr.invalidUserId,
                   isError: true,
                 );
                 return;
@@ -67,6 +92,6 @@ void showDeactivateUserSheet(
           );
         },
       ),
-    ),
-  );
+    );
+  }
 }

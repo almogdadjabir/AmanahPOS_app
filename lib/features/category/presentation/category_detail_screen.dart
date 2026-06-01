@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_app_bar.dart';
@@ -31,18 +32,29 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   bool _isRequestingMore = false;
   Timer? _loadMoreTimer;
 
+  String? get _categoryId {
+    final id = widget.category.id?.trim();
+    return id?.isEmpty == true ? null : id;
+  }
+
   @override
   void initState() {
     super.initState();
-
     _loadCategoryProducts();
     _scrollCtrl.addListener(_onScroll);
   }
 
-  void _loadCategoryProducts() {
-    final categoryId = widget.category.id;
+  @override
+  void dispose() {
+    _loadMoreTimer?.cancel();
+    _scrollCtrl.removeListener(_onScroll);
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
-    if (categoryId == null || categoryId.trim().isEmpty) return;
+  void _loadCategoryProducts() {
+    final categoryId = _categoryId;
+    if (categoryId == null) return;
 
     context.read<CategoryBloc>().add(
       OnLoadCategoryProducts(categoryId: categoryId),
@@ -56,10 +68,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     );
   }
 
-  void _onScroll() {
-    final categoryId = widget.category.id;
+  void _toggleLayout() {
+    setState(() => _isGrid = !_isGrid);
+  }
 
-    if (categoryId == null || categoryId.trim().isEmpty) return;
+  void _onScroll() {
+    final categoryId = _categoryId;
+    if (categoryId == null) return;
     if (!_scrollCtrl.hasClients) return;
 
     final state = context.read<CategoryBloc>().state;
@@ -88,22 +103,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   @override
-  void dispose() {
-    _loadMoreTimer?.cancel();
-    _scrollCtrl.removeListener(_onScroll);
-    _scrollCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final category = context.select<CategoryBloc, CategoryData?>(
           (bloc) {
-        final matches = bloc.state.categoryList.where(
-              (item) => item.id == widget.category.id,
-        );
-
-        return matches.isEmpty ? null : matches.first;
+        for (final item in bloc.state.categoryList) {
+          if (item.id == widget.category.id) return item;
+        }
+        return null;
       },
     ) ??
         widget.category;
@@ -123,20 +129,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           ),
           headerSliverBuilder: (context, _) {
             return [
-              BlocBuilder<CategoryBloc, CategoryState>(
-                buildWhen: (prev, curr) =>
-                prev.products.length != curr.products.length ||
-                    prev.productsStatus != curr.productsStatus ||
-                    prev.productsFromCache != curr.productsFromCache,
-                builder: (context, state) {
+              BlocSelector<CategoryBloc, CategoryState, _CategoryAppBarData>(
+                selector: (state) {
+                  return _CategoryAppBarData(
+                    productCount: state.products.length,
+                    productsStatus: state.productsStatus,
+                    isFromCache: state.productsFromCache,
+                  );
+                },
+                builder: (context, data) {
                   return CategoryAppBar(
                     category: category,
-                    productCount: state.products.length,
-                    isFromCache: state.productsFromCache,
+                    productCount: data.productCount,
+                    isFromCache: data.isFromCache,
                     isGrid: _isGrid,
-                    onToggleLayout: () {
-                      setState(() => _isGrid = !_isGrid);
-                    },
+                    onToggleLayout: _toggleLayout,
                     onAddProduct: () => _openAddProductSheet(category),
                   );
                 },
@@ -157,15 +164,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
                 CategoryProductsStatus.failure => ProductsCategoryErrorView(
                   message: state.productsError,
-                  categoryId: widget.category.id!,
+                  categoryId: _categoryId ?? '',
                 ),
 
                 _ => state.products.isEmpty
                     ? ProductEmptyView(
-                  title: 'No products yet',
-                  message:
-                  'This category is ready. Add the first product here so it appears directly under this category.',
-                  primaryActionText: 'Add Product',
+                  title: context.tr.noProductsYet,
+                  message: context.tr.categoryNoProductsMessage,
+                  primaryActionText: context.tr.addProduct,
                   onPrimaryAction: () => _openAddProductSheet(category),
                 )
                     : ProductsBody(
@@ -182,4 +188,32 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       ),
     );
   }
+}
+
+class _CategoryAppBarData {
+  final int productCount;
+  final CategoryProductsStatus productsStatus;
+  final bool isFromCache;
+
+  const _CategoryAppBarData({
+    required this.productCount,
+    required this.productsStatus,
+    required this.isFromCache,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is _CategoryAppBarData &&
+            other.productCount == productCount &&
+            other.productsStatus == productsStatus &&
+            other.isFromCache == isFromCache;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    productCount,
+    productsStatus,
+    isFromCache,
+  );
 }

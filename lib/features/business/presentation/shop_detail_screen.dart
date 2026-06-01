@@ -19,27 +19,46 @@ class ShopDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return BlocSelector<BusinessBloc, BusinessState, ShopData?>(
-      selector: (state) => state.businessList
-          ?.firstWhere((b) => b.id == businessId,
-          orElse: () => BusinessData())
-          .shops
-          ?.firstWhere((s) => s.id == shop.id, orElse: () => shop),
+      selector: (state) {
+        final businesses = state.businessList;
+        if (businesses == null || businesses.isEmpty) return shop;
+
+        for (final business in businesses) {
+          if (business.id != businessId) continue;
+
+          final shops = business.shops;
+          if (shops == null || shops.isEmpty) return shop;
+
+          for (final item in shops) {
+            if (item.id == shop.id) return item;
+          }
+        }
+
+        return shop;
+      },
       builder: (context, data) {
-        final s = data ?? shop;
+        final currentShop = data ?? shop;
+
         return Scaffold(
-          backgroundColor: context.appColors.background,
+          backgroundColor: colors.background,
           body: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
-              ShopAppBar(businessId: businessId, shop: s),
+              ShopAppBar(
+                businessId: businessId,
+                shop: currentShop,
+              ),
               SliverPadding(
                 padding: const EdgeInsets.all(AppDims.s4),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    ShopInfoSection(shop: s),
-                    const SizedBox(height: AppDims.s6),
-                  ]),
+                sliver: SliverToBoxAdapter(
+                  child: ShopInfoSection(shop: currentShop),
                 ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: AppDims.s6),
               ),
             ],
           ),

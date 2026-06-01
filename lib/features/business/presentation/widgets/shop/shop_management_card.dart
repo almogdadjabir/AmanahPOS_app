@@ -1,15 +1,19 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ShopManagementCard extends StatelessWidget {
   final ShopData shop;
   final String? businessId;
 
-  const ShopManagementCard({super.key,
+  const ShopManagementCard({
+    super.key,
     required this.shop,
     required this.businessId,
   });
@@ -51,7 +55,7 @@ class ShopManagementCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
                 child: Icon(
-                  Icons.storefront_outlined,
+                  SolarIconsOutline.shop,
                   color: colors.primary,
                   size: 26,
                 ),
@@ -63,7 +67,9 @@ class ShopManagementCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      shop.name ?? 'Shop',
+                      shop.name?.trim().isNotEmpty == true
+                          ? shop.name!.trim()
+                          : context.tr.shop,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs500(context).copyWith(
@@ -71,12 +77,13 @@ class ShopManagementCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
+
                     if (shop.address?.trim().isNotEmpty == true) ...[
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           Icon(
-                            Icons.location_on_outlined,
+                            SolarIconsOutline.mapPoint,
                             size: 14,
                             color: colors.textHint,
                           ),
@@ -95,7 +102,9 @@ class ShopManagementCard extends StatelessWidget {
                         ],
                       ),
                     ],
+
                     const SizedBox(height: AppDims.s2),
+
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppDims.s2,
@@ -108,9 +117,11 @@ class ShopManagementCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        isActive ? 'Active' : 'Inactive',
+                        isActive ? context.tr.active : context.tr.inactive,
                         style: AppTextStyles.bs100(context).copyWith(
-                          color: isActive ? const Color(0xFF16A34A) : colors.textHint,
+                          color: isActive
+                              ? const Color(0xFF16A34A)
+                              : colors.textHint,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -120,9 +131,11 @@ class ShopManagementCard extends StatelessWidget {
               ),
 
               const SizedBox(width: AppDims.s2),
-              Icon(
-                Icons.chevron_right_rounded,
+
+              DirectionalIcon(
+                icon: SolarIconsOutline.altArrowRight,
                 color: colors.textHint,
+                size: 22,
               ),
             ],
           ),

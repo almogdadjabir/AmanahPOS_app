@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -7,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CategorySubmitButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool enabled;
 
   const CategorySubmitButton({
@@ -61,9 +62,17 @@ class CategorySubmitButton extends StatelessWidget {
 class CategoryFormValidators {
   CategoryFormValidators._();
 
-  static String? name(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Category name is required';
-    if (v.trim().length < 2) return 'Name must be at least 2 characters';
+  static String? name(BuildContext context, String? value) {
+    final text = value?.trim() ?? '';
+
+    if (text.isEmpty) {
+      return context.tr.categoryNameRequired;
+    }
+
+    if (text.length < 2) {
+      return context.tr.nameMustBeAtLeast2Characters;
+    }
+
     return null;
   }
 }

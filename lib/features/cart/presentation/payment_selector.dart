@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/cart/presentation/payment_button.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
@@ -10,21 +13,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class PaymentSelector extends StatelessWidget {
-  final String paymentMethod;
-
   const PaymentSelector({
     super.key,
     required this.paymentMethod,
   });
 
+  final String paymentMethod;
+
   @override
   Widget build(BuildContext context) {
     final isBankak = paymentMethod == 'bankak';
-    final bankakAccount = _bankakAccount(context);
+
+    final bankakAccount = context.select<AuthBloc, String?>((bloc) {
+      final account = bloc.state.profile?.bankakAccount?.accountNumber?.trim();
+      return account == null || account.isEmpty ? null : account;
+    });
+
     final isConfigured = bankakAccount != null;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: const EdgeInsetsDirectional.fromSTEB(
         AppDims.s4,
         AppDims.s3,
         AppDims.s4,
@@ -34,18 +42,17 @@ class PaymentSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _SectionLabel(
-            title: 'PAYMENT',
-            subtitle: 'Method',
+            title: context.tr.payment,
+            subtitle: context.tr.method,
           ),
-
           const SizedBox(height: AppDims.s3),
-
           Row(
             children: [
               Expanded(
                 child: PaymentButton(
                   icon: SolarIconsOutline.walletMoney,
-                  label: 'Bankak',
+                  label: context.tr.bankak,
+                  subtitle: context.tr.bankTransfer,
                   selected: isBankak,
                   onTap: () {
                     context.read<PosBloc>().add(
@@ -58,7 +65,8 @@ class PaymentSelector extends StatelessWidget {
               Expanded(
                 child: PaymentButton(
                   icon: SolarIconsOutline.card,
-                  label: 'Cash',
+                  label: context.tr.cash,
+                  subtitle: context.tr.payNow,
                   selected: paymentMethod == 'cash',
                   onTap: () {
                     context.read<PosBloc>().add(
@@ -69,43 +77,27 @@ class PaymentSelector extends StatelessWidget {
               ),
             ],
           ),
-
           if (isBankak) ...[
             const SizedBox(height: AppDims.s3),
-            isConfigured
-                ? _BankakReadyBanner(account: bankakAccount)
-                : const _BankakSetupBanner(),
+            if (isConfigured)
+              _BankakReadyBanner(account: bankakAccount)
+            else
+              const _BankakSetupBanner(),
           ],
         ],
       ),
     );
   }
-
-  String? _bankakAccount(BuildContext context) {
-    try {
-      final account = context
-          .read<AuthBloc>()
-          .state
-          .profile
-          ?.bankakAccount
-          ?.accountNumber
-          ?.trim();
-
-      return (account == null || account.isEmpty) ? null : account;
-    } catch (_) {
-      return null;
-    }
-  }
 }
 
 class _SectionLabel extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
   const _SectionLabel({
     required this.title,
     required this.subtitle,
   });
+
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -121,11 +113,12 @@ class _SectionLabel extends StatelessWidget {
         ),
         const SizedBox(width: AppDims.s3),
         Text(
-          '$title · $subtitle',
+          '$title · $subtitle'.toUpperCase(),
+          textAlign: TextAlign.end,
           style: AppTextStyles.sm100(context).copyWith(
             color: colors.textHint,
             fontWeight: FontWeight.w900,
-            letterSpacing: 2.4,
+            letterSpacing: 2.2,
             height: 1,
           ),
         ),
@@ -135,19 +128,17 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _BankakReadyBanner extends StatelessWidget {
-  final String account;
-
   const _BankakReadyBanner({
     required this.account,
   });
+
+  final String account;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.success.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(18),
@@ -155,26 +146,32 @@ class _BankakReadyBanner extends StatelessWidget {
           color: colors.success.withValues(alpha: 0.28),
         ),
       ),
-      child: Row(
-        children: [
-          Icon(
-            SolarIconsOutline.checkCircle,
-            size: 20,
-            color: colors.success,
-          ),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Text(
-              'Bankak ready · Account $account',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bs100(context).copyWith(
-                color: colors.success,
-                fontWeight: FontWeight.w900,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(AppDims.s3),
+        child: Row(
+          children: [
+            Icon(
+              SolarIconsOutline.checkCircle,
+              size: 20,
+              color: colors.success,
+            ),
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Directionality(
+                textDirection: ui.TextDirection.ltr,
+                child: Text(
+                  context.tr.bankakReadyAccount(account),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs100(context).copyWith(
+                    color: colors.success,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -187,42 +184,47 @@ class _BankakSetupBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(
-        RouteStrings.settingsScreen,
-      ),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(AppDims.s3),
-        decoration: BoxDecoration(
-          color: colors.warning.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: colors.warning.withValues(alpha: 0.30),
-          ),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: () => Navigator.of(context).pushNamed(
+          RouteStrings.settingsScreen,
         ),
-        child: Row(
-          children: [
-            Icon(
-              SolarIconsOutline.dangerTriangle,
-              size: 20,
-              color: colors.warning,
+        borderRadius: BorderRadius.circular(18),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.warning.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: colors.warning.withValues(alpha: 0.30),
             ),
-            const SizedBox(width: AppDims.s2),
-            Expanded(
-              child: Text(
-                'Bankak account is not set up. Tap to open settings.',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs100(context).copyWith(
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                  height: 1.35,
+          ),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.all(AppDims.s3),
+            child: Row(
+              children: [
+                Icon(
+                  SolarIconsOutline.dangerTriangle,
+                  size: 20,
+                  color: colors.warning,
                 ),
-              ),
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: Text(
+                    context.tr.bankakAccountSetupBanner,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bs100(context).copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_extensions.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history_bloc.dart';
@@ -10,13 +11,12 @@ import 'package:amana_pos/features/sales_history/presentation/widgets/sale_histo
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_shimmer.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sticky_header.dart';
 import 'package:amana_pos/features/sales_history/utility/sale_utility.dart';
-import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:intl/intl.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
   const SalesHistoryScreen({super.key});
@@ -26,33 +26,67 @@ class SalesHistoryScreen extends StatefulWidget {
 }
 
 class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
-  final _scrollCtrl = ScrollController();
-  final _searchCtrl = TextEditingController();
+  final ScrollController _scrollCtrl = ScrollController();
+  final TextEditingController _searchCtrl = TextEditingController();
+
   SaleFilter _activeFilter = SaleFilter.all;
 
   @override
   void initState() {
     super.initState();
     _scrollCtrl.addListener(_onScroll);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<SalesHistoryBloc>().add(const SalesHistoryStarted());
-      }
+      if (!mounted) return;
+      context.read<SalesHistoryBloc>().add(const SalesHistoryStarted());
     });
   }
 
   @override
   void dispose() {
-    _scrollCtrl.dispose();
+    _scrollCtrl
+      ..removeListener(_onScroll)
+      ..dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
 
-
   void _onScroll() {
-    final pos = _scrollCtrl.position;
-    if (pos.pixels >= pos.maxScrollExtent * 0.8) {
-      context.read<SalesHistoryBloc>().add(const SalesHistoryLoadMore());
+    if (!_scrollCtrl.hasClients) return;
+    if (_activeFilter != SaleFilter.all) return;
+
+    final position = _scrollCtrl.position;
+    final shouldLoadMore = position.pixels >= position.maxScrollExtent * 0.82;
+
+    if (!shouldLoadMore) return;
+
+    final state = context.read<SalesHistoryBloc>().state;
+    if (!state.hasMore || state.isLoadingMore) return;
+
+    context.read<SalesHistoryBloc>().add(const SalesHistoryLoadMore());
+  }
+
+  void _onRefresh() {
+    context.read<SalesHistoryBloc>().add(const SalesHistoryRefreshed());
+  }
+
+  void _onSearch(String query) {
+    context.read<SalesHistoryBloc>().add(
+      SalesHistorySearchChanged(query),
+    );
+  }
+
+  void _onFilterSelect(SaleFilter filter) {
+    if (_activeFilter == filter) return;
+
+    setState(() => _activeFilter = filter);
+
+    if (_scrollCtrl.hasClients) {
+      _scrollCtrl.animateTo(
+        0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -65,36 +99,85 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
   }
 
   void _openReturns(SaleHistoryItem item) {
-    Navigator.of(context).pushNamed('returnsScreen', arguments: item);
+    Navigator.of(context).pushNamed(
+      'returnsScreen',
+      arguments: item,
+    );
   }
 
   List<SaleHistoryItem> _applyFilter(List<SaleHistoryItem> items) {
     if (_activeFilter == SaleFilter.all) return items;
-    return items.where((i) => switch (_activeFilter) {
-      SaleFilter.all => true,
-      SaleFilter.today => i.isToday,
-      SaleFilter.completed => i.status == SaleHistoryStatus.completed,
-      SaleFilter.refunded  => i.status == SaleHistoryStatus.refunded ||
-          i.status == SaleHistoryStatus.partialRefund,
-      SaleFilter.pending   =>
-      i.isOfflinePending || i.status == SaleHistoryStatus.pending,
-    }).toList();
+
+    final filtered = <SaleHistoryItem>[];
+
+    for (final item in items) {
+      final matches = switch (_activeFilter) {
+        SaleFilter.all => true,
+        SaleFilter.today => item.isToday,
+        SaleFilter.completed => item.status == SaleHistoryStatus.completed,
+        SaleFilter.refunded =>
+        item.status == SaleHistoryStatus.refunded ||
+            item.status == SaleHistoryStatus.partialRefund,
+        SaleFilter.pending =>
+        item.isOfflinePending || item.status == SaleHistoryStatus.pending,
+      };
+
+      if (matches) filtered.add(item);
+    }
+
+    return filtered;
   }
 
-  List<ListEntry> _buildEntries(List<SaleHistoryItem> filtered) {
+  List<ListEntry> _buildEntries(
+      BuildContext context,
+      List<SaleHistoryItem> filtered,
+      ) {
     final entries = <ListEntry>[];
     String? lastLabel;
+
     for (final item in filtered) {
-      final label = item.dateGroupLabel;
+      final label = _localizedDateGroupLabel(context, item.createdAt);
+
       if (label != lastLabel) {
         entries.add(DateHeader(label));
         lastLabel = label;
       }
+
       entries.add(SaleEntry(item));
     }
+
     return entries;
   }
 
+  String _localizedDateGroupLabel(BuildContext context, DateTime dateTime) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
+    final now = DateTime.now();
+    final localDate = dateTime.toLocal();
+
+    final today = DateTime(now.year, now.month, now.day);
+    final saleDay = DateTime(
+      localDate.year,
+      localDate.month,
+      localDate.day,
+    );
+
+    final diffDays = today.difference(saleDay).inDays;
+
+    if (diffDays == 0) {
+      return context.tr.today;
+    }
+
+    if (diffDays == 1) {
+      return context.tr.yesterday;
+    }
+
+    if (diffDays > 1 && diffDays < 7) {
+      return DateFormat.EEEE(locale).format(localDate);
+    }
+
+    return DateFormat.yMMMd(locale).format(localDate);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,76 +185,83 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: SaleAppBar(),
+      appBar: const SaleAppBar(),
       body: Column(
         children: [
-
           StickyHeader(
             activeFilter: _activeFilter,
             searchCtrl: _searchCtrl,
             applyFilter: _applyFilter,
-            onFilterSelect: (f) => setState(() => _activeFilter = f),
-            onSearch: (q) => context
-                .read<SalesHistoryBloc>()
-                .add(SalesHistorySearchChanged(q)),
+            onFilterSelect: _onFilterSelect,
+            onSearch: _onSearch,
           ),
-
-
           Expanded(
-            child: BlocBuilder<SalesHistoryBloc, SalesHistoryState>(
-              builder: (context, state) {
-                if (state.status == SalesHistoryBlocStatus.loading &&
-                    state.items.isEmpty) {
+            child: BlocSelector<SalesHistoryBloc, SalesHistoryState,
+                _SalesHistoryViewData>(
+              selector: (state) {
+                final filtered = _applyFilter(state.items);
+                return _SalesHistoryViewData(
+                  status: state.status,
+                  isFailure: state.isFailure,
+                  isLoadingMore: state.isLoadingMore,
+                  hasMore: state.hasMore,
+                  errorMessage: state.errorMessage,
+                  searchQuery: state.searchQuery,
+                  items: state.items,
+                  filtered: filtered,
+                  entries: _buildEntries(context, filtered),
+                );
+              },
+              builder: (context, view) {
+                if (view.status == SalesHistoryBlocStatus.loading &&
+                    view.items.isEmpty) {
                   return const SaleShimmer();
                 }
 
-                if (state.isFailure && state.items.isEmpty) {
+                if (view.isFailure && view.items.isEmpty) {
                   return SaleErrorView(
-                    message: state.errorMessage ?? 'Failed to load',
-                    onRetry: () => context
-                        .read<SalesHistoryBloc>()
-                        .add(const SalesHistoryRefreshed()),
+                    message: view.errorMessage ?? context.tr.failedToLoadSales,
+                    onRetry: _onRefresh,
                   );
                 }
 
-                final filtered = _applyFilter(state.items);
-
-                if (filtered.isEmpty) {
+                if (view.filtered.isEmpty) {
                   return SaleEmptyState(
                     filter: _activeFilter,
-                    hasSearch: state.searchQuery.isNotEmpty,
+                    hasSearch: view.searchQuery.trim().isNotEmpty,
                   );
                 }
 
-                final entries = _buildEntries(filtered);
-
                 return RefreshIndicator(
-                  color: AppColors.primary,
-                  onRefresh: () async => context
-                      .read<SalesHistoryBloc>()
-                      .add(const SalesHistoryRefreshed()),
+                  color: colors.primary,
+                  onRefresh: () async => _onRefresh(),
                   child: ListView.builder(
-                    controller:  _scrollCtrl,
+                    controller: _scrollCtrl,
                     cacheExtent: MediaQuery.sizeOf(context).height * 2,
                     physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics()),
-                    padding: const EdgeInsets.fromLTRB(
-                        AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s8),
-                    itemCount: entries.length + 1,
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      AppDims.s4,
+                      AppDims.s3,
+                      AppDims.s4,
+                      AppDims.s8,
+                    ),
+                    itemCount: view.entries.length + 1,
                     itemBuilder: (context, index) {
-                      if (index == entries.length) {
+                      if (index == view.entries.length) {
                         return SaleFooter(
-                          isLoadingMore: state.isLoadingMore,
-                          hasMore: state.hasMore &&
-                              _activeFilter == SaleFilter.all,
+                          isLoadingMore: view.isLoadingMore,
+                          hasMore:
+                          view.hasMore && _activeFilter == SaleFilter.all,
                         );
                       }
 
-                      final entry = entries[index];
+                      final entry = view.entries[index];
 
                       if (entry is DateHeader) {
                         return Padding(
-                          padding: EdgeInsets.only(
+                          padding: EdgeInsetsDirectional.only(
                             top: index == 0 ? 0 : AppDims.s4,
                             bottom: AppDims.s2,
                           ),
@@ -180,11 +270,14 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                       }
 
                       final item = (entry as SaleEntry).item;
+
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: AppDims.s2),
+                        padding: const EdgeInsetsDirectional.only(
+                          bottom: AppDims.s2,
+                        ),
                         child: RepaintBoundary(
                           child: SaleHistoryTile(
-                            item:  item,
+                            item: item,
                             onTap: () => _openDetail(item),
                           ),
                         ),
@@ -199,4 +292,53 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
       ),
     );
   }
+}
+
+class _SalesHistoryViewData {
+  const _SalesHistoryViewData({
+    required this.status,
+    required this.isFailure,
+    required this.isLoadingMore,
+    required this.hasMore,
+    required this.errorMessage,
+    required this.searchQuery,
+    required this.items,
+    required this.filtered,
+    required this.entries,
+  });
+
+  final SalesHistoryBlocStatus status;
+  final bool isFailure;
+  final bool isLoadingMore;
+  final bool hasMore;
+  final String? errorMessage;
+  final String searchQuery;
+  final List<SaleHistoryItem> items;
+  final List<SaleHistoryItem> filtered;
+  final List<ListEntry> entries;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _SalesHistoryViewData &&
+        other.status == status &&
+        other.isFailure == isFailure &&
+        other.isLoadingMore == isLoadingMore &&
+        other.hasMore == hasMore &&
+        other.errorMessage == errorMessage &&
+        other.searchQuery == searchQuery &&
+        other.items == items &&
+        other.filtered == filtered;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    status,
+    isFailure,
+    isLoadingMore,
+    hasMore,
+    errorMessage,
+    searchQuery,
+    items,
+    filtered,
+  );
 }

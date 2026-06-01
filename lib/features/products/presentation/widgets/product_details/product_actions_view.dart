@@ -1,5 +1,4 @@
-// lib/features/products/presentation/widgets/product_details/product_actions_view.dart
-
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/delete_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/edit_product_sheet.dart';
@@ -11,10 +10,6 @@ import 'package:solar_icons/solar_icons.dart';
 
 class ProductActionsView extends StatelessWidget {
   final ProductData product;
-
-  // showStock is kept so the caller doesn't need changing, but it no longer
-  // drives an "Add Stock" button here — stock management belongs in the
-  // Inventory screen, not inside a product detail page.
   final bool showStock;
 
   const ProductActionsView({
@@ -26,27 +21,30 @@ class ProductActionsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
     return Row(
       children: [
         Expanded(
           child: _ActionButton(
             icon: SolarIconsOutline.penNewSquare,
-            label: 'Edit',
+            label: tr.edit,
             color: colors.primary,
-            onTap: () => showEditProductSheet(context, product: product),
+            onTap: () {
+              showEditProductSheet(context, product: product);
+            },
           ),
         ),
-
         const SizedBox(width: AppDims.s2),
-
         Expanded(
           child: _ActionButton(
             icon: SolarIconsOutline.trashBinTrash,
-            label: 'Delete',
+            label: tr.delete,
             color: const Color(0xFFDC2626),
             isDanger: true,
-            onTap: () => showDeleteProductSheet(context, product: product),
+            onTap: () {
+              showDeleteProductSheet(context, product: product);
+            },
           ),
         ),
       ],
@@ -73,55 +71,72 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppDims.rLg),
-      child: InkWell(
-        onTap: onTap,
+    final backgroundColor = isDanger
+        ? color.withValues(alpha: 0.07)
+        : colors.surface;
+
+    final borderColor = isDanger
+        ? color.withValues(alpha: 0.22)
+        : colors.border;
+
+    final textColor = isDanger ? color : colors.textPrimary;
+
+    return RepaintBoundary(
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        child: Container(
-          height: 82,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDims.s2,
-            vertical: AppDims.s3,
-          ),
-          decoration: BoxDecoration(
-            color: isDanger
-                ? color.withValues(alpha: 0.07)
-                : colors.surface,
-            borderRadius: BorderRadius.circular(AppDims.rLg),
-            border: Border.all(
-              color: isDanger
-                  ? color.withValues(alpha: 0.22)
-                  : colors.border,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppDims.rLg),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(AppDims.rLg),
+              border: Border.all(color: borderColor),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(AppDims.rSm),
+            child: SizedBox(
+              height: 82,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDims.s2,
+                  vertical: AppDims.s3,
                 ),
-                child: Icon(icon, color: color, size: 19),
-              ),
-              const SizedBox(height: 7),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  style: AppTextStyles.bs300(context).copyWith(
-                    color: isDanger ? color : colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                    height: 1,
-                  ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(AppDims.rSm),
+                      ),
+                      child: SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: Icon(
+                          icon,
+                          color: color,
+                          size: 19,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bs300(context).copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

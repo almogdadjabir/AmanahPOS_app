@@ -611,6 +611,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         );
         return;
       }
+      await offlineLocalCache.deleteProductFromCache(event.productId);
 
       final updatedProducts = state.products
           .where((product) => product.id != event.productId)

@@ -9,8 +9,7 @@ import 'package:solar_icons/solar_icons.dart';
 enum CategoryQuickFilter {
   all,
   active,
-  inactive,
-  withSubCategories,
+  inactive
 }
 
 class CategoriesHeader extends StatelessWidget {
@@ -27,21 +26,33 @@ class CategoriesHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stats = _CategoryHeaderStats.fromCategories(categories);
+
+    return _CategoriesHeaderContent(
+      stats: stats,
+      selectedFilter: selectedFilter,
+      onFilterChanged: onFilterChanged,
+    );
+  }
+}
+
+class _CategoriesHeaderContent extends StatelessWidget {
+  final _CategoryHeaderStats stats;
+  final CategoryQuickFilter selectedFilter;
+  final ValueChanged<CategoryQuickFilter> onFilterChanged;
+
+  const _CategoriesHeaderContent({
+    required this.stats,
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
-    final active = categories.where((category) {
-      return category.isActive == true;
-    }).length;
-
-    final inactive = categories.length - active;
-
-    final withSubCategories = categories.where((category) {
-      return (category.children?.length ?? 0) > 0;
-    }).length;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s4),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -54,110 +65,136 @@ class CategoriesHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(AppDims.rLg),
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.16),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s4),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                _HeaderIcon(color: colors.primary),
+                const SizedBox(width: AppDims.s3),
+                Expanded(
+                  child: _HeaderText(
+                    title: tr.productCategoriesTitle,
+                    subtitle: tr.productCategoriesSubtitle,
                   ),
                 ),
-                child: Icon(
-                  SolarIconsOutline.layersMinimalistic,
-                  color: colors.primary,
-                  size: 30,
+              ],
+            ),
+
+            const SizedBox(height: AppDims.s4),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _CategoryMiniStat(
+                    label: tr.catStatTotal,
+                    value: stats.total.toString(),
+                    icon: SolarIconsOutline.layersMinimalistic,
+                    color: colors.primary,
+                    isSelected: selectedFilter == CategoryQuickFilter.all,
+                    onTap: () => onFilterChanged(CategoryQuickFilter.all),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Product Categories',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs700(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w900,
-                        height: 1.05,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Group products into simple sections for faster checkout and cleaner inventory.',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs300(context).copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: _CategoryMiniStat(
+                    label: tr.catStatActive,
+                    value: stats.active.toString(),
+                    icon: SolarIconsOutline.checkCircle,
+                    color: const Color(0xFF16A34A),
+                    isSelected: selectedFilter == CategoryQuickFilter.active,
+                    onTap: () => onFilterChanged(CategoryQuickFilter.active),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDims.s4),
-          Row(
-            children: [
-              Expanded(
-                child: _CategoryMiniStat(
-                  label: context.tr.catStatTotal,
-                  value: '${categories.length}',
-                  icon: SolarIconsOutline.layersMinimalistic,
-                  color: colors.primary,
-                  isSelected: selectedFilter == CategoryQuickFilter.all,
-                  onTap: () => onFilterChanged(CategoryQuickFilter.all),
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: _CategoryMiniStat(
+                    label: tr.catStatInactive,
+                    value: stats.inactive.toString(),
+                    icon: SolarIconsOutline.pauseCircle,
+                    color: const Color(0xFF94A3B8),
+                    isSelected: selectedFilter == CategoryQuickFilter.inactive,
+                    onTap: () => onFilterChanged(CategoryQuickFilter.inactive),
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _CategoryMiniStat(
-                  label: context.tr.catStatActive,
-                  value: '$active',
-                  icon: SolarIconsOutline.checkCircle,
-                  color: const Color(0xFF16A34A),
-                  isSelected: selectedFilter == CategoryQuickFilter.active,
-                  onTap: () => onFilterChanged(CategoryQuickFilter.active),
-                ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _CategoryMiniStat(
-                  label: context.tr.catStatInactive,
-                  value: '$inactive',
-                  icon: SolarIconsOutline.pauseCircle,
-                  color: const Color(0xFF94A3B8),
-                  isSelected: selectedFilter == CategoryQuickFilter.inactive,
-                  onTap: () => onFilterChanged(CategoryQuickFilter.inactive),
-                ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: _CategoryMiniStat(
-                  label: context.tr.catStatSub,
-                  value: '$withSubCategories',
-                  icon: SolarIconsOutline.widget,
-                  color: const Color(0xFF8B5CF6),
-                  isSelected:
-                  selectedFilter == CategoryQuickFilter.withSubCategories,
-                  onTap: () {
-                    onFilterChanged(CategoryQuickFilter.withSubCategories);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _HeaderIcon extends StatelessWidget {
+  final Color color;
+
+  const _HeaderIcon({
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppDims.rLg),
+        border: Border.all(
+          color: color.withValues(alpha: 0.16),
+        ),
+      ),
+      child: SizedBox(
+        width: 60,
+        height: 60,
+        child: Icon(
+          SolarIconsOutline.layersMinimalistic,
+          color: color,
+          size: 30,
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderText extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _HeaderText({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bs700(context).copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w900,
+            height: 1.05,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bs300(context).copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w700,
+            height: 1.35,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -234,6 +271,7 @@ class _CategoryMiniStat extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: AppTextStyles.bs100(context).copyWith(
                   color: isSelected ? color : colors.textSecondary,
                   fontWeight: FontWeight.w900,
@@ -244,6 +282,42 @@ class _CategoryMiniStat extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CategoryHeaderStats {
+  final int total;
+  final int active;
+  final int inactive;
+  final int withSubCategories;
+
+  const _CategoryHeaderStats({
+    required this.total,
+    required this.active,
+    required this.inactive,
+    required this.withSubCategories,
+  });
+
+  factory _CategoryHeaderStats.fromCategories(List<CategoryData> categories) {
+    var active = 0;
+    var withSubCategories = 0;
+
+    for (final category in categories) {
+      if (category.isActive == true) {
+        active++;
+      }
+
+      if ((category.children?.length ?? 0) > 0) {
+        withSubCategories++;
+      }
+    }
+
+    return _CategoryHeaderStats(
+      total: categories.length,
+      active: active,
+      inactive: categories.length - active,
+      withSubCategories: withSubCategories,
     );
   }
 }

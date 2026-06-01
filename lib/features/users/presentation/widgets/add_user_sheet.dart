@@ -19,14 +19,17 @@ import 'package:solar_icons/solar_icons.dart';
 const _kAddRoles = ['cashier', 'manager'];
 
 void showAddUserSheet(BuildContext context) {
+  final userBloc = context.read<UserBloc>();
+  final authBloc = context.read<AuthBloc>();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: context.read<UserBloc>()),
-        BlocProvider.value(value: context.read<AuthBloc>()),
+        BlocProvider.value(value: userBloc),
+        BlocProvider.value(value: authBloc),
       ],
       child: const _AddUserSheet(),
     ),
@@ -43,25 +46,17 @@ class _AddUserSheet extends StatefulWidget {
 class _AddUserSheetState extends State<_AddUserSheet> {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
 
-  final _nameFocus = FocusNode();
-  final _phoneFocus = FocusNode();
+  late final FocusNode _nameFocus;
+  late final FocusNode _phoneFocus;
+
+  late final List<ShopData> _shops;
 
   bool _phoneError = false;
   String _selectedRole = 'cashier';
   String? _selectedShopId;
-
-  List<ShopData> get _shops {
-    return context.read<AuthBloc>().state.defaultBusiness?.shops
-        ?.where((shop) {
-      final id = shop.id;
-      final isActive = shop.isActive ?? true;
-      return id != null && id.trim().isNotEmpty && isActive;
-    }).toList() ??
-        [];
-  }
 
   bool get _isCashier => _selectedRole == 'cashier';
 
@@ -80,9 +75,16 @@ class _AddUserSheetState extends State<_AddUserSheet> {
   void initState() {
     super.initState();
 
-    final shops = _shops;
-    if (shops.length == 1) {
-      _selectedShopId = shops.first.id;
+    _nameCtrl = TextEditingController();
+    _phoneCtrl = TextEditingController();
+
+    _nameFocus = FocusNode();
+    _phoneFocus = FocusNode();
+
+    _shops = _activeShopsFromAuth();
+
+    if (_shops.length == 1) {
+      _selectedShopId = _shops.first.id;
     }
   }
 
@@ -90,9 +92,32 @@ class _AddUserSheetState extends State<_AddUserSheet> {
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
+
     _nameFocus.dispose();
     _phoneFocus.dispose();
+
     super.dispose();
+  }
+
+  List<ShopData> _activeShopsFromAuth() {
+    final shops = context.read<AuthBloc>().state.defaultBusiness?.shops;
+
+    if (shops == null || shops.isEmpty) {
+      return const [];
+    }
+
+    final activeShops = <ShopData>[];
+
+    for (final shop in shops) {
+      final id = shop.id?.trim();
+      final isActive = shop.isActive ?? true;
+
+      if (id != null && id.isNotEmpty && isActive) {
+        activeShops.add(shop);
+      }
+    }
+
+    return List.unmodifiable(activeShops);
   }
 
   void _onRoleSelected(String role) {
@@ -106,15 +131,17 @@ class _AddUserSheetState extends State<_AddUserSheet> {
         return;
       }
 
-      final shops = _shops;
-      if (shops.length == 1) {
-        _selectedShopId = shops.first.id;
+      if (_shops.length == 1) {
+        _selectedShopId = _shops.first.id;
       }
     });
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() != true) return;
+    final tr = context.tr;
+
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     if (!_isPhoneValid) {
       setState(() => _phoneError = true);
@@ -123,7 +150,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
     if (!_kAddRoles.contains(_selectedRole)) {
       GlobalSnackBar.show(
-        message: 'Invalid role selected',
+        message: tr.invalidRoleSelected,
         isError: true,
       );
       return;
@@ -131,7 +158,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
     if (_isCashier && _shops.length >= 2 && _selectedShopId == null) {
       GlobalSnackBar.show(
-        message: 'Please assign this cashier to a shop.',
+        message: tr.assignCashierToShopRequired,
         isError: true,
       );
       return;
@@ -149,6 +176,8 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
+
     return BlocListener<UserBloc, UserState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
@@ -156,21 +185,22 @@ class _AddUserSheetState extends State<_AddUserSheet> {
           Navigator.of(context).pop();
 
           GlobalSnackBar.show(
-            message: 'User added successfully',
+            message: context.tr.userAddedSuccessfully,
             isInfo: true,
           );
+          return;
         }
 
         if (state.submitStatus == UserSubmitStatus.failure) {
           GlobalSnackBar.show(
-            message: state.submitError ?? 'Something went wrong',
+            message: state.submitError ?? context.tr.somethingWentWrong,
             isError: true,
             isAutoDismiss: false,
           );
         }
       },
       child: ProductSheetShell(
-        title: context.tr.newUser,
+        title: tr.newUser,
         body: Form(
           key: _formKey,
           child: Column(
@@ -178,16 +208,15 @@ class _AddUserSheetState extends State<_AddUserSheet> {
             children: [
               _InfoBanner(
                 icon: SolarIconsOutline.userPlus,
-                title: context.tr.createStaffAccount,
-                message:
-                'Only cashier and manager accounts can be created here.',
+                title: tr.createStaffAccount,
+                message: tr.createStaffAccountMessage,
                 color: context.appColors.primary,
               ),
 
               const SizedBox(height: AppDims.s4),
 
               FieldLabel(
-                label: context.tr.fieldFullName,
+                label: tr.fieldFullName,
                 required: true,
               ),
               const SizedBox(height: AppDims.s1),
@@ -195,18 +224,18 @@ class _AddUserSheetState extends State<_AddUserSheet> {
                 controller: _nameCtrl,
                 focusNode: _nameFocus,
                 nextFocus: _phoneFocus,
-                hint: 'Ali Hassan',
+                hint: tr.fullNameHint,
                 prefixIcon: SolarIconsOutline.user,
                 textInputAction: TextInputAction.next,
                 validator: (value) {
                   final text = value?.trim() ?? '';
 
                   if (text.isEmpty) {
-                    return 'Full name is required';
+                    return tr.fullNameRequired;
                   }
 
                   if (text.length < 2) {
-                    return 'Name must be at least 2 characters';
+                    return tr.nameMustBeAtLeast2Characters;
                   }
 
                   return null;
@@ -216,7 +245,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               const SizedBox(height: AppDims.s3),
 
               FieldLabel(
-                label: context.tr.fieldPhone,
+                label: tr.fieldPhone,
                 required: true,
               ),
               const SizedBox(height: AppDims.s1),
@@ -232,13 +261,15 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               ),
               SizedBox(
                 height: 24,
-                child: _phoneError ? const _PhoneError() : const SizedBox.shrink(),
+                child: _phoneError
+                    ? const _PhoneError()
+                    : const SizedBox.shrink(),
               ),
 
               const SizedBox(height: AppDims.s3),
 
               FieldLabel(
-                label: context.tr.fieldRole,
+                label: tr.fieldRole,
                 required: true,
               ),
               const SizedBox(height: AppDims.s2),
@@ -255,7 +286,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
               if (_showShopPicker) ...[
                 FieldLabel(
-                  label: context.tr.fieldAssignedShop,
+                  label: tr.fieldAssignedShop,
                   required: true,
                 ),
                 const SizedBox(height: AppDims.s1),
@@ -276,21 +307,20 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
               if (_showShopConfirmation) ...[
                 _AutoAssignedChip(
-                  shopName: _shops.first.name ?? 'Shop',
+                  shopName: _shops.first.name?.trim().isNotEmpty == true
+                      ? _shops.first.name!.trim()
+                      : tr.shop,
                 ),
                 const SizedBox(height: AppDims.s4),
               ],
 
-              BlocBuilder<UserBloc, UserState>(
-                buildWhen: (prev, curr) {
-                  return prev.submitStatus != curr.submitStatus;
-                },
-                builder: (context, state) {
-                  final isLoading =
-                      state.submitStatus == UserSubmitStatus.loading;
+              BlocSelector<UserBloc, UserState, UserSubmitStatus>(
+                selector: (state) => state.submitStatus,
+                builder: (context, submitStatus) {
+                  final isLoading = submitStatus == UserSubmitStatus.loading;
 
                   return UserSubmitButton(
-                    label: context.tr.createUser,
+                    label: tr.createUser,
                     onPressed: isLoading ? null : _submit,
                   );
                 },
@@ -318,13 +348,17 @@ class _PhoneError extends StatelessWidget {
           color: colors.danger,
         ),
         const SizedBox(width: 5),
-        Text(
-          'Enter a valid phone number',
-          style: AppTextStyles.sm200(
-            context,
-            color: colors.danger,
-          ).copyWith(
-            fontWeight: FontWeight.w700,
+        Expanded(
+          child: Text(
+            context.tr.enterValidPhoneNumber,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.sm200(
+              context,
+              color: colors.danger,
+            ).copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -344,8 +378,7 @@ class _AutoAssignedChip extends StatelessWidget {
     const color = Color(0xFF16A34A);
     final colors = context.appColors;
 
-    return Container(
-      padding: const EdgeInsets.all(AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -353,25 +386,28 @@ class _AutoAssignedChip extends StatelessWidget {
           color: color.withValues(alpha: 0.20),
         ),
       ),
-      child: Row(
-        children: [
-          const Icon(
-            SolarIconsOutline.shop,
-            size: 18,
-            color: color,
-          ),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Text(
-              'Will be assigned to $shopName automatically.',
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w700,
-                height: 1.4,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s3),
+        child: Row(
+          children: [
+            const Icon(
+              SolarIconsOutline.shop,
+              size: 18,
+              color: color,
+            ),
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Text(
+                context.tr.autoAssignCashierToShop(shopName),
+                style: AppTextStyles.bs200(context).copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  height: 1.4,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -391,63 +427,72 @@ class _ShopDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tr = context.tr;
 
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(AppDims.rMd),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          value: selectedShopId,
-          isExpanded: true,
-          hint: Text(
-            'Select a shop',
-            style: AppTextStyles.bs400(context).copyWith(
-              color: colors.textHint,
-              fontWeight: FontWeight.w600,
+      child: SizedBox(
+        height: 54,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: AppDims.s3,
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String?>(
+              value: selectedShopId,
+              isExpanded: true,
+              hint: Text(
+                tr.selectShop,
+                style: AppTextStyles.bs400(context).copyWith(
+                  color: colors.textHint,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              icon: Icon(
+                SolarIconsOutline.altArrowDown,
+                color: colors.textHint,
+                size: 19,
+              ),
+              style: AppTextStyles.bs400(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+              items: shops.map((shop) {
+                final shopName = shop.name?.trim();
+
+                return DropdownMenuItem<String?>(
+                  value: shop.id,
+                  child: Row(
+                    children: [
+                      Icon(
+                        SolarIconsOutline.shop,
+                        size: 18,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(width: AppDims.s2),
+                      Expanded(
+                        child: Text(
+                          shopName?.isNotEmpty == true
+                              ? shopName!
+                              : tr.shop,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bs400(context).copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(growable: false),
+              onChanged: onChanged,
             ),
           ),
-          icon: Icon(
-            SolarIconsOutline.altArrowDown,
-            color: colors.textHint,
-            size: 19,
-          ),
-          style: AppTextStyles.bs400(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w800,
-          ),
-          items: shops.map((shop) {
-            return DropdownMenuItem<String?>(
-              value: shop.id,
-              child: Row(
-                children: [
-                  Icon(
-                    SolarIconsOutline.shop,
-                    size: 18,
-                    color: colors.primary,
-                  ),
-                  const SizedBox(width: AppDims.s2),
-                  Expanded(
-                    child: Text(
-                      shop.name ?? 'Shop',
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs400(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
         ),
       ),
     );
@@ -465,28 +510,38 @@ class _ShopAssignmentHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
     if (selectedShopId == null) {
       return _InfoBanner(
         icon: SolarIconsOutline.dangerTriangle,
         title: context.tr.shopRequired,
-        message: 'Cashiers must be assigned to a shop to process sales.',
+        message: context.tr.cashierShopRequiredMessage,
         color: const Color(0xFFF59E0B),
       );
     }
 
-    final shopName = shops
-        .where((shop) => shop.id == selectedShopId)
-        .map((shop) => shop.name ?? 'Shop')
-        .firstOrNull;
+    final shopName = _findShopName(context, selectedShopId, shops);
 
     return _InfoBanner(
       icon: SolarIconsOutline.checkCircle,
       title: context.tr.shopAssigned,
-      message: 'Cashier will be assigned to ${shopName ?? 'this shop'}.',
+      message: context.tr.cashierAssignedToShop(shopName),
       color: const Color(0xFF16A34A),
     );
+  }
+
+  String _findShopName(
+      BuildContext context,
+      String? selectedShopId,
+      List<ShopData> shops,
+      ) {
+    for (final shop in shops) {
+      if (shop.id == selectedShopId) {
+        final name = shop.name?.trim();
+        return name?.isNotEmpty == true ? name! : context.tr.thisShop;
+      }
+    }
+
+    return context.tr.thisShop;
   }
 }
 
@@ -507,9 +562,7 @@ class _InfoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppDims.s3),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -517,38 +570,41 @@ class _InfoBanner extends StatelessWidget {
           color: color.withValues(alpha: 0.16),
         ),
       ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 21,
-          ),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.bs300(context).copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  message,
-                  style: AppTextStyles.bs200(context).copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w700,
-                    height: 1.35,
-                  ),
-                ),
-              ],
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s3),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 21,
             ),
-          ),
-        ],
+            const SizedBox(width: AppDims.s2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.bs300(context).copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    style: AppTextStyles.bs200(context).copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/cart/presentation/cart_panel.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/bottom_nav.dart';
@@ -37,33 +38,35 @@ class _MainBottomAreaState extends State<MainBottomArea> {
       height: totalHeight,
       child: Stack(
         clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
+        alignment: AlignmentDirectional.bottomCenter,
         children: [
-          Positioned(
-            left: 0,
-            right: 0,
+          PositionedDirectional(
+            start: 0,
+            end: 0,
             bottom: _navBarHeight + safeBottom + _cartGapAboveNav,
-            child: BlocBuilder<PosBloc, PosState>(
-              buildWhen: (prev, curr) =>
-              prev.items != curr.items ||
-                  prev.submitStatus != curr.submitStatus ||
-                  prev.paymentMethod != curr.paymentMethod,
-              builder: (context, state) {
-                if (state.items.isEmpty) {
+            child: BlocSelector<PosBloc, PosState, _CartPeekStateView>(
+              selector: (state) => _CartPeekStateView(
+                itemsHash: Object.hashAll(state.items),
+                hasItems: state.items.isNotEmpty,
+                submitStatus: state.submitStatus,
+                paymentMethod: state.paymentMethod,
+                state: state,
+              ),
+              builder: (context, view) {
+                if (!view.hasItems) {
                   return const SizedBox.shrink();
                 }
 
                 return CartPanel(
-                  state: state,
+                  state: view.state,
                   onCheckout: _handleCheckout,
                 );
               },
             ),
           ),
-
-          const Positioned(
-            left: 0,
-            right: 0,
+          const PositionedDirectional(
+            start: 0,
+            end: 0,
             bottom: 0,
             child: BottomNav(),
           ),
@@ -77,26 +80,20 @@ class _MainBottomAreaState extends State<MainBottomArea> {
 
     _checkoutResolvingShop = true;
 
+    final posBloc = context.read<PosBloc>();
+    final authBloc = context.read<AuthBloc>();
+    final tr = context.tr;
+
     try {
-      final posState = context.read<PosBloc>().state;
+      final posState = posBloc.state;
 
       if (posState.paymentMethod == 'bankak') {
-        String? bankakAccount;
-
-        try {
-          bankakAccount = context
-              .read<AuthBloc>()
-              .state
-              .profile
-              ?.bankakAccount
-              ?.accountNumber
-              ?.trim();
-        } catch (_) {}
+        final bankakAccount =
+        authBloc.state.profile?.bankakAccount?.accountNumber?.trim();
 
         if (bankakAccount == null || bankakAccount.isEmpty) {
           GlobalSnackBar.show(
-            message:
-            'Bankak account is not set up. Go to Settings and add your account number first.',
+            message: tr.bankakAccountNotSetUpMessage,
             isError: true,
             isAutoDismiss: false,
           );
@@ -104,12 +101,10 @@ class _MainBottomAreaState extends State<MainBottomArea> {
         }
       }
 
-      final shopId = posState.selectedShopId;
+      final selectedShopId = posState.selectedShopId?.trim();
 
-      if (shopId != null && shopId.isNotEmpty) {
-        context.read<PosBloc>().add(
-          PosCheckoutSubmitted(shopId: shopId),
-        );
+      if (selectedShopId != null && selectedShopId.isNotEmpty) {
+        posBloc.add(PosCheckoutSubmitted(shopId: selectedShopId));
         return;
       }
 
@@ -117,29 +112,31 @@ class _MainBottomAreaState extends State<MainBottomArea> {
 
       if (!mounted) return;
 
-      if (fallbackShopId == null || fallbackShopId.isEmpty) {
-        final permissions = context.read<AuthBloc>().state.permissions;
+      final resolvedShopId = fallbackShopId?.trim();
+
+      if (resolvedShopId == null || resolvedShopId.isEmpty) {
+        final permissions = authBloc.state.permissions;
 
         GlobalSnackBar.show(
           message: permissions.isCashier
-              ? 'You are not assigned to a shop. Contact your manager.'
-              : 'No shop found. Please refresh and try again.',
+              ? tr.cashierNotAssignedToShopMessage
+              : tr.noShopFoundRefreshMessage,
           isError: true,
           isAutoDismiss: false,
         );
         return;
       }
 
-      context.read<PosBloc>().add(
-        PosShopSelected(
-          shopId: fallbackShopId,
-          shopName: 'Shop',
-        ),
-      );
-
-      context.read<PosBloc>().add(
-        PosCheckoutSubmitted(shopId: fallbackShopId),
-      );
+      posBloc
+        ..add(
+          PosShopSelected(
+            shopId: resolvedShopId,
+            shopName: tr.shop,
+          ),
+        )
+        ..add(
+          PosCheckoutSubmitted(shopId: resolvedShopId),
+        );
     } finally {
       _checkoutResolvingShop = false;
     }
@@ -150,12 +147,47 @@ class _MainBottomAreaState extends State<MainBottomArea> {
       final cache = getIt<OfflineLocalCache>();
       final cachedShops = await cache.getShops();
 
-      if (cachedShops.isNotEmpty) {
-        final id = cachedShops.first.id;
+      for (final shop in cachedShops) {
+        final id = shop.id?.trim();
         if (id != null && id.isNotEmpty) return id;
       }
-    } catch (_) {}
+    } catch (_) {
+      return null;
+    }
 
     return null;
   }
+}
+
+class _CartPeekStateView {
+  const _CartPeekStateView({
+    required this.itemsHash,
+    required this.hasItems,
+    required this.submitStatus,
+    required this.paymentMethod,
+    required this.state,
+  });
+
+  final int itemsHash;
+  final bool hasItems;
+  final PosSubmitStatus submitStatus;
+  final String paymentMethod;
+  final PosState state;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _CartPeekStateView &&
+        other.itemsHash == itemsHash &&
+        other.hasItems == hasItems &&
+        other.submitStatus == submitStatus &&
+        other.paymentMethod == paymentMethod;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    itemsHash,
+    hasItems,
+    submitStatus,
+    paymentMethod,
+  );
 }

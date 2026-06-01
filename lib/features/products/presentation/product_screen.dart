@@ -17,6 +17,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ProductsScreen extends StatefulWidget {
   final bool isWithAppbar;
@@ -143,11 +144,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: AppDims.s2),
+                padding: const EdgeInsetsDirectional.only(end: AppDims.s2),
                 child: BlocBuilder<ProductBloc, ProductState>(
                   buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
                   builder: (context, state) {
                     final tr = context.tr;
+                    final colors = context.appColors;
+
                     return IconButton(
                       tooltip: state.isGrid ? tr.showList : tr.showGrid,
                       onPressed: () {
@@ -157,9 +160,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       },
                       icon: Icon(
                         state.isGrid
-                            ? Icons.view_list_rounded
-                            : Icons.grid_view_rounded,
-                        color: context.appColors.textPrimary,
+                            ? SolarIconsOutline.list
+                            : SolarIconsOutline.widget,
+                        color: colors.textPrimary,
+                        size: 22,
                       ),
                     );
                   },

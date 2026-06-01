@@ -1119,4 +1119,25 @@ class OfflineLocalCache {
     }
   }
 
+  Future<void> deleteProductFromCache(String productId) async {
+    final cleanId = productId.trim();
+    if (cleanId.isEmpty) return;
+
+    final db = await _db.database;
+
+    await db.transaction((txn) async {
+      await txn.delete(
+        OfflineConstants.productsTable,
+        where: 'id = ?',
+        whereArgs: [cleanId],
+      );
+
+      await txn.delete(
+        OfflineConstants.stockTable,
+        where: 'product_id = ?',
+        whereArgs: [cleanId],
+      );
+    });
+  }
+
 }

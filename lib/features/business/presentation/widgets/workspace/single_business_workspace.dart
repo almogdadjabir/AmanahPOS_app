@@ -7,13 +7,12 @@ import 'package:amana_pos/features/main_screen/presentation/widgets/today_cards.
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
-import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class SingleBusinessWorkspace extends StatelessWidget {
@@ -71,7 +70,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
                     sparkline: summary.sparklineAmounts.isEmpty
                         ? const [0, 0]
                         : summary.sparklineAmounts,
-                    dateLabel: _dashboardDateLabel(summary.today.date),
+                    dateLabel: _dashboardDateLabel(context, summary.today.date),
                     liveLabel: summary.liveLabel,
                     currencyLabel: summary.currency,
                   );
@@ -128,7 +127,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
                   ),
                   WorkspaceActionCard(
                     icon: const Icon(SolarIconsOutline.box),
-                    title: context.tr.addProduct,
+                    title: context.tr.productsManagement,
                     value: productCount.toString(),
                     subtitle: productCount == 1 ? context.tr.bizProductsItem : context.tr.bizProductsItems,
                     onTap: () {
@@ -172,25 +171,20 @@ class SingleBusinessWorkspace extends StatelessWidget {
   }
 
 
-  String _dashboardDateLabel(String value) {
+  String _dashboardDateLabel(BuildContext context, String value) {
     final parsed = DateTime.tryParse(value);
-    if (parsed == null) return 'TODAY';
 
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
+    final todayLabel = context.tr.today;
 
-    return 'TODAY · ${parsed.day.toString().padLeft(2, '0')} ${months[parsed.month - 1]} ${parsed.year}';
+    if (parsed == null) return todayLabel;
+
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
+    final formattedDate = DateFormat(
+      'dd MMM yyyy',
+      locale,
+    ).format(parsed);
+
+    return '$todayLabel · $formattedDate';
   }
 }

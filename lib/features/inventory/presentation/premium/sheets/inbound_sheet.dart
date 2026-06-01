@@ -14,6 +14,7 @@ import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 void showInboundSheet(BuildContext context) {
@@ -1132,8 +1133,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Icon(
-                                  SolarIconsOutline.altArrowRight,
+                                DirectionalIcon(
+                                  icon: SolarIconsOutline.altArrowRight,
                                   size: 18,
                                   color: colors.textSecondary,
                                 ),

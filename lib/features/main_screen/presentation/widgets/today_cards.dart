@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class OwnerTodayCard extends StatelessWidget {
   const OwnerTodayCard({
@@ -32,7 +33,10 @@ class OwnerTodayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final date = dateLabel ?? _formatEnglishDate(DateTime.now());
+    final date = dateLabel?.isNotEmpty == true
+        ? dateLabel!
+        : _formatLocalizedDate(context, DateTime.now());
+    final liveText = liveLabel == 'LIVE' ? context.tr.live : liveLabel;
 
     return Material(
       color: Colors.transparent,
@@ -94,7 +98,7 @@ class OwnerTodayCard extends StatelessWidget {
                         children: [
                           Text(
                             date,
-                            style: AppTextStyles.sm100(context).copyWith(
+                            style: AppTextStyles.sm300(context).copyWith(
                               fontWeight: FontWeight.w800,
                               letterSpacing: 1.8,
                               color: colors.textHint,
@@ -108,8 +112,8 @@ class OwnerTodayCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 7),
                           Text(
-                            liveLabel.toUpperCase(),
-                            style: AppTextStyles.sm100(context).copyWith(
+                            liveText.toUpperCase(),
+                            style: AppTextStyles.sm300(context).copyWith(
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.9,
                               color: colors.primary,
@@ -597,25 +601,10 @@ String _formatAmountEnglish(double value) {
   );
 }
 
-const _englishMonths = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+String _formatLocalizedDate(BuildContext context, DateTime date) {
+  final locale = Localizations.localeOf(context).toLanguageTag();
 
-String _formatEnglishDate(DateTime date) {
-  final day = date.day.toString().padLeft(2, '0');
-  final month = _englishMonths[date.month - 1];
-  final year = date.year.toString();
+  final formattedDate = DateFormat('dd MMM yyyy', locale).format(date);
 
-  return 'TODAY · $day $month $year';
+  return '${context.tr.today} · $formattedDate';
 }

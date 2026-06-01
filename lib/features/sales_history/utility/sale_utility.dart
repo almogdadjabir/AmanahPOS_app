@@ -1,33 +1,49 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
+import 'package:flutter/widgets.dart';
 
-enum SaleFilter { all, today, completed, refunded, pending }
-
-extension SaleFilterX on SaleFilter {
-  String get label => switch (this) {
-    SaleFilter.all => 'All',
-    SaleFilter.today => 'Today',
-    SaleFilter.completed => 'Completed',
-    SaleFilter.refunded => 'Returned',
-    SaleFilter.pending => 'Pending',
-  };
-
-  String get statsLabel => switch (this) {
-    SaleFilter.all => 'All loaded',
-    SaleFilter.today => "Today's",
-    SaleFilter.completed => 'Completed',
-    SaleFilter.refunded => 'Returned',
-    SaleFilter.pending => 'Pending',
-  };
+enum SaleFilter {
+  all,
+  today,
+  completed,
+  refunded,
+  pending,
 }
 
-sealed class ListEntry {}
+extension SaleFilterX on SaleFilter {
+  String label(BuildContext context) {
+    return switch (this) {
+      SaleFilter.all => context.tr.all,
+      SaleFilter.today => context.tr.today,
+      SaleFilter.completed => context.tr.completed,
+      SaleFilter.refunded => context.tr.returned,
+      SaleFilter.pending => context.tr.pending,
+    };
+  }
+
+  String statsLabel(BuildContext context) {
+    return switch (this) {
+      SaleFilter.all => context.tr.allLoaded,
+      SaleFilter.today => context.tr.todaysSales,
+      SaleFilter.completed => context.tr.completed,
+      SaleFilter.refunded => context.tr.returned,
+      SaleFilter.pending => context.tr.pending,
+    };
+  }
+}
+
+sealed class ListEntry {
+  const ListEntry();
+}
 
 final class DateHeader extends ListEntry {
+  const DateHeader(this.label);
+
   final String label;
-  DateHeader(this.label);
 }
 
 final class SaleEntry extends ListEntry {
+  const SaleEntry(this.item);
+
   final SaleHistoryItem item;
-  SaleEntry(this.item);
 }

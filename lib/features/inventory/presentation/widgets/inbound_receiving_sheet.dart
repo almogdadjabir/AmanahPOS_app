@@ -14,6 +14,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 void showInboundReceivingSheet(BuildContext context) {
@@ -1953,10 +1954,11 @@ class _VendorTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppDims.s2),
-              Icon(
-                isSelected
+              DirectionalIcon(
+                icon: isSelected
                     ? SolarIconsOutline.checkCircle
                     : SolarIconsOutline.altArrowRight,
+                flipInRtl: !isSelected,
                 size: 19,
                 color: isSelected ? colors.primary : colors.textHint,
               ),
@@ -2048,10 +2050,11 @@ class _ProductTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppDims.s2),
-              Icon(
-                isSelected
+              DirectionalIcon(
+                icon: isSelected
                     ? SolarIconsOutline.checkCircle
                     : SolarIconsOutline.altArrowRight,
+                flipInRtl: !isSelected,
                 size: 19,
                 color: isSelected ? colors.primary : colors.textHint,
               ),

@@ -168,6 +168,11 @@
   "inventoryAlertsExpiryHint": "You will be notified when a product batch is within the set number of days from its expiry date.",
   "fieldExpiryAlert": "Expiry Alert",
 
+  "menuCatalogTitle": "Menu Catalog",
+  "productCatalogTitle": "Product Catalog",
+  "menuCatalogSubtitle": "Manage menu items, prices, and categories.",
+  "productCatalogSubtitle": "Manage items, prices, categories, and stock availability.",
+
   "newCategory": "New Category",
   "editCategory": "Edit Category",
   "noCategoriesYet": "No categories yet",
@@ -180,6 +185,144 @@
   "catAppBarProducts": "Products",
   "catAppBarSub": "Sub",
   "catAppBarStatus": "Status",
+  "noCategory": "No category",
+  "expiredBatchOne": "1 batch expired",
+
+  "expiredBatchMany": "{count} batches expired",
+  "expiringSoonCount": "{count} expiring soon",
+  "expiringSoonMany": "{count} expiring soon",
+
+  "@expiredBatchMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expiringSoonBatchMany": "{count} expiring soon",
+  "@expiringSoonBatchMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "price": "Price",
+  "category": "Category",
+  "stock": "Stock",
+
+  "oneDay": "1 day",
+  "manyDays": "{count} days",
+  "@manyDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "productAddedSuccessfully": "Product added successfully",
+  "productNameHint": "Pepsi 330ml",
+  "productDescriptionHint": "Product description",
+  "generalCategory": "General",
+  "autoCreated": "Auto-created",
+  "selectBranch": "Select branch",
+  "businessWorkspace": "Business workspace",
+
+  "productDeletedSuccessfully": "Product deleted successfully",
+  "deleteProductTitle": "Delete Product?",
+  "deleteProductMessage": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteProductMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "thisProduct": "this product",
+  "all": "All",
+
+  "productCategoriesTitle": "Product Categories",
+  "productCategoriesSubtitle": "Group products into simple sections for faster checkout and cleaner inventory.",
+
+  "activeCategories": "Active Categories",
+  "inactiveCategories": "Inactive Categories",
+  "categoriesWithSubCategories": "Categories With Sub Categories",
+  "addCategory": "Add Category",
+
+
+  "productNameRequired": "Product name is required",
+  "priceRequired": "Price is required",
+  "enterValidPrice": "Enter a valid price",
+  "invalidProduct": "Invalid product",
+  "categoryMissing": "Category is missing",
+  "productUpdatedSuccessfully": "Product updated successfully",
+  "productPhoto": "Product photo",
+  "tapToChangeProductImage": "Tap to change product image",
+  "categoryLocked": "Category locked",
+  "locked": "Locked",
+
+
+  "allProducts": "All Products",
+  "unknownCategory": "Unknown Category",
+  "product": "Product",
+
+  "noCategoriesYetMessage": "Create your first category to organize products.",
+  "noActiveCategories": "No active categories",
+  "noActiveCategoriesMessage": "No categories are currently active.",
+  "noInactiveCategories": "No inactive categories",
+  "noInactiveCategoriesMessage": "All categories are currently active.",
+  "noSubCategoriesFound": "No sub categories found",
+  "noSubCategoriesFoundMessage": "No categories have sub categories yet.",
+
+  "noDescriptionAdded": "No description added",
+  "subCategoryCount": "{count} sub",
+  "@subCategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "categoryCreatedSuccessfully": "Category created successfully",
+  "categoryNameHint": "Beverages",
+  "categoryDescriptionHint": "Drinks, juices, water, and hot beverages",
+  "createProductGroup": "Create product group",
+  "createProductGroupMessage": "Use categories to organize products and speed up checkout.",
+  "categoryTipsMessage": "Keep category names short and clear, like Snacks, Drinks, Groceries, or Meals.",
+  "categoryNameRequired": "Category name is required",
+  "categoryUpdatedSuccessfully": "Category updated successfully",
+  "invalidCategory": "Invalid category",
+  "categoryDescriptionShortHint": "Drinks and beverages",
+
+  "categoryDefaultDescription": "Organize products under this category for faster POS usage.",
+  "categoryNoProductsMessage": "This category is ready. Add the first product here so it appears directly under this category.",
+  "back": "Back",
+  "off": "Off",
+  "offline": "Offline",
+
+  "moreActions": "More actions",
+  "productCountLabel": "{count} products",
+  "@productCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "categoryDeletedSuccessfully": "Category deleted successfully",
+  "deleteCategoryTitle": "Delete Category?",
+  "deleteCategoryMessage": "\"{name}\" will be permanently deleted. This action cannot be undone.",
+  "@deleteCategoryMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
 
   "addCashier": "Add Cashier",
   "userStatTotal": "Total",
@@ -223,6 +366,24 @@
   "customerInactiveLabel": "Inactive",
   "customerSearchHint": "Search customers, phone, email...",
   "customerSalesPrefix": "Sales",
+
+  "allUsers": "All Users",
+  "activeUsers": "Active Users",
+  "cashiers": "Cashiers",
+  "managers": "Managers",
+  "addUser": "Add User",
+
+  "usersManagement": "Users Management",
+  "usersManagementSubtitle": "Manage staff accounts, roles, shop access, and POS permissions.",
+
+  "noUsersYet": "No users yet",
+  "noUsersYetMessage": "Add your first user so your team can start using the POS.",
+  "noActiveUsers": "No active users",
+  "noActiveUsersMessage": "No users are currently active.",
+  "noCashiersFound": "No cashiers found",
+  "noCashiersFoundMessage": "No cashier accounts are currently available.",
+  "noManagersFound": "No managers found",
+  "noManagersFoundMessage": "No manager accounts are currently available.",
 
   "customers": "Customers",
   "customersSubtitle": "Manage customer profiles, phone numbers, loyalty, and purchase history.",
@@ -358,6 +519,8 @@
 
   "bizManageLabel": "MANAGE",
   "bizShopsTitle": "Shops",
+  "live": "LIVE",
+  "today": "Today",
   "bizActiveBranch": "Active branch",
   "bizActiveBranches": "Active branches",
   "bizProductsItem": "Products item",
@@ -375,6 +538,8 @@
   "bizInfoSubtitle": "Basic profile and contact details",
   "bizDeactivateTitle": "Deactivate Business?",
   "bizFieldShopName": "Shop Name",
+
+  "shopManagement": "Shop Management",
   "shopStatTotalShops": "Total Shops",
   "shopStatActive": "Active",
   "shopStatInactive": "Inactive",
@@ -382,5 +547,285 @@
   "bizAddressLabel": "Address",
   "bizPhoneLabel": "Phone",
   "bizEmailLabel": "Email",
-  "bizShopsLabel": "Shops"
+  "bizShopsLabel": "Shops",
+  "addShop": "Add Shop",
+  "noShopsYet": "No shops yet",
+  "firstShopMessage": "Add your first shop location to start managing products, sales, and cashiers.",
+  "shop": "Shop",
+  "active": "Active",
+  "inactive": "Inactive",
+  "newShop": "New Shop",
+  "shopAddedSuccessfully": "Shop added successfully",
+  "mainBranchHint": "Main Branch",
+  "shopNameRequired": "Shop name is required",
+  "nameMustBeAtLeast2Characters": "Name must be at least 2 characters",
+  "optional": "Optional",
+  "khartoumCentreHint": "Khartoum Centre",
+  "enterValidPhoneNumber": "Enter a valid phone number",
+
+  "editShop": "Edit shop",
+  "status": "Status",
+  "address": "Address",
+  "phone": "Phone",
+
+  "createStaffAccountMessage": "Only cashier and manager accounts can be created here.",
+  "fullNameHint": "Ali Hassan",
+  "fullNameRequired": "Full name is required",
+  "invalidRoleSelected": "Invalid role selected",
+  "assignCashierToShopRequired": "Please assign this cashier to a shop.",
+  "userAddedSuccessfully": "User added successfully",
+  "autoAssignCashierToShop": "Will be assigned to {shopName} automatically.",
+  "@autoAssignCashierToShop": {
+    "placeholders": {
+      "shopName": {
+        "type": "String"
+      }
+    }
+  },
+  "selectShop": "Select a shop",
+  "cashierShopRequiredMessage": "Cashiers must be assigned to a shop to process sales.",
+  "cashierAssignedToShop": "Cashier will be assigned to {shopName}.",
+  "@cashierAssignedToShop": {
+    "placeholders": {
+      "shopName": {
+        "type": "String"
+      }
+    }
+  },
+  "thisShop": "this shop",
+  "adminRoleHint": "Full access — can manage everything including users and settings.",
+  "managerRoleHint": "Can view reports, manage inventory and orders.",
+  "cashierRoleHint": "Can process sales and manage the POS terminal.",
+  "editStaffAccountMessage": "Only cashier and manager roles can be assigned from here.",
+  "adminRoleCannotBeAssigned": "Admin role cannot be assigned from the app",
+  "invalidUserSelected": "Invalid user selected",
+  "userUpdatedSuccessfully": "User updated successfully",
+  "nameRequired": "Name is required",
+  "unassigned": "Unassigned",
+  "unassignedCashierMessage": "This cashier is not assigned to any shop and cannot process sales.",
+  "cashierAssignedToShopDetailed": "Assigned to {shopName}. Cashier can process sales at this shop.",
+  "@cashierAssignedToShopDetailed": {
+    "placeholders": {
+      "shopName": {
+        "type": "String"
+      }
+    }
+  },
+  "managerAccessMessage": "Managers are not assigned to a single shop. They can manage business operations based on their permissions.",
+  "userDeactivatedSuccessfully": "User deactivated successfully",
+  "deactivateUserMessage": "\"{name}\" will lose access immediately. You can reactivate them later.",
+  "@deactivateUserMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidUserId": "Invalid user ID",
+  "thisUser": "this user",
+
+  "noCashiersYet": "No cashiers yet",
+  "noCashiersYetDescription": "Add your first cashier so your team can start processing sales from the POS.",
+
+  "yes": "Yes",
+  "no": "No",
+  "never": "Never",
+  "admin": "Admin",
+  "manager": "Manager",
+  "cashier": "Cashier",
+  "deactivate": "Deactivate",
+  "managerAccessHint": "Can manage inventory, reports and operations",
+  "cashierAccessHint": "Can process sales and use POS terminal",
+  "adminAccessHint": "Can manage business settings and staff access",
+  "staffAccountHint": "Staff account",
+
+
+  "subtotal": "Subtotal",
+  "total": "Total",
+  "failedToLoadProducts": "Failed to load products",
+  "noProductsFound": "No products found",
+  "nothingMatchesQuery": "Nothing matches \"{query}\".",
+  "@nothingMatchesQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "tryAnotherCategoryOrAddProducts": "Try another category or add products first.",
+  "payment": "Payment",
+  "method": "Method",
+  "bankak": "Bankak",
+  "bankTransfer": "Bank transfer",
+  "cash": "Cash",
+  "payNow": "Pay now",
+  "bankakReadyAccount": "Bankak ready · Account {account}",
+  "@bankakReadyAccount": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "bankakAccountSetupBanner": "Bankak account is not set up. Tap to open settings.",
+  "bankakAccountNotSetUpMessage": "Bankak account is not set up. Go to Settings and add your account number first.",
+  "cashierNotAssignedToShopMessage": "You are not assigned to a shop. Contact your manager.",
+  "noShopFoundRefreshMessage": "No shop found. Please refresh and try again.",
+  "clearCartQuestion": "Clear cart?",
+  "clearCartDescription": "This will remove all items from the current sale.",
+  "clear": "Clear",
+  "reviewSale": "Review sale",
+  "review": "Review",
+  "reviewCart": "Review cart",
+  "cart": "Cart",
+  "completeSale": "Complete sale",
+  "itemCount": "{count, plural, =0{0 items} =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remove": "Remove",
+  "eachPrice": "{price} each",
+  "@eachPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToLoadSales": "Failed to load sales",
+  "searchReceiptAmountPaymentHint": "Search receipt, amount, payment...",
+  "clearSearch": "Clear search",
+  "completed": "Completed",
+  "returned": "Returned",
+  "pending": "Pending",
+  "allLoaded": "All loaded",
+  "todaysSales": "Today's",
+  "noMatchingSales": "No matching sales",
+  "tryDifferentSearchTerm": "Try a different search term",
+  "noSalesToday": "No sales today",
+  "salesMadeTodayWillAppearHere": "Sales made today will appear here",
+  "noPendingSales": "No pending sales",
+  "allOfflineSalesSynced": "All offline sales have been synced",
+  "noCompletedSales": "No completed sales",
+  "noReturnedSales": "No returned sales",
+  "noSalesYet": "No sales yet",
+  "matchingSalesWillAppearHere": "Matching sales will appear here",
+  "salesWillAppearHere": "Sales will appear here once you complete your first checkout",
+  "card": "Card",
+  "partiallyReturned": "Partially returned",
+  "cancelled": "Cancelled",
+  "failed": "Failed",
+  "unknown": "Unknown",
+  "todayWithTime": "Today {time}",
+  "@todayWithTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "yesterdayWithTime": "Yesterday {time}",
+  "@yesterdayWithTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "yesterday": "Yesterday",
+  "allLoadedSales": "All loaded sales",
+  "todaysSalesCount": "Today's sales",
+  "completedSalesCount": "Completed sales",
+  "returnedSalesCount": "Returned sales",
+  "pendingSalesCount": "Pending sales",
+  "allLoadedRevenue": "All loaded revenue",
+  "todaysRevenue": "Today's revenue",
+  "completedRevenue": "Completed revenue",
+  "returnedRevenue": "Returned revenue",
+  "pendingRevenue": "Pending revenue",
+  "receiptNumberLabel": "RECEIPT NUMBER",
+  "temporaryReferenceLabel": "TEMPORARY REFERENCE",
+  "salePendingSyncDescription": "This sale is pending sync. Returns and final receipt number are only available after the sale syncs to the server.",
+  "saleAlreadyRefunded": "This sale has already been refunded.",
+  "preparingReceipt": "Preparing receipt...",
+  "shareReceiptPdf": "Share receipt PDF",
+  "receiptPdfShareHint": "The receipt will be shared as a PDF file. Choose WhatsApp from the share options.",
+  "noItemDetailsAvailable": "No item details available",
+  "wallet": "Wallet",
+
+  "receipt": "Receipt",
+  "amanaReceipt": "AmanaPOS Receipt",
+  "salesReceipt": "Sales Receipt",
+  "date": "Date",
+  "item": "Item",
+  "qty": "Qty",
+  "amount": "Amount",
+  "offlineSalePdfWarning": "Offline sale - final server confirmation may still be pending.",
+  "thankYouForPurchase": "Thank you for your purchase.",
+  "poweredByAmanaPOS": "Powered by AmanaPOS",
+
+  "processReturn": "Process return",
+
+  "returnSearchHint": "Receipt number, amount...",
+  "returnSearchHelper": "Receipt number, amount, or customer name",
+  "pleaseTryAgain": "Please try again",
+  "returnPendingSyncCannotReturn": "Pending sync — cannot return yet",
+  "returnAlreadyProcessed": "Already {status}",
+  "@returnAlreadyProcessed": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "originalSale": "Original sale",
+  "tapItemsToSelect": "Tap items to select",
+  "refundTotal": "Refund total",
+  "items": "items",
+  "selectItemsToReturn": "Select items to return",
+  "itemsSelected": "{selectedCount} of {totalCount} items selected",
+  "@itemsSelected": {
+    "description": "Shows number of items selected out of total",
+    "placeholders": {
+      "selectedCount": {},
+      "totalCount": {}
+    }
+  },
+  "sold": "sold",
+  "returnProcessed": "Return processed!",
+  "stockRestored": "Stock restored",
+  "receiptReady": "Receipt ready to share",
+  "returnReference": "Return reference",
+  "noReturnedItems": "No returned items found",
+  "totalRefunded": "Total refunded",
+  "returnReceipt": "Return receipt",
+  "ref": "Ref",
+  "refund": "Refund",
+  "original": "Original",
+  "cashRefund": "Cash refund",
+  "settingsSynced": "SYNCED",
+  "commonEdit": "Edit",
+  "commonActive": "Active",
+  "commonSetup": "Setup",
+  "commonChange": "Change",
+  "commonCancel": "Cancel",
+  "settingsBankakNotConfigured": "Not configured — add Bankak to accept sales",
+  "settingsBankakReady": "Account {account} · ready for POS sales",
+  "@settingsBankakReady": {
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsProfileSubtitleFallback": "Name, email and contact details",
+  "settingsSignOutTitle": "Sign out?",
+  "settingsSignOutMessage": "Make sure all your sales are synced before signing out. Offline sales that have not synced will be lost."
+
 }

@@ -9,8 +9,8 @@ class AppFormField extends StatelessWidget {
   final FocusNode? nextFocus;
   final String hint;
   final IconData prefixIcon;
-  final TextInputType keyboardType;
-  final TextInputAction textInputAction;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onSubmitted;
   final ValueChanged<String>? onChanged;

@@ -12,6 +12,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 void showAddStockProductSheet(
@@ -692,8 +693,8 @@ class _ProductPickTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppDims.s2),
-              Icon(
-                SolarIconsOutline.altArrowRight,
+              DirectionalIcon(
+                icon: SolarIconsOutline.altArrowRight,
                 color: colors.textHint,
                 size: 18,
               ),

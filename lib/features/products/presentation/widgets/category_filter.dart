@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -6,11 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
-  @override
-  double get minExtent => 58;
+  const CategoryFilterDelegate();
+
+  static const double _height = 58;
 
   @override
-  double get maxExtent => 58;
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
 
   @override
   Widget build(
@@ -18,9 +23,11 @@ class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
       double shrinkOffset,
       bool overlapsContent,
       ) {
+    final colors = context.appColors;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.appColors.background,
+        color: colors.background,
         boxShadow: overlapsContent
             ? [
           BoxShadow(
@@ -31,31 +38,38 @@ class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
         ]
             : null,
       ),
-      child: BlocBuilder<ProductBloc, ProductState>(
-        buildWhen: (prev, curr) =>
-        prev.categories != curr.categories ||
-            prev.selectedCategoryId != curr.selectedCategoryId,
-        builder: (context, state) {
-          final categories = state.categories;
+      child: BlocSelector<ProductBloc, ProductState, _CategoryFilterData>(
+        selector: (state) {
+          return _CategoryFilterData(
+            categories: state.categories,
+            selectedCategoryId: state.selectedCategoryId,
+          );
+        },
+        builder: (context, data) {
+          final categories = data.categories;
 
           return ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
+            padding: const EdgeInsetsDirectional.symmetric(
               horizontal: AppDims.s4,
               vertical: AppDims.s2,
             ),
             itemCount: categories.length + 1,
             separatorBuilder: (_, __) => const SizedBox(width: AppDims.s2),
-            itemBuilder: (context, i) {
-              final isAll = i == 0;
-              final category = isAll ? null : categories[i - 1];
+            itemBuilder: (context, index) {
+              final isAll = index == 0;
+              final category = isAll ? null : categories[index - 1];
 
               final isSelected = isAll
-                  ? state.selectedCategoryId == null
-                  : state.selectedCategoryId == category?.id;
+                  ? data.selectedCategoryId == null
+                  : data.selectedCategoryId == category?.id;
 
               return CategoryChip(
-                label: isAll ? 'All Products' : category?.name ?? '—',
+                label: isAll
+                    ? context.tr.allProducts
+                    : category?.name?.trim().isNotEmpty == true
+                    ? category!.name!.trim()
+                    : context.tr.unknownCategory,
                 isSelected: isSelected,
                 onTap: () {
                   context.read<ProductBloc>().add(
@@ -73,7 +87,7 @@ class CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(covariant CategoryFilterDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant CategoryFilterDelegate oldDelegate) => false;
 }
 
 class CategoryChip extends StatelessWidget {
@@ -92,35 +106,60 @@ class CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDims.s3,
-          vertical: AppDims.s2,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.primary : colors.surface,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: isSelected ? colors.primary : colors.border,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDims.s3,
+            vertical: AppDims.s2,
           ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs300(context).copyWith(
-              fontWeight: FontWeight.w900,
-              color: isSelected ? Colors.white : colors.textSecondary,
+          decoration: BoxDecoration(
+            color: isSelected ? colors.primary : colors.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isSelected ? colors.primary : colors.border,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bs300(context).copyWith(
+                fontWeight: FontWeight.w900,
+                color: isSelected ? Colors.white : colors.textSecondary,
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+class _CategoryFilterData {
+  final List<dynamic> categories;
+  final String? selectedCategoryId;
+
+  const _CategoryFilterData({
+    required this.categories,
+    required this.selectedCategoryId,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is _CategoryFilterData &&
+            other.categories == categories &&
+            other.selectedCategoryId == selectedCategoryId;
+  }
+
+  @override
+  int get hashCode => Object.hash(categories, selectedCategoryId);
 }

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class ReturnSuccessSheet extends StatelessWidget {
   final RefundResponseDto result;
@@ -33,7 +34,6 @@ class ReturnSuccessSheet extends StatelessWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      isDismissible: true,
       builder: (_) => ReturnSuccessSheet(
         result: result,
         businessName: businessName,
@@ -42,19 +42,16 @@ class ReturnSuccessSheet extends StatelessWidget {
     );
   }
 
-  String get _refundReference {
-    return result.refundReference?.trim().isNotEmpty == true
-        ? result.refundReference!.trim()
-        : 'N/A';
-  }
+  String get _refundReference =>
+      result.refundReference?.trim().isNotEmpty == true
+          ? result.refundReference!.trim()
+          : 'N/A';
 
-  double get _refundTotal {
-    return double.tryParse(result.refundTotal?.toString() ?? '0') ?? 0;
-  }
+  double get _refundTotal =>
+      double.tryParse(result.refundTotal?.toString() ?? '0') ?? 0;
 
-  List<ReturnedItems> get _returnedItems {
-    return result.returnedItems ?? const <ReturnedItems>[];
-  }
+  List<ReturnedItems> get _returnedItems =>
+      result.returnedItems ?? const <ReturnedItems>[];
 
   String get _statusLabel {
     switch (result.sale?.status) {
@@ -67,84 +64,8 @@ class ReturnSuccessSheet extends StatelessWidget {
     }
   }
 
-  double _toDouble(dynamic value) {
-    return double.tryParse(value?.toString() ?? '0') ?? 0;
-  }
-
-  String _formatQty(dynamic value) {
-    final qty = double.tryParse(value?.toString() ?? '0') ?? 0;
-
-    if (qty % 1 == 0) {
-      return qty.toInt().toString();
-    }
-
-    return qty.toStringAsFixed(2);
-  }
-
-  String _safeText(String? value, {String fallback = 'Item'}) {
-    final text = value?.trim() ?? '';
-    return text.isEmpty ? fallback : text;
-  }
-
-  String _buildReceiptText() {
-    final now = DateTime.now();
-    String pad(int n) => n.toString().padLeft(2, '0');
-
-    const months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    final dateStr =
-        '${now.day} ${months[now.month]} ${now.year} ${pad(now.hour)}:${pad(now.minute)}';
-
-    final sb = StringBuffer()
-      ..writeln('RETURN RECEIPT — AmanaPOS')
-      ..writeln('Ref: $_refundReference')
-      ..writeln('Original: $originalReceiptRef')
-      ..writeln('Date: $dateStr')
-      ..writeln('Status: $_statusLabel')
-      ..writeln('─────────────────────────');
-
-    for (final item in _returnedItems) {
-      final displayName = _safeText(item.productName);
-
-      final name = displayName.length > 16
-          ? displayName.substring(0, 16)
-          : displayName.padRight(16);
-
-      final quantity = _formatQty(item.quantity);
-      final subtotal = _toDouble(item.subtotal);
-
-      sb.writeln(
-        '$name x$quantity  ${AppFormat.moneyWithUnit(subtotal)}',
-      );
-    }
-
-    sb
-      ..writeln('─────────────────────────')
-      ..writeln('REFUND:  ${AppFormat.moneyWithUnit(_refundTotal)}')
-      ..writeln('Method:  Cash refund')
-      ..writeln('─────────────────────────')
-      ..writeln(businessName)
-      ..writeln('Powered by AmanaPOS');
-
-    return sb.toString();
-  }
-
-  Future<void> _shareWhatsApp() async {
-    final text = Uri.encodeComponent(_buildReceiptText());
+  Future<void> _shareWhatsApp(BuildContext context) async {
+    final text = Uri.encodeComponent(_buildReceiptText(context));
     final uri = Uri.parse('https://wa.me/?text=$text');
 
     if (await canLaunchUrl(uri)) {
@@ -152,9 +73,9 @@ class ReturnSuccessSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _shareGeneral() async {
+  Future<void> _shareGeneral(BuildContext context) async {
     await Share.share(
-      _buildReceiptText(),
+      _buildReceiptText(context),
       subject: 'Return $_refundReference',
     );
   }
@@ -174,20 +95,57 @@ class ReturnSuccessSheet extends StatelessWidget {
     );
   }
 
+  String _buildReceiptText( BuildContext context) {
+    final now = DateTime.now();
+    String pad(int n) => n.toString().padLeft(2, '0');
+
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+
+    final dateStr =
+        '${now.day} ${months[now.month]} ${now.year} ${pad(now.hour)}:${pad(now.minute)}';
+
+    final sb = StringBuffer()
+      ..writeln('${context.tr.returnReceipt} — AmanaPOS')
+      ..writeln('${context.tr.ref}: $_refundReference')
+      ..writeln('${context.tr.original}: $originalReceiptRef')
+      ..writeln('${context.tr.date}: $dateStr')
+      ..writeln('${context.tr.status}: $_statusLabel')
+      ..writeln('─────────────────────────');
+
+    for (final item in _returnedItems) {
+      final name = item.productName?.trim() ?? context.tr.item;
+      final displayName = name.length > 16 ? name.substring(0, 16) : name.padRight(16);
+      final qty = int.tryParse(item.quantity?.toString() ?? '0') ?? 0;
+      final subtotal = (item.subtotal is num)
+          ? item.subtotal as num
+          : double.tryParse(item.subtotal?.toString() ?? '0') ?? 0.0;
+
+      sb.writeln('$displayName x$qty  ${AppFormat.moneyWithUnit(subtotal)}');
+    }
+
+    sb
+      ..writeln('─────────────────────────')
+      ..writeln('${context.tr.refund}: ${AppFormat.moneyWithUnit(_refundTotal)}')
+      ..writeln('${context.tr.method}: ${context.tr.cashRefund}')
+      ..writeln('─────────────────────────')
+      ..writeln(businessName)
+      ..writeln(context.tr.poweredByAmanaPOS);
+
+    return sb.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final returnedItems = _returnedItems;
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-      ),
+      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(28),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -204,15 +162,11 @@ class ReturnSuccessSheet extends StatelessWidget {
           const SizedBox(height: AppDims.s4),
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                AppDims.s4,
-                0,
-                AppDims.s4,
-                AppDims.s6,
-              ),
+              padding: const EdgeInsets.fromLTRB(AppDims.s4, 0, AppDims.s4, AppDims.s6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Success header
                   Row(
                     children: [
                       Container(
@@ -223,7 +177,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(
-                          Icons.check_circle_rounded,
+                          SolarIconsOutline.checkCircle,
                           color: AppColors.success,
                           size: 24,
                         ),
@@ -234,7 +188,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Return processed!',
+                              context.tr.returnProcessed,
                               style: AppTextStyles.bs500(context).copyWith(
                                 fontWeight: FontWeight.w900,
                                 color: colors.textPrimary,
@@ -242,7 +196,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$_statusLabel · Stock restored · Receipt ready to share',
+                              '$_statusLabel · ${context.tr.stockRestored} · ${context.tr.receiptReady}',
                               style: AppTextStyles.bs100(context).copyWith(
                                 color: colors.textSecondary,
                               ),
@@ -255,6 +209,7 @@ class ReturnSuccessSheet extends StatelessWidget {
 
                   const SizedBox(height: AppDims.s4),
 
+                  // Copy reference
                   GestureDetector(
                     onTap: () => _copyRef(context),
                     child: Container(
@@ -267,7 +222,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(
-                            'Return reference',
+                            context.tr.returnReference,
                             style: AppTextStyles.sm100(context).copyWith(
                               color: colors.textHint,
                               letterSpacing: 1.4,
@@ -288,16 +243,15 @@ class ReturnSuccessSheet extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.copy_rounded,
+                                SolarIconsOutline.copy,
                                 size: 13,
                                 color: colors.textHint,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Tap to copy',
-                                style: AppTextStyles.sm100(context).copyWith(
-                                  color: colors.textHint,
-                                ),
+                                context.tr.tapToCopy,
+                                style: AppTextStyles.sm100(context)
+                                    .copyWith(color: colors.textHint),
                               ),
                             ],
                           ),
@@ -308,38 +262,37 @@ class ReturnSuccessSheet extends StatelessWidget {
 
                   const SizedBox(height: AppDims.s4),
 
+                  // Returned items list
                   Container(
                     decoration: BoxDecoration(
                       color: colors.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.danger.withValues(alpha: 0.3),
-                      ),
+                      border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
                     ),
-                    child: returnedItems.isEmpty
+                    child: _returnedItems.isEmpty
                         ? Padding(
                       padding: const EdgeInsets.all(AppDims.s4),
                       child: Text(
-                        'No returned items found',
+                        context.tr.noReturnedItems,
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.bs100(context).copyWith(
-                          color: colors.textSecondary,
-                        ),
+                        style: AppTextStyles.bs100(context)
+                            .copyWith(color: colors.textSecondary),
                       ),
                     )
                         : Column(
                       children: [
-                        for (int i = 0; i < returnedItems.length; i++) ...[
+                        for (int i = 0; i < _returnedItems.length; i++) ...[
                           if (i > 0)
                             Divider(
                               height: 1,
                               color: colors.border.withValues(alpha: 0.6),
                             ),
                           _ReturnedItemRow(
-                            item: returnedItems[i],
-                            formatQty: _formatQty,
-                            toDouble: _toDouble,
-                            safeText: _safeText,
+                            item: _returnedItems[i],
+                            formatQty: (v) => v.toString(),
+                            toDouble: (v) => double.tryParse(v.toString()) ?? 0,
+                            safeText: (v, {fallback = 'Item'}) =>
+                            v?.trim().isEmpty == true ? fallback : v!,
                           ),
                         ],
                       ],
@@ -348,11 +301,12 @@ class ReturnSuccessSheet extends StatelessWidget {
 
                   const SizedBox(height: AppDims.s3),
 
+                  // Total refunded
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total refunded',
+                        context.tr.totalRefunded,
                         style: AppTextStyles.bs200(context).copyWith(
                           color: colors.textSecondary,
                         ),
@@ -370,9 +324,10 @@ class ReturnSuccessSheet extends StatelessWidget {
 
                   const SizedBox(height: AppDims.s6),
 
+                  // Share buttons
                   FilledButton.icon(
-                    onPressed: _shareWhatsApp,
-                    icon: const Icon(Icons.chat_rounded, size: 18),
+                    onPressed:()=> _shareWhatsApp(context),
+                    icon: Icon(SolarIconsOutline.chatRound),
                     label: Text(context.tr.shareReturnWhatsApp),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF25D366),
@@ -384,19 +339,14 @@ class ReturnSuccessSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: AppDims.s2),
-
                   OutlinedButton.icon(
-                    onPressed: _shareGeneral,
-                    icon: Icon(
-                      Icons.share_rounded,
-                      size: 18,
-                      color: colors.textPrimary,
-                    ),
+                    onPressed: ()=> _shareGeneral,
+                    icon: Icon(SolarIconsOutline.share, color: colors.textPrimary),
                     label: Text(
-                      'Share via...',
-                      style: AppTextStyles.bs200(context).copyWith(color: colors.textPrimary),
+                      context.tr.shareVia,
+                      style: AppTextStyles.bs200(context)
+                          .copyWith(color: colors.textPrimary),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: colors.border),
@@ -406,9 +356,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: AppDims.s2),
-
                   FilledButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: FilledButton.styleFrom(
@@ -448,16 +396,12 @@ class _ReturnedItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
     final productName = safeText(item.productName);
     final quantity = formatQty(item.quantity);
     final subtotal = toDouble(item.subtotal);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDims.s4,
-        vertical: AppDims.s3,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppDims.s4, vertical: AppDims.s3),
       child: Row(
         children: [
           Expanded(
@@ -465,17 +409,13 @@ class _ReturnedItemRow extends StatelessWidget {
               productName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.textPrimary,
-              ),
+              style: AppTextStyles.bs200(context).copyWith(color: colors.textPrimary),
             ),
           ),
           const SizedBox(width: AppDims.s2),
           Text(
             '×$quantity',
-            style: AppTextStyles.bs100(context).copyWith(
-              color: colors.textSecondary,
-            ),
+            style: AppTextStyles.bs100(context).copyWith(color: colors.textSecondary),
           ),
           const SizedBox(width: AppDims.s3),
           Text(
