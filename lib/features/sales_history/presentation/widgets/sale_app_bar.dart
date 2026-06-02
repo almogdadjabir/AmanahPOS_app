@@ -41,7 +41,7 @@ class SaleAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Text(context.tr.amanaPosLabel,
                   style: AppTextStyles.sm100(context).copyWith(
-                    color: AppColors.primary, fontSize: 10,
+                    color: AppColors.primary,
                     letterSpacing: 1.0, fontWeight: FontWeight.w700, height: 1,
                   )),
               Text(context.tr.salesHistoryTitle,
