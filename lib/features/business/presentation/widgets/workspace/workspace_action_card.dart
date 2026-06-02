@@ -121,7 +121,7 @@ class _VerticalContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _IconBox(icon: icon, isDisabled: isDisabled, size: 46),
+          _IconBox(icon: icon, isDisabled: isDisabled, size: 84),
           const Spacer(),
           if (value != null) ...[
             Text(
@@ -138,9 +138,7 @@ class _VerticalContent extends StatelessWidget {
           ],
           Text(
             title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs500(context).copyWith(
+            style: AppTextStyles.bs300(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
               height: 1,
@@ -152,9 +150,7 @@ class _VerticalContent extends StatelessWidget {
               Expanded(
                 child: Text(
                   subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs100(context).copyWith(
+                  style: AppTextStyles.sm300(context).copyWith(
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.9,

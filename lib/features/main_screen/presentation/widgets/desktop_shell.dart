@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_more_drawer.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_navigation_rail.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -16,6 +17,7 @@ class DesktopShell extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
+      drawer: const DesktopMoreDrawer(),
       body: Row(
         children: [
           const DesktopNavigationRail(),
