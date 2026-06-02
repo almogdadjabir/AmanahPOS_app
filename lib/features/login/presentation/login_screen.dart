@@ -2,6 +2,7 @@ import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_form.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_otp.dart';
+import 'package:amana_pos/widgets/grid_painter.dart';
 import 'package:amana_pos/widgets/page_dots.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -58,6 +59,29 @@ class _LoginScreenState extends State<LoginScreen> {
               alignment: Alignment.center,
               children: [
                 PageDots(currentPage: state.loginStatus.page),
+                Positioned.fill(
+                  child: ShaderMask(
+                    shaderCallback: (rect) {
+                      return RadialGradient(
+                        center: const Alignment(0.45, -0.65),
+                        radius: 0.95,
+                        colors: [
+                          context.appColors.textPrimary,
+                          Colors.transparent,
+                        ],
+                      ).createShader(rect);
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: CustomPaint(
+                      painter: GridPainter(
+                        color:  context.appColors.primary.withValues(
+                          alpha: 0.04,
+                        ),
+                        spacing: 24,
+                      ),
+                    ),
+                  ),
+                ),
 
                 Align(
                   alignment: Alignment.centerLeft,
