@@ -4,7 +4,7 @@ import 'package:amana_pos/features/business/presentation/widgets/shop/edit_shop_
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
-import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/widgets/back_button.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -28,14 +28,7 @@ class ShopAppBar extends StatelessWidget {
       elevation: 0,
       backgroundColor: colors.surface,
       surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        onPressed: () => Navigator.of(context).pop(),
-        icon: DirectionalIcon(
-          icon: SolarIconsOutline.arrowLeft,
-          color: colors.textPrimary,
-          size: 22,
-        ),
-      ),
+      leading: const app.BackButton(),
       actions: [
         IconButton(
           onPressed: () {
