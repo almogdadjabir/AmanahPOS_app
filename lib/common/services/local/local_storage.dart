@@ -19,15 +19,17 @@ class CacheStorage {
       accessibility: KeychainAccessibility.first_unlock,
       synchronizable: false,
     ),
-    mOptions: MacOsOptions(
-      accessibility: KeychainAccessibility.unlocked,
-      synchronizable: false,
-    ),
   );
 
   static SharedPreferences? _staticPrefs;
 
   SharedPreferences? get prefs => _staticPrefs;
+
+  // On desktop platforms the OS keychain requires code-signing entitlements
+  // that are not available in unsigned dev builds. Route everything through
+  // SharedPreferences instead — tokens are unencrypted on disk but the app works.
+  bool get _usePrefsStorage =>
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
   static void preloadPrefs(SharedPreferences prefs) {
     _staticPrefs = prefs;
@@ -43,7 +45,6 @@ class CacheStorage {
     }
   }
 
-
   Future<String?> _prefsGet(String key) async {
     await _ensurePrefsInitialized();
     return _staticPrefs?.getString(key);
@@ -58,7 +59,6 @@ class CacheStorage {
     }
   }
 
-
   Future<bool?> setBool(String key, bool value) async {
     await _ensurePrefsInitialized();
     return await _staticPrefs?.setBool(key, value);
@@ -71,7 +71,7 @@ class CacheStorage {
 
   Future<bool> save(String key, String? value) async {
     try {
-      if (_fastKeys.contains(key)) {
+      if (_fastKeys.contains(key) || _usePrefsStorage) {
         await _prefsSave(key, value);
         return true;
       }
@@ -89,7 +89,7 @@ class CacheStorage {
 
   Future<String?> read(String key) async {
     try {
-      if (_fastKeys.contains(key)) {
+      if (_fastKeys.contains(key) || _usePrefsStorage) {
         return await _prefsGet(key);
       }
       return await storage.read(key: key);
@@ -104,11 +104,15 @@ class CacheStorage {
   Future<bool> saveObject(String key, Object? value) async {
     try {
       if (value == null) {
-        await storage.delete(key: key);
+        await (_usePrefsStorage
+            ? _prefsSave(key, null)
+            : storage.delete(key: key));
         return true;
       }
       final stringData = jsonEncode(value);
-      await storage.write(key: key, value: stringData);
+      await (_usePrefsStorage
+          ? _prefsSave(key, stringData)
+          : storage.write(key: key, value: stringData));
       return true;
     } catch (e) {
       if (kDebugMode) log('Error saving object to secure storage: $e');
@@ -118,7 +122,9 @@ class CacheStorage {
 
   Future<dynamic> getObject(String key) async {
     try {
-      final data = await storage.read(key: key);
+      final data = _usePrefsStorage
+          ? await _prefsGet(key)
+          : await storage.read(key: key);
       if (data == null) return null;
       return jsonDecode(data);
     } catch (e) {
@@ -130,11 +136,13 @@ class CacheStorage {
   Future<dynamic> getObjectData(String key) async => await getObject(key);
 
   Future<T?> getTypedObject<T>(
-      String key,
-      T Function(Map<String, dynamic> json) fromJson,
-      ) async {
+    String key,
+    T Function(Map<String, dynamic> json) fromJson,
+  ) async {
     try {
-      final data = await storage.read(key: key);
+      final data = _usePrefsStorage
+          ? await _prefsGet(key)
+          : await storage.read(key: key);
       if (data == null) return null;
       final Map<String, dynamic> jsonData = jsonDecode(data);
       return fromJson(jsonData);
@@ -152,9 +160,13 @@ class CacheStorage {
         Constants.refreshToken,
         Constants.cachedProfile,
       ]) {
-        await storage.delete(key: key);
-        final check = await storage.read(key: key);
-        if (check != null) await storage.delete(key: key);
+        if (_usePrefsStorage) {
+          await _prefsSave(key, null);
+        } else {
+          await storage.delete(key: key);
+          final check = await storage.read(key: key);
+          if (check != null) await storage.delete(key: key);
+        }
       }
       return true;
     } catch (e) {
@@ -165,7 +177,12 @@ class CacheStorage {
 
   Future<bool> deleteAllSecure() async {
     try {
-      await storage.deleteAll();
+      if (_usePrefsStorage) {
+        await _ensurePrefsInitialized();
+        await _staticPrefs?.clear();
+      } else {
+        await storage.deleteAll();
+      }
       return true;
     } catch (e) {
       if (kDebugMode) log('Error deleting all secure data: $e');
@@ -175,8 +192,8 @@ class CacheStorage {
 
   Future<bool> containsKey(String key) async {
     try {
-      if (_fastKeys.contains(key)) {
-        await _ensurePrefsInitialized();
+      await _ensurePrefsInitialized();
+      if (_fastKeys.contains(key) || _usePrefsStorage) {
         return _staticPrefs?.containsKey(key) ?? false;
       }
       return await storage.containsKey(key: key);
@@ -192,6 +209,7 @@ class CacheStorage {
 
   Future<void> clearStaleKeychainOnFreshInstall() async {
     await _ensurePrefsInitialized();
+    if (_usePrefsStorage) return; // no stale keychain on desktop
     const String freshInstallSentinel = 'fresh_install_sentinel_v1';
     try {
       final bool isKnownInstall =
