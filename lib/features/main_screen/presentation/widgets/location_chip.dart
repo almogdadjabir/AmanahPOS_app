@@ -65,6 +65,7 @@ class LocationChip extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 46,
+        clipBehavior: Clip.hardEdge,
         padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
         decoration: BoxDecoration(
           color: colors.surfaceSoft.withValues(alpha: 0.66),

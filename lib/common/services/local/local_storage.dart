@@ -19,6 +19,10 @@ class CacheStorage {
       accessibility: KeychainAccessibility.first_unlock,
       synchronizable: false,
     ),
+    mOptions: MacOsOptions(
+      accessibility: KeychainAccessibility.unlocked,
+      synchronizable: false,
+    ),
   );
 
   static SharedPreferences? _staticPrefs;
