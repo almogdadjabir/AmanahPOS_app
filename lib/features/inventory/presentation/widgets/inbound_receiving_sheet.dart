@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
@@ -29,11 +30,9 @@ void showInboundReceivingSheet(BuildContext context) {
     productBloc.add(const OnProductInitial());
   }
 
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: inventoryBloc),
@@ -116,11 +115,9 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
       return;
     }
 
-    final selected = await showModalBottomSheet<VendorData>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+    final selected = await showAdaptivePanel<VendorData>(
+      context,
+      desktopWidth: 480,
       builder: (_) => _VendorPickerSheet(
         vendors: vendors,
         selectedVendorId: _selectedVendorId,
@@ -156,11 +153,9 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
       return;
     }
 
-    final picked = await showModalBottomSheet<ProductData>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+    final picked = await showAdaptivePanel<ProductData>(
+      context,
+      desktopWidth: 480,
       builder: (_) => _ProductPickerSheet(
         products: products,
         selectedProductId: _items[index].product?.id,

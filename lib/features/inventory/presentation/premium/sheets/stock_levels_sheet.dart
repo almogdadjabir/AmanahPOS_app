@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/stock_levels_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/premium_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -9,11 +10,9 @@ import 'package:solar_icons/solar_icons.dart';
 
 void showStockLevelsSheet(BuildContext context) {
   context.read<StockLevelsBloc>().add(const OnStockLevelsStarted());
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<StockLevelsBloc>(),
       child: const _StockLevelsSheet(),

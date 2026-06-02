@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/services/sale_receipt_pdf_service.dart';
 import 'package:amana_pos/theme/app_colors.dart';
@@ -29,11 +30,9 @@ class SaleDetailSheet extends StatefulWidget {
         required SaleHistoryItem item,
         VoidCallback? onReturnTap,
       }) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel<void>(
+      context,
+      desktopWidth: 480,
       builder: (_) => SaleDetailSheet(
         item: item,
         onReturnTap: onReturnTap,

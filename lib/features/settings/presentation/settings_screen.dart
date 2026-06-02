@@ -4,6 +4,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
@@ -292,10 +293,9 @@ class _AccountSection extends StatelessWidget {
   }
 
   void _openProfileSheet(BuildContext context, User profile) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<SettingsBloc>(),
         child: EditProfileSheet(
@@ -308,10 +308,9 @@ class _AccountSection extends StatelessWidget {
   }
 
   void _openBankakSheet(BuildContext context, User profile) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<SettingsBloc>(),
         child: EditBankakSheet(
@@ -324,10 +323,9 @@ class _AccountSection extends StatelessWidget {
   }
 
   void _openPasswordSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<SettingsBloc>(),
         child: const SetPasswordSheet(),
@@ -407,10 +405,9 @@ class _SupportSection extends StatelessWidget {
   }
 
   void _openLanguageSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<LocaleBloc>(),
         child: const LanguagePickerSheet(),

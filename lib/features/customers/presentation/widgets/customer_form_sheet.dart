@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/customers/data/models/requests/customer_request_dto.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
@@ -13,10 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void showCustomerFormSheet(BuildContext context, {CustomerData? customer}) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<CustomersBloc>(),
       child: _CustomerFormSheet(customer: customer),

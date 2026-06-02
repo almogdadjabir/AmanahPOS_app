@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/returns/data/models/responses/refund_response_dto.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -29,11 +30,9 @@ class ReturnSuccessSheet extends StatelessWidget {
         required String businessName,
         required String originalReceiptRef,
       }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 360,
       builder: (_) => ReturnSuccessSheet(
         result: result,
         businessName: businessName,

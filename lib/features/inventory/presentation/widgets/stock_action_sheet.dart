@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/users/data/models/movement_type.dart';
@@ -20,10 +21,9 @@ void showStockActionSheet(
     }) {
   final bloc = context.read<InventoryBloc>();
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: bloc,
       child: _StockActionSheet(stock: stock, allStock: allStock),

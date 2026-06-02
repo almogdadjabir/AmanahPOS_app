@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
@@ -24,10 +25,9 @@ void showAddStockProductSheet(
   final productBloc = context.read<ProductBloc>();
   final businessBloc = context.read<BusinessBloc>();
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: inventoryBloc),

@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -9,9 +10,9 @@ Future<void> showPermissionRequiredSheet(
       required String title,
       required String message,
     }) async {
-  await showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
+  await showAdaptivePanel(
+    context,
+    desktopWidth: 360,
     builder: (_) {
       final colors = context.appColors;
 

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:amana_pos/common/services/image/app_image_picker.dart';
 import 'package:amana_pos/common/widgets/permission_required_sheet.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -148,9 +149,9 @@ class ImageUploadBox extends StatelessWidget {
   }
 
   void _showPickerActions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 360,
       builder: (_) {
         return Container(
           padding: const EdgeInsets.fromLTRB(

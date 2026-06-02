@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/notification/data/models/notification_item.dart';
 import 'package:amana_pos/features/notification/presentation/notification_details_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -270,10 +271,9 @@ void showNotificationDetailsSheet(
     BuildContext context, {
       required NotificationItem item,
     }) {
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 360,
     builder: (_) => NotificationDetailsSheet(item: item),
   );
 }

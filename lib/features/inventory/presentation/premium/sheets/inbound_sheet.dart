@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inbound_bloc.dart';
@@ -25,11 +26,9 @@ void showInboundSheet(BuildContext context) {
 
   inboundBloc.add(const OnInboundStarted());
 
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: inboundBloc),
@@ -47,11 +46,9 @@ void showInboundHistorySheet(BuildContext context) {
 
   inboundBloc.add(const OnInboundStarted());
 
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: inboundBloc,
       child: const _InboundHistorySheet(),
@@ -457,11 +454,9 @@ class _ReceiveFormState extends State<_ReceiveForm> {
       );
       return;
     }
-    final picked = await showModalBottomSheet<ProductData>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+    final picked = await showAdaptivePanel<ProductData>(
+      context,
+      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<ProductBloc>(),
         child: _ProductPickerSheet(products: products),

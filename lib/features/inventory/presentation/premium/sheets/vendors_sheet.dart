@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_vendor_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/update_vendor_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/vendor_response_dto.dart';
@@ -13,11 +14,9 @@ import 'package:solar_icons/solar_icons.dart';
 
 void showVendorsSheet(BuildContext context) {
   context.read<VendorsBloc>().add(const OnVendorsStarted());
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<VendorsBloc>(),
       child: const _VendorsSheet(),
@@ -29,11 +28,9 @@ class _VendorsSheet extends StatelessWidget {
   const _VendorsSheet();
 
   void _addVendor(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel<void>(
+      context,
+      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<VendorsBloc>(),
         child: const _VendorFormSheet(),
@@ -187,11 +184,9 @@ class _VendorsSheet extends StatelessWidget {
                             trailing: PopupMenuButton<String>(
                               onSelected: (value) {
                                 if (value == 'edit') {
-                                  showModalBottomSheet<void>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    useSafeArea: true,
-                                    backgroundColor: Colors.transparent,
+                                  showAdaptivePanel<void>(
+                                    context,
+                                    desktopWidth: 480,
                                     builder: (_) => BlocProvider.value(
                                       value: context.read<VendorsBloc>(),
                                       child: _VendorFormSheet(

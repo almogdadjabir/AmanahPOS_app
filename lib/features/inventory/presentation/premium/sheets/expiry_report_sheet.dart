@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_report_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -8,11 +9,9 @@ import 'package:solar_icons/solar_icons.dart';
 
 void showExpiryReportSheet(BuildContext context) {
   context.read<ExpiryReportBloc>().add(const OnExpiryReportStarted());
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel<void>(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<ExpiryReportBloc>(),
       child: const _ExpiryReportSheet(),
