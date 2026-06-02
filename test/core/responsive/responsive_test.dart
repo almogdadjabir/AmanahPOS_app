@@ -1,4 +1,5 @@
 // test/core/responsive/responsive_test.dart
+import 'package:amana_pos/core/responsive/adaptive_flex.dart';
 import 'package:amana_pos/core/responsive/breakpoints.dart';
 import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/core/responsive/responsive.dart';
@@ -87,6 +88,26 @@ void main() {
         1024,
       ));
       expect(result, 4);
+    });
+  });
+
+  group('AdaptiveFlex', () {
+    testWidgets('uses horizontal Flex on desktop', (tester) async {
+      await tester.pumpWidget(_wrap(
+        AdaptiveFlex(children: [const Text('A'), const Text('B')]),
+        1024,
+      ));
+      final flex = tester.widget<Flex>(find.byType(Flex));
+      expect(flex.direction, Axis.horizontal);
+    });
+
+    testWidgets('uses vertical Flex on mobile', (tester) async {
+      await tester.pumpWidget(_wrap(
+        AdaptiveFlex(children: [const Text('A'), const Text('B')]),
+        390,
+      ));
+      final flex = tester.widget<Flex>(find.byType(Flex));
+      expect(flex.direction, Axis.vertical);
     });
   });
 }
