@@ -7,6 +7,8 @@ import 'package:amana_pos/config/router/route_observer.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/l10n/app_localizations.dart';
 import 'package:amana_pos/theme/app_theme.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -50,6 +52,20 @@ class App extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
+                // Desktop OSes can apply system-level text scaling that
+                // pushes the factor above 1.0, causing overflows in
+                // mobile-designed widgets. Lock to 1.0 on desktop.
+                builder: (context, child) {
+                  if (Platform.isMacOS || Platform.isWindows) {
+                    return MediaQuery(
+                      data: MediaQuery.of(context).copyWith(
+                        textScaler: TextScaler.noScaling,
+                      ),
+                      child: child!,
+                    );
+                  }
+                  return child!;
+                },
               );
             },
           );

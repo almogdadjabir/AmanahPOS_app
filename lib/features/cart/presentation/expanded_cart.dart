@@ -235,9 +235,10 @@ class _ExpandedCartHeader extends StatelessWidget {
                   enabled: !isLoading,
                   onTap: onClear,
                 ),
-                const Spacer(),
-                Column(
+                Expanded(
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       context.tr.reviewSale,
@@ -261,6 +262,7 @@ class _ExpandedCartHeader extends StatelessWidget {
                       ),
                     ),
                   ],
+                  ),
                 ),
                 const SizedBox(width: AppDims.s3),
                 _CollapseButton(onTap: onCollapse),

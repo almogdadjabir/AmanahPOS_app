@@ -120,16 +120,18 @@ class _ActionButton extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 7),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs300(context).copyWith(
-                          color: textColor,
-                          fontWeight: FontWeight.w900,
-                          height: 1,
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bs300(context).copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.w900,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),

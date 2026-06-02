@@ -165,13 +165,17 @@ class _SellFab extends StatelessWidget {
             ),
             if (extended) ...[
               const SizedBox(width: AppSpacing.xs),
-              Text(
+              Flexible(
+              child: Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: isActive ? Colors.white : colors.textSecondary,
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
+              ),
               ),
             ],
           ],
