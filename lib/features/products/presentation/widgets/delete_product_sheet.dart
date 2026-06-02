@@ -99,7 +99,7 @@ class _DeleteProductSheet extends StatelessWidget {
 
                 const SizedBox(height: AppDims.s4),
 
-                const _DeleteIcon(),
+                _DeleteIcon(),
 
                 const SizedBox(height: AppDims.s4),
 
@@ -141,14 +141,14 @@ class _DeleteIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const dangerColor = Color(0xFFDC2626);
+    final dangerColor = context.appColors.danger;
 
     return DecoratedBox(
       decoration: BoxDecoration(
         color: dangerColor.withValues(alpha: 0.10),
         shape: BoxShape.circle,
       ),
-      child: const SizedBox(
+      child: SizedBox(
         width: 64,
         height: 64,
         child: Icon(
@@ -215,7 +215,7 @@ class _DeleteActions extends StatelessWidget {
                 },
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(0, 48),
-                  backgroundColor: const Color(0xFFDC2626),
+                  backgroundColor: colors.danger,
                   disabledBackgroundColor: colors.border,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDims.rMd),

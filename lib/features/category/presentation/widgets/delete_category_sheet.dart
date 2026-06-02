@@ -89,7 +89,7 @@ class _DeleteCategorySheet extends StatelessWidget {
 
               const SizedBox(height: AppDims.s4),
 
-              const _DangerIcon(),
+              _DangerIcon(),
 
               const SizedBox(height: AppDims.s3),
 
@@ -156,14 +156,14 @@ class _DangerIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const dangerColor = Color(0xFFDC2626);
+    final dangerColor = context.appColors.danger;
 
     return DecoratedBox(
       decoration: BoxDecoration(
         color: dangerColor.withValues(alpha: 0.10),
         shape: BoxShape.circle,
       ),
-      child: const SizedBox(
+      child: SizedBox(
         width: 64,
         height: 64,
         child: Icon(
@@ -243,7 +243,7 @@ class _DeleteActions extends StatelessWidget {
                   );
                 },
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFDC2626),
+                  backgroundColor: colors.danger,
                   disabledBackgroundColor: colors.border,
                   padding: const EdgeInsets.symmetric(
                     vertical: AppDims.s3,

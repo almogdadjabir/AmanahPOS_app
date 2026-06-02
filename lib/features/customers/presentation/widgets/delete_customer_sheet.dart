@@ -33,6 +33,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final tr = context.tr;
+    final dangerColor = colors.danger;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(
@@ -63,12 +64,12 @@ class _DeleteCustomerSheet extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: const Color(0xFFDC2626).withValues(alpha: 0.10),
+              color: dangerColor.withValues(alpha: 0.10),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.delete_outline_rounded,
-              color: Color(0xFFDC2626),
+              color: dangerColor,
               size: 32,
             ),
           ),
@@ -137,7 +138,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
                       },
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 48),
-                        backgroundColor: const Color(0xFFDC2626),
+                        backgroundColor: dangerColor,
                         disabledBackgroundColor: colors.border,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppDims.rMd),

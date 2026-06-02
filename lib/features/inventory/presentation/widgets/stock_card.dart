@@ -23,10 +23,10 @@ class StockCard extends StatelessWidget {
     final qty = item.qty;
 
     final statusColor = isOut
-        ? const Color(0xFFDC2626)
+        ? colors.danger
         : isLow
-        ? const Color(0xFFEA580C)
-        : const Color(0xFF16A34A);
+        ? colors.stockLow
+        : colors.success;
 
     final statusLabel = isOut
         ? 'Out of stock'

@@ -7,12 +7,11 @@ import 'package:flutter/material.dart';
 class SettingsLogoutDialog extends StatelessWidget {
   const SettingsLogoutDialog({super.key});
 
-  static const Color _dangerColor = Color(0xFFEF4444);
-
   @override
   Widget build(BuildContext context) {
     final tr = context.tr;
     final colors = context.appColors;
+    final dangerColor = colors.danger;
 
     return Dialog(
       backgroundColor: colors.surface,
@@ -28,13 +27,13 @@ class SettingsLogoutDialog extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: _dangerColor.withValues(alpha: 0.10),
+                color: dangerColor.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(AppDims.rLg),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.logout_rounded,
                 size: 26,
-                color: _dangerColor,
+                color: dangerColor,
               ),
             ),
             const SizedBox(height: AppDims.s4),
@@ -83,7 +82,7 @@ class SettingsLogoutDialog extends StatelessWidget {
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(true),
                     style: FilledButton.styleFrom(
-                      backgroundColor: _dangerColor,
+                      backgroundColor: dangerColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppDims.rMd),
                       ),
