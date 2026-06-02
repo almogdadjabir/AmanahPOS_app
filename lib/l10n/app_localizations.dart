@@ -3739,6 +3739,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Make sure all your sales are synced before signing out. Offline sales that have not synced will be lost.'**
   String get settingsSignOutMessage;
+
+  /// No description provided for @noBusinessesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No businesses yet'**
+  String get noBusinessesYet;
+
+  /// No description provided for @createFirstBusinessToGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first business to get started.'**
+  String get createFirstBusinessToGetStarted;
+
+  /// No description provided for @addBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Business'**
+  String get addBusiness;
+
+  /// No description provided for @noStockEntriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock entries yet'**
+  String get noStockEntriesYet;
+
+  /// No description provided for @addStockToStartTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Add stock for your products to start tracking inventory.'**
+  String get addStockToStartTracking;
+
+  /// No description provided for @noHealthyStockItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No healthy stock items'**
+  String get noHealthyStockItems;
+
+  /// No description provided for @noProductsInHealthyStockState.
+  ///
+  /// In en, this message translates to:
+  /// **'No products are currently in a healthy stock state.'**
+  String get noProductsInHealthyStockState;
+
+  /// No description provided for @noLowStockItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No low stock items'**
+  String get noLowStockItems;
+
+  /// No description provided for @noProductsLowOnStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything looks good. No products are currently low on stock.'**
+  String get noProductsLowOnStock;
+
+  /// No description provided for @noOutOfStockItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No out of stock items'**
+  String get noOutOfStockItems;
+
+  /// No description provided for @noProductsOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Great. No products are currently out of stock.'**
+  String get noProductsOutOfStock;
+
+  /// No description provided for @addStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Stock'**
+  String get addStock;
+
+  /// No description provided for @noNotificationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get noNotificationsYet;
+
+  /// No description provided for @allCaughtUpNewNotificationsWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up. New notifications will appear here.'**
+  String get allCaughtUpNewNotificationsWillAppearHere;
 }
 
 class _AppLocalizationsDelegate
