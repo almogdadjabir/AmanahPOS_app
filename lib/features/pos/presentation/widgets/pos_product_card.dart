@@ -220,20 +220,18 @@ class _PosProductCardState extends State<PosProductCard> {
   }
 
   String _formatPrice(dynamic value) {
-    if (value == null) return '0.00 SDG';
+    if (value == null) return '0.00';
 
     final parsed = double.tryParse(value.toString());
-    if (parsed == null) return '$value SDG';
+    if (parsed == null) return value.toString();
 
     final hasDecimals = parsed % 1 != 0;
     final amount = hasDecimals ? parsed.toStringAsFixed(2) : parsed.toStringAsFixed(0);
 
-    final formatted = amount.replaceAllMapped(
+    return amount.replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
           (match) => '${match[1]},',
     );
-
-    return '$formatted SDG';
   }
 }
 
