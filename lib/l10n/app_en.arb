@@ -826,6 +826,23 @@
   },
   "settingsProfileSubtitleFallback": "Name, email and contact details",
   "settingsSignOutTitle": "Sign out?",
-  "settingsSignOutMessage": "Make sure all your sales are synced before signing out. Offline sales that have not synced will be lost."
+  "settingsSignOutMessage": "Make sure all your sales are synced before signing out. Offline sales that have not synced will be lost.",
+
+  "noBusinessesYet": "No businesses yet",
+  "createFirstBusinessToGetStarted": "Create your first business to get started.",
+  "addBusiness": "Add Business",
+
+  "noStockEntriesYet": "No stock entries yet",
+  "addStockToStartTracking": "Add stock for your products to start tracking inventory.",
+  "noHealthyStockItems": "No healthy stock items",
+  "noProductsInHealthyStockState": "No products are currently in a healthy stock state.",
+  "noLowStockItems": "No low stock items",
+  "noProductsLowOnStock": "Everything looks good. No products are currently low on stock.",
+  "noOutOfStockItems": "No out of stock items",
+  "noProductsOutOfStock": "Great. No products are currently out of stock.",
+  "addStock": "Add Stock",
+
+  "noNotificationsYet": "No notifications yet",
+  "allCaughtUpNewNotificationsWillAppearHere": "You're all caught up. New notifications will appear here."
 
 }

@@ -1953,4 +1953,52 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsSignOutMessage =>
       'Make sure all your sales are synced before signing out. Offline sales that have not synced will be lost.';
+
+  @override
+  String get noBusinessesYet => 'No businesses yet';
+
+  @override
+  String get createFirstBusinessToGetStarted =>
+      'Create your first business to get started.';
+
+  @override
+  String get addBusiness => 'Add Business';
+
+  @override
+  String get noStockEntriesYet => 'No stock entries yet';
+
+  @override
+  String get addStockToStartTracking =>
+      'Add stock for your products to start tracking inventory.';
+
+  @override
+  String get noHealthyStockItems => 'No healthy stock items';
+
+  @override
+  String get noProductsInHealthyStockState =>
+      'No products are currently in a healthy stock state.';
+
+  @override
+  String get noLowStockItems => 'No low stock items';
+
+  @override
+  String get noProductsLowOnStock =>
+      'Everything looks good. No products are currently low on stock.';
+
+  @override
+  String get noOutOfStockItems => 'No out of stock items';
+
+  @override
+  String get noProductsOutOfStock =>
+      'Great. No products are currently out of stock.';
+
+  @override
+  String get addStock => 'Add Stock';
+
+  @override
+  String get noNotificationsYet => 'No notifications yet';
+
+  @override
+  String get allCaughtUpNewNotificationsWillAppearHere =>
+      'You\'re all caught up. New notifications will appear here.';
 }

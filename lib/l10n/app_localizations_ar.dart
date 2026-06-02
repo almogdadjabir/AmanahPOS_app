@@ -1936,4 +1936,51 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsSignOutMessage =>
       'تأكد من مزامنة كل المبيعات قبل تسجيل الخروج. المبيعات غير المتزامنة قد يتم فقدانها.';
+
+  @override
+  String get noBusinessesYet => 'لا توجد أعمال بعد';
+
+  @override
+  String get createFirstBusinessToGetStarted => 'أنشئ أول عمل لك للبدء.';
+
+  @override
+  String get addBusiness => 'إضافة عمل';
+
+  @override
+  String get noStockEntriesYet => 'لا توجد إدخالات مخزون بعد';
+
+  @override
+  String get addStockToStartTracking =>
+      'أضف مخزوناً لمنتجاتك لبدء تتبع المخزون.';
+
+  @override
+  String get noHealthyStockItems => 'لا توجد عناصر مخزون بصحة جيدة';
+
+  @override
+  String get noProductsInHealthyStockState =>
+      'لا توجد منتجات في حالة مخزون صحية حالياً.';
+
+  @override
+  String get noLowStockItems => 'لا توجد عناصر منخفضة المخزون';
+
+  @override
+  String get noProductsLowOnStock =>
+      'كل شيء على ما يرام. لا توجد منتجات منخفضة المخزون حالياً.';
+
+  @override
+  String get noOutOfStockItems => 'لا توجد عناصر نفد مخزونها';
+
+  @override
+  String get noProductsOutOfStock =>
+      'ممتاز. لا توجد منتجات نفد مخزونها حالياً.';
+
+  @override
+  String get addStock => 'إضافة مخزون';
+
+  @override
+  String get noNotificationsYet => 'لا توجد إشعارات بعد';
+
+  @override
+  String get allCaughtUpNewNotificationsWillAppearHere =>
+      'أنت مُطّلع على كل شيء. ستظهر الإشعارات الجديدة هنا.';
 }

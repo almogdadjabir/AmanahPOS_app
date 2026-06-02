@@ -809,7 +809,23 @@
   },
   "settingsProfileSubtitleFallback": "الاسم والبريد الإلكتروني وبيانات التواصل",
   "settingsSignOutTitle": "تسجيل الخروج؟",
-  "settingsSignOutMessage": "تأكد من مزامنة كل المبيعات قبل تسجيل الخروج. المبيعات غير المتزامنة قد يتم فقدانها."
+  "settingsSignOutMessage": "تأكد من مزامنة كل المبيعات قبل تسجيل الخروج. المبيعات غير المتزامنة قد يتم فقدانها.",
 
+  "noBusinessesYet": "لا توجد أعمال بعد",
+  "createFirstBusinessToGetStarted": "أنشئ أول عمل لك للبدء.",
+  "addBusiness": "إضافة عمل",
+
+  "noStockEntriesYet": "لا توجد إدخالات مخزون بعد",
+  "addStockToStartTracking": "أضف مخزوناً لمنتجاتك لبدء تتبع المخزون.",
+  "noHealthyStockItems": "لا توجد عناصر مخزون بصحة جيدة",
+  "noProductsInHealthyStockState": "لا توجد منتجات في حالة مخزون صحية حالياً.",
+  "noLowStockItems": "لا توجد عناصر منخفضة المخزون",
+  "noProductsLowOnStock": "كل شيء على ما يرام. لا توجد منتجات منخفضة المخزون حالياً.",
+  "noOutOfStockItems": "لا توجد عناصر نفد مخزونها",
+  "noProductsOutOfStock": "ممتاز. لا توجد منتجات نفد مخزونها حالياً.",
+  "addStock": "إضافة مخزون",
+
+  "noNotificationsYet": "لا توجد إشعارات بعد",
+  "allCaughtUpNewNotificationsWillAppearHere": "أنت مُطّلع على كل شيء. ستظهر الإشعارات الجديدة هنا."
 
 }
