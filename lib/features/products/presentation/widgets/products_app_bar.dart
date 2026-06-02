@@ -1,7 +1,7 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/common/widgets/feature_sliver_app_bar.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,42 +12,21 @@ class ProductsAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar(
-      automaticallyImplyLeading: false,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: context.appColors.background,
-      surfaceTintColor: Colors.transparent,
-      title: Text(
-        context.tr.catAppBarProducts,
-        style: AppTextStyles.bs600(context).copyWith(
-          fontWeight: FontWeight.w900,
-          color: context.appColors.textPrimary,
-        ),
-      ),
-      actions: [
-        TextButton.icon(
-          onPressed: () => showAddProductSheet(context),
-          icon: Icon(SolarIconsOutline.addCircle,
-              size: 18, color: context.appColors.primary),
-          label: Text(
-            context.tr.addProduct,
-            style: AppTextStyles.bs300(context).copyWith(
-              fontWeight: FontWeight.w800,
-              color: context.appColors.primary,
-            ),
-          ),
-        ),
-
+    final tr = context.tr;
+    return FeatureSliverAppBar(
+      title: tr.catAppBarProducts,
+      actionLabel: tr.addProduct,
+      onAction: () => showAddProductSheet(context),
+      additionalActions: [
         BlocBuilder<ProductBloc, ProductState>(
           buildWhen: (prev, curr) => prev.isGrid != curr.isGrid,
           builder: (context, state) {
             return IconButton(
-              tooltip: state.isGrid ? context.tr.showList : context.tr.showGrid,
+              tooltip: state.isGrid ? tr.showList : tr.showGrid,
               onPressed: () {
                 context.read<ProductBloc>().add(
-                  const OnToggleProductLayout(),
-                );
+                      const OnToggleProductLayout(),
+                    );
               },
               icon: Icon(
                 state.isGrid
