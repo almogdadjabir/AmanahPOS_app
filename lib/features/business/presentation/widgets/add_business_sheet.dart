@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
@@ -17,10 +18,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void showAddBusinessSheet(BuildContext context) {
   final bloc = context.read<BusinessBloc>();
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(value: bloc,
       child: const _AddBusinessSheet(),
     ),

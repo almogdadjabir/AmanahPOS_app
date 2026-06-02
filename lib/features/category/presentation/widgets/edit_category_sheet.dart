@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_sheet_widgets.dart';
@@ -17,10 +18,9 @@ void showEditCategorySheet(
     }) {
   final categoryBloc = context.read<CategoryBloc>();
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: categoryBloc,
       child: _EditCategorySheet(category: category),

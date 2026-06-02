@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_sheet_widgets.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
@@ -15,11 +16,9 @@ import 'package:solar_icons/solar_icons.dart';
 void showAddCategorySheet(BuildContext context) {
   final categoryBloc = context.read<CategoryBloc>();
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: categoryBloc,
       child: const _AddCategorySheet(),

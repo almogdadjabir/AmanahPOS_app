@@ -3,6 +3,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/services/image/app_image_picker.dart';
 import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/config/enum.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
@@ -29,10 +30,9 @@ void showEditProductSheet(
   final productBloc = context.read<ProductBloc>();
   final isRestaurant = context.read<AuthBloc>().state.permissions.isRestaurant;
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: productBloc,
       child: _EditProductSheet(

@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -53,9 +54,9 @@ class CategoryPicker extends StatelessWidget {
   void _showPicker(BuildContext context) {
     final colors = context.appColors;
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 360,
       builder: (_) => Container(
         decoration: BoxDecoration(
           color: colors.surface,

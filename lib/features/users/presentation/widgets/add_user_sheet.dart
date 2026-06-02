@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
@@ -22,10 +23,9 @@ void showAddUserSheet(BuildContext context) {
   final userBloc = context.read<UserBloc>();
   final authBloc = context.read<AuthBloc>();
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  showAdaptivePanel(
+    context,
+    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: userBloc),
