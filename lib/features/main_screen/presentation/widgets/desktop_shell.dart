@@ -1,7 +1,6 @@
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_navigation_rail.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
-import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,12 +29,7 @@ class DesktopShell extends StatelessWidget {
               children: [
                 SizedBox(
                   height: _topBarHeight,
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      top: AppSpacing.xs,
-                    ),
-                    child: const PosAppBar(),
-                  ),
+                  child: const PosAppBar(),
                 ),
                 Divider(height: 1, thickness: 1, color: colors.border),
                 Expanded(
