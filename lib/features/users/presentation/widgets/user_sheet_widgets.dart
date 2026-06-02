@@ -3,6 +3,7 @@ import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -279,93 +280,17 @@ class UserSubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<UserBloc, UserState, UserSubmitStatus>(
-      selector: (state) => state.submitStatus,
-      builder: (context, submitStatus) {
-        final colors = context.appColors;
-        final isLoading = submitStatus == UserSubmitStatus.loading;
+    return BlocSelector<UserBloc, UserState, bool>(
+      selector: (state) => state.submitStatus == UserSubmitStatus.loading,
+      builder: (context, isLoading) {
         final canAct = enabled && !isLoading && onPressed != null;
-
-        return SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: FilledButton(
-            onPressed: canAct ? onPressed : null,
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.primary,
-              disabledBackgroundColor: colors.border,
-              foregroundColor: Colors.white,
-              disabledForegroundColor: colors.textHint,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDims.rMd),
-              ),
-            ),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              child: isLoading
-                  ? const SizedBox(
-                key: ValueKey('loading'),
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
-                  : _SubmitButtonContent(
-                key: const ValueKey('content'),
-                label: label,
-                icon: icon,
-                enabled: canAct,
-              ),
-            ),
-          ),
+        return AppButton.wide(
+          label: label,
+          isLoading: isLoading,
+          onPressed: canAct ? onPressed : null,
+          prefixIcon: Icon(icon, size: 19, color: Colors.white),
         );
       },
-    );
-  }
-}
-
-class _SubmitButtonContent extends StatelessWidget {
-  const _SubmitButtonContent({
-    super.key,
-    required this.label,
-    required this.icon,
-    required this.enabled,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final contentColor = enabled ? Colors.white : colors.textHint;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          size: 19,
-          color: contentColor,
-        ),
-        const SizedBox(width: AppDims.s2),
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs500(context).copyWith(
-              fontWeight: FontWeight.w900,
-              color: contentColor,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
