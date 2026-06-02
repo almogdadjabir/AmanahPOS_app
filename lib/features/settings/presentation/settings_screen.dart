@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
+import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
@@ -81,34 +82,39 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            body: ListView(
-              padding: const EdgeInsets.all(AppDims.s4),
-              children: [
-                OwnerHeader(
-                  fullName: profile.fullName,
-                  phone: profile.phone,
-                  role: profile.role,
+            body: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: context.maxContentWidth),
+                child: ListView(
+                  padding: const EdgeInsets.all(AppDims.s4),
+                  children: [
+                    OwnerHeader(
+                      fullName: profile.fullName,
+                      phone: profile.phone,
+                      role: profile.role,
+                    ),
+                    const SizedBox(height: AppDims.s8),
+
+                    _ManageSection(),
+                    const SizedBox(height: AppDims.s5),
+
+                    _AccountSection(
+                      profile: profile,
+                      isOwner: isOwner,
+                    ),
+                    const SizedBox(height: AppDims.s5),
+
+                    _AppearanceSection(),
+                    const SizedBox(height: AppDims.s5),
+
+                    _SupportSection(),
+                    const SizedBox(height: AppDims.s6),
+
+                    _SignOutButton(),
+                    const SizedBox(height: AppDims.s6),
+                  ],
                 ),
-                const SizedBox(height: AppDims.s8),
-
-                _ManageSection(),
-                const SizedBox(height: AppDims.s5),
-
-                _AccountSection(
-                  profile: profile,
-                  isOwner: isOwner,
-                ),
-                const SizedBox(height: AppDims.s5),
-
-                _AppearanceSection(),
-                const SizedBox(height: AppDims.s5),
-
-                _SupportSection(),
-                const SizedBox(height: AppDims.s6),
-
-                _SignOutButton(),
-                const SizedBox(height: AppDims.s6),
-              ],
+              ),
             ),
           );
         },
