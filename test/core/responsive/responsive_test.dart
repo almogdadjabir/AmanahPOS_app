@@ -1,5 +1,6 @@
 // test/core/responsive/responsive_test.dart
 import 'package:amana_pos/core/responsive/breakpoints.dart';
+import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,6 +61,32 @@ void main() {
         768,
       ));
       expect(result, 'desk');
+    });
+  });
+
+  group('LayoutMetrics.gridColumnsFor', () {
+    testWidgets('clamps to minimum 2', (tester) async {
+      late int result;
+      await tester.pumpWidget(_wrap(
+        Builder(builder: (ctx) {
+          result = ctx.gridColumnsFor(300, tile: 200);
+          return const SizedBox();
+        }),
+        1024,
+      ));
+      expect(result, 2); // floor(300/200)=1 → clamped to 2
+    });
+
+    testWidgets('returns 4 for 800px / 200px tile', (tester) async {
+      late int result;
+      await tester.pumpWidget(_wrap(
+        Builder(builder: (ctx) {
+          result = ctx.gridColumnsFor(800, tile: 200);
+          return const SizedBox();
+        }),
+        1024,
+      ));
+      expect(result, 4);
     });
   });
 }
