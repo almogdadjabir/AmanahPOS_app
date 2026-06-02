@@ -1,8 +1,11 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/core/responsive/layout_metrics.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
+import 'package:amana_pos/features/cart/presentation/expanded_cart.dart';
 import 'package:amana_pos/features/cart/presentation/products_empty.dart';
 import 'package:amana_pos/features/cart/presentation/products_loading_grid.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
@@ -284,131 +287,177 @@ class _PosScreenState extends State<PosScreen> {
           child: BlocBuilder<PosBloc, PosState>(
             buildWhen: (prev, curr) => prev.cartExpanded != curr.cartExpanded,
             builder: (context, posState) {
+              // Shared product pane content used by both layouts
+              final productPane = Column(
+                children: [
+                  BlocBuilder<DashboardSummaryBloc, DashboardSummaryState>(
+                    buildWhen: (prev, curr) =>
+                        prev.status != curr.status ||
+                        prev.summary != curr.summary,
+                    builder: (context, state) {
+                      final authState = context.read<AuthBloc>().state;
+                      final summary = state.summary;
+                      final shift = summary?.shift;
+
+                      final isCashier = authState.permissions.isCashier;
+
+                      final cashierName =
+                          shift?.cashierName?.trim().isNotEmpty == true
+                              ? shift!.cashierName!
+                              : authState.profile?.fullName ?? 'Cashier';
+
+                      final shiftStart =
+                          DateTime.tryParse(shift?.shiftStartedAt ?? '') ??
+                              DateTime.now();
+
+                      final amount = isCashier
+                          ? shift?.grossSalesAmount ??
+                              summary?.today.grossSalesAmount ??
+                              0
+                          : summary?.today.grossSalesAmount ?? 0;
+
+                      final salesCount = isCashier
+                          ? shift?.salesCount ?? summary?.today.salesCount ?? 0
+                          : summary?.today.salesCount ?? 0;
+
+                      final labelName =
+                          isCashier ? cashierName : context.tr.posTodaySales;
+
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppDims.s4,
+                          AppDims.s3,
+                          AppDims.s4,
+                          AppDims.s1,
+                        ),
+                        child: CashierShiftCard(
+                          cashierName: labelName,
+                          shiftStart: shiftStart,
+                          amount: amount,
+                          salesCount: salesCount,
+                          sparkline:
+                              summary?.sparklineAmounts.isEmpty == false
+                                  ? summary!.sparklineAmounts
+                                  : const [0, 0],
+                          currencyLabel: summary?.currency ?? 'SDG',
+                        ),
+                      );
+                    },
+                  ),
+                  PosSearchSection(searchCtrl: _searchCtrl),
+                  const CategoryBar(),
+                  Expanded(
+                    child: BlocBuilder<ProductBloc, ProductState>(
+                      buildWhen: (prev, curr) =>
+                          prev.productStatus != curr.productStatus ||
+                          prev.products != curr.products ||
+                          prev.categories != curr.categories,
+                      builder: (context, productState) {
+                        if (productState.productStatus ==
+                                ProductStatus.loading ||
+                            productState.productStatus ==
+                                ProductStatus.initial) {
+                          return const ProductsLoadingGrid();
+                        }
+
+                        if (productState.productStatus ==
+                            ProductStatus.failure) {
+                          return ProductErrorView(
+                            message: productState.responseError,
+                          );
+                        }
+
+                        return BlocBuilder<PosBloc, PosState>(
+                          buildWhen: (prev, curr) =>
+                              prev.searchQuery != curr.searchQuery ||
+                              prev.selectedCategoryId !=
+                                  curr.selectedCategoryId,
+                          builder: (context, posState) {
+                            final products = _filterProducts(
+                                productState.products, posState);
+                            if (products.isEmpty) {
+                              return ProductsEmpty(
+                                  query: posState.searchQuery);
+                            }
+                            return LayoutBuilder(
+                              builder: (ctx, constraints) {
+                                final cols = ctx.gridColumnsFor(
+                                    constraints.maxWidth,
+                                    tile: 176);
+                                return ProductGrid(
+                                    products: products,
+                                    crossAxisCount: cols);
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+
+              // Desktop: persistent side-by-side layout
+              if (context.isDesktop) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: productPane),
+                    VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      color: context.appColors.border,
+                    ),
+                    SizedBox(
+                      width: 392,
+                      child: ExpandedCart(
+                        onCollapse: () {},
+                        onCheckout: _handleCheckout,
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              // Mobile: existing RefreshIndicator layout (unchanged)
               return RefreshIndicator(
                 color: context.appColors.primary,
                 notificationPredicate: (_) => !posState.cartExpanded,
                 onRefresh: posState.cartExpanded
                     ? () async {}
                     : () async {
-                  context
-                      .read<ProductBloc>()
-                      .add(const OnProductInitial(force: true));
-                  context
-                      .read<BusinessBloc>()
-                      .add(OnBusinessInitial());
-                  _searchCtrl.clear();
-                  context
-                      .read<PosBloc>()
-                      .add(const PosSearchChanged(''));
-                  context
-                      .read<PosBloc>()
-                      .add(const PosCategoryChanged(null));
-                  await Future<void>.delayed(
-                      const Duration(milliseconds: 450));
+                        context
+                            .read<ProductBloc>()
+                            .add(const OnProductInitial(force: true));
+                        context
+                            .read<BusinessBloc>()
+                            .add(OnBusinessInitial());
+                        _searchCtrl.clear();
+                        context
+                            .read<PosBloc>()
+                            .add(const PosSearchChanged(''));
+                        context
+                            .read<PosBloc>()
+                            .add(const PosCategoryChanged(null));
+                        await Future<void>.delayed(
+                            const Duration(milliseconds: 450));
 
-                  final shopId = _autoSelectShop() ?? context.read<PosBloc>().state.selectedShopId;
+                        final shopId = _autoSelectShop() ??
+                            context.read<PosBloc>().state.selectedShopId;
 
-                  context.read<DashboardSummaryBloc>().add(
-                    OnDashboardSummaryRefreshRequested(
-                      shopId: shopId,
-                      topSellersLimit: 10,
-                    ),
-                  );
-                },
+                        context.read<DashboardSummaryBloc>().add(
+                              OnDashboardSummaryRefreshRequested(
+                                shopId: shopId,
+                                topSellersLimit: 10,
+                              ),
+                            );
+                      },
                 child: Column(
                   children: [
-                    BlocBuilder<DashboardSummaryBloc, DashboardSummaryState>(
-                      buildWhen: (prev, curr) =>
-                      prev.status != curr.status || prev.summary != curr.summary,
-                      builder: (context, state) {
-                        final authState = context.read<AuthBloc>().state;
-                        final summary = state.summary;
-                        final shift = summary?.shift;
-
-                        final isCashier = authState.permissions.isCashier;
-
-                        final cashierName = shift?.cashierName?.trim().isNotEmpty == true
-                            ? shift!.cashierName!
-                            : authState.profile?.fullName ?? 'Cashier';
-
-                        final shiftStart = DateTime.tryParse(shift?.shiftStartedAt ?? '') ??
-                            DateTime.now();
-
-                        final amount = isCashier
-                            ? shift?.grossSalesAmount ?? summary?.today.grossSalesAmount ?? 0
-                            : summary?.today.grossSalesAmount ?? 0;
-
-                        final salesCount = isCashier
-                            ? shift?.salesCount ?? summary?.today.salesCount ?? 0
-                            : summary?.today.salesCount ?? 0;
-
-                        final labelName = isCashier ? cashierName : context.tr.posTodaySales;
-
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppDims.s4,
-                            AppDims.s3,
-                            AppDims.s4,
-                            AppDims.s1,
-                          ),
-                          child: CashierShiftCard(
-                            cashierName: labelName,
-                            shiftStart: shiftStart,
-                            amount: amount,
-                            salesCount: salesCount,
-                            sparkline: summary?.sparklineAmounts.isEmpty == false
-                                ? summary!.sparklineAmounts
-                                : const [0, 0],
-                            currencyLabel: summary?.currency ?? 'SDG',
-                          ),
-                        );
-                      },
-                    ),
-
-                    PosSearchSection(searchCtrl: _searchCtrl),
-                    const CategoryBar(),
-                    Expanded(
-                      child: BlocBuilder<ProductBloc, ProductState>(
-                        buildWhen: (prev, curr) =>
-                        prev.productStatus != curr.productStatus ||
-                            prev.products    != curr.products ||
-                            prev.categories  != curr.categories,
-                        builder: (context, productState) {
-                          if (productState.productStatus ==
-                              ProductStatus.loading ||
-                              productState.productStatus ==
-                                  ProductStatus.initial) {
-                            return const ProductsLoadingGrid();
-                          }
-
-                          if (productState.productStatus ==
-                              ProductStatus.failure) {
-                            return ProductErrorView(
-                              message: productState.responseError,
-                            );
-                          }
-
-                          return BlocBuilder<PosBloc, PosState>(
-                            buildWhen: (prev, curr) =>
-                            prev.searchQuery        != curr.searchQuery ||
-                                prev.selectedCategoryId !=
-                                    curr.selectedCategoryId,
-                            builder: (context, posState) {
-                              final products = _filterProducts(
-                                  productState.products, posState);
-                              if (products.isEmpty) {
-                                return ProductsEmpty(
-                                    query: posState.searchQuery);
-                              }
-                              return ProductGrid(products: products);
-                            },
-                          );
-                        },
-                      ),
-                    ),
+                    Expanded(child: productPane),
                     BlocBuilder<PosBloc, PosState>(
                       buildWhen: (prev, curr) =>
-                      prev.isEmpty != curr.isEmpty,
+                          prev.isEmpty != curr.isEmpty,
                       builder: (context, state) =>
                           SizedBox(height: state.isEmpty ? 0 : 88),
                     ),

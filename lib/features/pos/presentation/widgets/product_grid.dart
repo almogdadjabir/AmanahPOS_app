@@ -8,10 +8,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductGrid extends StatelessWidget {
   final List<ProductData> products;
+  final int? crossAxisCount;
 
   const ProductGrid({
     super.key,
     required this.products,
+    this.crossAxisCount,
   });
 
   @override
@@ -29,8 +31,8 @@ class ProductGrid extends StatelessWidget {
         AppDims.s4,
         120,
       ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount ?? 2,
         mainAxisSpacing: AppDims.s4,
         crossAxisSpacing: AppDims.s3,
         childAspectRatio: 0.74,
