@@ -1,5 +1,7 @@
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/offline_preparation_listener.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_shell.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/main_bottom_area.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -33,6 +35,15 @@ class MainScreen extends StatelessWidget {
       statusBarBrightness: Brightness.light,
     );
 
+    // ── Desktop: rail shell replaces the mobile Scaffold ──────────────────
+    if (context.isDesktop) {
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlayStyle,
+        child: OfflinePreparationListener(child: const DesktopShell()),
+      );
+    }
+
+    // ── Mobile: unchanged ─────────────────────────────────────────────────
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
       child: OfflinePreparationListener(
