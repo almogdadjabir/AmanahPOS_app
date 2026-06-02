@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/app_theme_colors.dart';
 
-enum AppButtonVariant { primary, secondary, outline, ghost }
+enum AppButtonVariant { primary, secondary, outline, ghost, danger }
 enum AppButtonSize { small, medium, large }
 
 class AppButton extends StatelessWidget {
@@ -39,6 +40,7 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = context.appColors;
     final isDisabled = onPressed == null || isLoading;
 
     final (height, horizontalPad, textStyle) = switch (size) {
@@ -66,6 +68,11 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.ghost => (
       Colors.transparent,
       isDisabled ? theme.colorScheme.primary.withValues(alpha: 0.4) : theme.colorScheme.primary,
+      Colors.transparent,
+      ),
+      AppButtonVariant.danger => (
+      isDisabled ? colors.danger.withValues(alpha: 0.4) : colors.danger,
+      Colors.white,
       Colors.transparent,
       ),
     };
