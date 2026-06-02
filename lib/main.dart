@@ -15,6 +15,11 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Firebase + FCM are only supported on Android and iOS.
+// macOS and Windows skip all Firebase initialization to avoid
+// "not configured" crashes until FlutterFire CLI is re-run for those targets.
+bool get _isFirebaseSupported => Platform.isAndroid || Platform.isIOS;
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
@@ -41,17 +46,21 @@ Future<void> main() async {
 
   DependenciesProvider.build();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  if (_isFirebaseSupported) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  await NotificationService.instance.init();
+    await NotificationService.instance.init();
+  }
 
   runApp(const App());
 
-  unawaited(_initializeFirebaseMessaging());
+  if (_isFirebaseSupported) {
+    unawaited(_initializeFirebaseMessaging());
+  }
 }
 
 Future<void> _initializeFirebaseMessaging() async {
