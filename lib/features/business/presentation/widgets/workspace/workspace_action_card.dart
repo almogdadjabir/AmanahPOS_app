@@ -3,6 +3,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class WorkspaceActionCard extends StatelessWidget {
   final Widget icon;
@@ -11,6 +12,7 @@ class WorkspaceActionCard extends StatelessWidget {
   final String? value;
   final String? badgeText;
   final bool isDisabled;
+  final bool vertical;
   final VoidCallback onTap;
 
   const WorkspaceActionCard({
@@ -22,6 +24,7 @@ class WorkspaceActionCard extends StatelessWidget {
     this.value,
     this.badgeText,
     this.isDisabled = false,
+    this.vertical = false,
   });
 
   @override
@@ -48,26 +51,35 @@ class WorkspaceActionCard extends StatelessWidget {
                   color: colors.border.withValues(alpha: 0.75),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(AppDims.s3),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _CardTextContent(
-                        title: title,
-                        subtitle: subtitle,
-                        value: value,
-                        badgeText: badgeText,
+              child: vertical
+                  ? _VerticalContent(
+                      icon: icon,
+                      title: title,
+                      subtitle: subtitle,
+                      value: value,
+                      isDisabled: isDisabled,
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(AppDims.s3),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _CardTextContent(
+                              title: title,
+                              subtitle: subtitle,
+                              value: value,
+                              badgeText: badgeText,
+                            ),
+                          ),
+                          const SizedBox(width: AppDims.s3),
+                          _IconBox(
+                            icon: icon,
+                            isDisabled: isDisabled,
+                            size: 54,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: AppDims.s3),
-                    _IconBox(
-                      icon: icon,
-                      isDisabled: isDisabled,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         ),
@@ -82,6 +94,87 @@ class WorkspaceActionCard extends StatelessWidget {
     );
   }
 }
+
+// ── Vertical tile (desktop) ───────────────────────────────────────────────────
+
+class _VerticalContent extends StatelessWidget {
+  final Widget icon;
+  final String title;
+  final String subtitle;
+  final String? value;
+  final bool isDisabled;
+
+  const _VerticalContent({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.isDisabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.all(AppDims.s4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _IconBox(icon: icon, isDisabled: isDisabled, size: 46),
+          const Spacer(),
+          if (value != null) ...[
+            Text(
+              value!,
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                color: colors.primary,
+                height: 1,
+                letterSpacing: -0.8,
+              ),
+            ),
+            const SizedBox(height: 3),
+          ],
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bs500(context).copyWith(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bs100(context).copyWith(
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.9,
+                  ),
+                ),
+              ),
+              Icon(
+                SolarIconsOutline.arrowRight,
+                size: 14,
+                color: colors.textHint,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shared pieces ─────────────────────────────────────────────────────────────
 
 class _CardTextContent extends StatelessWidget {
   final String title;
@@ -165,10 +258,12 @@ class _CardTextContent extends StatelessWidget {
 class _IconBox extends StatelessWidget {
   final Widget icon;
   final bool isDisabled;
+  final double size;
 
   const _IconBox({
     required this.icon,
     required this.isDisabled,
+    required this.size,
   });
 
   @override
@@ -176,8 +271,8 @@ class _IconBox extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      width: 54,
-      height: 54,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: isDisabled ? 0.08 : 0.13),
         borderRadius: BorderRadius.circular(AppDims.rLg),
@@ -189,7 +284,7 @@ class _IconBox extends StatelessWidget {
         child: IconTheme(
           data: IconThemeData(
             color: colors.primary.withValues(alpha: isDisabled ? 0.70 : 1),
-            size: 28,
+            size: size * 0.5,
           ),
           child: icon,
         ),
