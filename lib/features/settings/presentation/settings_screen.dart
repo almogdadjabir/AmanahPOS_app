@@ -16,7 +16,7 @@ import 'package:amana_pos/features/settings/presentation/widgets/set_password_sh
 import 'package:amana_pos/features/settings/presentation/widgets/settings_group_card.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_logout_dialog.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_row_item.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/settings_section_label.dart';
+import 'package:amana_pos/common/widgets/section_label.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_sync_pill.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_theme_picker.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/theme_picker_sheet.dart';
@@ -162,7 +162,7 @@ class _ManageSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SettingsSectionLabel(tr.settingsSectionManage),
+        SectionLabel(label: tr.settingsSectionManage),
         const SizedBox(height: AppDims.s2),
         SettingsGroupCard(
           items: [
@@ -228,7 +228,7 @@ class _AccountSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SettingsSectionLabel(tr.settingsSectionAccount),
+        SectionLabel(label: tr.settingsSectionAccount),
         const SizedBox(height: AppDims.s2),
         SettingsGroupCard(
           items: [
@@ -346,7 +346,7 @@ class _AppearanceSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SettingsSectionLabel(tr.settingsSectionAppearance),
+        SectionLabel(label: tr.settingsSectionAppearance),
         const SizedBox(height: AppDims.s2),
         BlocSelector<ThemeBloc, ThemeState, ScreenMode?>(
           selector: (state) => state.mode,
@@ -376,7 +376,7 @@ class _SupportSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SettingsSectionLabel(tr.settingsSectionSupport),
+        SectionLabel(label: tr.settingsSectionSupport),
         const SizedBox(height: AppDims.s2),
         SettingsGroupCard(
           items: [
