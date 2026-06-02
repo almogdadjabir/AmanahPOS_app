@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/widgets/app_search_field.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
@@ -22,39 +23,10 @@ class SearchRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: AppDims.s3),
-              decoration: BoxDecoration(
-                color: context.appColors.surface,
-                borderRadius: BorderRadius.circular(AppDims.rMd),
-                border: Border.all(color: context.appColors.border),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search_rounded, size: 18, color: context.appColors.textHint),
-                  const SizedBox(width: AppDims.s2),
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      onChanged: onChanged,
-                      style: TextStyle(
-                        fontFamily: 'NunitoSans', fontSize: 13, fontWeight: FontWeight.w500,
-                        color: context.appColors.textPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: InputBorder.none,
-                        hintText: 'Search products or SKU…',
-                        hintStyle: TextStyle(
-                          fontFamily: 'NunitoSans', fontSize: 13, fontWeight: FontWeight.w500,
-                          color: context.appColors.textHint,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            child: AppSearchField(
+              controller: controller,
+              onChanged: onChanged,
+              hint: 'Search products or SKU…',
             ),
           ),
           const SizedBox(width: AppDims.s2),
