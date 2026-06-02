@@ -87,7 +87,10 @@ class LocationChip extends StatelessWidget {
             ],
 
             Expanded(
-              child: Column(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -135,6 +138,7 @@ class LocationChip extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
               ),
             ),
           ],
