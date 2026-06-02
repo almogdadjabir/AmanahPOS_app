@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/expiry_alert_row.dart';
@@ -68,10 +69,15 @@ class _BasicInventoryViewState extends State<BasicInventoryView> {
         context.read<AuthBloc>().state.permissions.isShop;
 
     return Scaffold(
-      body: RefreshIndicator(
-        color: context.appColors.primary,
-        onRefresh: _refresh,
-        child: NestedScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: context.maxContentWidth),
+          child: Padding(
+            padding: context.pagePadding,
+            child: RefreshIndicator(
+              color: context.appColors.primary,
+              onRefresh: _refresh,
+              child: NestedScrollView(
           controller: _scrollCtrl,
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
@@ -148,6 +154,9 @@ class _BasicInventoryViewState extends State<BasicInventoryView> {
                 ),
               };
             },
+          ),
+        ),
+            ),
           ),
         ),
       ),

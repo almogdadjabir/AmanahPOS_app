@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/business/presentation/widgets/business_card_skeleton.dart';
@@ -98,45 +99,53 @@ class _BusinessScreenState extends State<BusinessScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<BusinessBloc, BusinessState>(
-        listenWhen: (prev, curr) =>
-        prev.businessStatus != curr.businessStatus ||
-            prev.businessList != curr.businessList,
-        listener: (context, state) {
-          final businesses = state.businessList ?? [];
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: context.maxContentWidth),
+          child: Padding(
+            padding: context.pagePadding,
+            child: BlocConsumer<BusinessBloc, BusinessState>(
+              listenWhen: (prev, curr) =>
+              prev.businessStatus != curr.businessStatus ||
+                  prev.businessList != curr.businessList,
+              listener: (context, state) {
+                final businesses = state.businessList ?? [];
 
-          if (state.businessStatus == BusinessStatus.success &&
-              businesses.isNotEmpty) {
-            _loadDashboardForBusiness(businesses.first);
-          }
-        },
-        buildWhen: (prev, curr) =>
-        prev.businessStatus != curr.businessStatus ||
-            prev.businessList != curr.businessList ||
-            prev.responseError != curr.responseError,
-        builder: (context, state) {
-          final businesses = state.businessList ?? [];
+                if (state.businessStatus == BusinessStatus.success &&
+                    businesses.isNotEmpty) {
+                  _loadDashboardForBusiness(businesses.first);
+                }
+              },
+              buildWhen: (prev, curr) =>
+              prev.businessStatus != curr.businessStatus ||
+                  prev.businessList != curr.businessList ||
+                  prev.responseError != curr.responseError,
+              builder: (context, state) {
+                final businesses = state.businessList ?? [];
 
-          if (state.businessStatus == BusinessStatus.loading ||
-              (state.businessStatus == BusinessStatus.initial &&
-                  state.businessList == null)) {
-            return const _LoadingView();
-          }
+                if (state.businessStatus == BusinessStatus.loading ||
+                    (state.businessStatus == BusinessStatus.initial &&
+                        state.businessList == null)) {
+                  return const _LoadingView();
+                }
 
-          if (state.businessStatus == BusinessStatus.failure) {
-            return BusinessErrorView(
-              message: state.responseError,
-            );
-          }
+                if (state.businessStatus == BusinessStatus.failure) {
+                  return BusinessErrorView(
+                    message: state.responseError,
+                  );
+                }
 
-          if (businesses.isEmpty) {
-            return const BusinessEmptyView();
-          }
+                if (businesses.isEmpty) {
+                  return const BusinessEmptyView();
+                }
 
-          return SingleBusinessWorkspace(
-            data: businesses.first,
-          );
-        },
+                return SingleBusinessWorkspace(
+                  data: businesses.first,
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

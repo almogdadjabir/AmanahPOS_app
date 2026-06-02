@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/widgets/load_more_indicator.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_grid_card.dart';
@@ -69,54 +70,59 @@ class _GridBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppDims.s4,
-            AppDims.s4,
-            AppDims.s4,
-            0,
-          ),
-          sliver: SliverGrid(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                final product = products[index];
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        final cols = ctx.gridColumnsFor(constraints.maxWidth, tile: 208);
+        return CustomScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppDims.s4,
+                AppDims.s4,
+                AppDims.s4,
+                0,
+              ),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    final product = products[index];
 
-                return ProductGridCard(product: product)
-                    .animate()
-                    .fadeIn(
-                  delay: Duration(milliseconds: 18 + (index % 6) * 16),
-                  duration: 210.ms,
-                )
-                    .slideY(
-                  begin: 0.025,
-                  end: 0,
-                  duration: 210.ms,
-                  curve: Curves.easeOutCubic,
-                );
-              },
-              childCount: products.length,
+                    return ProductGridCard(product: product)
+                        .animate()
+                        .fadeIn(
+                      delay: Duration(milliseconds: 18 + (index % 6) * 16),
+                      duration: 210.ms,
+                    )
+                        .slideY(
+                      begin: 0.025,
+                      end: 0,
+                      duration: 210.ms,
+                      curve: Curves.easeOutCubic,
+                    );
+                  },
+                  childCount: products.length,
+                ),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cols,
+                  crossAxisSpacing: AppDims.s3,
+                  mainAxisSpacing: AppDims.s3,
+                  childAspectRatio: 0.74,
+                ),
+              ),
             ),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: AppDims.s3,
-              mainAxisSpacing: AppDims.s3,
-              childAspectRatio: 0.74,
+
+            if (isLoadingMore && hasMore)
+              const SliverToBoxAdapter(
+                child: LoadMoreIndicator(),
+              ),
+
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 130),
             ),
-          ),
-        ),
-
-        if (isLoadingMore && hasMore)
-          const SliverToBoxAdapter(
-            child: LoadMoreIndicator(),
-          ),
-
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 130),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

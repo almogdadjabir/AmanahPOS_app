@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'amanapos.firebasestorage.app',
     iosBundleId: 'sd.amanapos.amanaPos',
   );
+
 }
