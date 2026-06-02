@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class StockCard extends StatelessWidget {
   final StockData item;
@@ -65,10 +66,10 @@ class StockCard extends StatelessWidget {
                 ),
                 child: Icon(
                   isOut
-                      ? Icons.remove_shopping_cart_outlined
+                      ? SolarIconsOutline.cartCross
                       : isLow
-                      ? Icons.warning_amber_rounded
-                      : Icons.inventory_2_outlined,
+                      ? SolarIconsOutline.dangerTriangle
+                      : SolarIconsOutline.box,
                   size: 25,
                   color: statusColor,
                 ),
@@ -91,7 +92,7 @@ class StockCard extends StatelessWidget {
                     Row(
                       children: [
                         Icon(
-                          Icons.storefront_outlined,
+                          SolarIconsOutline.shop_2,
                           size: 13,
                           color: colors.textHint,
                         ),
@@ -163,7 +164,7 @@ class StockCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppDims.s3),
                   Icon(
-                    Icons.tune_rounded,
+                    SolarIconsOutline.settings,
                     color: colors.textHint,
                     size: 18,
                   ),

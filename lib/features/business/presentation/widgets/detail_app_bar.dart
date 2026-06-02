@@ -7,6 +7,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/extension.dart';
 import 'package:amana_pos/widgets/back_button.dart' as app;
 import 'package:flutter/material.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 class DetailAppBar extends StatelessWidget {
   final BusinessData business;
@@ -22,14 +23,14 @@ class DetailAppBar extends StatelessWidget {
       actions: [
         IconButton(
           onPressed: () => showEditBusinessSheet(context, business),
-          icon: Icon(Icons.edit_outlined,
+          icon: Icon(SolarIconsOutline.pen2,
               color: context.appColors.textPrimary, size: 20),
           tooltip: 'Edit name',
         ),
         if (business.isActive ?? false)
           IconButton(
             onPressed: () => showDeactivateBusinessSheet(context, business),
-            icon: Icon(Icons.block_rounded,
+            icon: Icon(SolarIconsOutline.forbiddenCircle,
                 color: context.appColors.danger, size: 20),
             tooltip: 'Deactivate',
           ),
