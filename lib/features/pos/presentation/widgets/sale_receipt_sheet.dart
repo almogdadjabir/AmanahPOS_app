@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -40,13 +41,9 @@ class SaleReceiptSheet extends StatelessWidget {
     required bool isOffline,
     required String businessName,
   }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: true,
-      enableDrag: true,
+    showAdaptivePanel(
+      context,
+      desktopWidth: 360,
       builder: (_) => SaleReceiptSheet(
         receiptNumber: receiptNumber,
         clientSaleId: clientSaleId,

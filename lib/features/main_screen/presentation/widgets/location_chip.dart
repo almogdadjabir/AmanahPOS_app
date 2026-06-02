@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/location_switcher_sheet.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
@@ -49,10 +50,9 @@ class LocationChip extends StatelessWidget {
 
     return GestureDetector(
       onTap: hasMultiple
-          ? () => showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
+          ? () => showAdaptivePanel(
+        context,
+        desktopWidth: 360,
         builder: (_) => BlocProvider.value(
           value: context.read<PosBloc>(),
           child: LocationSwitcherSheet(
