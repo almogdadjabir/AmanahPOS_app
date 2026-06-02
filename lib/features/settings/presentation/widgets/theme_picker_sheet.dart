@@ -63,37 +63,29 @@ class ThemePickerSheet extends StatelessWidget {
   }
 }
 
-// ── Single theme option card ──────────────────────────────────────────────────
+// ── Shared picker row layout ──────────────────────────────────────────────────
 
-class _ThemeOption extends StatelessWidget {
-  final ScreenMode mode;
-  final ScreenMode current;
+class _PickerOptionRow extends StatelessWidget {
+  final bool isSelected;
+  final Widget leading;
   final String title;
   final String subtitle;
-  final IconData icon;
-  final Color iconColor;
-  final int delay;
+  final VoidCallback onTap;
 
-  const _ThemeOption({
-    required this.mode,
-    required this.current,
+  const _PickerOptionRow({
+    required this.isSelected,
+    required this.leading,
     required this.title,
     required this.subtitle,
-    required this.icon,
-    required this.iconColor,
-    required this.delay,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isSelected = mode == current;
 
     return GestureDetector(
-      onTap: () {
-        context.read<ThemeBloc>().add(OnThemeChangeEvent(mode: mode));
-        Navigator.of(context).pop();
-      },
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
@@ -113,15 +105,7 @@ class _ThemeOption extends StatelessWidget {
         child: Row(
           children: [
             // ── Icon badge ──────────────────────────────────────────────
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppDims.rMd),
-              ),
-              child: Icon(icon, size: 22, color: iconColor),
-            ),
+            leading,
 
             const SizedBox(width: AppDims.s3),
 
@@ -173,6 +157,52 @@ class _ThemeOption extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Single theme option card ──────────────────────────────────────────────────
+
+class _ThemeOption extends StatelessWidget {
+  final ScreenMode mode;
+  final ScreenMode current;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final int delay;
+
+  const _ThemeOption({
+    required this.mode,
+    required this.current,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.delay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = mode == current;
+
+    return _PickerOptionRow(
+      isSelected: isSelected,
+      leading: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+        ),
+        child: Icon(icon, size: 22, color: iconColor),
+      ),
+      title: title,
+      subtitle: subtitle,
+      onTap: () {
+        context.read<ThemeBloc>().add(OnThemeChangeEvent(mode: mode));
+        Navigator.of(context).pop();
+      },
     )
         .animate(delay: Duration(milliseconds: delay))
         .fadeIn(duration: 240.ms)

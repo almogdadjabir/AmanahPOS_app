@@ -48,33 +48,29 @@ class LanguagePickerSheet extends StatelessWidget {
   }
 }
 
-class _LangOption extends StatelessWidget {
-  final String languageCode;
-  final String current;
+// ── Shared picker row layout ──────────────────────────────────────────────────
+
+class _PickerOptionRow extends StatelessWidget {
+  final bool isSelected;
+  final Widget leading;
   final String title;
   final String subtitle;
-  final int delay;
+  final VoidCallback onTap;
 
-  const _LangOption({
-    required this.languageCode,
-    required this.current,
+  const _PickerOptionRow({
+    required this.isSelected,
+    required this.leading,
     required this.title,
     required this.subtitle,
-    required this.delay,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isSelected = languageCode == current;
 
     return GestureDetector(
-      onTap: () {
-        context
-            .read<LocaleBloc>()
-            .add(OnLocaleChanged(languageCode: languageCode));
-        Navigator.of(context).pop();
-      },
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
@@ -93,24 +89,12 @@ class _LangOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(AppDims.rMd),
-              ),
-              child: Center(
-                child: Text(
-                  languageCode == 'ar' ? 'ع' : 'A',
-                  style: AppTextStyles.bs500(context).copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
+            // ── Icon badge ──────────────────────────────────────────────
+            leading,
+
             const SizedBox(width: AppDims.s3),
+
+            // ── Label ───────────────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +117,10 @@ class _LangOption extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(width: AppDims.s3),
+
+            // ── Selection indicator ─────────────────────────────────────
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -154,6 +141,59 @@ class _LangOption extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Single language option card ───────────────────────────────────────────────
+
+class _LangOption extends StatelessWidget {
+  final String languageCode;
+  final String current;
+  final String title;
+  final String subtitle;
+  final int delay;
+
+  const _LangOption({
+    required this.languageCode,
+    required this.current,
+    required this.title,
+    required this.subtitle,
+    required this.delay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isSelected = languageCode == current;
+
+    return _PickerOptionRow(
+      isSelected: isSelected,
+      leading: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: colors.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+        ),
+        child: Center(
+          child: Text(
+            languageCode == 'ar' ? 'ع' : 'A',
+            style: AppTextStyles.bs500(context).copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+      title: title,
+      subtitle: subtitle,
+      onTap: () {
+        context
+            .read<LocaleBloc>()
+            .add(OnLocaleChanged(languageCode: languageCode));
+        Navigator.of(context).pop();
+      },
     )
         .animate(delay: Duration(milliseconds: delay))
         .fadeIn(duration: 240.ms)
