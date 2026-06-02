@@ -1,9 +1,8 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
-import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
-import 'package:amana_pos/features/main_screen/data/app_feature.dart';
-import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
-import 'package:amana_pos/features/main_screen/presentation/widgets/location_chip.dart';
+import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
+import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/location_switcher_sheet.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/notification_button.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/sync_pill.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
@@ -15,90 +14,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
-/// Desktop top bar that replaces PosAppBar inside DesktopShell.
-/// Displays the animated current-section title on the left, location
-/// chip in the middle, and sync + notifications on the right.
+/// Desktop-only top bar. Clean, end-aligned context strip.
 /// PosAppBar (mobile) is not touched.
 class DesktopTopBar extends StatelessWidget {
   const DesktopTopBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Expanded(
           child: Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(
-              AppDims.s6, 0, AppDims.s5, 0,
-            ),
+                AppDims.s6, 0, AppDims.s5, 0),
             child: Row(
-              spacing: AppDims.s3,
               children: [
-                // ── Animated section title + icon ──────────────────────────
-                BlocBuilder<NavigationBloc, NavigationState>(
-                  buildWhen: (prev, curr) =>
-                      prev.currentFeature != curr.currentFeature,
-                  builder: (context, state) {
-                    final label = _featureLabel(context, state.currentFeature);
-                    final icon = _featureIcon(state.currentFeature);
+                // ── Everything pushed to the end ──────────────────────────
+                const Spacer(),
 
-                    return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 260),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) =>
-                          FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.18),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutCubic,
-                          )),
-                          child: child,
-                        ),
-                      ),
-                      child: _SectionTitle(
-                        key: ValueKey(state.currentFeature),
-                        label: label,
-                        icon: icon,
-                      ),
-                    );
-                  },
-                ),
-
-                // ── Divider ────────────────────────────────────────────────
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: colors.border,
-                ),
-
-                // ── Location chip (takes remaining space) ──────────────────
-                Expanded(
-                  child: BlocBuilder<AuthBloc, AuthState>(
+                // ── Desktop location chip (fit-content) ──────────────────
+                BlocBuilder<AuthBloc, AuthState>(
+                  buildWhen: (p, c) =>
+                      p.defaultBusiness != c.defaultBusiness ||
+                      p.businessStatus != c.businessStatus,
+                  builder: (context, authState) =>
+                      BlocBuilder<PosBloc, PosState>(
                     buildWhen: (p, c) =>
-                        p.defaultBusiness != c.defaultBusiness ||
-                        p.businessStatus != c.businessStatus,
-                    builder: (context, authState) =>
-                        BlocBuilder<PosBloc, PosState>(
-                      buildWhen: (p, c) =>
-                          p.selectedShopId != c.selectedShopId ||
-                          p.selectedShopName != c.selectedShopName,
-                      builder: (context, posState) => LocationChip(
-                        business: authState.defaultBusiness,
-                        selectedShopId: posState.selectedShopId,
-                      ),
+                        p.selectedShopId != c.selectedShopId ||
+                        p.selectedShopName != c.selectedShopName,
+                    builder: (context, posState) => _DesktopLocationChip(
+                      business: authState.defaultBusiness,
+                      selectedShopId: posState.selectedShopId,
                     ),
                   ),
                 ),
 
-                // ── Sync status ────────────────────────────────────────────
+                const SizedBox(width: AppDims.s3),
+
+                // ── Sync status ──────────────────────────────────────────
                 BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
                   bloc: getIt<OfflineStatusBloc>(),
                   buildWhen: (p, c) =>
@@ -109,7 +63,9 @@ class DesktopTopBar extends StatelessWidget {
                   builder: (context, state) => SyncPill(state: state),
                 ),
 
-                // ── Notifications (owner only) ─────────────────────────────
+                const SizedBox(width: AppDims.s2),
+
+                // ── Notifications (owner only) ────────────────────────────
                 BlocSelector<AuthBloc, AuthState, bool>(
                   selector: (s) => s.permissions.isOwner,
                   builder: (context, isOwner) {
@@ -122,82 +78,128 @@ class DesktopTopBar extends StatelessWidget {
           ),
         ),
 
-        // ── Bottom gradient rule (matches mobile aesthetic) ────────────────
         _GradientRule(),
       ],
     );
   }
-
-  String _featureLabel(BuildContext context, AppFeature feature) {
-    final tr = context.tr;
-    return switch (feature) {
-      AppFeature.pos        => tr.navSell,
-      AppFeature.business   => tr.navHome,
-      AppFeature.products   => tr.navProducts,
-      AppFeature.inventory  => tr.navInventory,
-      AppFeature.categories => tr.settingsCategories,
-      AppFeature.customers  => tr.settingsCustomers,
-      AppFeature.users      => tr.navCashiers,
-    };
-  }
-
-  IconData _featureIcon(AppFeature feature) {
-    return switch (feature) {
-      AppFeature.pos        => SolarIconsOutline.cartLarge_4,
-      AppFeature.business   => SolarIconsBold.shop,
-      AppFeature.products   => SolarIconsOutline.bag5,
-      AppFeature.inventory  => SolarIconsOutline.boxMinimalistic,
-      AppFeature.categories => SolarIconsOutline.layers,
-      AppFeature.customers  => SolarIconsOutline.usersGroupRounded,
-      AppFeature.users      => SolarIconsOutline.userPlus,
-    };
-  }
 }
 
-// ── Section title widget (icon + label) ──────────────────────────────────────
+// ── Desktop location chip ─────────────────────────────────────────────────────
+//
+// Compact, fit-content. Single row: pin icon + "Branch · Biz" + chevron.
+// No address row, no fixed width — sizes itself to its text content.
 
-class _SectionTitle extends StatelessWidget {
-  final String label;
-  final IconData icon;
+class _DesktopLocationChip extends StatelessWidget {
+  final BusinessData? business;
+  final String? selectedShopId;
 
-  const _SectionTitle({super.key, required this.label, required this.icon});
+  const _DesktopLocationChip({
+    required this.business,
+    required this.selectedShopId,
+  });
+
+  ShopData? _selectedShop() {
+    final shops = business?.shops ?? const <ShopData>[];
+    if (selectedShopId != null && selectedShopId!.isNotEmpty) {
+      for (final shop in shops) {
+        if (shop.id == selectedShopId) return shop;
+      }
+    }
+    final active = shops.where((s) => s.id != null && (s.isActive ?? true));
+    return active.isEmpty ? null : active.first;
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final hasMultiple = (business?.shopCount ?? 0) > 1;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: colors.primary.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(AppDims.rSm),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.20),
-              width: 1,
+    final bizName = business?.name?.trim().isNotEmpty == true
+        ? business!.name!.trim()
+        : 'Workspace';
+
+    final shop = _selectedShop();
+    final branchName = shop?.name?.trim().isNotEmpty == true
+        ? shop!.name!.trim()
+        : 'Select branch';
+
+    return GestureDetector(
+      onTap: hasMultiple
+          ? () => showAdaptivePanel(
+                context,
+                desktopWidth: 360,
+                builder: (_) => BlocProvider.value(
+                  value: context.read<PosBloc>(),
+                  child: LocationSwitcherSheet(
+                    business: business!,
+                    selectedShopId: selectedShopId,
+                  ),
+                ),
+              )
+          : null,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 38, maxHeight: 42),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: colors.surfaceSoft.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: colors.border.withValues(alpha: 0.70),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              SolarIconsOutline.mapPoint,
+              size: 14,
+              color: colors.primary.withValues(alpha: 0.80),
             ),
-          ),
-          child: Icon(icon, size: 16, color: colors.primary),
+            const SizedBox(width: 7),
+
+            // Branch name (primary) + separator + Biz name (secondary)
+            Text.rich(
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+              TextSpan(children: [
+                TextSpan(
+                  text: branchName,
+                  style: AppTextStyles.bs200(context).copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                  ),
+                ),
+                TextSpan(
+                  text: '  ·  $bizName',
+                  style: AppTextStyles.bs100(context).copyWith(
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    height: 1,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ]),
+            ),
+
+            if (hasMultiple) ...[
+              const SizedBox(width: 7),
+              Icon(
+                SolarIconsOutline.altArrowDown,
+                size: 12,
+                color: colors.textHint,
+              ),
+            ],
+          ],
         ),
-        const SizedBox(width: AppDims.s3),
-        Text(
-          label,
-          style: AppTextStyles.bs700(context).copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.textPrimary,
-            letterSpacing: -0.4,
-            height: 1,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-// ── Gradient rule (bottom border) ────────────────────────────────────────────
+// ── Gradient rule ─────────────────────────────────────────────────────────────
 
 class _GradientRule extends StatelessWidget {
   @override
@@ -210,7 +212,7 @@ class _GradientRule extends StatelessWidget {
           colors: [
             Colors.transparent,
             colors.border.withValues(alpha: 0.16),
-            colors.primary.withValues(alpha: 0.30),
+            colors.primary.withValues(alpha: 0.28),
             colors.border.withValues(alpha: 0.16),
             Colors.transparent,
           ],
