@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/widgets/app_button.dart';
 import 'package:amana_pos/features/login/presentation/widgets/otp_input_square.dart';
@@ -26,6 +27,181 @@ class LoginOtp extends StatelessWidget {
         final tr = context.tr;
         final colors = context.appColors;
         final filled = (state.otp ?? '').length == 6;
+
+        // ── Desktop: inline column, no bottom-pinned button ──────────────────────
+        if (context.isDesktop) {
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xxl,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: AppRadius.borderLg,
+                      ),
+                      child: Icon(
+                        Icons.shield_outlined,
+                        color: colors.primary,
+                        size: 24,
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    Text(
+                      tr.otpTitle,
+                      style: AppTextStyles.lg100(
+                        context,
+                        weight: AppTextStyles.extraBold,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.xs),
+
+                    Text.rich(
+                      TextSpan(
+                        style: AppTextStyles.bs400(context,
+                            color: colors.textSecondary),
+                        children: [
+                          TextSpan(text: tr.otpSentPrefix),
+                          TextSpan(
+                            text: '+249 ${state.phoneNumber ?? ''}  ',
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              fontWeight: AppTextStyles.bold,
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: GestureDetector(
+                              onTap: () => context
+                                  .read<LoginBloc>()
+                                  .add(const OnResetEvent(isPhoneChange: true)),
+                              child: Text(
+                                tr.otpChange,
+                                style: AppTextStyles.bs400(
+                                  context,
+                                  weight: AppTextStyles.bold,
+                                  color: colors.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    OTPInputSquare(
+                      state: state.otp ?? '',
+                      is6Digit: true,
+                      hasError: state.otpError != null,
+                      isLoading: state.isLoading,
+                      isOTPMatched: state.isPinMatched,
+                      onChanged: (code) => context
+                          .read<LoginBloc>()
+                          .add(OnChangeOtpEvent(otpCode: code)),
+                      onCompleted: () =>
+                          context.read<LoginBloc>().add(OnSubmitOtpEvent()),
+                    ),
+
+                    SizedBox(
+                      height: 36,
+                      child: state.otpError != null
+                          ? _StatusBanner(
+                              message: state.otpError!,
+                              isError: true,
+                            ).animate().fadeIn(duration: 200.ms)
+                          : state.isPinMatched
+                              ? _StatusBanner(
+                                  message: tr.otpVerifiedSigningIn,
+                                  isError: false,
+                                )
+                                  .animate()
+                                  .fadeIn(duration: 300.ms)
+                                  .slideY(begin: 0.2, end: 0)
+                              : const SizedBox.shrink(),
+                    ),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    Center(
+                      child: state.otpResendSeconds > 0
+                          ? Text.rich(
+                              TextSpan(
+                                style: AppTextStyles.sm300(
+                                    context,
+                                    color: colors.textSecondary),
+                                children: [
+                                  TextSpan(text: tr.otpResendIn),
+                                  TextSpan(
+                                    text: '0:${state.otpResendSeconds.toString().padLeft(2, '0')}',
+                                    style: TextStyle(
+                                      fontFamily: AppTextStyles.fontFamily,
+                                      fontWeight: AppTextStyles.bold,
+                                      color: colors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : TextButton.icon(
+                              onPressed: state.isLoading
+                                  ? null
+                                  : () => context
+                                      .read<LoginBloc>()
+                                      .add(const OnResendOtpEvent()),
+                              icon: Icon(Icons.refresh,
+                                  size: 16, color: colors.primary),
+                              label: Text(
+                                tr.otpResendButton,
+                                style: AppTextStyles.sm300(
+                                  context,
+                                  weight: AppTextStyles.bold,
+                                  color: colors.primary,
+                                ),
+                              ),
+                            ),
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    AppButton.wide(
+                      label: state.isPinMatched
+                          ? tr.otpVerifiedButton
+                          : tr.otpVerifyButton,
+                      onPressed: (filled && !state.isLoading && !state.isPinMatched)
+                          ? () => context
+                              .read<LoginBloc>()
+                              .add(OnSubmitOtpEvent())
+                          : null,
+                      isLoading: state.isLoading,
+                      suffixIcon: state.isPinMatched
+                          ? const Icon(Icons.check_rounded,
+                              size: 20, color: Colors.white)
+                          : const Icon(Icons.arrow_forward_rounded,
+                              size: 18, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        // ── Mobile: existing layout unchanged ────────────────────────────────────
 
         return Column(
           children: [
