@@ -5,14 +5,14 @@ import 'package:amana_pos/core/responsive/layout_metrics.dart';
 import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
-import 'package:amana_pos/features/cart/presentation/expanded_cart.dart';
+import 'package:amana_pos/features/cart/presentation/desktop_cart_panel.dart';
 import 'package:amana_pos/features/cart/presentation/products_empty.dart';
 import 'package:amana_pos/features/cart/presentation/products_loading_grid.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/today_cards.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_bar.dart';
-import 'package:amana_pos/features/pos/presentation/widgets/pos_sales_caption.dart';
+import 'package:amana_pos/features/pos/presentation/widgets/desktop_category_sidebar.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/pos_search_section.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/product_grid.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -397,23 +397,71 @@ class _PosScreenState extends State<PosScreen> {
                 ],
               );
 
-              // Desktop: persistent side-by-side layout
+              // Desktop: 3-column workstation layout
               if (context.isDesktop) {
+                final colors = context.appColors;
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: productPane),
-                    VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      color: context.appColors.border,
-                    ),
-                    SizedBox(
-                      width: 392,
-                      child: ExpandedCart(
-                        onCollapse: () {},
-                        onCheckout: _handleCheckout,
+                    const DesktopCategorySidebar(),
+                    VerticalDivider(width: 1, thickness: 1, color: colors.border),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DecoratedBox(
+                            decoration: BoxDecoration(color: colors.surface),
+                            child: PosSearchSection(searchCtrl: _searchCtrl),
+                          ),
+                          Divider(height: 1, thickness: 1, color: colors.border),
+                          Expanded(
+                            child: BlocBuilder<ProductBloc, ProductState>(
+                              buildWhen: (prev, curr) =>
+                                  prev.productStatus != curr.productStatus ||
+                                  prev.products != curr.products,
+                              builder: (context, productState) {
+                                if (productState.productStatus == ProductStatus.loading ||
+                                    productState.productStatus == ProductStatus.initial) {
+                                  return const ProductsLoadingGrid();
+                                }
+                                if (productState.productStatus == ProductStatus.failure) {
+                                  return ProductErrorView(
+                                      message: productState.responseError);
+                                }
+                                return BlocBuilder<PosBloc, PosState>(
+                                  buildWhen: (prev, curr) =>
+                                      prev.searchQuery != curr.searchQuery ||
+                                      prev.selectedCategoryId != curr.selectedCategoryId,
+                                  builder: (context, posState) {
+                                    final products =
+                                        _filterProducts(productState.products, posState);
+                                    if (products.isEmpty) {
+                                      return ProductsEmpty(query: posState.searchQuery);
+                                    }
+                                    return LayoutBuilder(
+                                      builder: (ctx, constraints) {
+                                        final cols = ctx.gridColumnsFor(
+                                          constraints.maxWidth,
+                                          tile: 140,
+                                        );
+                                        return ProductGrid(
+                                          products: products,
+                                          crossAxisCount: cols,
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    VerticalDivider(width: 1, thickness: 1, color: colors.border),
+                    SizedBox(
+                      width: 380,
+                      child: DesktopCartPanel(onCheckout: _handleCheckout),
                     ),
                   ],
                 );
