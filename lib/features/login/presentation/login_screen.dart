@@ -54,7 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
         if (context.isDesktop) {
           return Scaffold(
             backgroundColor: context.appColors.background,
-            body: Row(
+            // Force LTR so the brand-left / form-right order holds in Arabic.
+            body: Directionality(
+              textDirection: TextDirection.ltr,
+              child: Row(
               children: [
                 // Brand panel — 42% width
                 const Expanded(
@@ -82,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ],
+              ),
             ),
           );
         }

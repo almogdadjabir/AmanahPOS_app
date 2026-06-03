@@ -53,8 +53,8 @@ class DesktopLoginBrandPanel extends StatelessWidget {
             ),
           ),
 
-          // Content
-          Padding(
+          // Content — scrollable so nothing clips on short windows
+          SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: AppDims.s8,
               vertical: AppDims.s8,
@@ -67,7 +67,7 @@ class DesktopLoginBrandPanel extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const AmanaPosLogoMark(size: 42),
+                    const AmanaPosLogoMark(size: 42, isInAppBar: true),
                     const SizedBox(width: AppDims.s3),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
