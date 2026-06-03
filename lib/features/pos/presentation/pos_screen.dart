@@ -418,7 +418,8 @@ class _PosScreenState extends State<PosScreen> {
                             child: BlocBuilder<ProductBloc, ProductState>(
                               buildWhen: (prev, curr) =>
                                   prev.productStatus != curr.productStatus ||
-                                  prev.products != curr.products,
+                                  prev.products != curr.products ||
+                                  prev.categories != curr.categories,
                               builder: (context, productState) {
                                 if (productState.productStatus == ProductStatus.loading ||
                                     productState.productStatus == ProductStatus.initial) {
