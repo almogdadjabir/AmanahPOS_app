@@ -1,3 +1,4 @@
+import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/widgets/amana_logo.dart';
@@ -6,7 +7,7 @@ import 'package:flutter/material.dart';
 class DesktopLoginBrandPanel extends StatelessWidget {
   const DesktopLoginBrandPanel({super.key});
 
-  static const Color _gradientTop = Color(0xFF0F766E);
+  static const Color _gradientTop = AppColors.primary;
   static const Color _gradientBottom = Color(0xFF0a4f49);
 
   @override
@@ -30,7 +31,7 @@ class DesktopLoginBrandPanel extends StatelessWidget {
                   center: const Alignment(-0.8, 0.9),
                   radius: 1.1,
                   colors: [
-                    const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                    AppColors.secondary.withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -66,7 +67,7 @@ class DesktopLoginBrandPanel extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const AmanaPosLogoMark(size: 42, isInAppBar: true),
+                    const AmanaPosLogoMark(size: 42),
                     const SizedBox(width: AppDims.s3),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +114,7 @@ class DesktopLoginBrandPanel extends StatelessWidget {
                 // Subline
                 Text(
                   'Real-time inventory, multi-branch\nmanagement, and instant receipts.',
-                  style: AppTextStyles.bs300(context).copyWith(
+                  style: AppTextStyles.sm300(context).copyWith(
                     color: Colors.white.withValues(alpha: 0.60),
                     height: 1.55,
                   ),
@@ -159,7 +160,7 @@ class _Badge extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppDims.s3,
-          vertical: AppDims.s1 + 2,
+          vertical: 6,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

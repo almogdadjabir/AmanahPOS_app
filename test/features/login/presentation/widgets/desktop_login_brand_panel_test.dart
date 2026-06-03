@@ -3,41 +3,41 @@ import 'package:amana_pos/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {
-  testWidgets('DesktopLoginBrandPanel renders without error', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        home: const Scaffold(
-          body: Row(
-            children: [
-              Expanded(child: DesktopLoginBrandPanel()),
-            ],
-          ),
+Future<void> _pumpPanel(WidgetTester tester) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.light,
+      home: const Scaffold(
+        body: Row(
+          children: [
+            Expanded(child: DesktopLoginBrandPanel()),
+          ],
         ),
       ),
-    );
+    ),
+  );
+}
+
+void main() {
+  testWidgets('DesktopLoginBrandPanel renders without error', (tester) async {
+    await _pumpPanel(tester);
 
     expect(find.byType(DesktopLoginBrandPanel), findsOneWidget);
   });
 
   testWidgets('DesktopLoginBrandPanel shows feature badges', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        home: const Scaffold(
-          body: Row(
-            children: [
-              Expanded(child: DesktopLoginBrandPanel()),
-            ],
-          ),
-        ),
-      ),
-    );
+    await _pumpPanel(tester);
 
     // Three feature badges must be present
     expect(find.text('Offline-ready'), findsOneWidget);
     expect(find.text('Multi-branch'), findsOneWidget);
     expect(find.text('Secure'), findsOneWidget);
+  });
+
+  testWidgets('DesktopLoginBrandPanel shows wordmark and headline',
+      (tester) async {
+    await _pumpPanel(tester);
+    expect(find.text('AmanaPOS'), findsOneWidget);
+    expect(find.text('Point of Sale Platform'), findsOneWidget);
   });
 }
