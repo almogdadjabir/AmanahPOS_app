@@ -113,7 +113,11 @@ class _CompactStatsBlock extends StatelessWidget {
 
   String _fmt(dynamic value) {
     final v = double.tryParse(value.toString()) ?? 0.0;
-    return v % 1 == 0 ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
+    final formatted = v % 1 == 0 ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
+    return formatted.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
   }
 }
 
@@ -139,7 +143,7 @@ class _CategoryList extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.zero,
               children: [
-                _SectionLabel(),
+                const _SectionLabel(),
                 _CategoryItem(
                   label: context.tr.posAllCategory,
                   isSelected: selectedId == null,
@@ -168,6 +172,8 @@ class _CategoryList extends StatelessWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
+  const _SectionLabel();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
