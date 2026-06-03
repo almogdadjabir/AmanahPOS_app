@@ -6,6 +6,7 @@ import 'package:amana_pos/features/cart/presentation/cart_line.dart';
 import 'package:amana_pos/features/cart/presentation/payment_selector.dart';
 import 'package:amana_pos/features/cart/presentation/totals_section.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
+import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/sale_receipt_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -256,29 +257,37 @@ class _DesktopCartHeader extends StatelessWidget {
             ),
             const Spacer(),
             if (itemCount > 0)
-              GestureDetector(
-                onTap: isLoading ? null : onClear,
-                behavior: HitTestBehavior.opaque,
-                child: Opacity(
-                  opacity: isLoading ? 0.45 : 1,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        SolarIconsOutline.trashBinTrash,
-                        size: 14,
-                        color: colors.danger,
+              MouseRegion(
+                cursor: isLoading
+                    ? SystemMouseCursors.forbidden
+                    : SystemMouseCursors.click,
+                child: InkWell(
+                  onTap: isLoading ? null : onClear,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Opacity(
+                    opacity: isLoading ? 0.45 : 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            SolarIconsOutline.trashBinTrash,
+                            size: 14,
+                            color: colors.danger,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            context.tr.clear,
+                            style: AppTextStyles.sm200(context).copyWith(
+                              color: colors.danger,
+                              fontWeight: FontWeight.w800,
+                              height: 1,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        context.tr.clear,
-                        style: AppTextStyles.sm200(context).copyWith(
-                          color: colors.danger,
-                          fontWeight: FontWeight.w800,
-                          height: 1,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -305,7 +314,7 @@ class _CheckoutContent extends StatelessWidget {
         Directionality(
           textDirection: ui.TextDirection.ltr,
           child: Text(
-            _money(total),
+            money(total),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bs500(context).copyWith(
@@ -331,4 +340,3 @@ class _CheckoutContent extends StatelessWidget {
   }
 }
 
-String _money(double value) => value.toStringAsFixed(2);
