@@ -111,8 +111,8 @@ class _CompactStatsBlock extends StatelessWidget {
     );
   }
 
-  String _fmt(dynamic value) {
-    final v = double.tryParse(value.toString()) ?? 0.0;
+  String _fmt(num value) {
+    final v = value.toDouble();
     final formatted = v % 1 == 0 ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
     return formatted.replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),

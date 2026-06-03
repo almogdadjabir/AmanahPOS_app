@@ -248,11 +248,14 @@ class _PosScreenState extends State<PosScreen> {
             ),
           );
 
-          final message = state.submitError?.isNotEmpty == true
-              ? state.submitError!
-              : context.tr.posSaleCompleted;
-
-          GlobalSnackBar.show(message: message, isInfo: true);
+          // On desktop the receipt sheet is shown by DesktopCartPanel's own
+          // BlocListener, so the snackbar would stack on top of it.
+          if (!context.isDesktop) {
+            final message = state.submitError?.isNotEmpty == true
+                ? state.submitError!
+                : context.tr.posSaleCompleted;
+            GlobalSnackBar.show(message: message, isInfo: true);
+          }
           context.read<PosBloc>().add(const PosAcknowledgeSubmit());
 
           final shopId = _autoSelectShop() ?? context.read<PosBloc>().state.selectedShopId;
@@ -633,4 +636,12 @@ class _ShopSwitcherBar extends StatelessWidget {
   }
 }
 
-String money(double value) => value.toStringAsFixed(2);
+String money(double value) {
+  final formatted = value % 1 == 0
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(2);
+  return formatted.replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (m) => '${m[1]},',
+  );
+}
