@@ -1,5 +1,7 @@
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
+import 'package:amana_pos/features/login/presentation/widgets/desktop_login_brand_panel.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_form.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_otp.dart';
 import 'package:amana_pos/widgets/grid_painter.dart';
@@ -48,6 +50,41 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context, state) {
         final isOtp = state.loginStatus == LoginStatus.otp;
 
+        // ── Desktop: split-panel layout ──────────────────────────────────────────
+        if (context.isDesktop) {
+          return Scaffold(
+            backgroundColor: context.appColors.background,
+            body: Row(
+              children: [
+                // Brand panel — 42% width
+                Expanded(
+                  flex: 42,
+                  child: const DesktopLoginBrandPanel(),
+                ),
+                // Form panel — 58% width
+                Expanded(
+                  flex: 58,
+                  child: ColoredBox(
+                    color: context.appColors.background,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: pages.length,
+                          itemBuilder: (_, i) => pages[i],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // ── Mobile: existing Scaffold unchanged ──────────────────────────────────
         return Scaffold(
           extendBodyBehindAppBar: true,
           extendBody: true,
