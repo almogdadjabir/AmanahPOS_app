@@ -57,14 +57,16 @@ class _LoginScreenState extends State<LoginScreen> {
             body: Row(
               children: [
                 // Brand panel — 42% width
-                Expanded(
+                const Expanded(
                   flex: 42,
-                  child: const DesktopLoginBrandPanel(),
+                  child: DesktopLoginBrandPanel(),
                 ),
                 // Form panel — 58% width
                 Expanded(
                   flex: 58,
                   child: ColoredBox(
+                    // Same as Scaffold.backgroundColor — defensive background
+                    // in case the Row has any gap at narrow breakpoints.
                     color: context.appColors.background,
                     child: Center(
                       child: ConstrainedBox(
