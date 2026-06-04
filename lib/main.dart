@@ -15,10 +15,20 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Firebase + FCM are only supported on Android and iOS.
-// macOS and Windows skip all Firebase initialization to avoid
-// "not configured" crashes until FlutterFire CLI is re-run for those targets.
-bool get _isFirebaseSupported => Platform.isAndroid || Platform.isIOS;
+// Firebase Core is configured for all platforms via FlutterFire CLI.
+// kIsWeb is checked first to avoid dart:io Platform calls on web.
+// Windows: Firebase Core initializes but firebase_messaging has no Windows
+// plugin, so FCM messaging is excluded there.
+bool get _isFirebaseSupported =>
+    kIsWeb ||
+    Platform.isAndroid ||
+    Platform.isIOS ||
+    Platform.isMacOS ||
+    Platform.isWindows;
+
+// Platforms where firebase_messaging + FCM listeners are available.
+bool get _isMessagingSupported =>
+    kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -50,15 +60,20 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+  }
 
+  if (_isMessagingSupported) {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  }
 
+  // flutter_local_notifications handles foreground display on non-web platforms.
+  if (!kIsWeb) {
     await NotificationService.instance.init();
   }
 
   runApp(const App());
 
-  if (_isFirebaseSupported) {
+  if (_isMessagingSupported) {
     unawaited(_initializeFirebaseMessaging());
   }
 }
@@ -108,7 +123,8 @@ Future<void> _initializeFirebaseMessaging() async {
 
 Future<void> _requestNotificationPermission() async {
   try {
-    if (Platform.isIOS) {
+    // iOS, macOS, and web use FirebaseMessaging's permission request (APNs / browser).
+    if (kIsWeb || Platform.isIOS || Platform.isMacOS) {
       final settings = await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
@@ -116,7 +132,7 @@ Future<void> _requestNotificationPermission() async {
       );
 
       if (kDebugMode) {
-        log('[FCM] iOS permission=${settings.authorizationStatus}');
+        log('[FCM] permission=${settings.authorizationStatus}');
       }
 
       return;

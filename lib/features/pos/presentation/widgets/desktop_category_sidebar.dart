@@ -88,7 +88,7 @@ class _CompactStatsBlock extends StatelessWidget {
                 '${_fmt(amount)} $currency',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs500(context).copyWith(
+                style: AppTextStyles.bs100(context).copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.w900,
                   height: 1,
@@ -246,7 +246,7 @@ class _CategoryItem extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs200(context).copyWith(
+                style: AppTextStyles.bs100(context).copyWith(
                   color: isSelected ? colors.primary : colors.textSecondary,
                   fontWeight: FontWeight.w700,
                   height: 1,

@@ -24,7 +24,7 @@ class NotificationService {
 
     const androidSettings = AndroidInitializationSettings('ic_notification');
 
-    const iosSettings = DarwinInitializationSettings(
+    const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
@@ -32,7 +32,8 @@ class NotificationService {
 
     const settings = InitializationSettings(
       android: androidSettings,
-      iOS: iosSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
     );
 
     await _plugin.initialize(
@@ -75,6 +76,12 @@ class NotificationService {
 
       final id = _buildNotificationId(payload);
 
+      const darwinDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
       const details = NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
@@ -86,11 +93,8 @@ class NotificationService {
           enableVibration: true,
           icon: 'ic_notification',
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
+        iOS: darwinDetails,
+        macOS: darwinDetails,
       );
 
       await _plugin.show(

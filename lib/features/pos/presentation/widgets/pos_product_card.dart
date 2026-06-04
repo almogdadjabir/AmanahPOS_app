@@ -120,7 +120,7 @@ class _PosProductCardState extends State<PosProductCard> {
                               maxLines: 2,
                               textAlign: TextAlign.end,
                               overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.bs400(context).copyWith(
+                              style: AppTextStyles.bs100(context).copyWith(
                                 color: colors.textPrimary,
                                 fontWeight: FontWeight.w900,
                                 height: 1.12,
@@ -144,7 +144,7 @@ class _PosProductCardState extends State<PosProductCard> {
                                         _formatPrice(product.price),
                                         maxLines: 1,
                                         softWrap: false,
-                                        style: AppTextStyles.bs500(context).copyWith(
+                                        style: AppTextStyles.bs100(context).copyWith(
                                           color: isOut ? colors.textHint : colors.primary,
                                           fontWeight: FontWeight.w900,
                                           height: 1,

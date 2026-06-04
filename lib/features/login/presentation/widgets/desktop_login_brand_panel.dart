@@ -12,7 +12,9 @@ class DesktopLoginBrandPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      height: MediaQuery.sizeOf(context).height,
+      alignment: Alignment.center,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -21,121 +23,86 @@ class DesktopLoginBrandPanel extends StatelessWidget {
           stops: [0.0, 1.0],
         ),
       ),
-      child: Stack(
-        children: [
-          // Ambient glow overlays
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(-0.8, 0.9),
-                  radius: 1.1,
-                  colors: [
-                    AppColors.secondary.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0.8, -0.8),
-                  radius: 0.7,
-                  colors: [
-                    Colors.white.withValues(alpha: 0.07),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Content — scrollable so nothing clips on short windows
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDims.s8,
-              vertical: AppDims.s8,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDims.s8,
+          vertical: AppDims.s8,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Logo mark + wordmark
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo mark + wordmark
-                Row(
+                const AmanaPosLogoMark(size: 42, isInAppBar: true),
+                const SizedBox(width: AppDims.s3),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const AmanaPosLogoMark(size: 42, isInAppBar: true),
-                    const SizedBox(width: AppDims.s3),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'AmanaPOS',
-                          style: AppTextStyles.bs600(context).copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            height: 1,
-                            letterSpacing: -0.4,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Point of Sale Platform',
-                          style: AppTextStyles.sm100(context).copyWith(
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontWeight: FontWeight.w500,
-                            height: 1,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'AmanaPOS',
+                      style: AppTextStyles.bs600(context).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                        letterSpacing: -0.4,
+                      ),
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 40),
-
-                // Headline
-                Text(
-                  'The smarter way\nto run your shop.',
-                  style: AppTextStyles.lg200(context).copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    height: 1.18,
-                    letterSpacing: -0.6,
-                  ),
-                ),
-
-                const SizedBox(height: AppDims.s3),
-
-                // Subline
-                Text(
-                  'Real-time inventory, multi-branch\nmanagement, and instant receipts.',
-                  style: AppTextStyles.sm300(context).copyWith(
-                    color: Colors.white.withValues(alpha: 0.60),
-                    height: 1.55,
-                  ),
-                ),
-
-                const SizedBox(height: AppDims.s6),
-
-                // Feature badges
-                const Wrap(
-                  spacing: AppDims.s2,
-                  runSpacing: AppDims.s2,
-                  children: [
-                    _Badge(icon: '⚡', label: 'Offline-ready'),
-                    _Badge(icon: '🌐', label: 'Multi-branch'),
-                    _Badge(icon: '🔐', label: 'Secure'),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Point of Sale Platform',
+                      style: AppTextStyles.sm100(context).copyWith(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        fontWeight: FontWeight.w500,
+                        height: 1,
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: 40),
+
+            // Headline
+            Text(
+              'The smarter way\nto run your shop.',
+              style: AppTextStyles.lg200(context).copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                height: 1.18,
+                letterSpacing: -0.6,
+              ),
+            ),
+
+            const SizedBox(height: AppDims.s3),
+
+            // Subline
+            Text(
+              'Real-time inventory, multi-branch\nmanagement, and instant receipts.',
+              style: AppTextStyles.sm300(context).copyWith(
+                color: Colors.white.withValues(alpha: 0.60),
+                height: 1.55,
+              ),
+            ),
+
+            const SizedBox(height: AppDims.s6),
+
+            // Feature badges
+            const Wrap(
+              spacing: AppDims.s2,
+              runSpacing: AppDims.s2,
+              children: [
+                _Badge(icon: '⚡', label: 'Offline-ready'),
+                _Badge(icon: '🌐', label: 'Multi-branch'),
+                _Badge(icon: '🔐', label: 'Secure'),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
