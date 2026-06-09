@@ -159,42 +159,50 @@ class SubscriptionPlanCard extends StatelessWidget {
                 size: 16,
                 color: colors.textSecondary,
               ),
-              const Spacer(),
-              planLimitText(
-                context: context,
-                label: 'Shops',
-                value: sub?.maxShops,
-              ),
-              Container(
-                width: 3,
-                height: 3,
-                margin: const EdgeInsets.symmetric(horizontal: AppDims.s2),
-                decoration: BoxDecoration(
-                  color: colors.textSecondary.withValues(alpha: 0.45),
-                  shape: BoxShape.circle,
+              const SizedBox(width: AppDims.s2),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      planLimitText(
+                        context: context,
+                        label: 'Shops',
+                        value: sub?.maxShops,
+                      ),
+                      Container(
+                        width: 3,
+                        height: 3,
+                        margin: const EdgeInsets.symmetric(horizontal: AppDims.s2),
+                        decoration: BoxDecoration(
+                          color: colors.textSecondary.withValues(alpha: 0.45),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      planLimitText(
+                        context: context,
+                        label: 'Products',
+                        value: sub?.maxProducts,
+                      ),
+                      Container(
+                        width: 3,
+                        height: 3,
+                        margin: const EdgeInsets.symmetric(horizontal: AppDims.s2),
+                        decoration: BoxDecoration(
+                          color: colors.textSecondary.withValues(alpha: 0.45),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      planLimitText(
+                        context: context,
+                        label: 'Users',
+                        value: sub?.maxUsers,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-
-              planLimitText(
-                context: context,
-                label: 'Products',
-                value: sub?.maxProducts,
-              ),
-
-              Container(
-                width: 3,
-                height: 3,
-                margin: const EdgeInsets.symmetric(horizontal: AppDims.s2),
-                decoration: BoxDecoration(
-                  color: colors.textSecondary.withValues(alpha: 0.45),
-                  shape: BoxShape.circle,
-                ),
-              ),
-
-              planLimitText(
-                context: context,
-                label: 'Users',
-                value: sub?.maxUsers,
               ),
             ],
           ),

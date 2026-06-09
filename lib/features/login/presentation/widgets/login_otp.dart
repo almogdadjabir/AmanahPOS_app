@@ -28,177 +28,221 @@ class LoginOtp extends StatelessWidget {
         final colors = context.appColors;
         final filled = (state.otp ?? '').length == 6;
 
-        // ── Desktop: inline column, no bottom-pinned button ──────────────────────
+        // ── Desktop: inline column anchored to the panel's reading edge ──────────
+        // No entrance choreography here — the PageView slide is the one motion;
+        // layering staggered reveals on top of it is what read as "cheap".
         if (context.isDesktop) {
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xxl,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: colors.primaryContainer,
-                        borderRadius: AppRadius.borderLg,
-                      ),
-                      child: Icon(
-                        Icons.shield_outlined,
-                        color: colors.primary,
-                        size: 24,
-                      ),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 420,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                      vertical: AppSpacing.xl,
                     ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    Text(
-                      tr.otpTitle,
-                      style: AppTextStyles.lg100(
-                        context,
-                        weight: AppTextStyles.extraBold,
-                        color: colors.textPrimary,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - (AppSpacing.xl * 2),
                       ),
-                    ),
-
-                    const SizedBox(height: AppSpacing.xs),
-
-                    Text.rich(
-                      TextSpan(
-                        style: AppTextStyles.bs400(context,
-                            color: colors.textSecondary),
-                        children: [
-                          TextSpan(text: tr.otpSentPrefix),
-                          TextSpan(
-                            text: '+249 ${state.phoneNumber ?? ''}  ',
-                            style: TextStyle(
-                              fontFamily: AppTextStyles.fontFamily,
-                              fontWeight: AppTextStyles.bold,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                          WidgetSpan(
-                            alignment: PlaceholderAlignment.middle,
-                            child: GestureDetector(
-                              onTap: () => context
-                                  .read<LoginBloc>()
-                                  .add(const OnResetEvent(isPhoneChange: true)),
-                              child: Text(
-                                tr.otpChange,
-                                style: AppTextStyles.bs400(
-                                  context,
-                                  weight: AppTextStyles.bold,
+                      child: IntrinsicHeight(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: colors.primaryContainer,
+                                  borderRadius: AppRadius.borderMd,
+                                ),
+                                child: Icon(
+                                  Icons.shield_outlined,
                                   color: colors.primary,
+                                  size: 20,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    const SizedBox(height: AppSpacing.xxl),
+                            const SizedBox(height: AppSpacing.md),
 
-                    OTPInputSquare(
-                      state: state.otp ?? '',
-                      is6Digit: true,
-                      hasError: state.otpError != null,
-                      isLoading: state.isLoading,
-                      isOTPMatched: state.isPinMatched,
-                      onChanged: (code) => context
-                          .read<LoginBloc>()
-                          .add(OnChangeOtpEvent(otpCode: code)),
-                      onCompleted: () =>
-                          context.read<LoginBloc>().add(OnSubmitOtpEvent()),
-                    ),
+                            Text(
+                              tr.otpTitle,
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.bs500(
+                                context,
+                                weight: AppTextStyles.bold,
+                                color: colors.textPrimary,
+                              ),
+                            ),
 
-                    SizedBox(
-                      height: 36,
-                      child: state.otpError != null
-                          ? _StatusBanner(
-                              message: state.otpError!,
-                              isError: true,
-                            ).animate().fadeIn(duration: 200.ms)
-                          : state.isPinMatched
-                              ? _StatusBanner(
-                                  message: tr.otpVerifiedSigningIn,
-                                  isError: false,
-                                )
-                                  .animate()
-                                  .fadeIn(duration: 300.ms)
-                                  .slideY(begin: 0.2, end: 0)
-                              : const SizedBox.shrink(),
-                    ),
+                            const SizedBox(height: 4),
 
-                    const SizedBox(height: AppSpacing.lg),
-
-                    Center(
-                      child: state.otpResendSeconds > 0
-                          ? Text.rich(
+                            Text.rich(
                               TextSpan(
                                 style: AppTextStyles.sm300(
-                                    context,
-                                    color: colors.textSecondary),
+                                  context,
+                                  color: colors.textSecondary,
+                                ),
                                 children: [
-                                  TextSpan(text: tr.otpResendIn),
+                                  TextSpan(text: tr.otpSentPrefix),
                                   TextSpan(
-                                    text: '0:${state.otpResendSeconds.toString().padLeft(2, '0')}',
+                                    text: '+249 ${state.phoneNumber ?? ''}  ',
                                     style: TextStyle(
                                       fontFamily: AppTextStyles.fontFamily,
                                       fontWeight: AppTextStyles.bold,
                                       color: colors.textPrimary,
                                     ),
                                   ),
+                                  WidgetSpan(
+                                    alignment: PlaceholderAlignment.middle,
+                                    child: GestureDetector(
+                                      onTap: () => context
+                                          .read<LoginBloc>()
+                                          .add(const OnResetEvent(isPhoneChange: true)),
+                                      child: Text(
+                                        tr.otpChange,
+                                        style: AppTextStyles.sm300(
+                                          context,
+                                          weight: AppTextStyles.bold,
+                                          color: colors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                            )
-                          : TextButton.icon(
-                              onPressed: state.isLoading
-                                  ? null
-                                  : () => context
-                                      .read<LoginBloc>()
-                                      .add(const OnResendOtpEvent()),
-                              icon: Icon(Icons.refresh,
-                                  size: 16, color: colors.primary),
-                              label: Text(
-                                tr.otpResendButton,
-                                style: AppTextStyles.sm300(
-                                  context,
-                                  weight: AppTextStyles.bold,
+                              textAlign: TextAlign.center,
+                            ),
+
+                            const SizedBox(height: AppSpacing.xl),
+
+                            Center(
+                              child: OTPInputSquare(
+                                state: state.otp ?? '',
+                                is6Digit: true,
+                                hasError: state.otpError != null,
+                                isLoading: state.isLoading,
+                                isOTPMatched: state.isPinMatched,
+                                onChanged: (code) => context
+                                    .read<LoginBloc>()
+                                    .add(OnChangeOtpEvent(otpCode: code)),
+                                onCompleted: () => context
+                                    .read<LoginBloc>()
+                                    .add(OnSubmitOtpEvent()),
+                              ),
+                            ),
+
+                            SizedBox(
+                              height: 36,
+                              child: Center(
+                                child: state.otpError != null
+                                    ? _StatusBanner(
+                                  message: state.otpError!,
+                                  isError: true,
+                                ).animate().fadeIn(duration: 200.ms)
+                                    : state.isPinMatched
+                                    ? _StatusBanner(
+                                  message: tr.otpVerifiedSigningIn,
+                                  isError: false,
+                                )
+                                    .animate()
+                                    .fadeIn(duration: 300.ms)
+                                    .slideY(begin: 0.2, end: 0)
+                                    : const SizedBox.shrink(),
+                              ),
+                            ),
+
+                            const SizedBox(height: AppSpacing.md),
+
+                            Center(
+                              child: state.otpResendSeconds > 0
+                                  ? Text.rich(
+                                TextSpan(
+                                  style: AppTextStyles.sm300(
+                                    context,
+                                    color: colors.textSecondary,
+                                  ),
+                                  children: [
+                                    TextSpan(text: tr.otpResendIn),
+                                    TextSpan(
+                                      text:
+                                      '0:${state.otpResendSeconds.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        fontFamily: AppTextStyles.fontFamily,
+                                        fontWeight: AppTextStyles.bold,
+                                        color: colors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                                  : TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 0),
+                                  tapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                onPressed: state.isLoading
+                                    ? null
+                                    : () => context
+                                    .read<LoginBloc>()
+                                    .add(const OnResendOtpEvent()),
+                                icon: Icon(
+                                  Icons.refresh,
+                                  size: 15,
                                   color: colors.primary,
+                                ),
+                                label: Text(
+                                  tr.otpResendButton,
+                                  style: AppTextStyles.sm300(
+                                    context,
+                                    weight: AppTextStyles.bold,
+                                    color: colors.primary,
+                                  ),
                                 ),
                               ),
                             ),
-                    ),
 
-                    const SizedBox(height: AppSpacing.xl),
+                            const SizedBox(height: AppSpacing.lg),
 
-                    AppButton.wide(
-                      label: state.isPinMatched
-                          ? tr.otpVerifiedButton
-                          : tr.otpVerifyButton,
-                      onPressed: (filled && !state.isLoading && !state.isPinMatched)
-                          ? () => context
-                              .read<LoginBloc>()
-                              .add(OnSubmitOtpEvent())
-                          : null,
-                      isLoading: state.isLoading,
-                      suffixIcon: state.isPinMatched
-                          ? const Icon(Icons.check_rounded,
-                              size: 20, color: Colors.white)
-                          : const Icon(Icons.arrow_forward_rounded,
-                              size: 18, color: Colors.white),
+                            AppButton.wide(
+                              label: state.isPinMatched
+                                  ? tr.otpVerifiedButton
+                                  : tr.otpVerifyButton,
+                              onPressed:
+                              (filled && !state.isLoading && !state.isPinMatched)
+                                  ? () => context
+                                  .read<LoginBloc>()
+                                  .add(OnSubmitOtpEvent())
+                                  : null,
+                              isLoading: state.isLoading,
+                              suffixIcon: state.isPinMatched
+                                  ? const Icon(
+                                Icons.check_rounded,
+                                size: 20,
+                                color: Colors.white,
+                              )
+                                  : const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         }
         // ── Mobile: existing layout unchanged ────────────────────────────────────

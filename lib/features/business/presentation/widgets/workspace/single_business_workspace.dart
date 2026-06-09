@@ -33,7 +33,6 @@ class SingleBusinessWorkspace extends StatelessWidget {
   }
 }
 
-// ── Desktop layout ────────────────────────────────────────────────────────────
 
 class _DesktopWorkspace extends StatelessWidget {
   final BusinessData data;
@@ -181,7 +180,6 @@ class _DesktopWorkspace extends StatelessWidget {
   }
 }
 
-// ── Mobile / tablet layout (unchanged) ───────────────────────────────────────
 
 class _MobileWorkspace extends StatelessWidget {
   final BusinessData data;

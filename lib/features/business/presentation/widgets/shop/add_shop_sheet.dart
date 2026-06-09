@@ -130,16 +130,6 @@ class _AddShopSheetState extends State<_AddShopSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: AppDims.s3),
-
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
 
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(

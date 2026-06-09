@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -122,7 +123,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
 
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                height: 56,
+                height: context.isDesktop ? 42 : 56,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: colors.surfaceSoft,
@@ -149,6 +150,8 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                         context,
                         weight: AppTextStyles.bold,
                         color: colors.textPrimary,
+                      ).copyWith(
+                        fontSize: context.isDesktop ? 16 : null,
                       ),
                     ),
 
@@ -183,6 +186,8 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                               context,
                               weight: AppTextStyles.semibold,
                               color: colors.textPrimary,
+                            ).copyWith(
+                              fontSize: context.isDesktop ? 16 : null,
                             ),
                             decoration: InputDecoration(
                               filled: false,
@@ -191,6 +196,8 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                               hintStyle: AppTextStyles.bs400(
                                 context,
                                 color: colors.textHint,
+                              ).copyWith(
+                                fontSize: context.isDesktop ? 16 : null,
                               ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,

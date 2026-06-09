@@ -304,15 +304,6 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                  const SizedBox(height: AppDims.s3),
-                  Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: colors.border,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  ),
                   _Header(onClose: () => Navigator.of(context).pop()),
                   Expanded(
                     child: Form(
@@ -1468,16 +1459,6 @@ class _VendorPickerSheetState extends State<_VendorPickerSheet> {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colors.textSecondary.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-                const SizedBox(height: 14),
                 _PickerHeader(
                   title: 'Select Vendor',
                   subtitle: 'Choose the supplier for this receipt',
@@ -1623,16 +1604,6 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colors.textSecondary.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-                const SizedBox(height: 14),
                 _PickerHeader(
                   title: 'Select Product',
                   subtitle: 'Choose the item you received',

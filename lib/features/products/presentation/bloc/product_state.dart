@@ -15,6 +15,11 @@ class ProductState extends Equatable {
   final ProductSubmitStatus submitStatus;
   final String? submitError;
 
+  /// Non-fatal note attached to a successful submit. e.g. the product was
+  /// created but its opening stock could not be recorded. The product still
+  /// exists; the UI should inform rather than block.
+  final String? submitWarning;
+
   /// True when data came from SQLite/offline cache.
   final bool isFromCache;
 
@@ -29,6 +34,7 @@ class ProductState extends Equatable {
     this.isGrid = true,
     this.submitStatus = ProductSubmitStatus.idle,
     this.submitError,
+    this.submitWarning,
     this.isFromCache = false,
   });
 
@@ -50,6 +56,8 @@ class ProductState extends Equatable {
     ProductSubmitStatus? submitStatus,
     String? submitError,
     bool clearSubmitError = false,
+    String? submitWarning,
+    bool clearSubmitWarning = false,
     bool? isFromCache,
   }) {
     return ProductState(
@@ -65,6 +73,7 @@ class ProductState extends Equatable {
       isGrid: isGrid ?? this.isGrid,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: clearSubmitError ? null : submitError,
+      submitWarning: clearSubmitWarning ? null : submitWarning,
       isFromCache: isFromCache ?? this.isFromCache,
     );
   }
@@ -81,6 +90,7 @@ class ProductState extends Equatable {
     isGrid,
     submitStatus,
     submitError,
+    submitWarning,
     isFromCache,
   ];
 }

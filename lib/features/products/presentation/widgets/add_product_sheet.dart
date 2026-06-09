@@ -4,6 +4,8 @@ import 'package:amana_pos/common/services/image/app_image_picker.dart';
 import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
+import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
@@ -68,6 +70,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   late final TextEditingController _barcodeCtrl;
   late final TextEditingController _minStockCtrl;
   late final TextEditingController _expiryCtrl;
+  late final TextEditingController _openingStockCtrl;
 
   late final FocusNode _nameFocus;
   late final FocusNode _priceFocus;
@@ -77,6 +80,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   late final FocusNode _barcodeFocus;
   late final FocusNode _minStockFocus;
   late final FocusNode _expiryFocus;
+  late final FocusNode _openingStockFocus;
 
   late final List<String> _units;
 
@@ -84,6 +88,12 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   String _selectedUnit = 'pcs';
   bool _trackInventory = true;
   PickedAppImage? _pickedImage;
+
+  // Shops the opening stock can be recorded against. Resolved once from the
+  // active business. Empty for businesses with no shops (e.g. restaurants),
+  // in which case the opening-stock field is hidden.
+  List<ShopData> _shops = const [];
+  ShopData? _selectedShop;
 
   @override
   void initState() {
@@ -97,6 +107,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _barcodeCtrl = TextEditingController();
     _minStockCtrl = TextEditingController();
     _expiryCtrl = TextEditingController();
+    _openingStockCtrl = TextEditingController();
 
     _nameFocus = FocusNode();
     _priceFocus = FocusNode();
@@ -106,8 +117,12 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _barcodeFocus = FocusNode();
     _minStockFocus = FocusNode();
     _expiryFocus = FocusNode();
+    _openingStockFocus = FocusNode();
 
     _units = widget.isRestaurant ? kUnitsRestaurant : kUnitsShop;
+
+    _shops = _shopsFromBusiness();
+    _selectedShop = _firstValidShop(_shops);
 
     final categories = context.read<ProductBloc>().state.categories;
     final initialCategory = widget.initialCategory;
@@ -135,6 +150,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _barcodeCtrl.dispose();
     _minStockCtrl.dispose();
     _expiryCtrl.dispose();
+    _openingStockCtrl.dispose();
 
     _nameFocus.dispose();
     _priceFocus.dispose();
@@ -144,8 +160,23 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _barcodeFocus.dispose();
     _minStockFocus.dispose();
     _expiryFocus.dispose();
+    _openingStockFocus.dispose();
 
     super.dispose();
+  }
+
+  List<ShopData> _shopsFromBusiness() {
+    final businesses = context.read<BusinessBloc>().state.businessList;
+    if (businesses == null || businesses.isEmpty) return const [];
+    return businesses.first.shops ?? const [];
+  }
+
+  ShopData? _firstValidShop(List<ShopData> shops) {
+    for (final shop in shops) {
+      final id = shop.id;
+      if (id != null && id.trim().isNotEmpty) return shop;
+    }
+    return null;
   }
 
   CategoryData? _findCategoryById(
@@ -197,12 +228,31 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
     final bloc = context.read<ProductBloc>();
 
+    // Opening stock is optional and only meaningful for stock-tracked,
+    // non-restaurant products that have a valid target shop.
+    final openingStockRaw = _openingStockCtrl.text.trim();
+    final hasOpeningStock = shouldTrackInventory &&
+        openingStockRaw.isNotEmpty &&
+        (double.tryParse(openingStockRaw) ?? 0) > 0 &&
+        (_selectedShop?.id?.trim().isNotEmpty ?? false);
+
+    final openingStock = hasOpeningStock ? openingStockRaw : null;
+    final openingShopId = hasOpeningStock ? _selectedShop!.id : null;
+
     if (_selectedCategory == null) {
-      bloc.add(OnAddProductWithAutoCategory(dto: dto));
+      bloc.add(OnAddProductWithAutoCategory(
+        dto: dto,
+        openingStock: openingStock,
+        openingShopId: openingShopId,
+      ));
       return;
     }
 
-    bloc.add(OnAddProduct(dto: dto));
+    bloc.add(OnAddProduct(
+      dto: dto,
+      openingStock: openingStock,
+      openingShopId: openingShopId,
+    ));
   }
 
   @override
@@ -214,10 +264,20 @@ class _AddProductSheetState extends State<_AddProductSheet> {
       listener: (context, state) {
         if (state.submitStatus == ProductSubmitStatus.success) {
           Navigator.of(context).pop();
-          GlobalSnackBar.show(
-            message: context.tr.productAddedSuccessfully,
-            isInfo: true,
-          );
+          final warning = state.submitWarning;
+          if (warning != null && warning.trim().isNotEmpty) {
+            // Product was created, but its opening stock failed to record.
+            GlobalSnackBar.showWarning(
+              message:
+              'Product created, but opening stock was not saved. Add it from Inventory.',
+              isAutoDismiss: false,
+            );
+          } else {
+            GlobalSnackBar.show(
+              message: context.tr.productAddedSuccessfully,
+              isInfo: true,
+            );
+          }
           return;
         }
 
@@ -366,6 +426,21 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
                 const SizedBox(height: AppDims.s3),
 
+                if (_selectedShop != null) ...[
+                  _OpeningStockSection(
+                    controller: _openingStockCtrl,
+                    focusNode: _openingStockFocus,
+                    nextFocus: _minStockFocus,
+                    enabled: _trackInventory,
+                    shops: _shops,
+                    selectedShop: _selectedShop,
+                    onShopSelected: (shop) {
+                      setState(() => _selectedShop = shop);
+                    },
+                  ),
+                  const SizedBox(height: AppDims.s3),
+                ],
+
                 ProductInventoryAlertsSection(
                   minStockCtrl: _minStockCtrl,
                   expiryAlertCtrl: _expiryCtrl,
@@ -456,6 +531,189 @@ class _AutoCategoryInfo extends StatelessWidget {
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+// ─── Opening stock ────────────────────────────────────────────────────────────
+
+/// Optional "how many do you have right now" field shown at product creation.
+/// When filled, the product is created and an `opening` stock movement is
+/// recorded against [selectedShop] in one step. A shop chooser appears only
+/// when the business has more than one shop.
+class _OpeningStockSection extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode? focusNode;
+  final FocusNode? nextFocus;
+  final bool enabled;
+  final List<ShopData> shops;
+  final ShopData? selectedShop;
+  final ValueChanged<ShopData> onShopSelected;
+
+  const _OpeningStockSection({
+    required this.controller,
+    required this.enabled,
+    required this.shops,
+    required this.selectedShop,
+    required this.onShopSelected,
+    this.focusNode,
+    this.nextFocus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    final validShops = shops
+        .where((s) => (s.id?.trim().isNotEmpty ?? false))
+        .toList(growable: false);
+    final hasMultipleShops = validShops.length > 1;
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 180),
+      opacity: enabled ? 1 : 0.45,
+      child: IgnorePointer(
+        ignoring: !enabled,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppDims.s3),
+          decoration: BoxDecoration(
+            color: colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(AppDims.rMd),
+            border: Border.all(color: colors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    SolarIconsOutline.box,
+                    size: 18,
+                    color: colors.primary,
+                  ),
+                  const SizedBox(width: AppDims.s2),
+                  Expanded(
+                    child: Text(
+                      'Opening stock',
+                      style: AppTextStyles.bs400(context).copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Optional',
+                    style: AppTextStyles.bs100(context).copyWith(
+                      color: colors.textHint,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: AppDims.s1),
+
+              Text(
+                'How many you have in hand right now. Recorded as the first stock entry.',
+                style: AppTextStyles.bs200(context).copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                ),
+              ),
+
+              const SizedBox(height: AppDims.s3),
+
+              FieldLabel(label: 'Quantity in hand'),
+              const SizedBox(height: AppDims.s1),
+              AppFormField(
+                controller: controller,
+                focusNode: focusNode,
+                nextFocus: nextFocus,
+                hint: 'e.g. 50',
+                prefixIcon: Icons.inventory_2_outlined,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  final value = double.tryParse(v.trim());
+                  if (value == null) return 'Enter a valid number';
+                  if (value < 0) return 'Cannot be negative';
+                  return null;
+                },
+              ),
+
+              if (hasMultipleShops) ...[
+                const SizedBox(height: AppDims.s3),
+                FieldLabel(label: 'Add to shop'),
+                const SizedBox(height: AppDims.s2),
+                Wrap(
+                  spacing: AppDims.s2,
+                  runSpacing: AppDims.s2,
+                  children: validShops.map((shop) {
+                    final isSelected = selectedShop?.id == shop.id;
+                    return GestureDetector(
+                      onTap: () => onShopSelected(shop),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDims.s3,
+                          vertical: AppDims.s2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? colors.primary.withValues(alpha: 0.10)
+                              : colors.surface,
+                          borderRadius: BorderRadius.circular(AppDims.rMd),
+                          border: Border.all(
+                            color: isSelected
+                                ? colors.primary
+                                : colors.border,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Text(
+                          shop.name ?? 'Shop',
+                          style: AppTextStyles.bs200(context).copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: isSelected
+                                ? colors.primary
+                                : colors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ] else if (selectedShop != null) ...[
+                const SizedBox(height: AppDims.s2),
+                Row(
+                  children: [
+                    Icon(
+                      SolarIconsOutline.shop_2,
+                      size: 14,
+                      color: colors.textHint,
+                    ),
+                    const SizedBox(width: AppDims.s1),
+                    Expanded(
+                      child: Text(
+                        'Added to ${selectedShop!.name ?? 'your shop'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bs100(context).copyWith(
+                          color: colors.textHint,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

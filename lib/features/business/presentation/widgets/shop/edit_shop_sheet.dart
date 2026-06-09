@@ -111,16 +111,6 @@ class _EditShopSheetState extends State<_EditShopSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Handle ────────────────────────────────────────────────
-              const SizedBox(height: AppDims.s3),
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-
               // ── Header ────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(

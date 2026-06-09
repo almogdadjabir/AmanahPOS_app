@@ -98,92 +98,74 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
     final colors = context.appColors;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.92;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(28),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.14),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
-          ),
-        ],
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: AppDims.s3),
-            _BottomSheetHandle(color: colors.border),
-            const SizedBox(height: AppDims.s4),
-            Flexible(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppDims.s4,
-                  0,
-                  AppDims.s4,
-                  AppDims.s6,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _ReceiptReferenceCard(
-                      item: item,
-                      onTap: _copyRef,
-                    ),
-                    const SizedBox(height: AppDims.s3),
-                    _MetaChips(item: item),
-                    const SizedBox(height: AppDims.s4),
-                    _ItemsCard(item: item),
-                    const SizedBox(height: AppDims.s4),
-                    if (item.isOfflinePending) ...[
-                      _AlertBanner(
-                        icon: SolarIconsOutline.wifiRouterRound,
-                        message: context.tr.salePendingSyncDescription,
-                        color: AppColors.warning,
-                        background: AppColors.warningLight,
-                      ),
-                      const SizedBox(height: AppDims.s2),
-                    ],
-                    if (item.status == SaleHistoryStatus.refunded ||
-                        item.status == SaleHistoryStatus.partialRefund) ...[
-                      _AlertBanner(
-                        icon: SolarIconsOutline.infoCircle,
-                        message: context.tr.saleAlreadyRefunded,
-                        color: AppColors.danger,
-                        background: AppColors.dangerLight,
-                      ),
-                      const SizedBox(height: AppDims.s2),
-                    ],
-                    if (item.canBeReturned && widget.onReturnTap != null) ...[
-                      _ReturnItemsButton(onPressed: _handleReturnTap),
-                      const SizedBox(height: AppDims.s2),
-                    ],
-                    _ShareReceiptButton(
-                      isLoading: _isSharingPdf,
-                      onPressed: _shareReceiptPdf,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                AppDims.s4,
+                0,
+                AppDims.s4,
+                AppDims.s6,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _ReceiptReferenceCard(
+                    item: item,
+                    onTap: _copyRef,
+                  ),
+                  const SizedBox(height: AppDims.s3),
+                  _MetaChips(item: item),
+                  const SizedBox(height: AppDims.s4),
+                  _ItemsCard(item: item),
+                  const SizedBox(height: AppDims.s4),
+                  if (item.isOfflinePending) ...[
+                    _AlertBanner(
+                      icon: SolarIconsOutline.wifiRouterRound,
+                      message: context.tr.salePendingSyncDescription,
+                      color: AppColors.warning,
+                      background: AppColors.warningLight,
                     ),
                     const SizedBox(height: AppDims.s2),
-                    Text(
-                      context.tr.receiptPdfShareHint,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.sm100(context).copyWith(
-                        color: colors.textHint,
-                        fontWeight: FontWeight.w600,
-                        height: 1.35,
-                      ),
-                    ),
                   ],
-                ),
+                  if (item.status == SaleHistoryStatus.refunded ||
+                      item.status == SaleHistoryStatus.partialRefund) ...[
+                    _AlertBanner(
+                      icon: SolarIconsOutline.infoCircle,
+                      message: context.tr.saleAlreadyRefunded,
+                      color: AppColors.danger,
+                      background: AppColors.dangerLight,
+                    ),
+                    const SizedBox(height: AppDims.s2),
+                  ],
+                  if (item.canBeReturned && widget.onReturnTap != null) ...[
+                    _ReturnItemsButton(onPressed: _handleReturnTap),
+                    const SizedBox(height: AppDims.s2),
+                  ],
+                  _ShareReceiptButton(
+                    isLoading: _isSharingPdf,
+                    onPressed: _shareReceiptPdf,
+                  ),
+                  const SizedBox(height: AppDims.s2),
+                  Text(
+                    context.tr.receiptPdfShareHint,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bs300(context).copyWith(
+                      color: colors.textHint,
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

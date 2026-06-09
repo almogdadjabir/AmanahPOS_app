@@ -9,6 +9,7 @@ import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
+import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
@@ -68,6 +69,7 @@ List<BlocProvider> getAppProviders(BuildContext context) {
         useCase: getIt<ProductUseCase>(),
         offlineLocalCache: getIt<OfflineLocalCache>(),
         categoryUseCase: getIt<CategoryUseCase>(),
+        inventoryUseCase: getIt<InventoryUseCase>(),
       ),
     ),
 

@@ -29,14 +29,42 @@ class OnToggleProductLayout extends ProductEvent {
 
 class OnAddProduct extends ProductEvent {
   final AddProductRequestDto dto;
-  const OnAddProduct({required this.dto});
-  @override List<Object?> get props => [dto];
+
+  /// Raw opening-stock quantity string. Null/empty = no opening stock.
+  final String? openingStock;
+
+  /// Shop the opening stock is recorded against. Required when
+  /// [openingStock] is set; ignored otherwise.
+  final String? openingShopId;
+
+  const OnAddProduct({
+    required this.dto,
+    this.openingStock,
+    this.openingShopId,
+  });
+
+  @override
+  List<Object?> get props => [dto, openingStock, openingShopId];
 }
 
 class OnAddProductWithAutoCategory extends ProductEvent {
   final AddProductRequestDto dto;
-  const OnAddProductWithAutoCategory({required this.dto});
-  @override List<Object?> get props => [dto];
+
+  /// Raw opening-stock quantity string. Null/empty = no opening stock.
+  final String? openingStock;
+
+  /// Shop the opening stock is recorded against. Required when
+  /// [openingStock] is set; ignored otherwise.
+  final String? openingShopId;
+
+  const OnAddProductWithAutoCategory({
+    required this.dto,
+    this.openingStock,
+    this.openingShopId,
+  });
+
+  @override
+  List<Object?> get props => [dto, openingStock, openingShopId];
 }
 
 class OnUpdateProduct extends ProductEvent {

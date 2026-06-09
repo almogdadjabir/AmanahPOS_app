@@ -118,14 +118,6 @@ class _EditBusinessSheetState extends State<_EditBusinessSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: AppDims.s3),
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
 
               Padding(
                 padding: const EdgeInsets.fromLTRB(

@@ -33,15 +33,6 @@ Future<void> showPermissionRequiredSheet(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.border,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            const SizedBox(height: AppDims.s4),
-            Container(
               width: 64,
               height: 64,
               decoration: BoxDecoration(

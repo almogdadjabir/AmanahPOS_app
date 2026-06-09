@@ -172,15 +172,6 @@ class _StockActionSheetState extends State<_StockActionSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Handle ────────────────────────────────────────────────
-              const SizedBox(height: AppDims.s3),
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
 
               // ── Header ────────────────────────────────────────────────
               Padding(

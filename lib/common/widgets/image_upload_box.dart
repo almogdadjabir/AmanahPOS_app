@@ -169,15 +169,6 @@ class ImageUploadBox extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              const SizedBox(height: AppDims.s4),
               _ImageActionTile(
                 icon: Icons.photo_library_outlined,
                 title: 'Choose from gallery',

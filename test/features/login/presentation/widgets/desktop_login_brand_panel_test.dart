@@ -31,13 +31,13 @@ void main() {
     // Three feature badges must be present
     expect(find.text('Offline-ready'), findsOneWidget);
     expect(find.text('Multi-branch'), findsOneWidget);
-    expect(find.text('Secure'), findsOneWidget);
+    expect(find.text('Secure by design'), findsOneWidget);
   });
 
   testWidgets('DesktopLoginBrandPanel shows wordmark and headline',
       (tester) async {
     await _pumpPanel(tester);
     expect(find.text('AmanaPOS'), findsOneWidget);
-    expect(find.text('Point of Sale Platform'), findsOneWidget);
+    expect(find.text('POINT OF SALE PLATFORM'), findsOneWidget);
   });
 }

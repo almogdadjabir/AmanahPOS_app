@@ -104,15 +104,6 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: AppDims.s3),
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                     AppDims.s4, AppDims.s4, AppDims.s4, 0),

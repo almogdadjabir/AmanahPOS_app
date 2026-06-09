@@ -33,7 +33,7 @@ class _CustomerFormSheet extends StatefulWidget {
 }
 
 class _CustomerFormSheetState extends State<_CustomerFormSheet> {
-  final _formKey      = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameCtrl;
   late final TextEditingController _phoneCtrl;
   late final TextEditingController _emailCtrl;
@@ -76,11 +76,11 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final dto = CustomerRequestDto(
-      name:          _nameCtrl.text.trim(),
-      phone:         _phoneCtrl.text.trim(),
-      email:         _emailCtrl.text.trim().isEmpty    ? null : _emailCtrl.text.trim(),
-      address:       _addressCtrl.text.trim().isEmpty  ? null : _addressCtrl.text.trim(),
-      notes:         _notesCtrl.text.trim().isEmpty    ? null : _notesCtrl.text.trim(),
+      name: _nameCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      email: _emailCtrl.text.trim().isEmpty    ? null : _emailCtrl.text.trim(),
+      address: _addressCtrl.text.trim().isEmpty  ? null : _addressCtrl.text.trim(),
+      notes: _notesCtrl.text.trim().isEmpty    ? null : _notesCtrl.text.trim(),
       loyaltyPoints: _pointsCtrl.text.trim().isEmpty   ? null : int.tryParse(_pointsCtrl.text.trim()),
     );
 
@@ -123,23 +123,13 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
             maxHeight: MediaQuery.sizeOf(context).height * 0.90,
           ),
           decoration: BoxDecoration(
-            color:        colors.surface,
+            color: colors.surface,
             borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppDims.rXl)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: AppDims.s3),
-              // Drag handle
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                  color:        colors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-
               // Rich header (icon + title + subtitle)
               Padding(
                 padding: const EdgeInsets.fromLTRB(

@@ -208,8 +208,6 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: AppDims.s3),
-              _SheetHandle(color: colors.border),
               _SheetHeader(
                 title: 'Add Stock',
                 subtitle: _selectedProduct == null
@@ -273,26 +271,6 @@ class _AddStockProductSheetState extends State<_AddStockProductSheet> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SheetHandle extends StatelessWidget {
-  final Color color;
-
-  const _SheetHandle({
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 4,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999),
       ),
     );
   }

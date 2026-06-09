@@ -4,11 +4,14 @@ import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
+import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
+import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
+import 'package:amana_pos/features/users/data/models/movement_type.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
@@ -20,11 +23,13 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductUseCase useCase;
   final OfflineLocalCache offlineLocalCache;
   final CategoryUseCase categoryUseCase;
+  final InventoryUseCase inventoryUseCase;
 
   ProductBloc({
     required this.useCase,
     required this.offlineLocalCache,
     required this.categoryUseCase,
+    required this.inventoryUseCase,
   }) : super(ProductState.initial()) {
     on<OnProductInitial>(_init);
     on<OnProductCategorySelected>(_onCategorySelected);
@@ -428,12 +433,22 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       }
 
       if (product?.data != null && !emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.success,
-            products: [product!.data!, ...state.products],
-          ),
+        final outcome = await _recordOpeningStock(
+          product: product!.data!,
+          openingStock: event.openingStock,
+          openingShopId: event.openingShopId,
         );
+
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              submitStatus: ProductSubmitStatus.success,
+              products: [outcome.product, ...state.products],
+              submitWarning: outcome.warning,
+              clearSubmitWarning: outcome.warning == null,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!emit.isDone) {
@@ -448,9 +463,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }
 
   Future<void> _addProductWithAutoCategory(
-    OnAddProductWithAutoCategory event,
-    Emitter<ProductState> emit,
-  ) async {
+      OnAddProductWithAutoCategory event,
+      Emitter<ProductState> emit,
+      ) async {
     emit(
       state.copyWith(
         submitStatus: ProductSubmitStatus.loading,
@@ -494,6 +509,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         description: event.dto.description,
         sku: event.dto.sku,
         barcode: event.dto.barcode,
+        expiryAlertDays: event.dto.expiryAlertDays,
         imageUpload: event.dto.imageUpload,
       );
 
@@ -515,13 +531,23 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       }
 
       if (product?.data != null && !emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.success,
-            products: [product!.data!, ...state.products],
-            categories: [...state.categories, createdCategory],
-          ),
+        final outcome = await _recordOpeningStock(
+          product: product!.data!,
+          openingStock: event.openingStock,
+          openingShopId: event.openingShopId,
         );
+
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              submitStatus: ProductSubmitStatus.success,
+              products: [outcome.product, ...state.products],
+              categories: [...state.categories, createdCategory],
+              submitWarning: outcome.warning,
+              clearSubmitWarning: outcome.warning == null,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!emit.isDone) {
@@ -532,6 +558,58 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         );
       }
+    }
+  }
+
+  /// Records opening stock for a freshly created product as a single
+  /// `opening` movement. Best-effort: the product already exists, so a
+  /// failure here returns a non-fatal warning instead of failing the submit.
+  ///
+  /// Skips silently (no warning) when there is nothing to record — no
+  /// quantity, a non-positive/invalid quantity, or a missing product/shop id.
+  Future<({ProductData product, String? warning})> _recordOpeningStock({
+    required ProductData product,
+    required String? openingStock,
+    required String? openingShopId,
+  }) async {
+    final raw = openingStock?.trim();
+    if (raw == null || raw.isEmpty) {
+      return (product: product, warning: null);
+    }
+
+    final qty = double.tryParse(raw);
+    if (qty == null || qty <= 0) {
+      return (product: product, warning: null);
+    }
+
+    final productId = product.id?.trim();
+    final shopId = openingShopId?.trim();
+    if (productId == null ||
+        productId.isEmpty ||
+        shopId == null ||
+        shopId.isEmpty) {
+      return (product: product, warning: null);
+    }
+
+    try {
+      final response = await inventoryUseCase.addStock(
+        AddStockRequestDto(
+          productId: productId,
+          shopId: shopId,
+          quantity: raw,
+          movementType: MovementType.opening,
+        ),
+      );
+
+      final error = response.getLeft().toNullable();
+      if (error != null) {
+        return (product: product, warning: error);
+      }
+
+      // Reflect the new quantity immediately in the list card.
+      return (product: product.copyWith(stockLevel: qty), warning: null);
+    } catch (e) {
+      return (product: product, warning: e.toString());
     }
   }
 

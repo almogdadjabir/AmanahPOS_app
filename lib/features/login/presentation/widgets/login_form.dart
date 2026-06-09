@@ -54,117 +54,146 @@ class _LoginFormState extends State<LoginForm> {
         final colors = context.appColors;
         final hasError = state.mobileError != null;
 
-        // ── Desktop: inline column, no bottom-pinned button ──────────────────────
+        // ── Desktop: centered + scroll safe ─────────────────────────────────────
         if (context.isDesktop) {
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xxl,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      tr.loginWelcomeTitle,
-                      style: AppTextStyles.lg100(context,
-                          weight: AppTextStyles.extraBold,
-                          color: colors.textPrimary),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                    vertical: AppSpacing.xl,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - (AppSpacing.xl * 2),
                     ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            tr.loginWelcomeTitle,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bs500(context).copyWith(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                              height: 1.2,
+                            ),
+                          ),
 
-                    const SizedBox(height: AppSpacing.xs),
+                          const SizedBox(height: AppSpacing.xl),
 
-                    Text(
-                      tr.loginSubtitle,
-                      style: AppTextStyles.bs400(context,
-                          color: colors.textSecondary),
-                    ),
+                          Text(
+                            tr.loginSubtitle,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.sm300(
+                              context,
+                              color: colors.textSecondary,
+                            ),
+                          ),
 
-                    const SizedBox(height: AppSpacing.xxl),
+                          const SizedBox(height: AppSpacing.huge),
 
-                    Text(
-                      tr.loginMobileLabel,
-                      style: AppTextStyles.bs600(context,
-                          weight: AppTextStyles.semibold,
-                          color: colors.textSecondary),
-                    ),
+                          Text(
+                            tr.loginMobileLabel,
+                            style: AppTextStyles.sm200(
+                              context,
+                              weight: AppTextStyles.semibold,
+                              color: colors.textSecondary,
+                            ),
+                          ),
 
-                    const SizedBox(height: AppSpacing.xs),
+                          const SizedBox(height: AppSpacing.xs),
 
-                    PhoneNumberField(
-                      controller: _phoneController,
-                      focusNode: _focus,
-                      error: hasError,
-                      onCompleted: (_) => context
-                          .read<LoginBloc>()
-                          .add(OnLoginSubmitEvent()),
-                    ),
+                          PhoneNumberField(
+                            controller: _phoneController,
+                            focusNode: _focus,
+                            error: hasError,
+                            onCompleted: (_) => context
+                                .read<LoginBloc>()
+                                .add(OnLoginSubmitEvent()),
+                          ),
 
-                    SizedBox(
-                      height: 28,
-                      child: hasError
-                          ? Row(
+                          SizedBox(
+                            height: 28,
+                            child: hasError
+                                ? Row(
                               children: [
-                                Icon(Icons.error_outline,
-                                    size: 14, color: colors.danger),
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 14,
+                                  color: colors.danger,
+                                ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  state.mobileError!,
-                                  style: AppTextStyles.sm200(context,
+                                Expanded(
+                                  child: Text(
+                                    state.mobileError!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTextStyles.sm200(
+                                      context,
                                       weight: AppTextStyles.semibold,
-                                      color: colors.danger),
+                                      color: colors.danger,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ).animate().shake(hz: 4, duration: 400.ms)
-                          : const SizedBox.shrink(),
-                    ),
+                                : const SizedBox.shrink(),
+                          ),
 
-                    const SizedBox(height: AppSpacing.md),
+                          const SizedBox(height: AppSpacing.sm),
 
-                    AppButton.wide(
-                      label: tr.loginContinue,
-                      onPressed: state.isMobileValid
-                          ? () => context
-                              .read<LoginBloc>()
-                              .add(OnLoginSubmitEvent())
-                          : null,
-                      isLoading: state.isLoading,
-                    ),
+                          AppButton.wide(
+                            label: tr.loginContinue,
+                            onPressed: state.isMobileValid
+                                ? () => context
+                                .read<LoginBloc>()
+                                .add(OnLoginSubmitEvent())
+                                : null,
+                            isLoading: state.isLoading,
+                          ),
 
-                    const SizedBox(height: AppSpacing.sm),
+                          const SizedBox(height: AppSpacing.md),
 
-                    Center(
-                      child: Text.rich(
-                        TextSpan(
-                          style: AppTextStyles.bs300(context,
-                              color: colors.textHint),
-                          children: [
-                            TextSpan(text: tr.loginTermsPrefix),
+                          Text.rich(
                             TextSpan(
-                              text: tr.loginTermsLink,
-                              style: TextStyle(
-                                  color: colors.primary,
-                                  fontWeight: FontWeight.w600),
+                              style: AppTextStyles.sm200(
+                                context,
+                                color: colors.textHint,
+                              ),
+                              children: [
+                                TextSpan(text: tr.loginTermsPrefix),
+                                TextSpan(
+                                  text: tr.loginTermsLink,
+                                  style: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                TextSpan(text: tr.loginTermsSeparator),
+                                TextSpan(
+                                  text: tr.loginPrivacyLink,
+                                  style: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const TextSpan(text: '.'),
+                              ],
                             ),
-                            TextSpan(text: tr.loginTermsSeparator),
-                            TextSpan(
-                              text: tr.loginPrivacyLink,
-                              style: TextStyle(
-                                  color: colors.primary,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            const TextSpan(text: '.'),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         }
         // ── Mobile: existing layout unchanged ────────────────────────────────────

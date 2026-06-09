@@ -11,7 +11,7 @@ part 'sales_history_state.dart';
 class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
   final SalesHistoryUseCase _useCase;
 
-  static const int      _pageSize        = 20;
+  static const int _pageSize = 20;
   static const Duration _searchDebounce  = Duration(milliseconds: 450);
 
   Timer? _searchTimer;

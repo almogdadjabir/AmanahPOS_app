@@ -45,19 +45,6 @@ class ProductSheetShell extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: AppDims.s3),
-
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.border,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const SizedBox(
-                  width: 36,
-                  height: 4,
-                ),
-              ),
-
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
                   AppDims.s4,

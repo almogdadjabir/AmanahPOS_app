@@ -71,14 +71,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Same as Scaffold.backgroundColor — defensive background
                     // in case the Row has any gap at narrow breakpoints.
                     color: context.appColors.background,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 400),
-                        child: PageView.builder(
-                          controller: _pageController,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: pages.length,
-                          itemBuilder: (_, i) => pages[i],
+                    // Anchored to the panel's leading edge — in line with the
+                    // brand panel's content instead of floating mid-void.
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(start: AppDims.s8),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 380),
+                          child: PageView.builder(
+                            controller: _pageController,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: pages.length,
+                            itemBuilder: (_, i) => pages[i],
+                          ),
                         ),
                       ),
                     ),
