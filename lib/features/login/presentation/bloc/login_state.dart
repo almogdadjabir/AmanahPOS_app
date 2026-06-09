@@ -28,6 +28,7 @@ class LoginState extends Equatable {
   final bool isPinMatched;
   final String? otpError;
   final int otpResendSeconds; // ← NEW
+  final String? otpIdentifierId;
 
   const LoginState({
     this.isLoading = false,
@@ -44,6 +45,7 @@ class LoginState extends Equatable {
     this.loginResponse,
     this.otpError,
     this.otpResendSeconds = 45,
+    this.otpIdentifierId,
   });
 
   factory LoginState.initial() {
@@ -115,6 +117,7 @@ class LoginState extends Equatable {
       loginResponse: loginResponse ?? this.loginResponse,
       isPinMatched: isPinMatched ?? this.isPinMatched,
       otpResendSeconds: otpResendSeconds ?? this.otpResendSeconds,
+      otpIdentifierId: otpIdentifierId ?? this.otpIdentifierId,
     );
   }
 
@@ -134,5 +137,6 @@ class LoginState extends Equatable {
     isPinMatched,
     otpError,
     otpResendSeconds, // ← NEW
+    otpIdentifierId,
   ];
 }

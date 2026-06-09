@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
@@ -142,7 +143,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       if (emittedCachedData) {
         emit(state.copyWith(
           productStatus: ProductStatus.success,
-          responseError: e.toString(),
+          responseError: friendlyError(e),
           isFromCache: true,
         ));
         return;
@@ -150,7 +151,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       if (!emit.isDone) {
         emit(state.copyWith(
           productStatus: ProductStatus.failure,
-          responseError: e.toString(),
+          responseError: friendlyError(e),
           isFromCache: false,
         ));
       }
@@ -286,7 +287,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           emit(
             state.copyWith(
               productStatus: ProductStatus.success,
-              responseError: e.toString(),
+              responseError: friendlyError(e),
               isFromCache: true,
             ),
           );
@@ -298,7 +299,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(
             productStatus: ProductStatus.failure,
-            responseError: e.toString(),
+            responseError: friendlyError(e),
             isFromCache: false,
           ),
         );
@@ -391,7 +392,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(
             productStatus: ProductStatus.failure,
-            responseError: e.toString(),
+            responseError: friendlyError(e),
           ),
         );
       }
@@ -455,7 +456,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(
             submitStatus: ProductSubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }
@@ -554,7 +555,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(
             submitStatus: ProductSubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }
@@ -609,7 +610,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       // Reflect the new quantity immediately in the list card.
       return (product: product.copyWith(stockLevel: qty), warning: null);
     } catch (e) {
-      return (product: product, warning: e.toString());
+      return (product: product, warning: friendlyError(e));
     }
   }
 
@@ -657,7 +658,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(
             submitStatus: ProductSubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }
@@ -711,7 +712,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(
             submitStatus: ProductSubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }

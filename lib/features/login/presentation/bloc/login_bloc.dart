@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'dart:developer';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/device/device_info_service.dart';
@@ -93,7 +94,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     try {
       final response = await useCase.userLogin(
-        LoginRequest(phone: '+249$digits')//'+971544097335'),
+          LoginRequest(phone: '+249$digits')//'+971544097335'),
       );
 
       if (emit.isDone) return;
@@ -125,7 +126,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(state.copyWith(
         isLoading: false,
         status: PageStatus.failure,
-        responseError: e.toString(),
+        responseError: friendlyError(e),
       ));
     }
   }
@@ -219,7 +220,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(state.copyWith(
         isLoading: false,
         status: PageStatus.failure,
-        otpError: e.toString(),
+        otpError: friendlyError(e),
         otp: '',
       ));
     }
@@ -234,25 +235,43 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       OnResendOtpEvent event,
       Emitter<LoginState> emit,
       ) async {
+    if (state.isLoading) return;
+
     emit(state.copyWith(isLoading: true, clearOtpError: true));
 
     try {
-      // TODO: replace with your actual resend call
-      // e.g. await useCase.resendOtp(identifier: state.otpIdentifierId!);
-      await Future.delayed(const Duration(milliseconds: 500)); // ← remove when real
+      final response = await useCase.otpResend();
 
       if (emit.isDone) return;
+
+      final error = response.isLeft()
+          ? response.getLeft().toNullable()
+          : null;
+
+      if (error != null) {
+        emit(state.copyWith(
+          isLoading: false,
+          otpError: error.isEmpty
+              ? 'Could not resend the code. Please try again.'
+              : error,
+        ));
+        return;
+      }
+
+      final resend = response.getRight().toNullable();
 
       _startResendTimer();
       emit(state.copyWith(
         isLoading: false,
         otpResendSeconds: 45,
+        // Keep the latest identifier so a subsequent verify/resend stays valid.
+        otpIdentifierId: resend?.otpIdentifierId ?? state.otpIdentifierId,
       ));
     } catch (e) {
       if (emit.isDone) return;
       emit(state.copyWith(
         isLoading: false,
-        otpError: e.toString(),
+        otpError: friendlyError(e),
       ));
     }
   }

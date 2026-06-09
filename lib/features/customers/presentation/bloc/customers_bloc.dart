@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/customers/data/models/requests/customer_request_dto.dart';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
 import 'package:equatable/equatable.dart';
@@ -66,7 +67,7 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
       emit(
         state.copyWith(
           status: CustomersStatus.failure,
-          responseError: e.toString(),
+          responseError: friendlyError(e),
         ),
       );
     }
@@ -160,7 +161,7 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
       emit(
         state.copyWith(
           submitStatus: CustomerSubmitStatus.failure,
-          submitError: e.toString(),
+          submitError: friendlyError(e),
         ),
       );
     }
@@ -207,7 +208,7 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     //   emit(
     //     state.copyWith(
     //       submitStatus: CustomerSubmitStatus.failure,
-    //       submitError: e.toString(),
+    //       submitError: friendlyError(e),
     //     ),
     //   );
     // }
@@ -256,7 +257,7 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     //   emit(
     //     state.copyWith(
     //       submitStatus: CustomerSubmitStatus.failure,
-    //       submitError: e.toString(),
+    //       submitError: friendlyError(e),
     //     ),
     //   );
     // }

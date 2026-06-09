@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/business/data/models/requests/add_business_request_dto.dart';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/business/data/models/requests/add_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/requests/edit_business_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/requests/edit_shop_request_dto.dart';
@@ -118,7 +119,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       emit(
         state.copyWith(
           isLoading: false,
-          responseError: e.toString(),
+          responseError: friendlyError(e),
           businessStatus: BusinessStatus.failure,
         ),
       );
@@ -131,7 +132,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       ) async {
     if(state.submitStatus == BusinessSubmitStatus.loading){
       return;
-      }
+    }
 
     emit(state.copyWith(
       submitStatus: BusinessSubmitStatus.loading,
@@ -154,16 +155,16 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         )),
             (newBusiness) => emit(state.copyWith(
           submitStatus: BusinessSubmitStatus.success,
-              businessList: [
-                ...?state.businessList,
-                newBusiness.data!,
-              ],
-            )),
+          businessList: [
+            ...?state.businessList,
+            newBusiness.data!,
+          ],
+        )),
       );
     } catch (e) {
       emit(state.copyWith(
         submitStatus: BusinessSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError: friendlyError(e),
       ));
     }
   }
@@ -204,7 +205,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     } catch (e) {
       emit(state.copyWith(
         submitStatus: BusinessSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError: friendlyError(e),
       ));
     }
   }
@@ -260,7 +261,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     } catch (e) {
       emit(state.copyWith(
         submitStatus: BusinessSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError: friendlyError(e),
       ));
     }
   }
@@ -314,16 +315,16 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     } catch (e) {
       emit(state.copyWith(
         submitStatus: BusinessSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError: friendlyError(e),
       ));
     }
   }
 
 
   Future<void> _reset(
-    OnBusinessReset event,
-    Emitter<BusinessState> emit,
-  ) async {
+      OnBusinessReset event,
+      Emitter<BusinessState> emit,
+      ) async {
     emit(BusinessState.initial());
     add(const OnBusinessInitial());
   }
@@ -383,7 +384,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     } catch (e) {
       emit(state.copyWith(
         submitStatus: BusinessSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError: friendlyError(e),
       ));
     }
   }

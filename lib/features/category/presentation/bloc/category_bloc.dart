@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
@@ -100,14 +101,14 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       if (emittedCachedData) {
         emit(state.copyWith(
           categoryStatus: CategoryStatus.success,
-          responseError: e.toString(),
+          responseError: friendlyError(e),
           isFromCache: true,
         ));
         return;
       }
       emit(state.copyWith(
         categoryStatus: CategoryStatus.failure,
-        responseError: e.toString(),
+        responseError: friendlyError(e),
         isFromCache: false,
       ));
     }
@@ -171,7 +172,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         state.copyWith(
           submitStatus: CategorySubmitStatus.failure,
-          submitError: e.toString(),
+          submitError: friendlyError(e),
         ),
       );
     }
@@ -224,7 +225,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         state.copyWith(
           submitStatus: CategorySubmitStatus.failure,
-          submitError: e.toString(),
+          submitError: friendlyError(e),
         ),
       );
     }
@@ -337,7 +338,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         emit(
           state.copyWith(
             productsStatus: CategoryProductsStatus.success,
-            productsError: e.toString(),
+            productsError: friendlyError(e),
             productsFromCache: true,
           ),
         );
@@ -347,7 +348,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         state.copyWith(
           productsStatus: CategoryProductsStatus.failure,
-          productsError: e.toString(),
+          productsError: friendlyError(e),
           productsFromCache: false,
         ),
       );
@@ -399,7 +400,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         state.copyWith(
           productsStatus: CategoryProductsStatus.failure,
-          productsError: e.toString(),
+          productsError: friendlyError(e),
         ),
       );
     }
@@ -439,17 +440,17 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         state.copyWith(
           submitStatus: CategorySubmitStatus.failure,
-          submitError: e.toString(),
+          submitError: friendlyError(e),
         ),
       );
     }
   }
 
-Future<void> _reset(
-  OnCategoryReset event,
-  Emitter<CategoryState> emit,
-) async {
-  emit(CategoryState.initial());
-  add(const OnCategoryInitial());
-}
+  Future<void> _reset(
+      OnCategoryReset event,
+      Emitter<CategoryState> emit,
+      ) async {
+    emit(CategoryState.initial());
+    add(const OnCategoryInitial());
+  }
 }

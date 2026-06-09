@@ -1,4 +1,5 @@
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
@@ -50,15 +51,31 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     var emittedCachedData = false;
 
     // try {
-      final cachedStock = await offlineLocalCache.getStock();
+    final cachedStock = await offlineLocalCache.getStock();
 
-      if (cachedStock.isNotEmpty) {
+    if (cachedStock.isNotEmpty) {
+      emittedCachedData = true;
+
+      emit(
+        state.copyWith(
+          status: InventoryStatus.success,
+          stockList: cachedStock,
+          currentPage: 1,
+          totalPages: 1,
+          isFromCache: true,
+          clearResponseError: true,
+        ),
+      );
+    } else {
+      final fallbackStock = await offlineLocalCache.getStockFallbackFromProducts();
+
+      if (fallbackStock.isNotEmpty) {
         emittedCachedData = true;
 
         emit(
           state.copyWith(
             status: InventoryStatus.success,
-            stockList: cachedStock,
+            stockList: fallbackStock,
             currentPage: 1,
             totalPages: 1,
             isFromCache: true,
@@ -66,98 +83,82 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
           ),
         );
       } else {
-        final fallbackStock = await offlineLocalCache.getStockFallbackFromProducts();
-
-        if (fallbackStock.isNotEmpty) {
-          emittedCachedData = true;
-
-          emit(
-            state.copyWith(
-              status: InventoryStatus.success,
-              stockList: fallbackStock,
-              currentPage: 1,
-              totalPages: 1,
-              isFromCache: true,
-              clearResponseError: true,
-            ),
-          );
-        } else {
-          emit(
-            state.copyWith(
-              status: InventoryStatus.loading,
-              stockList: [],
-              currentPage: 1,
-              totalPages: 1,
-              isFromCache: false,
-              clearResponseError: true,
-            ),
-          );
-        }
-      }
-
-      final response = await useCase.getStock(page: 1);
-      final error = response.getLeft().toNullable();
-      final result = response.getRight().toNullable();
-
-      if (error != null) {
-        if (emittedCachedData) {
-          emit(
-            state.copyWith(
-              status: InventoryStatus.success,
-              responseError: error,
-              isFromCache: true,
-            ),
-          );
-          return;
-        }
-
         emit(
           state.copyWith(
-            status: InventoryStatus.failure,
-            responseError: error,
-            isFromCache: false,
-          ),
-        );
-        return;
-      }
-
-      final freshStock = result?.results ?? [];
-
-      await offlineLocalCache.saveStockToCache(freshStock);
-
-      if (result != null && !emit.isDone) {
-        emit(
-          state.copyWith(
-            status: InventoryStatus.success,
-            stockList: freshStock,
-            currentPage: result.currentPage ?? 1,
-            totalPages: result.totalPages ?? 1,
+            status: InventoryStatus.loading,
+            stockList: [],
+            currentPage: 1,
+            totalPages: 1,
             isFromCache: false,
             clearResponseError: true,
           ),
         );
       }
+    }
+
+    final response = await useCase.getStock(page: 1);
+    final error = response.getLeft().toNullable();
+    final result = response.getRight().toNullable();
+
+    if (error != null) {
+      if (emittedCachedData) {
+        emit(
+          state.copyWith(
+            status: InventoryStatus.success,
+            responseError: error,
+            isFromCache: true,
+          ),
+        );
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          status: InventoryStatus.failure,
+          responseError: error,
+          isFromCache: false,
+        ),
+      );
+      return;
+    }
+
+    final freshStock = result?.results ?? [];
+
+    await offlineLocalCache.saveStockToCache(freshStock);
+
+    if (result != null && !emit.isDone) {
+      emit(
+        state.copyWith(
+          status: InventoryStatus.success,
+          stockList: freshStock,
+          currentPage: result.currentPage ?? 1,
+          totalPages: result.totalPages ?? 1,
+          isFromCache: false,
+          clearResponseError: true,
+        ),
+      );
+    }
     // } catch (e) {
     //   if (emittedCachedData) {
     //     emit(
     //       state.copyWith(
     //         status: InventoryStatus.success,
-    //         responseError: e.toString(),
+    //         responseError: friendlyError(e),
     //         isFromCache: true,
     //       ),
     //     );
     //     return;
     //   }
 
-      // if (!emit.isDone) {
-      //   emit(
-      //     state.copyWith(
-      //       status: InventoryStatus.failure,
-      //       responseError: e.toString(),
-      //       isFromCache: false,
-      //     ),
-      //   );
-      // }
+    // if (!emit.isDone) {
+    //   emit(
+    //     state.copyWith(
+    //       status: InventoryStatus.failure,
+    //       responseError: friendlyError(e),
+    //       isFromCache: false,
+    //     ),
+    //   );
+    // }
     // }
   }
 
@@ -208,7 +209,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(
           state.copyWith(
             status: InventoryStatus.failure,
-            responseError: e.toString(),
+            responseError: friendlyError(e),
           ),
         );
       }
@@ -292,7 +293,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(
           state.copyWith(
             submitStatus: InventorySubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }
@@ -361,7 +362,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(
           state.copyWith(
             submitStatus: InventorySubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }
@@ -451,7 +452,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(
           state.copyWith(
             submitStatus: InventorySubmitStatus.failure,
-            submitError: e.toString(),
+            submitError: friendlyError(e),
           ),
         );
       }
@@ -461,9 +462,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
 
 
   void _acknowledgeSubmit(
-    OnAcknowledgeInventorySubmit event,
-    Emitter<InventoryState> emit,
-  ) {
+      OnAcknowledgeInventorySubmit event,
+      Emitter<InventoryState> emit,
+      ) {
     emit(
       state.copyWith(
         submitStatus: InventorySubmitStatus.idle,
@@ -474,9 +475,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<void> _createInboundTransaction(
-    OnCreateInboundTransaction event,
-    Emitter<InventoryState> emit,
-  ) async {
+      OnCreateInboundTransaction event,
+      Emitter<InventoryState> emit,
+      ) async {
     if (state.submitStatus == InventorySubmitStatus.loading) return;
 
     emit(
@@ -523,16 +524,16 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       emit(
         state.copyWith(
           submitStatus: InventorySubmitStatus.failure,
-          submitError: e.toString(),
+          submitError: friendlyError(e),
         ),
       );
     }
   }
 
   Future<void> _queueInboundOffline(
-    CreateInboundRequestDto request,
-    Emitter<InventoryState> emit,
-  ) async {
+      CreateInboundRequestDto request,
+      Emitter<InventoryState> emit,
+      ) async {
     final clientInboundId = const Uuid().v4();
 
     await offlineInboundQueue.enqueue(
@@ -573,8 +574,8 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<List<StockData>> _updatedStockListAfterInbound(
-    CreateInboundRequestDto request,
-  ) async {
+      CreateInboundRequestDto request,
+      ) async {
     var updated = state.stockList;
 
     for (final item in request.items) {

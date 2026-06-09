@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
+import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:equatable/equatable.dart';
@@ -57,7 +58,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     if (productId == null) return;
 
     final existingIndex =
-        state.items.indexWhere((item) => item.product.id == productId);
+    state.items.indexWhere((item) => item.product.id == productId);
     final currentQty = existingIndex == -1 ? 0 : state.items[existingIndex].quantity;
     final nextQty = currentQty + 1;
 
@@ -126,9 +127,9 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   }
 
   Future<void> _onCheckoutSubmitted(
-    PosCheckoutSubmitted event,
-    Emitter<PosState> emit,
-  ) async {
+      PosCheckoutSubmitted event,
+      Emitter<PosState> emit,
+      ) async {
     if (state.items.isEmpty) return;
 
     // Snapshot BEFORE clearing
@@ -153,13 +154,13 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       );
 
       response.fold(
-        (error) {
+            (error) {
           emit(state.copyWith(
             submitStatus: PosSubmitStatus.failure,
             submitError: error ?? 'Failed to submit sale',
           ));
         },
-        (result) {
+            (result) {
           emit(state.copyWith(
             items: [],
             lastSoldQuantities: soldQuantities,
@@ -183,7 +184,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     } catch (e) {
       emit(state.copyWith(
         submitStatus: PosSubmitStatus.failure,
-        submitError: e.toString(),
+        submitError: friendlyError(e),
       ));
     }
   }
@@ -225,7 +226,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     final stock = product.stockLevel ?? 0;
     final name = product.name ?? 'Product';
     final formattedStock =
-        stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(1);
+    stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(1);
     return 'Only $formattedStock item(s) available for $name.';
   }
 }
