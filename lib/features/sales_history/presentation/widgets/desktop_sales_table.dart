@@ -19,6 +19,11 @@ const _kPaymentFlex = 2;
 const _kTotalFlex = 2;
 const _kStatusFlex = 2;
 
+// Padding constants
+const _kHeaderVerticalPad = AppDims.s2 + 2.0;
+const _kPillVerticalPad = 4.0;
+const _kPillIconGap = 4.0;
+
 /// Sliver widget: a decorated card (rounded border) containing the table header
 /// + a [SliverList] of sale rows, wrapped in [SliverMainAxisGroup]/[DecoratedSliver].
 class DesktopSalesTable extends StatelessWidget {
@@ -44,13 +49,13 @@ class DesktopSalesTable extends StatelessWidget {
       sliver: SliverMainAxisGroup(
         slivers: [
           SliverToBoxAdapter(
-            child: DesktopSalesTableHeader(),
+            child: const _DesktopSalesTableHeader(),
           ),
           SliverList.builder(
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
-              return DesktopSalesTableRow(
+              return _DesktopSalesTableRow(
                 item: item,
                 onTap: () => onTap(item),
               )
@@ -64,8 +69,8 @@ class DesktopSalesTable extends StatelessWidget {
   }
 }
 
-class DesktopSalesTableHeader extends StatelessWidget {
-  const DesktopSalesTableHeader({super.key});
+class _DesktopSalesTableHeader extends StatelessWidget {
+  const _DesktopSalesTableHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +85,7 @@ class DesktopSalesTableHeader extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppDims.s4,
-          vertical: AppDims.s2 + 2,
+          vertical: _kHeaderVerticalPad,
         ),
         child: Row(
           children: [
@@ -116,8 +121,8 @@ class _HeaderCell extends StatelessWidget {
   }
 }
 
-class DesktopSalesTableRow extends StatelessWidget {
-  const DesktopSalesTableRow({
+class _DesktopSalesTableRow extends StatelessWidget {
+  const _DesktopSalesTableRow({
     super.key,
     required this.item,
     required this.onTap,
@@ -180,7 +185,7 @@ class DesktopSalesTableRow extends StatelessWidget {
               Expanded(
                 flex: _kItemsFlex,
                 child: Text(
-                  '${item.itemCount}',
+                  item.itemCount.toString(),
                   style: AppTextStyles.sm200(context)
                       .copyWith(color: colors.textSecondary),
                 ),
@@ -230,7 +235,7 @@ class _StatusPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppDims.s2,
-          vertical: 4,
+          vertical: _kPillVerticalPad,
         ),
         decoration: BoxDecoration(
           color: item.displayStatusBg,
@@ -240,7 +245,7 @@ class _StatusPill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(item.displayStatusIcon, size: 12, color: item.displayStatusFg),
-            const SizedBox(width: 4),
+            const SizedBox(width: _kPillIconGap),
             Text(
               _statusLabel(context, item),
               style: AppTextStyles.sm100(context).copyWith(

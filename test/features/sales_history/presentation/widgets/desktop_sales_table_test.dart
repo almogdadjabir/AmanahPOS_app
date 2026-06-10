@@ -32,6 +32,7 @@ SaleHistoryItem makeItem({
 void main() {
   Widget wrap(Widget sliver) => MaterialApp(
         theme: AppTheme.light,
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
