@@ -8,6 +8,7 @@ enum AppFeature {
   products,
   inventory,
   customers,
+  salesHistory,
 }
 
 extension FeaturePermission on AppPermissions {
@@ -27,6 +28,8 @@ extension FeaturePermission on AppPermissions {
         return canAccessUsers;
       case AppFeature.business:
         return canAccessBusiness;
+      case AppFeature.salesHistory:
+        return canAccessSalesHistory;
     }
   }
 }

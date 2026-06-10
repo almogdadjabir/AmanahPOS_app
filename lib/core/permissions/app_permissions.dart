@@ -27,6 +27,7 @@ class AppPermissions {
   bool get canAccessPOS => true;
   bool get canAccessProducts => _hasSession;
   bool get canAccessCategories => _hasSession;
+  bool get canAccessSalesHistory => _hasSession;
 
   bool get canAccessInventory {
     if (!_hasSession) return false;
