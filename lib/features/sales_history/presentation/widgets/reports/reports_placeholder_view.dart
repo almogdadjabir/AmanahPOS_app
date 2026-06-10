@@ -5,6 +5,8 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
+const _kPlaceholderIconSize = 48.0;
+
 class ReportsPlaceholderView extends StatelessWidget {
   const ReportsPlaceholderView({super.key});
 
@@ -18,7 +20,7 @@ class ReportsPlaceholderView extends StatelessWidget {
           children: [
             Icon(
               SolarIconsOutline.chartSquare,
-              size: 48,
+              size: _kPlaceholderIconSize,
               color: context.appColors.textHint,
             ),
             const SizedBox(height: AppDims.s3),
