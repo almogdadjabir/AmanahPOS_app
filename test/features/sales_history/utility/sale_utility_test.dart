@@ -42,5 +42,11 @@ void main() {
         equals(tr.allLoadedRevenue));
     expect(SaleFilter.today.revenueLabel(tester.element(find.byType(SizedBox))),
         equals(tr.todaysRevenue));
+    expect(SaleFilter.completed.revenueLabel(tester.element(find.byType(SizedBox))),
+        equals(tr.completedRevenue));
+    expect(SaleFilter.refunded.revenueLabel(tester.element(find.byType(SizedBox))),
+        equals(tr.returnedRevenue));
+    expect(SaleFilter.pending.revenueLabel(tester.element(find.byType(SizedBox))),
+        equals(tr.pendingRevenue));
   });
 }
