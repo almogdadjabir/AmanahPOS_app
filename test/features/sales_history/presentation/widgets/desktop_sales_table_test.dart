@@ -43,7 +43,7 @@ void main() {
     await tester.pumpWidget(wrap(
       DesktopSalesTable(items: const [], onTap: (_) {}),
     ));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('DATE'), findsOneWidget);
     expect(find.text('RECEIPT'), findsOneWidget);
@@ -61,7 +61,7 @@ void main() {
     await tester.pumpWidget(wrap(
       DesktopSalesTable(items: [item], onTap: (i) => tapped = i),
     ));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('RCP-001'), findsOneWidget);
     expect(find.text('Sara'), findsOneWidget);
@@ -74,7 +74,7 @@ void main() {
     await tester.pumpWidget(wrap(
       DesktopSalesTable(items: [makeItem(customerName: null)], onTap: (_) {}),
     ));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('—'), findsOneWidget);
   });

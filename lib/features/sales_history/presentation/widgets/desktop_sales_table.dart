@@ -8,6 +8,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 // Column flex weights — shared by header and rows so they stay aligned.
 const _kDateFlex = 2;
@@ -52,7 +53,9 @@ class DesktopSalesTable extends StatelessWidget {
               return DesktopSalesTableRow(
                 item: item,
                 onTap: () => onTap(item),
-              );
+              )
+                  .animate(delay: (index % 20 * 15).ms)
+                  .fadeIn(duration: 200.ms);
             },
           ),
         ],
