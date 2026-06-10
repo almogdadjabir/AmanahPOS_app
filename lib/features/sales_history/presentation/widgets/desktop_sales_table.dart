@@ -70,7 +70,7 @@ class DesktopSalesTable extends StatelessWidget {
 }
 
 class _DesktopSalesTableHeader extends StatelessWidget {
-  const _DesktopSalesTableHeader({super.key});
+  const _DesktopSalesTableHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +123,6 @@ class _HeaderCell extends StatelessWidget {
 
 class _DesktopSalesTableRow extends StatelessWidget {
   const _DesktopSalesTableRow({
-    super.key,
     required this.item,
     required this.onTap,
   });
