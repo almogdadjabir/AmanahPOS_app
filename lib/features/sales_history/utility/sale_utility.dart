@@ -30,6 +30,26 @@ extension SaleFilterX on SaleFilter {
       SaleFilter.pending => context.tr.pending,
     };
   }
+
+  String salesCountLabel(BuildContext context) {
+    return switch (this) {
+      SaleFilter.all => context.tr.allLoadedSales,
+      SaleFilter.today => context.tr.todaysSalesCount,
+      SaleFilter.completed => context.tr.completedSalesCount,
+      SaleFilter.refunded => context.tr.returnedSalesCount,
+      SaleFilter.pending => context.tr.pendingSalesCount,
+    };
+  }
+
+  String revenueLabel(BuildContext context) {
+    return switch (this) {
+      SaleFilter.all => context.tr.allLoadedRevenue,
+      SaleFilter.today => context.tr.todaysRevenue,
+      SaleFilter.completed => context.tr.completedRevenue,
+      SaleFilter.refunded => context.tr.returnedRevenue,
+      SaleFilter.pending => context.tr.pendingRevenue,
+    };
+  }
 }
 
 sealed class ListEntry {
