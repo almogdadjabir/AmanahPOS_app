@@ -2001,4 +2001,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get allCaughtUpNewNotificationsWillAppearHere =>
       'You\'re all caught up. New notifications will appear here.';
+
+  @override
+  String get salesViewTransactions => 'Transactions';
+
+  @override
+  String get salesViewReports => 'Reports & Statistics';
+
+  @override
+  String get customer => 'Customer';
+
+  @override
+  String get avgSale => 'Avg sale';
+
+  @override
+  String get refunds => 'Refunds';
+
+  @override
+  String get reportsComingSoon => 'Reports & Statistics are coming soon.';
+
+  @override
+  String get searchSalesHistoryHint => 'Search by receipt or customer';
 }

@@ -3823,6 +3823,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'re all caught up. New notifications will appear here.'**
   String get allCaughtUpNewNotificationsWillAppearHere;
+
+  /// No description provided for @salesViewTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get salesViewTransactions;
+
+  /// No description provided for @salesViewReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports & Statistics'**
+  String get salesViewReports;
+
+  /// No description provided for @customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customer;
+
+  /// No description provided for @avgSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg sale'**
+  String get avgSale;
+
+  /// No description provided for @refunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds'**
+  String get refunds;
+
+  /// No description provided for @reportsComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports & Statistics are coming soon.'**
+  String get reportsComingSoon;
+
+  /// No description provided for @searchSalesHistoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by receipt or customer'**
+  String get searchSalesHistoryHint;
 }
 
 class _AppLocalizationsDelegate

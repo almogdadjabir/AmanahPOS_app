@@ -1983,4 +1983,25 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get allCaughtUpNewNotificationsWillAppearHere =>
       'أنت مُطّلع على كل شيء. ستظهر الإشعارات الجديدة هنا.';
+
+  @override
+  String get salesViewTransactions => 'المعاملات';
+
+  @override
+  String get salesViewReports => 'التقارير والإحصائيات';
+
+  @override
+  String get customer => 'العميل';
+
+  @override
+  String get avgSale => 'متوسط البيع';
+
+  @override
+  String get refunds => 'المرتجعات';
+
+  @override
+  String get reportsComingSoon => 'التقارير والإحصائيات قادمة قريباً.';
+
+  @override
+  String get searchSalesHistoryHint => 'البحث برقم الإيصال أو العميل';
 }

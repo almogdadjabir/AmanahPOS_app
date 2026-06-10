@@ -843,6 +843,14 @@
   "addStock": "Add Stock",
 
   "noNotificationsYet": "No notifications yet",
-  "allCaughtUpNewNotificationsWillAppearHere": "You're all caught up. New notifications will appear here."
+  "allCaughtUpNewNotificationsWillAppearHere": "You're all caught up. New notifications will appear here.",
+
+  "salesViewTransactions": "Transactions",
+  "salesViewReports": "Reports & Statistics",
+  "customer": "Customer",
+  "avgSale": "Avg sale",
+  "refunds": "Refunds",
+  "reportsComingSoon": "Reports & Statistics are coming soon.",
+  "searchSalesHistoryHint": "Search by receipt or customer"
 
 }

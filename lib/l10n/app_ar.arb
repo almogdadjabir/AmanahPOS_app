@@ -826,6 +826,14 @@
   "addStock": "إضافة مخزون",
 
   "noNotificationsYet": "لا توجد إشعارات بعد",
-  "allCaughtUpNewNotificationsWillAppearHere": "أنت مُطّلع على كل شيء. ستظهر الإشعارات الجديدة هنا."
+  "allCaughtUpNewNotificationsWillAppearHere": "أنت مُطّلع على كل شيء. ستظهر الإشعارات الجديدة هنا.",
+
+  "salesViewTransactions": "المعاملات",
+  "salesViewReports": "التقارير والإحصائيات",
+  "customer": "العميل",
+  "avgSale": "متوسط البيع",
+  "refunds": "المرتجعات",
+  "reportsComingSoon": "التقارير والإحصائيات قادمة قريباً.",
+  "searchSalesHistoryHint": "البحث برقم الإيصال أو العميل"
 
 }
