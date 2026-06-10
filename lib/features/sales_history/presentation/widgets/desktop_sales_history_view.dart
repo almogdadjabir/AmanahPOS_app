@@ -12,6 +12,8 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+const _kScrollLoadThreshold = 200.0;
+
 class DesktopSalesHistoryView extends StatefulWidget {
   const DesktopSalesHistoryView({super.key});
 
@@ -51,7 +53,7 @@ class _DesktopSalesHistoryViewState extends State<DesktopSalesHistoryView> {
     if (!_scrollCtrl.hasClients) return;
     final bloc = context.read<SalesHistoryBloc>();
     if (_scrollCtrl.position.pixels >=
-            _scrollCtrl.position.maxScrollExtent - 200 &&
+            _scrollCtrl.position.maxScrollExtent - _kScrollLoadThreshold &&
         bloc.state.isLoaded &&
         bloc.state.hasMore) {
       bloc.add(const SalesHistoryLoadMore());
