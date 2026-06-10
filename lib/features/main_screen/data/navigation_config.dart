@@ -6,6 +6,7 @@ import 'package:amana_pos/features/inventory/presentation/inventory_screen.dart'
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
 import 'package:amana_pos/features/products/presentation/product_screen.dart';
+import 'package:amana_pos/features/sales_history/presentation/sales_history_screen.dart';
 import 'package:amana_pos/features/users/presentation/users_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -37,6 +38,11 @@ class NavigationConfig {
       case AppFeature.customers:
         return FeatureBlocProviders.customers(
           child: const CustomersScreen(),
+        );
+
+      case AppFeature.salesHistory:
+        return FeatureBlocProviders.salesHistory(
+          child: const SalesHistoryScreen(),
         );
     }
   }

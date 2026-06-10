@@ -1,5 +1,4 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/main_screen/data/nav_tab.dart';
@@ -7,7 +6,7 @@ import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
-import 'package:amana_pos/widgets/brand_logo.dart';
+import 'package:amana_pos/widgets/amana_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -52,6 +51,14 @@ class DesktopMoreDrawer extends StatelessWidget {
         icon: SolarIconsOutline.boxMinimalistic,
         activeIcon: SolarIconsBold.boxMinimalistic,
         label: tr.navInventory,
+      ));
+    }
+    if (perms.canAccessSalesHistory) {
+      tabs.add(NavTab(
+        feature: AppFeature.salesHistory,
+        icon: SolarIconsOutline.notebook,
+        activeIcon: SolarIconsBold.notebook,
+        label: tr.settingsSalesHistory,
       ));
     }
     if (perms.canAccessCategories) {
@@ -112,7 +119,7 @@ class DesktopMoreDrawer extends StatelessWidget {
                       AppDims.s4, AppDims.s4, AppDims.s3, AppDims.s3),
                   child: Row(
                     children: [
-                      const BrandLogo(),
+                      const AmanaPosLogoMark(size: 36),
                       const Spacer(),
                       Material(
                         color: Colors.transparent,
@@ -145,32 +152,7 @@ class DesktopMoreDrawer extends StatelessWidget {
                         _DrawerFeatureTile(tab: tab),
                     ],
                   ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: colors.border,
-                    indent: AppDims.s4,
-                    endIndent: AppDims.s4,
-                  ),
                 ],
-
-                const SizedBox(height: AppDims.s2),
-
-                // Settings
-                _DrawerSection(
-                  label: 'PREFERENCES',
-                  children: [
-                    _DrawerTile(
-                      icon: SolarIconsOutline.settings,
-                      label: 'Settings',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context)
-                            .pushNamed(RouteStrings.settingsScreen);
-                      },
-                    ),
-                  ],
-                ),
 
                 const Spacer(),
 
