@@ -1,4 +1,3 @@
-import 'package:amana_pos/config/constants.dart';
 import 'package:flutter/material.dart';
 
 class ResponsiveSize {
@@ -9,8 +8,12 @@ class ResponsiveSize {
   static const double tabletWidth = 768.0;
   static const double tabletHeight = 1024.0;
 
+  static bool _isTablet(BuildContext context) {
+    return MediaQuery.sizeOf(context).width > 600;
+  }
+
   static double _getBaseDimension(BuildContext context, bool isHeight) {
-    if (Constants.isTablet) {
+    if (_isTablet(context)) {
       return MediaQuery.orientationOf(context) == Orientation.portrait
           ? (isHeight ? tabletHeight : tabletWidth)
           : (isHeight ? tabletWidth : tabletHeight);
@@ -19,18 +22,9 @@ class ResponsiveSize {
     }
   }
 
-  static double _getBaseHeight(BuildContext context) {
-    Constants.isTablet = _isTablet(context);
-    return _getBaseDimension(context, true);
-  }
-
-  static double _getBaseWidth(BuildContext context) {
-    return _getBaseDimension(context, false);
-  }
-
   static double getResponsiveSize(BuildContext context, double baseSize) {
     final double screenHeight = MediaQuery.sizeOf(context).height;
-    final double baseHeight = _getBaseHeight(context);
+    final double baseHeight = _getBaseDimension(context, true);
 
     // Scale based on height
     return baseSize * (screenHeight / baseHeight);
@@ -38,7 +32,7 @@ class ResponsiveSize {
 
   static double getResponsiveWidth(BuildContext context, double baseSize) {
     final double screenWidth = MediaQuery.sizeOf(context).width;
-    final double baseWidth = _getBaseWidth(context);
+    final double baseWidth = _getBaseDimension(context, false);
 
     // Scale based on width
     return baseSize * (screenWidth / baseWidth);
@@ -49,7 +43,7 @@ class ResponsiveSize {
       double baseFontSize,
       ) {
     final double screenWidth = MediaQuery.sizeOf(context).width;
-    final double baseWidth = _getBaseWidth(context);
+    final double baseWidth = _getBaseDimension(context, false);
 
     double scaleFactor = screenWidth / baseWidth;
 
@@ -60,11 +54,5 @@ class ResponsiveSize {
     }
 
     return baseFontSize * scaleFactor;
-  }
-
-
-  static bool _isTablet(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    return width > 600;
   }
 }
