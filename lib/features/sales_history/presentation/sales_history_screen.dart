@@ -1,7 +1,9 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_extensions.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history_bloc.dart';
+import 'package:amana_pos/features/sales_history/presentation/widgets/desktop_sales_history_view.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_app_bar.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_detail_sheet.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_empty_state.dart';
@@ -181,6 +183,8 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (context.isDesktop) return const DesktopSalesHistoryView();
+
     final colors = context.appColors;
 
     return Scaffold(
