@@ -3,7 +3,10 @@ import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/widgets/workspace/subscription_plan_card.dart';
 import 'package:amana_pos/features/business/presentation/widgets/workspace/workspace_action_card.dart';
+import 'package:amana_pos/features/business/presentation/widgets/workspace/workspace_quick_link_pill.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
+import 'package:amana_pos/features/main_screen/data/app_feature.dart';
+import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/today_cards.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
@@ -108,6 +111,8 @@ class _DesktopWorkspace extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppDims.s3),
+            const _QuickLinksSection(),
+            const SizedBox(height: AppDims.s3),
             _DesktopSubscriptionStrip(data: data)
                 .animate()
                 .fadeIn(duration: 350.ms, delay: 200.ms)
@@ -119,6 +124,77 @@ class _DesktopWorkspace extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Desktop quick links section ───────────────────────────────────────────────
+
+class _QuickLinksSection extends StatelessWidget {
+  const _QuickLinksSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final navigationBloc = context.read<NavigationBloc>();
+    final canAccessInventory =
+        navigationBloc.state.permissions.canAccessInventory;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        WorkspaceSectionHeader(title: context.tr.bizQuickLinksLabel),
+        const SizedBox(height: AppDims.s3),
+        Wrap(
+          spacing: AppDims.s3,
+          runSpacing: AppDims.s3,
+          children: [
+            WorkspaceQuickLinkPill(
+              icon: SolarIconsOutline.layersMinimalistic,
+              label: context.tr.settingsCategories,
+              accentColor: AppColors.primary,
+              animDelay: 300,
+              onTap: () => navigationBloc.add(
+                const NavigationFeatureSelected(AppFeature.categories),
+              ),
+            ),
+            WorkspaceQuickLinkPill(
+              icon: SolarIconsOutline.usersGroupTwoRounded,
+              label: context.tr.settingsCustomers,
+              accentColor: AppColors.info,
+              animDelay: 360,
+              onTap: () => navigationBloc.add(
+                const NavigationFeatureSelected(AppFeature.customers),
+              ),
+            ),
+            if (canAccessInventory)
+              WorkspaceQuickLinkPill(
+                icon: SolarIconsOutline.boxMinimalistic,
+                label: context.tr.navInventory,
+                accentColor: AppColors.warning,
+                animDelay: 420,
+                onTap: () => navigationBloc.add(
+                  const NavigationFeatureSelected(AppFeature.inventory),
+                ),
+              ),
+            WorkspaceQuickLinkPill(
+              icon: SolarIconsOutline.roundArrowLeftUp,
+              label: context.tr.settingsReturns,
+              accentColor: AppColors.danger,
+              animDelay: 480,
+              onTap: () =>
+                  Navigator.of(context).pushNamed(RouteStrings.returnsScreen),
+            ),
+            WorkspaceQuickLinkPill(
+              icon: SolarIconsOutline.settingsMinimalistic,
+              label: context.tr.navSettings,
+              accentColor: AppColors.slate400,
+              animDelay: 540,
+              onTap: () => Navigator.of(context)
+                  .pushNamed(RouteStrings.settingsScreen),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
