@@ -88,7 +88,11 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
 
       final result = await _requestHandler.handleGetRequest(
         uri,
-        (data) => SalesReportDto.fromJson(data as Map<String, dynamic>),
+        (data) {
+          final body = data as Map<String, dynamic>;
+          final inner = (body['data'] as Map<String, dynamic>?) ?? body;
+          return SalesReportDto.fromJson(inner);
+        },
       );
 
       return result.map((dto) => dto.toDomain());
