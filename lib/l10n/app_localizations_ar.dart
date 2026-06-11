@@ -1261,6 +1261,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bizManageLabel => 'الإدارة';
 
   @override
+  String get bizQuickLinksLabel => 'روابط سريعة';
+
+  @override
   String get bizShopsTitle => 'المتاجر';
 
   @override

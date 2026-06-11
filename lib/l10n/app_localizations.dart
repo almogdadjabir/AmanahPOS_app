@@ -2504,6 +2504,12 @@ abstract class AppLocalizations {
   /// **'MANAGE'**
   String get bizManageLabel;
 
+  /// No description provided for @bizQuickLinksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'QUICK LINKS'**
+  String get bizQuickLinksLabel;
+
   /// No description provided for @bizShopsTitle.
   ///
   /// In en, this message translates to:

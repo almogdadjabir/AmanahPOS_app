@@ -1274,6 +1274,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bizManageLabel => 'MANAGE';
 
   @override
+  String get bizQuickLinksLabel => 'QUICK LINKS';
+
+  @override
   String get bizShopsTitle => 'Shops';
 
   @override
