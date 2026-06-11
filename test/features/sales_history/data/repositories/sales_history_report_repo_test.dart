@@ -45,6 +45,10 @@ void main() {
     );
 
     expect(result.isRight(), true);
-    expect(result.getOrElse((_) => throw Exception()), equals(fakeReport));
+    final report = result.getOrElse((_) => throw Exception());
+    expect(report.summary.salesCount, 3);
+    expect(report.summary.grossSalesAmount, 1000.0);
+    expect(report.rangeFrom, '2026-06-01');
+    expect(report.currency, 'SDG');
   });
 }

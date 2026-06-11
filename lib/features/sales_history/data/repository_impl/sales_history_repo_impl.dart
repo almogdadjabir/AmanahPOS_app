@@ -132,6 +132,7 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
     final buf = StringBuffer(
       'api/v1/sales/reports/?date_from=${_formatDate(from)}&date_to=${_formatDate(to)}',
     );
+    // The reports endpoint uses 'shop_id'; the list endpoint uses 'shop'.
     if (shopId?.isNotEmpty == true) buf.write('&shop_id=$shopId');
     if (timezone?.isNotEmpty == true) buf.write('&timezone=${Uri.encodeComponent(timezone!)}');
     return buf.toString();
