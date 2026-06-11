@@ -73,5 +73,32 @@ void main() {
       expect(report.topProducts[0].name, 'ببسي');
       expect(report.topCategories[0].name, 'مشروبات');
     });
+
+    test('isEmpty is true when salesCount is 0', () {
+      const emptyJson = {
+        'range': {'from': '2026-06-10', 'to': '2026-06-10'},
+        'currency': 'SDG',
+        'summary': {
+          'gross_sales_amount': 0.0,
+          'net_sales_amount': 0.0,
+          'sales_count': 0,
+          'average_sale_amount': 0.0,
+          'refund_amount': 0.0,
+          'refund_count': 0,
+        },
+        'trend': {'interval': 'hour', 'points': []},
+        'payment_methods': [],
+        'top_products': [],
+        'top_categories': [],
+        'peak_hours': [],
+        'day_of_week': [],
+      };
+      expect(SalesReportDto.fromJson(emptyJson).toDomain().isEmpty, true);
+    });
+
+    test('isEmpty is false when salesCount is non-zero', () {
+      final report = SalesReportDto.fromJson(json).toDomain();
+      expect(report.isEmpty, false);
+    });
   });
 }

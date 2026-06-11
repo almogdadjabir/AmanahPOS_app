@@ -143,13 +143,13 @@ class SalesReportDto {
       SalesReportDto._(json);
 
   SalesReport toDomain() {
-    final range = _json['range'] as Map<String, dynamic>;
-    final summaryJson = _json['summary'] as Map<String, dynamic>;
-    final trendJson = _json['trend'] as Map<String, dynamic>;
+    final range = (_json['range'] as Map<String, dynamic>?) ?? const {};
+    final summaryJson = (_json['summary'] as Map<String, dynamic>?) ?? const {};
+    final trendJson = (_json['trend'] as Map<String, dynamic>?) ?? const {};
 
     return SalesReport(
-      rangeFrom: range['from'] as String,
-      rangeTo: range['to'] as String,
+      rangeFrom: (range['from'] as String?) ?? '',
+      rangeTo: (range['to'] as String?) ?? '',
       currency: _json['currency'] as String? ?? 'SDG',
       summary: SalesReportSummary(
         grossSalesAmount: (_summaryDouble(summaryJson, 'gross_sales_amount')),
@@ -161,55 +161,55 @@ class SalesReportDto {
       ),
       trend: SalesTrend(
         interval: trendJson['interval'] as String? ?? 'day',
-        points: (trendJson['points'] as List<dynamic>).map((p) {
+        points: (trendJson['points'] as List<dynamic>? ?? const []).map((p) {
           final pt = p as Map<String, dynamic>;
           return SalesTrendPoint(
-            label: pt['label'] as String,
+            label: (pt['label'] as String?) ?? '',
             grossAmount: _d(pt['gross_amount']),
             netAmount: _d(pt['net_amount']),
             salesCount: pt['sales_count'] as int? ?? 0,
           );
         }).toList(),
       ),
-      paymentMethods: (_json['payment_methods'] as List<dynamic>).map((p) {
+      paymentMethods: (_json['payment_methods'] as List<dynamic>? ?? const []).map((p) {
         final m = p as Map<String, dynamic>;
         return PaymentMethodBreakdown(
-          method: m['method'] as String,
+          method: (m['method'] as String?) ?? '',
           amount: _d(m['amount']),
           count: m['count'] as int? ?? 0,
         );
       }).toList(),
-      topProducts: (_json['top_products'] as List<dynamic>).map((p) {
+      topProducts: (_json['top_products'] as List<dynamic>? ?? const []).map((p) {
         final prod = p as Map<String, dynamic>;
         return SalesTopProduct(
-          productId: prod['product_id'] as String,
-          name: prod['name'] as String,
+          productId: (prod['product_id'] as String?) ?? '',
+          name: (prod['name'] as String?) ?? '',
           quantitySold: _d(prod['quantity_sold']),
           grossAmount: _d(prod['gross_amount']),
           thumbnailUrl: prod['thumbnail_url'] as String?,
         );
       }).toList(),
-      topCategories: (_json['top_categories'] as List<dynamic>).map((p) {
+      topCategories: (_json['top_categories'] as List<dynamic>? ?? const []).map((p) {
         final cat = p as Map<String, dynamic>;
         return SalesTopCategory(
-          categoryId: cat['category_id'] as String,
-          name: cat['name'] as String,
+          categoryId: (cat['category_id'] as String?) ?? '',
+          name: (cat['name'] as String?) ?? '',
           quantitySold: _d(cat['quantity_sold']),
           grossAmount: _d(cat['gross_amount']),
         );
       }).toList(),
-      peakHours: (_json['peak_hours'] as List<dynamic>).map((p) {
+      peakHours: (_json['peak_hours'] as List<dynamic>? ?? const []).map((p) {
         final h = p as Map<String, dynamic>;
         return PeakHourStat(
-          hour: h['hour'] as int,
+          hour: (h['hour'] as int?) ?? 0,
           salesCount: h['sales_count'] as int? ?? 0,
           amount: _d(h['amount']),
         );
       }).toList(),
-      dayOfWeek: (_json['day_of_week'] as List<dynamic>).map((p) {
+      dayOfWeek: (_json['day_of_week'] as List<dynamic>? ?? const []).map((p) {
         final d = p as Map<String, dynamic>;
         return DayOfWeekStat(
-          weekday: d['weekday'] as int,
+          weekday: (d['weekday'] as int?) ?? 0,
           salesCount: d['sales_count'] as int? ?? 0,
           amount: _d(d['amount']),
         );
