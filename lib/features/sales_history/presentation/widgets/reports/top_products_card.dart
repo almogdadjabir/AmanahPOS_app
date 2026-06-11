@@ -19,14 +19,24 @@ class TopProductsCard extends StatelessWidget {
     return RankedListCard(
       title: context.tr.topProductsTitle,
       items: products
-          .map((p) => (name: p.name, amount: p.grossAmount))
+          .map((p) => (
+                name: p.name,
+                amount: p.grossAmount,
+                subtitle: _qtyLabel(p.quantitySold),
+              ))
           .toList(),
       emptyMessage: context.tr.reportsNoSalesInRange,
     );
   }
+
+  static String _qtyLabel(double qty) {
+    if (qty <= 0) return '';
+    final int q = qty.truncate();
+    return q == qty ? '$q items' : '${qty.toStringAsFixed(1)} items';
+  }
 }
 
-// ─── Shared ranked-list shell (public so top_categories_card.dart can import) ─
+// ─── Shared ranked-list card (used by categories too) ────────────────────────
 
 class RankedListCard extends StatelessWidget {
   const RankedListCard({
@@ -37,7 +47,7 @@ class RankedListCard extends StatelessWidget {
   });
 
   final String title;
-  final List<({String name, double amount})> items;
+  final List<({String name, double amount, String? subtitle})> items;
   final String emptyMessage;
 
   static const int _maxItems = 5;
@@ -61,10 +71,7 @@ class RankedListCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: AppTextStyles.sm300(
-              context,
-              weight: AppTextStyles.semibold,
-            ),
+            style: AppTextStyles.sm300(context, weight: AppTextStyles.semibold),
           ),
           const SizedBox(height: AppDims.s3),
           Expanded(
@@ -79,8 +86,10 @@ class RankedListCard extends StatelessWidget {
                       final ratio =
                           maxAmount > 0 ? item.amount / maxAmount : 0.0;
                       return _RankedRow(
+                        rank: index + 1,
                         name: item.name,
                         amount: item.amount,
+                        subtitle: item.subtitle,
                         ratio: ratio,
                         colors: colors,
                         context: context,
@@ -100,63 +109,164 @@ class RankedListCard extends StatelessWidget {
 
 class _RankedRow extends StatelessWidget {
   const _RankedRow({
+    required this.rank,
     required this.name,
     required this.amount,
     required this.ratio,
     required this.colors,
     required this.context,
+    this.subtitle,
   });
 
+  final int rank;
   final String name;
   final double amount;
   final double ratio;
+  final String? subtitle;
   final AppThemeColors colors;
   final BuildContext context;
 
   @override
   Widget build(BuildContext ctx) {
+    final barColor = _rankBarColor(rank);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppDims.s2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(bottom: AppDims.s2 + 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.sm200(
-                    context,
-                    weight: AppTextStyles.medium,
-                    color: colors.textPrimary,
+          _RankBadge(rank: rank),
+          const SizedBox(width: AppDims.s2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.sm200(
+                          context,
+                          weight: AppTextStyles.medium,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDims.s2),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          AppFormat.compactMoney(amount),
+                          style: AppTextStyles.sm200(
+                            context,
+                            weight: AppTextStyles.semibold,
+                            color: barColor,
+                          ),
+                        ),
+                        if (subtitle != null && subtitle!.isNotEmpty)
+                          Text(
+                            subtitle!,
+                            style: AppTextStyles.sm100(
+                              context,
+                              color: colors.textHint,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDims.s1),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDims.rXs),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: ratio),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) {
+                      return LinearProgressIndicator(
+                        value: value,
+                        minHeight: 4,
+                        valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                        backgroundColor: colors.border,
+                      );
+                    },
                   ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Text(
-                AppFormat.compactMoney(amount),
-                style: AppTextStyles.sm100(
-                  context,
-                  color: colors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDims.s1),
-          LinearProgressIndicator(
-            value: ratio,
-            minHeight: 4,
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              SalesReportColors.rankBar,
+              ],
             ),
-            backgroundColor: colors.border,
-            borderRadius: BorderRadius.circular(AppDims.rXs),
           ),
         ],
       ),
     );
+  }
+
+  static Color _rankBarColor(int rank) {
+    return switch (rank) {
+      1 => SalesReportColors.rankGold,
+      2 => SalesReportColors.rankSilver,
+      3 => SalesReportColors.rankBronze,
+      _ => SalesReportColors.rankRest,
+    };
+  }
+}
+
+// ─── Rank badge ───────────────────────────────────────────────────────────────
+
+class _RankBadge extends StatelessWidget {
+  const _RankBadge({required this.rank});
+  final int rank;
+
+  @override
+  Widget build(BuildContext context) {
+    final (bg, fg, label) = _medal(rank);
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: rank <= 3 ? 12 : 9,
+          fontWeight: FontWeight.w700,
+          color: fg,
+          height: 1,
+        ),
+      ),
+    );
+  }
+
+  static (Color bg, Color fg, String label) _medal(int rank) {
+    return switch (rank) {
+      1 => (
+          SalesReportColors.rankGold.withAlpha(30),
+          SalesReportColors.rankGold,
+          '🥇',
+        ),
+      2 => (
+          SalesReportColors.rankSilver.withAlpha(30),
+          SalesReportColors.rankSilver,
+          '🥈',
+        ),
+      3 => (
+          SalesReportColors.rankBronze.withAlpha(30),
+          SalesReportColors.rankBronze,
+          '🥉',
+        ),
+      _ => (
+          SalesReportColors.rankRest.withAlpha(15),
+          SalesReportColors.rankRest,
+          '$rank',
+        ),
+    };
   }
 }
 
@@ -164,7 +274,6 @@ class _RankedRow extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.message});
-
   final String message;
 
   @override

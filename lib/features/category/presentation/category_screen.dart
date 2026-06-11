@@ -1,8 +1,10 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/add_category_sheet.dart';
 import 'package:amana_pos/features/category/presentation/widgets/categories_content.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_error_view.dart';
+import 'package:amana_pos/features/category/presentation/widgets/desktop_categories_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -19,14 +21,20 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized || context.isDesktop) return;
+    _initialized = true;
     context.read<CategoryBloc>().add(const OnCategoryInitial());
   }
 
   @override
   Widget build(BuildContext context) {
+    if (context.isDesktop) return const DesktopCategoriesView();
+
     final colors = context.appColors;
 
     return Scaffold(

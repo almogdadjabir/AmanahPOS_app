@@ -10,13 +10,13 @@ import 'package:solar_icons/solar_icons.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // NotificationTile  (drop-in, same constructor API)
 //
-// Changes vs original:
-//   • Left accent bar (3px) replaces box-shadow — visible in all light conditions
-//   • Unread tint is applied only to background, not border, reducing visual noise
-//   • Typography toned down: w700→w500 title, w700→w400 body (less shouting)
-//   • Type badge moved inline with time, arrow icon removed (redundant on a tap target)
-//   • Unread dot stays — repositioned to top-right of icon box, not inline with text
-//   • Icon box slightly smaller (40→36px) for better proportion on dense lists
+// Refined treatment:
+//   • One accent colour per row (icon + accent bar + unread dot) — the type
+//     badge is removed (the icon already encodes the type).
+//   • Type colours come from the theme (success / warning / danger / info /
+//     primary / sale), so they adapt to dark mode instead of hardcoded hex.
+//   • Read rows go quiet: no accent bar, muted title/body. Unread rows keep the
+//     accent bar, a filled dot, and a slightly stronger title.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class NotificationTile extends StatelessWidget {
@@ -32,7 +32,7 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final config = typeConfig(item.type);
+    final config = typeConfig(colors, item.type);
 
     final title = item.title?.trim().isNotEmpty == true
         ? item.title!.trim()
@@ -49,10 +49,9 @@ class NotificationTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDims.rLg),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: isUnread
-                ? config.color.withValues(alpha: 0.04)
-                : colors.surface,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(AppDims.rLg),
             border: Border.all(
               color: isUnread
@@ -65,19 +64,11 @@ class NotificationTile extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Left accent bar ─────────────────────────────────────────
+                // ── Left accent bar (unread only) ───────────────────────────
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 3,
-                  decoration: BoxDecoration(
-                    color: isUnread
-                        ? config.color
-                        : Colors.transparent,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(AppDims.rLg),
-                      bottomLeft: Radius.circular(AppDims.rLg),
-                    ),
-                  ),
+                  color: isUnread ? config.color : Colors.transparent,
                 ),
 
                 // ── Content ─────────────────────────────────────────────────
@@ -136,9 +127,11 @@ class NotificationTile extends StatelessWidget {
                                       AppTextStyles.bs400(context).copyWith(
                                         fontWeight: isUnread
                                             ? FontWeight.w600
-                                            : FontWeight.w500,
-                                        color: colors.textPrimary,
-                                        height: 1.2,
+                                            : FontWeight.w400,
+                                        color: isUnread
+                                            ? colors.textPrimary
+                                            : colors.textSecondary,
+                                        height: 1.25,
                                       ),
                                     ),
                                   ),
@@ -156,21 +149,19 @@ class NotificationTile extends StatelessWidget {
 
                               // Body
                               if (body != null && body.isNotEmpty) ...[
-                                const SizedBox(height: 5),
+                                const SizedBox(height: 4),
                                 Text(
                                   body,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.bs200(context).copyWith(
-                                    color: colors.textSecondary,
-                                    height: 1.45,
+                                    color: isUnread
+                                        ? colors.textSecondary
+                                        : colors.textHint,
+                                    height: 1.4,
                                   ),
                                 ),
                               ],
-
-                              // Footer: type badge only
-                              const SizedBox(height: 8),
-                              _TypeBadge(config: config),
                             ],
                           ),
                         ),
@@ -191,9 +182,9 @@ class NotificationTile extends StatelessWidget {
     final now = DateTime.now();
     final diff = now.difference(date);
     if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inHours < 1) return '${diff.inMinutes}m';
+    if (diff.inDays < 1) return '${diff.inHours}h';
+    if (diff.inDays < 7) return '${diff.inDays}d';
     return '${date.day}/${date.month}/${date.year}';
   }
 }
@@ -216,55 +207,19 @@ class _IconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 38,
-      height: 38,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isRead ? 0.07 : 0.11),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withValues(alpha: isRead ? 0.10 : 0.18),
-          width: 0.5,
-        ),
+        color: color.withValues(alpha: isRead ? 0.07 : 0.12),
+        borderRadius: BorderRadius.circular(AppDims.rMd),
       ),
-      child: Icon(icon, size: 20, color: color),
+      child: Icon(icon, size: 18, color: color),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _TypeBadge
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _TypeBadge extends StatelessWidget {
-  final TypeConfig config;
-  const _TypeBadge({required this.config});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: config.color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: config.color.withValues(alpha: 0.14),
-          width: 0.5,
-        ),
-      ),
-      child: Text(
-        config.label,
-        style: AppTextStyles.bs100(context).copyWith(
-          color: config.color,
-          fontWeight: FontWeight.w600,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// showNotificationDetailsSheet  (unchanged — kept here for co-location)
+// showNotificationDetailsSheet  (co-located helper, unchanged)
 // ─────────────────────────────────────────────────────────────────────────────
 
 void showNotificationDetailsSheet(
@@ -279,7 +234,7 @@ void showNotificationDetailsSheet(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TypeConfig + typeConfig  (unchanged)
+// TypeConfig + typeConfig  (theme-driven)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class TypeConfig {
@@ -290,35 +245,28 @@ class TypeConfig {
   const TypeConfig(this.icon, this.color, this.label);
 }
 
-TypeConfig typeConfig(String type) {
+/// Maps a notification [type] to an icon, a theme colour, and a label.
+/// Colours are pulled from [AppThemeColors] so they adapt to light/dark mode.
+TypeConfig typeConfig(AppThemeColors colors, String type) {
   switch (type) {
     case 'success':
-      return const TypeConfig(
-          SolarIconsOutline.checkCircle, Color(0xFF16A34A), 'Success');
+      return TypeConfig(SolarIconsOutline.checkCircle, colors.success, 'Success');
     case 'warning':
-      return const TypeConfig(
-          SolarIconsOutline.dangerTriangle, Color(0xFFF59E0B), 'Warning');
+      return TypeConfig(SolarIconsOutline.dangerTriangle, colors.warning, 'Warning');
     case 'error':
-      return const TypeConfig(
-          SolarIconsOutline.dangerCircle, Color(0xFFEF4444), 'Error');
+      return TypeConfig(SolarIconsOutline.dangerCircle, colors.danger, 'Error');
     case 'sale':
-      return const TypeConfig(
-          SolarIconsOutline.billList, Color(0xFF0D9488), 'Sale');
+      return TypeConfig(SolarIconsOutline.billList, colors.sale, 'Sale');
     case 'stock':
-      return const TypeConfig(
-          SolarIconsOutline.box, Color(0xFFEC4899), 'Stock');
+      return TypeConfig(SolarIconsOutline.box, colors.warning, 'Stock');
     case 'subscription':
-      return const TypeConfig(
-          SolarIconsOutline.card, Color(0xFF8B5CF6), 'Plan');
+      return TypeConfig(SolarIconsOutline.card, colors.primary, 'Plan');
     case 'security':
-      return const TypeConfig(
-          SolarIconsOutline.shieldCheck, Color(0xFFF59E0B), 'Security');
+      return TypeConfig(SolarIconsOutline.shieldCheck, colors.warning, 'Security');
     case 'system':
-      return const TypeConfig(
-          SolarIconsOutline.settings, Color(0xFF6B7280), 'System');
+      return TypeConfig(SolarIconsOutline.settings, colors.textSecondary, 'System');
     case 'info':
     default:
-      return const TypeConfig(
-          SolarIconsOutline.infoCircle, Color(0xFF0EA5E9), 'Info');
+      return TypeConfig(SolarIconsOutline.infoCircle, colors.info, 'Info');
   }
 }

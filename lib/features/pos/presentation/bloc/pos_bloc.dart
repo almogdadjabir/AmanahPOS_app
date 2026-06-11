@@ -1,7 +1,9 @@
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
+import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -144,13 +146,15 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     ));
 
     try {
-      final response = await useCase.submitSale(
-        shopId: event.shopId,
-        customerId: event.customerId,
-        paymentMethod: state.paymentMethod,
-        items: state.items,
-        discountAmount: '0',
-        taxAmount: '0',
+      final response = await getIt<AppProgressCubit>().run(
+            () => useCase.submitSale(
+          shopId: event.shopId,
+          customerId: event.customerId,
+          paymentMethod: state.paymentMethod,
+          items: state.items,
+          discountAmount: '0',
+          taxAmount: '0',
+        ),
       );
 
       response.fold(

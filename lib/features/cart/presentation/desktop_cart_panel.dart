@@ -124,21 +124,23 @@ class DesktopCartPanel extends StatelessWidget {
                   color: colors.border.withValues(alpha: 0.75),
                 ),
                 Expanded(
-                  child: ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsetsDirectional.fromSTEB(
-                        AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s3),
-                    itemCount: state.items.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppDims.s3),
-                    itemBuilder: (_, index) {
-                      final item = state.items[index];
-                      return CartLine(
-                        key: ValueKey(item.product.id ?? index),
-                        item: item,
-                      );
-                    },
-                  ),
+                  child: state.items.isEmpty
+                      ? const _EmptyCartState()
+                      : ListView.separated(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s3),
+                          itemCount: state.items.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: AppDims.s3),
+                          itemBuilder: (_, index) {
+                            final item = state.items[index];
+                            return CartLine(
+                              key: ValueKey(item.product.id ?? index),
+                              item: item,
+                            );
+                          },
+                        ),
                 ),
                 DecoratedBox(
                   decoration: BoxDecoration(
@@ -197,6 +199,64 @@ class DesktopCartPanel extends StatelessWidget {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+// ── Empty cart state ──────────────────────────────────────────────────────────
+
+class _EmptyCartState extends StatelessWidget {
+  const _EmptyCartState();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: colors.surfaceSoft,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: colors.border,
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                SolarIconsOutline.cartLarge_4,
+                size: 30,
+                color: colors.textHint,
+              ),
+            ),
+            const SizedBox(height: AppDims.s4),
+            Text(
+              'Cart is empty',
+              style: AppTextStyles.bs200(context).copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: AppDims.s2),
+            Text(
+              'Tap a product to add it to the sale',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.sm300(context).copyWith(
+                color: colors.textHint,
+                fontWeight: FontWeight.w500,
+                height: 1.45,
+              ),
+            ),
+          ],
         ),
       ),
     );

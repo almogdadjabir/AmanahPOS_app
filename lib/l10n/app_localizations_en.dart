@@ -2024,5 +2024,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportsComingSoon => 'Reports & Statistics are coming soon.';
 
   @override
+  String get reportsRevenue => 'Revenue';
+
+  @override
+  String get reportsGross => 'Gross';
+
+  @override
+  String get reportsNet => 'Net';
+
+  @override
+  String get revenueAndSalesTrend => 'Revenue & Sales Trend';
+
+  @override
+  String get paymentMethodsTitle => 'Payment Methods';
+
+  @override
+  String get peakHoursTitle => 'Peak Hours';
+
+  @override
+  String get topProductsTitle => 'Top Products';
+
+  @override
+  String get topCategoriesTitle => 'Top Categories';
+
+  @override
+  String get dayOfWeekTitle => 'Day of Week';
+
+  @override
+  String get selectDateRange => 'Select date range';
+
+  @override
+  String get reportsNoSalesInRange => 'No sales in this period.';
+
+  @override
+  String get reportsLoadError => 'Failed to load report.';
+
+  @override
+  String get reportsRefresh => 'Refresh report';
+
+  @override
+  String get thisWeek => 'This Week';
+
+  @override
+  String get thisMonth => 'This Month';
+
+  @override
+  String get reportsNetSales => 'Net Sales';
+
+  @override
+  String get reportsSalesCount => 'Transactions';
+
+  @override
   String get searchSalesHistoryHint => 'Search by receipt or customer';
 }

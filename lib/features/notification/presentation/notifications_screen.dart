@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/features/notification/data/models/notification_item.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:amana_pos/features/notification/presentation/widgets/notification_empty_view.dart';
 import 'package:amana_pos/features/notification/presentation/widgets/notification_error_view.dart';
@@ -186,30 +187,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                       ),
                     ],
-                    NotificationTile(
-                      key: ValueKey(item.id),
-                      item: item,
-                      onTap: () {
-                        if (!item.isRead) {
-                          context.read<NotificationBloc>().add(
-                            OnMarkNotificationRead(item.id),
-                          );
-                        }
-                        showNotificationDetailsSheet(context, item: item);
-                      },
-                    )
-                        .animate()
-                        .fadeIn(
-                      delay: Duration(
-                          milliseconds: 24 + (index % 6) * 18),
-                      duration: 220.ms,
-                    )
-                        .slideY(
-                      begin: 0.025,
-                      end: 0,
-                      duration: 220.ms,
-                      curve: Curves.easeOutCubic,
-                    ),
+                    _swipeableTile(context, item, index),
                   ],
                 );
               },
@@ -217,6 +195,76 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           );
         },
       ),
+    );
+  }
+
+  /// The notification row. Unread rows get a swipe-to-mark-read gesture
+  /// (swipe right → fires [OnMarkNotificationRead] and springs back; the row
+  /// is not removed, it just becomes "read").
+  Widget _swipeableTile(
+      BuildContext context,
+      NotificationItem item,
+      int index,
+      ) {
+    final colors = context.appColors;
+
+    final tile = NotificationTile(
+      key: ValueKey('tile-${item.id}'),
+      item: item,
+      onTap: () {
+        if (!item.isRead) {
+          context.read<NotificationBloc>().add(
+            OnMarkNotificationRead(item.id),
+          );
+        }
+        showNotificationDetailsSheet(context, item: item);
+      },
+    ).animate().fadeIn(
+      delay: Duration(milliseconds: 24 + (index % 6) * 18),
+      duration: 220.ms,
+    ).slideY(
+      begin: 0.025,
+      end: 0,
+      duration: 220.ms,
+      curve: Curves.easeOutCubic,
+    );
+
+    // Read rows have nothing to mark — render the tile as-is.
+    if (item.isRead) return tile;
+
+    return Dismissible(
+      key: ValueKey('dismiss-${item.id}'),
+      direction: DismissDirection.startToEnd,
+      confirmDismiss: (_) async {
+        context.read<NotificationBloc>().add(
+          OnMarkNotificationRead(item.id),
+        );
+        // Keep the row in place; it simply becomes "read".
+        return false;
+      },
+      background: Container(
+        alignment: AlignmentDirectional.centerStart,
+        padding: const EdgeInsetsDirectional.only(start: 22),
+        decoration: BoxDecoration(
+          color: colors.success.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppDims.rLg),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(SolarIconsOutline.checkCircle, size: 18, color: colors.success),
+            const SizedBox(width: 6),
+            Text(
+              'Mark read',
+              style: AppTextStyles.bs200(context).copyWith(
+                color: colors.success,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: tile,
     );
   }
 

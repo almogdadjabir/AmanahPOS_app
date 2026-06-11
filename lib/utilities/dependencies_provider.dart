@@ -1,4 +1,5 @@
 import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
+import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
@@ -148,6 +149,11 @@ class DependenciesProvider {
 
     getIt.registerLazySingleton<PendingSyncBloc>(
           () => PendingSyncBloc(syncManager: getIt<SyncManager>()),
+    );
+
+    // App-wide progress signal (thin line under the main app bar).
+    getIt.registerLazySingleton<AppProgressCubit>(
+          () => AppProgressCubit(),
     );
 
     // Offline-first manager

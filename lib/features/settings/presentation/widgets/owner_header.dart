@@ -24,8 +24,8 @@ class OwnerHeader extends StatelessWidget {
         ? fullName!.trim()
         : 'User';
 
-    final initials = _initials(name);
-    final roleData = _roleData(role);
+    final initials = initialsFor(name);
+    final roleData = roleDataFor(role);
 
     return Container(
       width: double.infinity,
@@ -136,7 +136,7 @@ class OwnerHeader extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: AppDims.s3),
-                        _RolePill(
+                        RolePill(
                           label: roleData.label,
                           color: roleData.color,
                         ),
@@ -152,33 +152,37 @@ class OwnerHeader extends StatelessWidget {
     );
   }
 
-  static String _initials(String value) {
-    final parts = value.trim().split(RegExp(r'\s+'));
-
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) {
-      return parts.first.characters.first.toUpperCase();
-    }
-
-    return '${parts.first.characters.first}${parts[1].characters.first}'
-        .toUpperCase();
-  }
-
-  static _RoleData _roleData(String? role) {
-    return switch (role?.toLowerCase().trim()) {
-      'owner' => const _RoleData('Owner', Color(0xFF2DD4BF)),
-      'manager' => const _RoleData('Manager', Color(0xFF38BDF8)),
-      'cashier' => const _RoleData('Cashier', Color(0xFFA78BFA)),
-      _ => const _RoleData('User', Color(0xFF94A3B8)),
-    };
-  }
 }
 
-class _RolePill extends StatelessWidget {
+/// Derives initials (1-2 letters) from a full name, e.g. "Amana Store" -> "AS".
+String initialsFor(String value) {
+  final parts = value.trim().split(RegExp(r'\s+'));
+
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) {
+    return parts.first.characters.first.toUpperCase();
+  }
+
+  return '${parts.first.characters.first}${parts[1].characters.first}'
+      .toUpperCase();
+}
+
+/// Maps a raw role string to a display label and accent color.
+RoleData roleDataFor(String? role) {
+  return switch (role?.toLowerCase().trim()) {
+    'owner' => const RoleData('Owner', Color(0xFF2DD4BF)),
+    'manager' => const RoleData('Manager', Color(0xFF38BDF8)),
+    'cashier' => const RoleData('Cashier', Color(0xFFA78BFA)),
+    _ => const RoleData('User', Color(0xFF94A3B8)),
+  };
+}
+
+class RolePill extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _RolePill({
+  const RolePill({
+    super.key,
     required this.label,
     required this.color,
   });
@@ -229,11 +233,11 @@ class _RolePill extends StatelessWidget {
   }
 }
 
-class _RoleData {
+class RoleData {
   final String label;
   final Color color;
 
-  const _RoleData(this.label, this.color);
+  const RoleData(this.label, this.color);
 }
 
 class _OwnerHeaderGridPainter extends CustomPainter {

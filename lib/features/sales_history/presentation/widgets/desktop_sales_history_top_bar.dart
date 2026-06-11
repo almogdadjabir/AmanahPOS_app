@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sales_view_tab_switch.dart';
+import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -7,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 /// Desktop sales-history header: a live-search field, a view-mode tab switch
-/// (Transactions / Reports) centred in the remaining space, and a refresh
-/// action — mirrors [DesktopInventoryTopBar] so Sales History reads as the
-/// same control surface as the rest of the app's desktop views.
+/// (Transactions / Reports) centred in the remaining space, a returns toggle,
+/// and a refresh action — mirrors [DesktopInventoryTopBar] so Sales History
+/// reads as the same control surface as the rest of the app's desktop views.
 class DesktopSalesHistoryTopBar extends StatelessWidget {
   const DesktopSalesHistoryTopBar({
     super.key,
@@ -17,12 +18,16 @@ class DesktopSalesHistoryTopBar extends StatelessWidget {
     required this.onViewChanged,
     required this.searchController,
     required this.onRefresh,
+    required this.returnsActive,
+    required this.onReturnsTap,
   });
 
   final SalesView activeView;
   final ValueChanged<SalesView> onViewChanged;
   final TextEditingController searchController;
   final VoidCallback onRefresh;
+  final bool returnsActive;
+  final VoidCallback onReturnsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +52,11 @@ class DesktopSalesHistoryTopBar extends StatelessWidget {
             onChanged: onViewChanged,
           ),
           const Spacer(),
+          _ReturnsToggleButton(
+            active: returnsActive,
+            onTap: onReturnsTap,
+          ),
+          const SizedBox(width: AppDims.s2),
           IconButton(
             onPressed: onRefresh,
             icon: const Icon(SolarIconsOutline.refresh),
@@ -60,6 +70,42 @@ class DesktopSalesHistoryTopBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReturnsToggleButton extends StatelessWidget {
+  const _ReturnsToggleButton({
+    required this.active,
+    required this.onTap,
+  });
+
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final fg = active ? Colors.white : colors.textSecondary;
+    final bg = active
+        ? AppColors.danger
+        : colors.surfaceSoft.withValues(alpha: 0.65);
+    final border = active
+        ? AppColors.danger.withValues(alpha: 0.5)
+        : colors.border.withValues(alpha: 0.75);
+
+    return IconButton(
+      onPressed: onTap,
+      tooltip: context.tr.processReturn,
+      icon: const Icon(SolarIconsOutline.undoLeft),
+      style: IconButton.styleFrom(
+        foregroundColor: fg,
+        backgroundColor: bg,
+        side: BorderSide(color: border),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+        ),
       ),
     );
   }

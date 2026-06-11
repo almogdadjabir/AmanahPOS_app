@@ -2006,5 +2006,56 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportsComingSoon => 'التقارير والإحصائيات قادمة قريباً.';
 
   @override
+  String get reportsRevenue => 'الإيرادات';
+
+  @override
+  String get reportsGross => 'الإجمالي';
+
+  @override
+  String get reportsNet => 'الصافي';
+
+  @override
+  String get revenueAndSalesTrend => 'اتجاه الإيرادات والمبيعات';
+
+  @override
+  String get paymentMethodsTitle => 'طرق الدفع';
+
+  @override
+  String get peakHoursTitle => 'أوقات الذروة';
+
+  @override
+  String get topProductsTitle => 'أفضل المنتجات';
+
+  @override
+  String get topCategoriesTitle => 'أفضل الفئات';
+
+  @override
+  String get dayOfWeekTitle => 'يوم الأسبوع';
+
+  @override
+  String get selectDateRange => 'اختر نطاق التاريخ';
+
+  @override
+  String get reportsNoSalesInRange => 'لا توجد مبيعات في هذه الفترة.';
+
+  @override
+  String get reportsLoadError => 'فشل تحميل التقرير.';
+
+  @override
+  String get reportsRefresh => 'تحديث التقرير';
+
+  @override
+  String get thisWeek => 'هذا الأسبوع';
+
+  @override
+  String get thisMonth => 'هذا الشهر';
+
+  @override
+  String get reportsNetSales => 'صافي المبيعات';
+
+  @override
+  String get reportsSalesCount => 'المعاملات';
+
+  @override
   String get searchSalesHistoryHint => 'البحث برقم الإيصال أو العميل';
 }

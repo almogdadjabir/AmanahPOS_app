@@ -62,6 +62,14 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
           today.subtract(const Duration(days: 1)),
           today.subtract(const Duration(days: 1)),
         ),
+      ReportPreset.thisWeek => (
+          today.subtract(Duration(days: today.weekday - 1)),
+          today,
+        ),
+      ReportPreset.thisMonth => (
+          DateTime(now.year, now.month, 1),
+          today,
+        ),
       ReportPreset.custom => (
           state.customRange?.start ?? today,
           state.customRange?.end ?? today,

@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/returns/presentation/bloc/returns_bloc.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/item_selector_view.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/return_success_sheet.dart';
@@ -54,11 +55,15 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
   }
 
   void _onBackPressed(ReturnsState state) {
+    // On desktop, search is always visible — back always navigates out.
+    if (context.isDesktop) {
+      Navigator.of(context).pop();
+      return;
+    }
     if (state.selectedSale != null) {
       context.read<ReturnsBloc>().add(const ReturnsReset());
       return;
     }
-
     Navigator.of(context).pop();
   }
 
@@ -69,9 +74,10 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
 
   void _onSuccessShown(BuildContext context, ReturnsState state) {
     final authState = context.read<AuthBloc>().state;
-    final businessName = authState.defaultBusiness?.name?.trim().isNotEmpty == true
-        ? authState.defaultBusiness!.name!.trim()
-        : 'AmanaPOS';
+    final businessName =
+        authState.defaultBusiness?.name?.trim().isNotEmpty == true
+            ? authState.defaultBusiness!.name!.trim()
+            : 'AmanaPOS';
 
     final originalRef = state.selectedSale?.displayRef ?? '';
 
@@ -90,22 +96,20 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
     final colors = context.appColors;
 
     return BlocListener<ReturnsBloc, ReturnsState>(
-      listenWhen: (previous, current) {
-        return previous.submitStatus != current.submitStatus &&
-            current.submitStatus == ReturnsSubmitStatus.success &&
-            current.refundResult != null;
-      },
+      listenWhen: (previous, current) =>
+          previous.submitStatus != current.submitStatus &&
+          current.submitStatus == ReturnsSubmitStatus.success &&
+          current.refundResult != null,
       listener: _onSuccessShown,
       child: BlocBuilder<ReturnsBloc, ReturnsState>(
-        buildWhen: (previous, current) {
-          return previous.selectedSale != current.selectedSale ||
-              previous.allSelected != current.allSelected ||
-              previous.submitStatus != current.submitStatus ||
-              previous.searchStatus != current.searchStatus ||
-              previous.searchResults != current.searchResults ||
-              previous.errorMessage != current.errorMessage ||
-              previous.selectedItems != current.selectedItems;
-        },
+        buildWhen: (previous, current) =>
+            previous.selectedSale != current.selectedSale ||
+            previous.allSelected != current.allSelected ||
+            previous.submitStatus != current.submitStatus ||
+            previous.searchStatus != current.searchStatus ||
+            previous.searchResults != current.searchResults ||
+            previous.errorMessage != current.errorMessage ||
+            previous.selectedItems != current.selectedItems,
         builder: (context, state) {
           final selectedSale = state.selectedSale;
           final hasSale = selectedSale != null;
@@ -127,19 +131,18 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
                 switchOutCurve: Curves.easeInCubic,
                 child: hasSale
                     ? _SaleAppBarTitle(
-                  key: ValueKey(selectedSale.id ?? selectedSale.displayRef),
-                  sale: selectedSale,
-                )
+                        key: ValueKey(
+                            selectedSale.id ?? selectedSale.displayRef),
+                        sale: selectedSale,
+                      )
                     : const _DefaultAppBarTitle(
-                  key: ValueKey('default-return-title'),
-                ),
+                        key: ValueKey('default-return-title'),
+                      ),
               ),
               actions: [
                 if (hasSale)
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      end: AppDims.s4,
-                    ),
+                    padding: const EdgeInsetsDirectional.only(end: AppDims.s4),
                     child: _ReturnAllButton(
                       allSelected: state.allSelected,
                       onTap: _onToggleAll,
@@ -147,12 +150,18 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
                   ),
               ],
             ),
-            body: hasSale
-                ? ItemSelectorView(state: state)
-                : ReturnsSearchView(
-              controller: _searchCtrl,
-              state: state,
-            ),
+            body: context.isDesktop
+                ? _DesktopBody(
+                    state: state,
+                    searchCtrl: _searchCtrl,
+                    colors: colors,
+                  )
+                : (hasSale
+                    ? ItemSelectorView(state: state)
+                    : ReturnsSearchView(
+                        controller: _searchCtrl,
+                        state: state,
+                      )),
           );
         },
       ),
@@ -160,11 +169,115 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
   }
 }
 
-class _BackButton extends StatelessWidget {
-  const _BackButton({
-    required this.onTap,
+// ── Desktop two-panel body ───────────────────────────────────────────────────
+
+class _DesktopBody extends StatelessWidget {
+  const _DesktopBody({
+    required this.state,
+    required this.searchCtrl,
+    required this.colors,
   });
 
+  final ReturnsState state;
+  final TextEditingController searchCtrl;
+  final AppThemeColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSale = state.selectedSale != null;
+
+    return Row(
+      children: [
+        // Left: search always visible on desktop
+        Container(
+          width: 380,
+          decoration: BoxDecoration(
+            border: Border(right: BorderSide(color: colors.border)),
+          ),
+          child: ReturnsSearchView(
+            controller: searchCtrl,
+            state: state,
+          ),
+        ),
+        // Right: item selector or prompt
+        Expanded(
+          child: hasSale
+              ? ItemSelectorView(state: state)
+              : const _DesktopNoSalePrompt(),
+        ),
+      ],
+    );
+  }
+}
+
+class _DesktopNoSalePrompt extends StatelessWidget {
+  const _DesktopNoSalePrompt();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.dangerLight,
+                borderRadius: BorderRadius.circular(AppDims.rXl),
+                border: Border.all(
+                    color: AppColors.danger.withValues(alpha: 0.18)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                SolarIconsOutline.undoLeft,
+                size: 32,
+                color: AppColors.danger,
+              ),
+            ),
+            const SizedBox(height: AppDims.s4),
+            Text(
+              context.tr.returnFindSale,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bs200(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w900,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: AppDims.s2),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: Text(
+                context.tr.returnFindSaleSubtitle,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bs100(context).copyWith(
+                  color: colors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Shared AppBar widgets ────────────────────────────────────────────────────
+
+class _BackButton extends StatelessWidget {
+  const _BackButton({required this.onTap});
   final VoidCallback onTap;
 
   @override
@@ -337,7 +450,8 @@ class _SaleAppBarTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final createdAt = DateFormat.yMMMd(locale).format(sale.createdAt.toLocal());
+    final createdAt =
+        DateFormat.yMMMd(locale).format(sale.createdAt.toLocal());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

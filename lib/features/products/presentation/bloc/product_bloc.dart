@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
 
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
@@ -13,6 +14,7 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
 import 'package:amana_pos/features/users/data/models/movement_type.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
@@ -88,10 +90,12 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         ));
       }
 
-      final responses = await Future.wait([
-        useCase.getProducts(page: 1),
-        useCase.getCategories(),
-      ]);
+      final responses = await getIt<AppProgressCubit>().run(
+            () => Future.wait([
+          useCase.getProducts(page: 1),
+          useCase.getCategories(),
+        ]),
+      );
 
       final productsResponse = responses[0] as Either<String?, ProductListResponseDto>;
       final categoriesResponse = responses[1] as Either<String?, CategoryResponseDto>;

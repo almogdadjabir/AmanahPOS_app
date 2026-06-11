@@ -29,284 +29,131 @@ class ReturnsSearchView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _SearchField(controller: controller),
-        Expanded(
-          child: _SearchResults(state: state),
-        ),
+        _SearchHeader(controller: controller),
+        Expanded(child: _SearchResults(state: state)),
       ],
     );
   }
 }
 
-class _SearchField extends StatefulWidget {
-  const _SearchField({
-    required this.controller,
-  });
+// ── Search header ────────────────────────────────────────────────────────────
 
+class _SearchHeader extends StatefulWidget {
+  const _SearchHeader({required this.controller});
   final TextEditingController controller;
 
   @override
-  State<_SearchField> createState() => _SearchFieldState();
+  State<_SearchHeader> createState() => _SearchHeaderState();
 }
 
-class _SearchFieldState extends State<_SearchField> {
-  final FocusNode _focusNode = FocusNode();
-
-  bool _isFocused = false;
+class _SearchHeaderState extends State<_SearchHeader> {
+  final FocusNode _focus = FocusNode();
+  bool _focused = false;
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(_handleFocusChanged);
+    _focus.addListener(() {
+      final next = _focus.hasFocus;
+      if (_focused != next) setState(() => _focused = next);
+    });
   }
 
   @override
   void dispose() {
-    _focusNode
-      ..removeListener(_handleFocusChanged)
-      ..dispose();
+    _focus.dispose();
     super.dispose();
-  }
-
-  void _handleFocusChanged() {
-    if (_isFocused == _focusNode.hasFocus) return;
-    setState(() => _isFocused = _focusNode.hasFocus);
-  }
-
-  void _onSearchChanged(BuildContext context, String query) {
-    context.read<ReturnsBloc>().add(
-      ReturnsSearchChanged(query),
-    );
-  }
-
-  void _clearSearch(BuildContext context) {
-    widget.controller.clear();
-    _onSearchChanged(context, '');
-    _focusNode.requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return DecoratedBox(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
         color: colors.surface,
         border: Border(
           bottom: BorderSide(
-            color: colors.border,
+            color: _focused
+                ? AppColors.danger.withValues(alpha: 0.3)
+                : colors.border,
           ),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(
-          AppDims.s4,
-          AppDims.s3,
-          AppDims.s4,
-          AppDims.s3,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutCubic,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: _isFocused
-                    ? [
-                  BoxShadow(
-                    color: AppColors.danger.withValues(alpha: 0.15),
-                    blurRadius: 0,
-                    spreadRadius: 2,
-                  ),
-                ]
-                    : null,
-              ),
-              child: CustomSearchField(
-                controller: widget.controller,
-                onChanged: (q) =>
-                    context.read<ReturnsBloc>().add(ReturnsSearchChanged(q)),
-
-              )
-            ),
-            const SizedBox(height: AppDims.s2),
-            Text(
-              context.tr.returnSearchHelper,
-              style: AppTextStyles.bs300(context).copyWith(
-                color: colors.textHint,
-                fontWeight: FontWeight.w600,
-                height: 1.25,
-              ),
-            ),
-          ],
-        ),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppDims.s4,
+        AppDims.s3,
+        AppDims.s4,
+        AppDims.s3,
       ),
-    );
-  }
-
-  OutlineInputBorder _border(Color color, {double width = 1}) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(
-        color: color,
-        width: width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Focus-ring wrapper
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDims.rMd + 2),
+              boxShadow: _focused
+                  ? [
+                      BoxShadow(
+                        color: AppColors.danger.withValues(alpha: 0.14),
+                        blurRadius: 0,
+                        spreadRadius: 3,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: CustomSearchField(
+              controller: widget.controller,
+              onChanged: (q) => context
+                  .read<ReturnsBloc>()
+                  .add(ReturnsSearchChanged(q)),
+            ),
+          ),
+          const SizedBox(height: AppDims.s2),
+          Text(
+            context.tr.returnSearchHelper,
+            style: AppTextStyles.sm100(context).copyWith(
+              color: colors.textHint,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _ClearSearchButton extends StatelessWidget {
-  const _ClearSearchButton({
-    required this.onTap,
-  });
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Semantics(
-      button: true,
-      label: context.tr.clearSearch,
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Center(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colors.border,
-                ),
-              ),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: Icon(
-                  SolarIconsOutline.closeCircle,
-                  size: 14,
-                  color: colors.textSecondary,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ── Result area ──────────────────────────────────────────────────────────────
 
 class _SearchResults extends StatelessWidget {
-  const _SearchResults({
-    required this.state,
-  });
-
+  const _SearchResults({required this.state});
   final ReturnsState state;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    if (state.searchStatus == ReturnsSearchStatus.idle) {
-      return _EmptyState(
-        icon: SolarIconsOutline.saleSquare,
-        iconColor: AppColors.danger,
-        iconBg: AppColors.dangerLight,
-        title: context.tr.returnFindSale,
-        subtitle: context.tr.returnFindSaleSubtitle,
-      );
-    }
-
-    if (state.searchStatus == ReturnsSearchStatus.loading) {
-      return const _LoadingState();
-    }
-
-    if (state.searchStatus == ReturnsSearchStatus.failure) {
-      return _EmptyState(
-        icon: SolarIconsOutline.dangerTriangle,
-        iconColor: AppColors.danger,
-        iconBg: AppColors.dangerLight,
-        title: context.tr.returnSearchFailed,
-        subtitle: state.errorMessage?.trim().isNotEmpty == true
-            ? state.errorMessage!.trim()
-            : context.tr.pleaseTryAgain,
-      );
-    }
-
-    if (state.searchResults.isEmpty) {
-      return _EmptyState(
-        icon: SolarIconsOutline.magnifier,
-        iconColor: colors.textHint,
-        iconBg: colors.surfaceSoft,
-        title: context.tr.returnNoSalesFound,
-        subtitle: context.tr.returnNoSalesSubtitle,
-      );
-    }
-
-    return ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppDims.s4,
-        vertical: AppDims.s3,
-      ),
-      itemCount: state.searchResults.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppDims.s2),
-      itemBuilder: (context, index) {
-        final sale = state.searchResults[index];
-
-        return RepaintBoundary(
-          child: _SaleResultTile(
-            sale: sale,
-            onTap: () {
-              context.read<ReturnsBloc>().add(
-                ReturnsSaleSelected(sale),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          color: AppColors.danger,
+    return switch (state.searchStatus) {
+      ReturnsSearchStatus.idle => const _IdleState(),
+      ReturnsSearchStatus.loading => const _LoadingState(),
+      ReturnsSearchStatus.failure => _ErrorState(
+          message: state.errorMessage,
         ),
-      ),
-    );
+      ReturnsSearchStatus.success when state.searchResults.isEmpty =>
+        const _EmptyResultsState(),
+      _ => _ResultsList(results: state.searchResults),
+    };
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.title,
-    required this.subtitle,
-  });
+// ── Idle ─────────────────────────────────────────────────────────────────────
 
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String title;
-  final String subtitle;
+class _IdleState extends StatelessWidget {
+  const _IdleState();
 
   @override
   Widget build(BuildContext context) {
@@ -314,126 +161,551 @@ class _EmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsetsDirectional.all(AppDims.s5),
-        child: RepaintBoundary(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: iconColor.withValues(alpha: 0.14),
-                  ),
-                ),
-                child: SizedBox(
-                  width: 74,
-                  height: 74,
-                  child: Icon(
-                    icon,
-                    size: 36,
-                    color: iconColor,
-                  ),
-                ),
+        padding: const EdgeInsets.all(AppDims.s6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Receipt-frame icon
+            _ReceiptIconBadge(),
+            const SizedBox(height: AppDims.s4),
+            Text(
+              context.tr.returnFindSale,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bs200(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w900,
+                height: 1.2,
               ),
-              const SizedBox(height: AppDims.s3),
-              Text(
-                title,
+            ),
+            const SizedBox(height: AppDims.s2),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 280),
+              child: Text(
+                context.tr.returnFindSaleSubtitle,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bs400(context).copyWith(
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                  height: 1.15,
+                style: AppTextStyles.bs100(context).copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                  height: 1.45,
                 ),
               ),
-              const SizedBox(height: AppDims.s2),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 300),
-                child: Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bs100(context).copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+class _ReceiptIconBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        // Outer glow ring
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            color: AppColors.dangerLight.withValues(alpha: 0.5),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.danger.withValues(alpha: 0.08),
+              width: 1,
+            ),
+          ),
+        ),
+        // Icon container
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: AppColors.dangerLight,
+            borderRadius: BorderRadius.circular(AppDims.rLg),
+            border: Border.all(
+              color: AppColors.danger.withValues(alpha: 0.18),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.danger.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Icon(
+            SolarIconsOutline.undoLeft,
+            size: 28,
+            color: AppColors.danger,
+          ),
+        ),
+        // Small magnifier badge
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: AppColors.danger,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const Icon(
+              SolarIconsOutline.magnifier,
+              size: 13,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Loading ──────────────────────────────────────────────────────────────────
+
+class _LoadingState extends StatelessWidget {
+  const _LoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s3,
+      ),
+      itemCount: 3,
+      separatorBuilder: (_, _) => const SizedBox(height: AppDims.s2),
+      itemBuilder: (_, i) => _SkeletonTile(delay: i * 60),
+    );
+  }
+}
+
+class _SkeletonTile extends StatefulWidget {
+  const _SkeletonTile({required this.delay});
+  final int delay;
+
+  @override
+  State<_SkeletonTile> createState() => _SkeletonTileState();
+}
+
+class _SkeletonTileState extends State<_SkeletonTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _ctrl.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        final opacity = 0.4 + _anim.value * 0.35;
+        return Opacity(
+          opacity: opacity,
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              color: colors.surfaceSoft,
+              borderRadius: BorderRadius.circular(AppDims.rMd),
+              border: Border.all(color: colors.border),
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDims.s4,
+              vertical: AppDims.s3,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: colors.border,
+                    borderRadius: BorderRadius.circular(AppDims.rSm),
+                  ),
+                ),
+                const SizedBox(width: AppDims.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 10,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: colors.border,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        height: 8,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: colors.border.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 10,
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: colors.border,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Error ─────────────────────────────────────────────────────────────────────
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message});
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.dangerLight,
+                borderRadius: BorderRadius.circular(AppDims.rLg),
+                border: Border.all(
+                    color: AppColors.danger.withValues(alpha: 0.2)),
+              ),
+              child: const Icon(SolarIconsOutline.dangerTriangle,
+                  size: 26, color: AppColors.danger),
+            ),
+            const SizedBox(height: AppDims.s3),
+            Text(
+              context.tr.returnSearchFailed,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bs100(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            if (message?.trim().isNotEmpty == true) ...[
+              const SizedBox(height: AppDims.s2),
+              Text(
+                message!.trim(),
+                textAlign: TextAlign.center,
+                style: AppTextStyles.sm200(context).copyWith(
+                  color: colors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Empty results ────────────────────────────────────────────────────────────
+
+class _EmptyResultsState extends StatelessWidget {
+  const _EmptyResultsState();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDims.s5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: colors.surfaceSoft,
+                borderRadius: BorderRadius.circular(AppDims.rLg),
+                border: Border.all(color: colors.border),
+              ),
+              child: Icon(SolarIconsOutline.magnifier,
+                  size: 26, color: colors.textHint),
+            ),
+            const SizedBox(height: AppDims.s3),
+            Text(
+              context.tr.returnNoSalesFound,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bs100(context).copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: AppDims.s2),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 260),
+              child: Text(
+                context.tr.returnNoSalesSubtitle,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.sm200(context).copyWith(
+                  color: colors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Results list ─────────────────────────────────────────────────────────────
+
+class _ResultsList extends StatelessWidget {
+  const _ResultsList({required this.results});
+  final List<SaleHistoryItem> results;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s4,
+      ),
+      itemCount: results.length,
+      separatorBuilder: (_, _) => const SizedBox(height: AppDims.s2),
+      itemBuilder: (context, index) {
+        final sale = results[index];
+        return RepaintBoundary(
+          child: _SaleResultTile(
+            sale: sale,
+            onTap: sale.canBeReturned
+                ? () => context
+                    .read<ReturnsBloc>()
+                    .add(ReturnsSaleSelected(sale))
+                : null,
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Sale result tile ──────────────────────────────────────────────────────────
+
 class _SaleResultTile extends StatelessWidget {
-  const _SaleResultTile({
-    required this.sale,
-    required this.onTap,
-  });
+  const _SaleResultTile({required this.sale, required this.onTap});
 
   final SaleHistoryItem sale;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final canReturn = sale.canBeReturned;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
+    final dateStr = DateFormat('d MMM · HH:mm', locale)
+        .format(sale.createdAt.toLocal());
+    final payment = _paymentLabel(context, sale.paymentLabel);
+    final items = context.tr.itemCount(sale.itemCount);
 
     return Opacity(
       opacity: canReturn ? 1.0 : 0.52,
-      child: DecoratedBox(
+      child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(AppDims.rMd),
+          border: Border.all(
+            color: canReturn
+                ? AppColors.danger.withValues(alpha: 0.22)
+                : colors.border,
+          ),
           boxShadow: canReturn
               ? [
-            BoxShadow(
-              color: colors.shadow.withValues(alpha: 0.035),
-              blurRadius: 12,
-              offset: const Offset(0, 7),
-            ),
-          ]
+                  BoxShadow(
+                    color: AppColors.danger.withValues(alpha: 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
               : null,
         ),
+        clipBehavior: Clip.antiAlias,
         child: Material(
           color: colors.surface,
-          borderRadius: BorderRadius.circular(15),
-          clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: canReturn ? onTap : null,
-            highlightColor: AppColors.dangerLight.withValues(alpha: 0.45),
-            splashColor: AppColors.dangerLight.withValues(alpha: 0.26),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: AppDims.s4,
-                vertical: AppDims.s3,
-              ),
+            onTap: onTap,
+            highlightColor: canReturn
+                ? AppColors.dangerLight.withValues(alpha: 0.35)
+                : Colors.transparent,
+            splashColor: canReturn
+                ? AppColors.dangerLight.withValues(alpha: 0.2)
+                : Colors.transparent,
+            child: IntrinsicHeight(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ReturnStatusIcon(canReturn: canReturn),
-                  const SizedBox(width: AppDims.s3),
+                  // ── Left accent strip ──────────────────────────
+                  Container(
+                    width: 3,
+                    color: canReturn
+                        ? AppColors.danger
+                        : colors.border,
+                  ),
+
+                  // ── Icon ──────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        AppDims.s3, AppDims.s3, 0, AppDims.s3),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: canReturn
+                            ? AppColors.dangerLight
+                            : colors.surfaceSoft,
+                        borderRadius: BorderRadius.circular(AppDims.rSm),
+                        border: Border.all(
+                          color: canReturn
+                              ? AppColors.danger.withValues(alpha: 0.18)
+                              : colors.border.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      child: Icon(
+                        canReturn
+                            ? SolarIconsOutline.undoLeft
+                            : SolarIconsOutline.forbiddenCircle,
+                        size: 18,
+                        color: canReturn
+                            ? AppColors.danger
+                            : colors.textHint,
+                      ),
+                    ),
+                  ),
+
+                  // ── Info ──────────────────────────────────────
                   Expanded(
-                    child: _SaleInfo(
-                      sale: sale,
-                      canReturn: canReturn,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          AppDims.s3, AppDims.s3, AppDims.s2, AppDims.s3),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            sale.displayRef,
+                            textDirection: ui.TextDirection.ltr,
+                            style: AppTextStyles.sm200(context).copyWith(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w900,
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                              letterSpacing: 0.2,
+                              height: 1.1,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$dateStr · $payment · $items',
+                            style: AppTextStyles.sm100(context).copyWith(
+                              color: colors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (!canReturn) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              _cannotReturnLabel(context),
+                              style: AppTextStyles.sm100(context).copyWith(
+                                color: colors.textHint,
+                                fontWeight: FontWeight.w600,
+                                height: 1.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: AppDims.s3),
-                  _SaleAmount(
-                    sale: sale,
-                    canReturn: canReturn,
-                  ),
-                  if (canReturn) ...[
-                    const SizedBox(width: AppDims.s2),
-                    DirectionalIcon(
-                      icon: SolarIconsOutline.altArrowRight,
-                      size: 18,
-                      color: colors.textHint,
+
+                  // ── Amount + arrow ────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        0, AppDims.s3, AppDims.s3, AppDims.s3),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          AppFormat.moneyWithUnit(sale.total),
+                          textDirection: ui.TextDirection.ltr,
+                          style: AppTextStyles.sm200(context).copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: canReturn
+                                ? AppColors.danger
+                                : colors.textSecondary,
+                            height: 1,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        if (canReturn) ...[
+                          const SizedBox(height: 4),
+                          DirectionalIcon(
+                            icon: SolarIconsOutline.altArrowRight,
+                            size: 14,
+                            color: AppColors.danger.withValues(alpha: 0.5),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -442,166 +714,23 @@ class _SaleResultTile extends StatelessWidget {
       ),
     );
   }
-}
 
-class _ReturnStatusIcon extends StatelessWidget {
-  const _ReturnStatusIcon({
-    required this.canReturn,
-  });
-
-  final bool canReturn;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final iconColor = canReturn ? AppColors.danger : colors.textHint;
-    final bg = canReturn ? AppColors.dangerLight : colors.surfaceSoft;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.14),
-        ),
-      ),
-      child: SizedBox(
-        width: 46,
-        height: 46,
-        child: Icon(
-          canReturn ? SolarIconsOutline.undoLeft : SolarIconsOutline.forbiddenCircle,
-          size: 21,
-          color: iconColor,
-        ),
-      ),
-    );
+  String _cannotReturnLabel(BuildContext context) {
+    if (sale.isOfflinePending) {
+      return context.tr.returnPendingSyncCannotReturn;
+    }
+    return context.tr.returnAlreadyProcessed(_statusLabel(context, sale.status));
   }
-}
-
-class _SaleInfo extends StatelessWidget {
-  const _SaleInfo({
-    required this.sale,
-    required this.canReturn,
-  });
-
-  final SaleHistoryItem sale;
-  final bool canReturn;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          sale.displayRef,
-          textDirection: ui.TextDirection.ltr,
-          textAlign: TextAlign.start,
-          style: AppTextStyles.bs100(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-            fontSize: 12.5,
-            fontFamily: 'monospace',
-            height: 1.1,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 5),
-        Text(
-          _metaText(context, sale),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.start,
-          style: AppTextStyles.sm100(context).copyWith(
-            color: colors.textSecondary,
-            fontWeight: FontWeight.w700,
-            height: 1.2,
-          ),
-        ),
-        if (!canReturn) ...[
-          const SizedBox(height: 5),
-          Text(
-            _cannotReturnMessage(context, sale),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.sm100(context).copyWith(
-              color: colors.textHint,
-              fontWeight: FontWeight.w700,
-              height: 1.2,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _SaleAmount extends StatelessWidget {
-  const _SaleAmount({
-    required this.sale,
-    required this.canReturn,
-  });
-
-  final SaleHistoryItem sale;
-  final bool canReturn;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 105),
-      child: Text(
-        AppFormat.moneyWithUnit(sale.total),
-        textDirection: ui.TextDirection.ltr,
-        textAlign: TextAlign.end,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.bs200(context).copyWith(
-          fontWeight: FontWeight.w900,
-          color: canReturn ? AppColors.danger : colors.textSecondary,
-          height: 1,
-          letterSpacing: -0.25,
-        ),
-      ),
-    );
-  }
-}
-
-String _metaText(BuildContext context, SaleHistoryItem sale) {
-  final locale = Localizations.localeOf(context).toLanguageTag();
-  final date = DateFormat('d MMM · HH:mm', locale).format(
-    sale.createdAt.toLocal(),
-  );
-
-  final payment = _paymentLabel(context, sale.paymentLabel);
-  final itemCount = context.tr.itemCount(sale.itemCount);
-
-  return '$date · $payment · $itemCount';
 }
 
 String _paymentLabel(BuildContext context, String label) {
-  final normalized = label.toLowerCase().trim();
-
-  if (normalized.contains('cash')) return context.tr.cash;
-  if (normalized.contains('card')) return context.tr.card;
-  if (normalized.contains('bankak')) return context.tr.bankak;
-  if (normalized.contains('transfer')) return context.tr.bankTransfer;
-  if (normalized.contains('wallet')) return context.tr.wallet;
-
+  final n = label.toLowerCase().trim();
+  if (n.contains('cash')) return context.tr.cash;
+  if (n.contains('card')) return context.tr.card;
+  if (n.contains('bankak')) return context.tr.bankak;
+  if (n.contains('transfer')) return context.tr.bankTransfer;
+  if (n.contains('wallet')) return context.tr.wallet;
   return label.trim().isEmpty ? context.tr.payment : label.trim();
-}
-
-String _cannotReturnMessage(BuildContext context, SaleHistoryItem sale) {
-  if (sale.isOfflinePending) {
-    return context.tr.returnPendingSyncCannotReturn;
-  }
-
-  return context.tr.returnAlreadyProcessed(
-    _statusLabel(context, sale.status),
-  );
 }
 
 String _statusLabel(BuildContext context, SaleHistoryStatus status) {

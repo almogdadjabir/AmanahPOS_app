@@ -3,21 +3,20 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 const _kLoadingSkeletonIconSize = 48.0;
 const _kErrorIconSize = 40.0;
 
-/// A skeleton placeholder for reports that are loading.
-///
-/// Displays a layout with shimmer boxes mimicking KPI cards and chart areas.
+/// Shimmer-animated skeleton for loading reports.
 class ReportsLoadingSkeleton extends StatelessWidget {
   const ReportsLoadingSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final skeletonColor = colors.border.withAlpha(60);
+    final baseColor = colors.border.withAlpha(80);
 
     return SliverFillRemaining(
       hasScrollBody: false,
@@ -25,67 +24,111 @@ class ReportsLoadingSkeleton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppDims.s4),
         child: Column(
           children: [
-            // KPI Cards Row
+            // KPI Cards Row — 5 cards
             Row(
               children: List.generate(
-                4,
+                5,
                 (index) => Expanded(
                   child: Container(
-                    height: 64,
+                    height: 72,
                     margin: EdgeInsets.only(
-                      left: index == 0 ? AppDims.s4 : AppDims.s2,
-                      right: index == 3 ? AppDims.s4 : AppDims.s2,
+                      left: index == 0 ? 0 : AppDims.s2,
+                      right: index == 4 ? 0 : AppDims.s2,
                     ),
                     decoration: BoxDecoration(
-                      color: skeletonColor,
-                      borderRadius: BorderRadius.circular(AppDims.rXl),
+                      color: baseColor,
+                      borderRadius: BorderRadius.circular(AppDims.rMd),
                     ),
-                  ),
+                  )
+                      .animate(delay: (index * 80).ms, onPlay: (c) => c.repeat())
+                      .shimmer(
+                        duration: 1200.ms,
+                        color: Colors.white.withAlpha(60),
+                      ),
                 ),
               ),
             ),
             const SizedBox(height: AppDims.s4),
-            // Chart and Details Row
+            // Main chart row (2/3 + 1/3)
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Large chart placeholder (2/3 width)
                 Expanded(
                   flex: 2,
                   child: Container(
-                    height: 280,
-                    margin: const EdgeInsets.only(left: AppDims.s4),
+                    height: 400,
                     decoration: BoxDecoration(
-                      color: skeletonColor,
+                      color: baseColor,
                       borderRadius: BorderRadius.circular(AppDims.rXl),
                     ),
-                  ),
+                  )
+                      .animate(delay: 100.ms, onPlay: (c) => c.repeat())
+                      .shimmer(
+                        duration: 1400.ms,
+                        color: Colors.white.withAlpha(60),
+                      ),
                 ),
                 const SizedBox(width: AppDims.s3),
-                // Details column (1/3 width)
                 Expanded(
                   flex: 1,
                   child: Column(
                     children: [
                       Container(
-                        height: 135,
+                        height: 192,
                         decoration: BoxDecoration(
-                          color: skeletonColor,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(AppDims.rXl),
                         ),
-                      ),
+                      )
+                          .animate(delay: 200.ms, onPlay: (c) => c.repeat())
+                          .shimmer(
+                            duration: 1400.ms,
+                            color: Colors.white.withAlpha(60),
+                          ),
                       const SizedBox(height: AppDims.s3),
                       Container(
-                        height: 135,
+                        height: 192,
                         decoration: BoxDecoration(
-                          color: skeletonColor,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(AppDims.rXl),
                         ),
-                      ),
+                      )
+                          .animate(delay: 300.ms, onPlay: (c) => c.repeat())
+                          .shimmer(
+                            duration: 1400.ms,
+                            color: Colors.white.withAlpha(60),
+                          ),
                     ],
                   ),
                 ),
-                const SizedBox(width: AppDims.s4),
               ],
+            ),
+            const SizedBox(height: AppDims.s3),
+            // Bottom row — 3 equal cards
+            Row(
+              children: List.generate(
+                3,
+                (index) => Expanded(
+                  child: Container(
+                    height: 240,
+                    margin: EdgeInsets.only(
+                      left: index == 0 ? 0 : AppDims.s3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: baseColor,
+                      borderRadius: BorderRadius.circular(AppDims.rXl),
+                    ),
+                  )
+                      .animate(
+                        delay: (400 + index * 100).ms,
+                        onPlay: (c) => c.repeat(),
+                      )
+                      .shimmer(
+                        duration: 1400.ms,
+                        color: Colors.white.withAlpha(60),
+                      ),
+                ),
+              ),
             ),
           ],
         ),
@@ -94,7 +137,7 @@ class ReportsLoadingSkeleton extends StatelessWidget {
   }
 }
 
-/// Empty state view for reports with no sales in the selected period.
+/// Empty state for no sales in the selected period.
 class ReportsEmptyView extends StatelessWidget {
   const ReportsEmptyView({super.key});
 
@@ -110,14 +153,17 @@ class ReportsEmptyView extends StatelessWidget {
               SolarIconsOutline.chartSquare,
               size: _kLoadingSkeletonIconSize,
               color: context.appColors.textHint,
-            ),
+            )
+                .animate()
+                .fadeIn(duration: 400.ms)
+                .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
             const SizedBox(height: AppDims.s3),
             Text(
               context.tr.reportsNoSalesInRange,
               style: AppTextStyles.bs200(context).copyWith(
                 color: context.appColors.textHint,
               ),
-            ),
+            ).animate(delay: 100.ms).fadeIn(duration: 300.ms).slideY(begin: 0.1),
           ],
         ),
       ),
@@ -125,10 +171,7 @@ class ReportsEmptyView extends StatelessWidget {
   }
 }
 
-/// Error state view for failed report loads.
-///
-/// Displays an error message and a retry button to allow the user to
-/// retry loading the report.
+/// Error state with retry button.
 class ReportsErrorView extends StatelessWidget {
   final String? message;
   final VoidCallback onRetry;
@@ -151,6 +194,9 @@ class ReportsErrorView extends StatelessWidget {
               SolarIconsOutline.closeCircle,
               size: _kErrorIconSize,
               color: context.appColors.danger,
+            ).animate().fadeIn(duration: 300.ms).scale(
+              begin: const Offset(0.7, 0.7),
+              curve: Curves.easeOutBack,
             ),
             const SizedBox(height: AppDims.s3),
             Text(
@@ -159,12 +205,12 @@ class ReportsErrorView extends StatelessWidget {
                 color: context.appColors.textSecondary,
               ),
               textAlign: TextAlign.center,
-            ),
+            ).animate(delay: 80.ms).fadeIn(duration: 280.ms).slideY(begin: 0.1),
             const SizedBox(height: AppDims.s3),
             TextButton(
               onPressed: onRetry,
               child: Text(context.tr.retry),
-            ),
+            ).animate(delay: 160.ms).fadeIn(duration: 280.ms),
           ],
         ),
       ),

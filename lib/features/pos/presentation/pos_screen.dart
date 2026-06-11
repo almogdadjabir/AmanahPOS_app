@@ -13,13 +13,13 @@ import 'package:amana_pos/features/main_screen/presentation/widgets/today_cards.
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_bar.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/desktop_category_sidebar.dart';
+import 'package:amana_pos/features/pos/presentation/widgets/desktop_pos_top_bar.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/pos_search_section.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/product_grid.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
@@ -78,6 +78,21 @@ class _PosScreenState extends State<PosScreen> {
     super.dispose();
   }
 
+  Future<void> _desktopRefresh() async {
+    if (!mounted) return;
+    context.read<ProductBloc>().add(const OnProductInitial(force: true));
+    context.read<BusinessBloc>().add(OnBusinessInitial());
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    if (!mounted) return;
+    final shopId =
+        _autoSelectShop() ?? context.read<PosBloc>().state.selectedShopId;
+    context.read<DashboardSummaryBloc>().add(
+          OnDashboardSummaryRefreshRequested(
+            shopId: shopId,
+            topSellersLimit: 10,
+          ),
+        );
+  }
 
   String? _autoSelectShop() {
     if (!mounted) return null;
@@ -400,72 +415,109 @@ class _PosScreenState extends State<PosScreen> {
                 ],
               );
 
-              // Desktop: 3-column workstation layout
+              // Desktop: top bar + 3-column workstation layout
               if (context.isDesktop) {
                 final colors = context.appColors;
-                return Row(
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const DesktopCategorySidebar(),
-                    VerticalDivider(width: 1, thickness: 1, color: colors.border),
+                    DesktopPosTopBar(
+                      onRefresh: _desktopRefresh,
+                      onShopSelected: (shopId, shopName) {
+                        context.read<PosBloc>().add(
+                              PosShopSelected(
+                                shopId: shopId,
+                                shopName: shopName,
+                              ),
+                            );
+                        context.read<DashboardSummaryBloc>().add(
+                              OnDashboardSummaryShopChanged(shopId: shopId),
+                            );
+                      },
+                    ),
                     Expanded(
-                      child: Column(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          DecoratedBox(
-                            decoration: BoxDecoration(color: colors.surface),
-                            child: PosSearchSection(searchCtrl: _searchCtrl),
-                          ),
-                          Divider(height: 1, thickness: 1, color: colors.border),
+                          const DesktopCategorySidebar(),
+                          VerticalDivider(
+                              width: 1, thickness: 1, color: colors.border),
                           Expanded(
-                            child: BlocBuilder<ProductBloc, ProductState>(
-                              buildWhen: (prev, curr) =>
-                                  prev.productStatus != curr.productStatus ||
-                                  prev.products != curr.products ||
-                                  prev.categories != curr.categories,
-                              builder: (context, productState) {
-                                if (productState.productStatus == ProductStatus.loading ||
-                                    productState.productStatus == ProductStatus.initial) {
-                                  return const ProductsLoadingGrid();
-                                }
-                                if (productState.productStatus == ProductStatus.failure) {
-                                  return ProductErrorView(
-                                      message: productState.responseError);
-                                }
-                                return BlocBuilder<PosBloc, PosState>(
-                                  buildWhen: (prev, curr) =>
-                                      prev.searchQuery != curr.searchQuery ||
-                                      prev.selectedCategoryId != curr.selectedCategoryId,
-                                  builder: (context, posState) {
-                                    final products =
-                                        _filterProducts(productState.products, posState);
-                                    if (products.isEmpty) {
-                                      return ProductsEmpty(query: posState.searchQuery);
-                                    }
-                                    return LayoutBuilder(
-                                      builder: (ctx, constraints) {
-                                        final cols = ctx.gridColumnsFor(
-                                          constraints.maxWidth,
-                                          tile: 140,
-                                        );
-                                        return ProductGrid(
-                                          products: products,
-                                          crossAxisCount: cols,
-                                        );
-                                      },
-                                    );
-                                  },
-                                );
-                              },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                DecoratedBox(
+                                  decoration:
+                                      BoxDecoration(color: colors.surface),
+                                  child:
+                                      PosSearchSection(searchCtrl: _searchCtrl),
+                                ),
+                                Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                    color: colors.border),
+                                Expanded(
+                                  child: BlocBuilder<ProductBloc, ProductState>(
+                                    buildWhen: (prev, curr) =>
+                                        prev.productStatus !=
+                                            curr.productStatus ||
+                                        prev.products != curr.products ||
+                                        prev.categories != curr.categories,
+                                    builder: (context, productState) {
+                                      if (productState.productStatus ==
+                                              ProductStatus.loading ||
+                                          productState.productStatus ==
+                                              ProductStatus.initial) {
+                                        return const ProductsLoadingGrid();
+                                      }
+                                      if (productState.productStatus ==
+                                          ProductStatus.failure) {
+                                        return ProductErrorView(
+                                            message:
+                                                productState.responseError);
+                                      }
+                                      return BlocBuilder<PosBloc, PosState>(
+                                        buildWhen: (prev, curr) =>
+                                            prev.searchQuery !=
+                                                curr.searchQuery ||
+                                            prev.selectedCategoryId !=
+                                                curr.selectedCategoryId,
+                                        builder: (context, posState) {
+                                          final products = _filterProducts(
+                                              productState.products, posState);
+                                          if (products.isEmpty) {
+                                            return ProductsEmpty(
+                                                query: posState.searchQuery);
+                                          }
+                                          return LayoutBuilder(
+                                            builder: (ctx, constraints) {
+                                              final cols = ctx.gridColumnsFor(
+                                                constraints.maxWidth,
+                                                tile: 160,
+                                              );
+                                              return ProductGrid(
+                                                products: products,
+                                                crossAxisCount: cols,
+                                              );
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+                          VerticalDivider(
+                              width: 1, thickness: 1, color: colors.border),
+                          SizedBox(
+                            width: 380,
+                            child:
+                                DesktopCartPanel(onCheckout: _handleCheckout),
                           ),
                         ],
                       ),
-                    ),
-                    VerticalDivider(width: 1, thickness: 1, color: colors.border),
-                    SizedBox(
-                      width: 380,
-                      child: DesktopCartPanel(onCheckout: _handleCheckout),
                     ),
                   ],
                 );
@@ -539,102 +591,6 @@ class _PosScreenState extends State<PosScreen> {
   }
 }
 
-class _ShopSwitcherBar extends StatelessWidget {
-  final List<ShopData> activeShops;
-
-  const _ShopSwitcherBar({required this.activeShops});
-
-  @override
-  Widget build(BuildContext context) {
-    final permissions = context.read<AuthBloc>().state.permissions;
-
-    // Cashiers and single-shop owners: render nothing
-    if (permissions.isCashier || activeShops.length < 2) {
-      return const SizedBox.shrink();
-    }
-
-    return BlocBuilder<PosBloc, PosState>(
-      buildWhen: (prev, curr) => prev.selectedShopId != curr.selectedShopId,
-      builder: (context, posState) {
-        final colors       = context.appColors;
-        final selectedName = posState.selectedShopName ?? 'Select shop';
-
-        return Container(
-          width:   double.infinity,
-          padding: const EdgeInsets.fromLTRB(
-              AppDims.s4, AppDims.s2, AppDims.s4, AppDims.s1),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: activeShops.map((shop) {
-                final isSelected = shop.id == posState.selectedShopId;
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: AppDims.s2),
-                  child: GestureDetector(
-                    onTap: isSelected
-                        ? null
-                        : () {
-                      context.read<PosBloc>().add(
-                        PosShopSelected(
-                          shopId: shop.id!,
-                          shopName: shop.name ?? 'Shop',
-                        ),
-                      );
-
-                      context.read<DashboardSummaryBloc>().add(
-                        OnDashboardSummaryShopChanged(shopId: shop.id!),
-                      );
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppDims.s3, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? colors.primary
-                            : colors.surfaceSoft,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: isSelected
-                              ? colors.primary
-                              : colors.border,
-                          width: isSelected ? 1.5 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.storefront_rounded,
-                            size:  14,
-                            color: isSelected
-                                ? Colors.white
-                                : colors.textSecondary,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            shop.name ?? 'Shop',
-                            style: AppTextStyles.bs200(context).copyWith(
-                              color: isSelected
-                                  ? Colors.white
-                                  : colors.textSecondary,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 String money(double value) {
   final formatted = value % 1 == 0

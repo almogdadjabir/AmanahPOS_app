@@ -848,6 +848,10 @@
   "reportsNoSalesInRange": "لا توجد مبيعات في هذه الفترة.",
   "reportsLoadError": "فشل تحميل التقرير.",
   "reportsRefresh": "تحديث التقرير",
+  "thisWeek": "هذا الأسبوع",
+  "thisMonth": "هذا الشهر",
+  "reportsNetSales": "صافي المبيعات",
+  "reportsSalesCount": "المعاملات",
   "searchSalesHistoryHint": "البحث برقم الإيصال أو العميل"
 
 }

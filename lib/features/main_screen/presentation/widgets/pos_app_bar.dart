@@ -1,11 +1,11 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/common/widgets/app_progress_line.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/location_chip.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/notification_button.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/sync_pill.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,8 +15,6 @@ class PosAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDims.s4).copyWith(
         top: AppDims.s2,
@@ -70,21 +68,7 @@ class PosAppBar extends StatelessWidget {
 
           const SizedBox(height: AppDims.s4),
 
-          Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  colors.border.withValues(alpha: 0.16),
-                  colors.primary.withValues(alpha: 0.30),
-                  colors.border.withValues(alpha: 0.16),
-                  Colors.transparent,
-                ],
-                stops: const [0.00, 0.22, 0.50, 0.78, 1.00],
-              ),
-            ),
-          ),
+          const AppProgressLine(),
         ],
       ),
     );

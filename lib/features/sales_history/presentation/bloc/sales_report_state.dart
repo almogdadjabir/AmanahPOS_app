@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 enum SalesReportBlocStatus { initial, loading, loaded, failure }
 
-enum ReportPreset { today, yesterday, custom }
+enum ReportPreset { today, yesterday, thisWeek, thisMonth, custom }
 
 class SalesReportState extends Equatable {
   final SalesReportBlocStatus status;

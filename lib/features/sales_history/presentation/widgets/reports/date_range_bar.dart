@@ -16,38 +16,53 @@ class DateRangeBar extends StatelessWidget {
     final preset = context.select((SalesReportBloc b) => b.state.preset);
     final colors = context.appColors;
 
+    void dispatch(ReportPreset p) =>
+        context.read<SalesReportBloc>().add(SalesReportRangeChanged(preset: p));
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDims.s2),
-      child: Row(
-        children: [
-          _PresetChip(
-            label: context.tr.today,
-            active: preset == ReportPreset.today,
-            onTap: () => context.read<SalesReportBloc>().add(
-              const SalesReportRangeChanged(preset: ReportPreset.today),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _PresetChip(
+              label: context.tr.today,
+              active: preset == ReportPreset.today,
+              onTap: () => dispatch(ReportPreset.today),
             ),
-          ),
-          const SizedBox(width: AppDims.s2),
-          _PresetChip(
-            label: context.tr.yesterday,
-            active: preset == ReportPreset.yesterday,
-            onTap: () => context.read<SalesReportBloc>().add(
-              const SalesReportRangeChanged(preset: ReportPreset.yesterday),
+            const SizedBox(width: AppDims.s2),
+            _PresetChip(
+              label: context.tr.yesterday,
+              active: preset == ReportPreset.yesterday,
+              onTap: () => dispatch(ReportPreset.yesterday),
             ),
-          ),
-          const SizedBox(width: AppDims.s2),
-          _CustomRangeButton(preset: preset),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: context.tr.reportsRefresh,
-            onPressed: () => context.read<SalesReportBloc>().add(
-              const SalesReportRefreshed(),
+            const SizedBox(width: AppDims.s2),
+            _PresetChip(
+              label: context.tr.thisWeek,
+              active: preset == ReportPreset.thisWeek,
+              onTap: () => dispatch(ReportPreset.thisWeek),
             ),
-            color: colors.textSecondary,
-            iconSize: 20,
-          ),
-        ],
+            const SizedBox(width: AppDims.s2),
+            _PresetChip(
+              label: context.tr.thisMonth,
+              active: preset == ReportPreset.thisMonth,
+              onTap: () => dispatch(ReportPreset.thisMonth),
+            ),
+            const SizedBox(width: AppDims.s2),
+            _CustomRangeButton(preset: preset),
+            const SizedBox(width: AppDims.s3),
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: context.tr.reportsRefresh,
+              onPressed: () => context
+                  .read<SalesReportBloc>()
+                  .add(const SalesReportRefreshed()),
+              color: colors.textSecondary,
+              iconSize: 20,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
       ),
     );
   }

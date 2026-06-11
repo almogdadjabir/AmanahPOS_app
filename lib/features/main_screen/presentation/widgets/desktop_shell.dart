@@ -6,10 +6,17 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class DesktopShell extends StatelessWidget {
+class DesktopShell extends StatefulWidget {
   const DesktopShell({super.key});
 
+  @override
+  State<DesktopShell> createState() => _DesktopShellState();
+}
+
+class _DesktopShellState extends State<DesktopShell> {
   static const double _topBarHeight = 74;
+
+  bool _railExtended = false;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +27,7 @@ class DesktopShell extends StatelessWidget {
       drawer: const DesktopMoreDrawer(),
       body: Row(
         children: [
-          const DesktopNavigationRail(),
+          DesktopNavigationRail(extended: _railExtended),
           VerticalDivider(
             width: 1,
             thickness: 1,
@@ -31,7 +38,11 @@ class DesktopShell extends StatelessWidget {
               children: [
                 SizedBox(
                   height: _topBarHeight,
-                  child: const DesktopTopBar(),
+                  child: DesktopTopBar(
+                    railExtended: _railExtended,
+                    onMenuTap: () =>
+                        setState(() => _railExtended = !_railExtended),
+                  ),
                 ),
                 Divider(height: 1, thickness: 1, color: colors.border),
                 Expanded(

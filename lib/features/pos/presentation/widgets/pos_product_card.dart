@@ -25,10 +25,16 @@ class PosProductCard extends StatefulWidget {
 
 class _PosProductCardState extends State<PosProductCard> {
   bool _pressed = false;
+  bool _hovered = false;
 
   void _setPressed(bool value) {
     if (_pressed == value) return;
     setState(() => _pressed = value);
+  }
+
+  void _setHovered(bool value) {
+    if (_hovered == value) return;
+    setState(() => _hovered = value);
   }
 
   @override
@@ -46,13 +52,21 @@ class _PosProductCardState extends State<PosProductCard> {
 
     final borderColor = hasCartQuantity
         ? colors.primary.withValues(alpha: 0.95)
+        : _hovered && !isOut
+        ? colors.primary.withValues(alpha: 0.35)
         : colors.border.withValues(alpha: isDark ? 0.76 : 0.92);
 
     final backgroundColor = colors.surfaceSoft.withValues(
       alpha: isDark ? 0.78 : 0.96,
     );
 
-    return GestureDetector(
+    final showHoverHint = _hovered && !isOut && !hasCartQuantity;
+
+    return MouseRegion(
+      cursor: isOut ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
+      child: GestureDetector(
       onTap: isOut ? null : widget.onTap,
       onTapDown: isOut ? null : (_) => _setPressed(true),
       onTapCancel: isOut ? null : () => _setPressed(false),
@@ -73,15 +87,17 @@ class _PosProductCardState extends State<PosProductCard> {
               borderRadius: BorderRadius.circular(26),
               border: Border.all(
                 color: borderColor,
-                width: hasCartQuantity ? 1.6 : 1.1,
+                width: hasCartQuantity ? 1.6 : _hovered && !isOut ? 1.3 : 1.1,
               ),
               boxShadow: [
                 BoxShadow(
                   color: hasCartQuantity
                       ? colors.primary.withValues(alpha: isDark ? 0.20 : 0.12)
+                      : _hovered && !isOut
+                      ? colors.shadow.withValues(alpha: isDark ? 0.30 : 0.11)
                       : colors.shadow.withValues(alpha: isDark ? 0.24 : 0.08),
-                  blurRadius: hasCartQuantity ? 22 : 16,
-                  offset: const Offset(0, 10),
+                  blurRadius: hasCartQuantity ? 22 : _hovered ? 20 : 16,
+                  offset: Offset(0, _hovered ? 6 : 10),
                 ),
               ],
             ),
@@ -191,6 +207,32 @@ class _PosProductCardState extends State<PosProductCard> {
                       ),
                     ),
 
+                  if (showHoverHint)
+                    Positioned(
+                      top: 18,
+                      right: 18,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: colors.primary.withValues(alpha: 0.35),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.add_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+
                   if (isOut)
                     Positioned.fill(
                       child: Container(
@@ -209,6 +251,7 @@ class _PosProductCardState extends State<PosProductCard> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

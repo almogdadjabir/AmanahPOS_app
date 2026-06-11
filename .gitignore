@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# CocoaPods
+**/ios/build/
+**/macos/build/
+**/ios/Podfile.lock
+**/macos/Podfile.lock
+
+# Logs and local tooling
+firepit-log.txt
+.superpowers/

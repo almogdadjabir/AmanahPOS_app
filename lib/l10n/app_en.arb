@@ -865,6 +865,10 @@
   "reportsNoSalesInRange": "No sales in this period.",
   "reportsLoadError": "Failed to load report.",
   "reportsRefresh": "Refresh report",
+  "thisWeek": "This Week",
+  "thisMonth": "This Month",
+  "reportsNetSales": "Net Sales",
+  "reportsSalesCount": "Transactions",
   "searchSalesHistoryHint": "Search by receipt or customer"
 
 }

@@ -42,13 +42,13 @@ class AppFormField extends StatelessWidget {
       maxLines: maxLines,
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted ?? (_) => nextFocus?.requestFocus(),
-      style: AppTextStyles.bs500(context).copyWith(
+      style: AppTextStyles.bs300(context).copyWith(
         fontWeight: FontWeight.w600,
         color: context.appColors.textPrimary,
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: AppTextStyles.bs400(context).copyWith(
+        hintStyle: AppTextStyles.bs300(context).copyWith(
           color: context.appColors.textHint,
         ),
         prefixIcon: Icon(

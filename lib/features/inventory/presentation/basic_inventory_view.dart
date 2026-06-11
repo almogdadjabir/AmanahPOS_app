@@ -1,7 +1,9 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/core/responsive/layout_metrics.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
+import 'package:amana_pos/features/inventory/presentation/widgets/desktop_inventory_view.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/expiry_alert_row.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_app_bar.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/inventory_empty_view.dart';
@@ -25,10 +27,13 @@ class BasicInventoryView extends StatefulWidget {
 class _BasicInventoryViewState extends State<BasicInventoryView> {
   final ScrollController _scrollCtrl = ScrollController();
   bool _isRequestingMore = false;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized || context.isDesktop) return;
+    _initialized = true;
     context.read<InventoryBloc>().add(const OnInventoryInitial());
     _scrollCtrl.addListener(_onScroll);
   }
@@ -65,6 +70,8 @@ class _BasicInventoryViewState extends State<BasicInventoryView> {
 
   @override
   Widget build(BuildContext context) {
+    if (context.isDesktop) return const DesktopInventoryView();
+
     final isShop =
         context.read<AuthBloc>().state.permissions.isShop;
 

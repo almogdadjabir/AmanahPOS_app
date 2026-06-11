@@ -199,6 +199,216 @@ class OwnerTodayCard extends StatelessWidget {
   }
 }
 
+/// Desktop hero variant of [OwnerTodayCard]. Designed to fill a tall
+/// column: header → big revenue figure → expanding area chart → stat row.
+class OwnerTodayHeroCard extends StatelessWidget {
+  const OwnerTodayHeroCard({
+    super.key,
+    required this.amount,
+    required this.salesCount,
+    required this.sparkline,
+    this.dateLabel,
+    this.liveLabel = 'LIVE',
+    this.currencyLabel = 'SDG',
+    this.onTap,
+  });
+
+  final double amount;
+  final int salesCount;
+  final List<double> sparkline;
+  final String? dateLabel;
+  final String liveLabel;
+  final String currencyLabel;
+  final VoidCallback? onTap;
+
+  double get _avgSale => salesCount == 0 ? 0 : amount / salesCount;
+
+  double get _peak => sparkline.isEmpty ? 0 : sparkline.reduce(math.max);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final date = dateLabel?.isNotEmpty == true
+        ? dateLabel!
+        : _formatLocalizedDate(context, DateTime.now());
+    final liveText = liveLabel == 'LIVE' ? context.tr.live : liveLabel;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDims.rXl),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(AppDims.rXl),
+            border: Border.all(
+              color: colors.primary.withValues(alpha: isDark ? 0.26 : 0.16),
+              width: 1.1,
+            ),
+            gradient: RadialGradient(
+              center: const Alignment(0.65, -0.95),
+              radius: 1.35,
+              colors: [
+                colors.primary.withValues(alpha: isDark ? 0.22 : 0.09),
+                colors.surface.withValues(alpha: 0),
+              ],
+              stops: const [0.0, 0.66],
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppDims.rXl),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ShaderMask(
+                    shaderCallback: (rect) {
+                      return RadialGradient(
+                        center: const Alignment(0.45, -0.65),
+                        radius: 0.95,
+                        colors: [
+                          colors.textPrimary,
+                          Colors.transparent,
+                        ],
+                      ).createShader(rect);
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: CustomPaint(
+                      painter: GridPainter(
+                        color: colors.primary.withValues(
+                          alpha: isDark ? 0.065 : 0.04,
+                        ),
+                        spacing: 28,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 22, 24, 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            date,
+                            style: AppTextStyles.sm300(context).copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.8,
+                              color: colors.textHint,
+                              height: 1,
+                            ),
+                          ),
+                          const Spacer(),
+                          _PulsingDot(
+                            color: colors.primary,
+                            size: 6,
+                          ),
+                          const SizedBox(width: 7),
+                          Text(
+                            liveText.toUpperCase(),
+                            style: AppTextStyles.sm300(context).copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.9,
+                              color: colors.primary,
+                              height: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 26),
+                      Text(
+                        "TODAY'S REVENUE",
+                        style: AppTextStyles.sm100(context).copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.6,
+                          color: colors.textHint,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: _formatAmountEnglish(amount),
+                              style: AppTextStyles.bs900(context).copyWith(
+                                fontSize: 56,
+                                fontWeight: FontWeight.w900,
+                                height: 1,
+                                letterSpacing: -1.6,
+                                color: colors.textPrimary,
+                                shadows: [
+                                  if (isDark)
+                                    Shadow(
+                                      color: colors.primary.withValues(
+                                        alpha: 0.22,
+                                      ),
+                                      blurRadius: 30,
+                                    ),
+                                ],
+                              ),
+                            ),
+                            TextSpan(
+                              text: '  $currencyLabel',
+                              style: AppTextStyles.sm300(context).copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.6,
+                                color: colors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Expanded(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: CustomPaint(
+                            painter: _AreaChartPainter(
+                              data: sparkline,
+                              lineColor: colors.primary,
+                              gridColor: colors.border.withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      _SoftDivider(color: colors.border),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          _StatPair(
+                            value: salesCount.toString(),
+                            label: context.tr.salesChipLabel,
+                          ),
+                          const SizedBox(width: 32),
+                          _StatPair(
+                            value: _formatAmountEnglish(_avgSale),
+                            label: context.tr.avgChipLabel,
+                          ),
+                          const SizedBox(width: 32),
+                          _StatPair(
+                            value: _formatAmountEnglish(_peak),
+                            label: 'PEAK',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class CashierShiftCard extends StatelessWidget {
   const CashierShiftCard({
     super.key,
@@ -556,6 +766,121 @@ class _SparklinePainter extends CustomPainter {
 }
 
 
+
+/// Area chart with subtle horizontal grid lines and a glowing end-point,
+/// used by [OwnerTodayHeroCard] to fill the desktop hero card's body.
+class _AreaChartPainter extends CustomPainter {
+  _AreaChartPainter({
+    required this.data,
+    required this.lineColor,
+    required this.gridColor,
+  });
+
+  final List<double> data;
+  final Color lineColor;
+  final Color gridColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = gridColor
+      ..strokeWidth = 1;
+
+    const gridLines = 3;
+    for (int i = 1; i < gridLines; i++) {
+      final y = size.height / gridLines * i;
+      _drawDashedLine(canvas, Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    if (data.length < 2) return;
+
+    final maxValue = data.reduce(math.max);
+    final minValue = data.reduce(math.min);
+    final range = (maxValue - minValue) == 0 ? 1.0 : (maxValue - minValue);
+
+    final strokePath = Path();
+    final fillPath = Path();
+    Offset lastPoint = Offset.zero;
+
+    for (int i = 0; i < data.length; i++) {
+      final x = (i / (data.length - 1)) * size.width;
+      final normalized = (data[i] - minValue) / range;
+      final y = size.height - 6 - (normalized * (size.height - 12));
+
+      if (i == 0) {
+        strokePath.moveTo(x, y);
+        fillPath
+          ..moveTo(x, size.height)
+          ..lineTo(x, y);
+      } else {
+        strokePath.lineTo(x, y);
+        fillPath.lineTo(x, y);
+      }
+      lastPoint = Offset(x, y);
+    }
+
+    fillPath
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    final shader = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        lineColor.withValues(alpha: 0.28),
+        lineColor.withValues(alpha: 0.0),
+      ],
+    ).createShader(Offset.zero & size);
+
+    canvas.drawPath(fillPath, Paint()..shader = shader);
+    canvas.drawPath(
+      strokePath,
+      Paint()
+        ..color = lineColor
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    canvas.drawCircle(
+      lastPoint,
+      6,
+      Paint()..color = lineColor.withValues(alpha: 0.18),
+    );
+    canvas.drawCircle(lastPoint, 3.5, Paint()..color = lineColor);
+    canvas.drawCircle(
+      lastPoint,
+      3.5,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    const dashWidth = 4.0;
+    const dashSpace = 4.0;
+    final totalDistance = (end - start).distance;
+    if (totalDistance == 0) return;
+    final dashCount = (totalDistance / (dashWidth + dashSpace)).floor();
+    final direction = (end - start) / totalDistance;
+
+    for (int i = 0; i < dashCount; i++) {
+      final from = start + direction * (i * (dashWidth + dashSpace));
+      final to = from + direction * dashWidth;
+      canvas.drawLine(from, to, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AreaChartPainter oldDelegate) {
+    return oldDelegate.data != data ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.gridColor != gridColor;
+  }
+}
 
 String _formatAmountEnglish(double value) {
   final whole = value.round().toString();

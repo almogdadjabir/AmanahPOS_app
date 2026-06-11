@@ -13,7 +13,7 @@ class FieldLabel extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.bs400(context).copyWith(
+          style: AppTextStyles.bs300(context).copyWith(
             fontWeight: FontWeight.w700,
             color: context.appColors.textSecondary,
           ),
@@ -21,7 +21,7 @@ class FieldLabel extends StatelessWidget {
         if (required) ...[
           const SizedBox(width: 3),
           Text('*',
-              style: AppTextStyles.bs400(context).copyWith(
+              style: AppTextStyles.bs300(context).copyWith(
                   color: context.appColors.danger,
                   fontWeight: FontWeight.w800)),
         ],

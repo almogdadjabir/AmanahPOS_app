@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
 
 abstract final class SalesReportColors {
-  // Trend line: gross (primary blue) / net (secondary teal)
-  static const trendGross = Color(0xFF3B82F6); // blue-500
-  static const trendNet = Color(0xFF14B8A6); // teal-500
+  // Trend lines — brand-aligned
+  static const trendGross = Color(0xFF0F766E); // emerald-600 (brand primary)
+  static const trendNet   = Color(0xFF0891B2); // cyan-600
 
-  // Payment method donut segments (up to 6 distinct methods)
+  // Trend under-curve gradient fills
+  static const trendGrossGradientTop    = Color(0x500F766E);
+  static const trendGrossGradientBottom = Color(0x000F766E);
+  static const trendNetGradientTop      = Color(0x300891B2);
+  static const trendNetGradientBottom   = Color(0x000891B2);
+
+  // Payment method donut/pie palette
   static const List<Color> donutPalette = [
+    Color(0xFF0F766E), // emerald (brand)
+    Color(0xFFF59E0B), // amber (brand secondary)
     Color(0xFF6366F1), // indigo
+    Color(0xFF0891B2), // cyan
     Color(0xFF8B5CF6), // violet
-    Color(0xFF3B82F6), // blue
-    Color(0xFF14B8A6), // teal
-    Color(0xFF10B981), // emerald
-    Color(0xFFF59E0B), // amber
+    Color(0xFFEC4899), // pink
   ];
 
-  // Bar charts
-  static const barPrimary = Color(0xFF6366F1); // indigo
-  static const barMuted = Color(0xFFE0E7FF); // indigo-100 (zero-value bars)
+  // Bar charts: gradient top-to-bottom for active bars
+  static const barGradientTop    = Color(0xFF0F766E); // emerald-600
+  static const barGradientBottom = Color(0xFF5EEAD4); // teal-300
+  static const barMuted          = Color(0xFFE2E8F0); // slate-200 (zero-value bars)
+  static const barBest           = Color(0xFFF59E0B); // amber (peak / best day)
+  static const barBestBottom     = Color(0xFFFCD34D); // amber-300
 
-  // Ranked list progress bar
-  static const rankBar = Color(0xFF6366F1);
+  // Ranked list progress bars — medals
+  static const rankGold   = Color(0xFFF59E0B); // gold
+  static const rankSilver = Color(0xFF94A3B8); // slate-400 (silver)
+  static const rankBronze = Color(0xFFB45309); // amber-700 (bronze)
+  static const rankRest   = Color(0xFF0F766E); // emerald for 4th+
+
+  // Tooltip background
+  static const tooltipBg = Color(0xFF0F172A); // slate-950
 }

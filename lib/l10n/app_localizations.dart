@@ -3866,6 +3866,108 @@ abstract class AppLocalizations {
   /// **'Reports & Statistics are coming soon.'**
   String get reportsComingSoon;
 
+  /// No description provided for @reportsRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get reportsRevenue;
+
+  /// No description provided for @reportsGross.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross'**
+  String get reportsGross;
+
+  /// No description provided for @reportsNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get reportsNet;
+
+  /// No description provided for @revenueAndSalesTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue & Sales Trend'**
+  String get revenueAndSalesTrend;
+
+  /// No description provided for @paymentMethodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get paymentMethodsTitle;
+
+  /// No description provided for @peakHoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak Hours'**
+  String get peakHoursTitle;
+
+  /// No description provided for @topProductsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Products'**
+  String get topProductsTitle;
+
+  /// No description provided for @topCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Categories'**
+  String get topCategoriesTitle;
+
+  /// No description provided for @dayOfWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Day of Week'**
+  String get dayOfWeekTitle;
+
+  /// No description provided for @selectDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date range'**
+  String get selectDateRange;
+
+  /// No description provided for @reportsNoSalesInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales in this period.'**
+  String get reportsNoSalesInRange;
+
+  /// No description provided for @reportsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load report.'**
+  String get reportsLoadError;
+
+  /// No description provided for @reportsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh report'**
+  String get reportsRefresh;
+
+  /// No description provided for @thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get thisWeek;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @reportsNetSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Sales'**
+  String get reportsNetSales;
+
+  /// No description provided for @reportsSalesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get reportsSalesCount;
+
   /// No description provided for @searchSalesHistoryHint.
   ///
   /// In en, this message translates to:

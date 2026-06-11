@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -315,8 +316,8 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
     return Positioned(
       top: widget.isTop ? topPosition : null,
       bottom: widget.isTop ? null : bottomPosition,
-      left: AppSpacing.md,
-      right: AppSpacing.md,
+      left: context.isDesktop ? MediaQuery.sizeOf(context).width * 0.3 : AppSpacing.md,
+      right: context.isDesktop ? MediaQuery.sizeOf(context).width * 0.3 : AppSpacing.md,
       child: SafeArea(
         top: false,
         bottom: false,

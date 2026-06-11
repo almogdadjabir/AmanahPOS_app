@@ -16,6 +16,7 @@ class ReturnItemTile extends StatelessWidget {
   final int returnQty;
   final VoidCallback onToggle;
   final ValueChanged<int> onQtyChanged;
+  final bool compact;
 
   const ReturnItemTile({
     super.key,
@@ -24,6 +25,7 @@ class ReturnItemTile extends StatelessWidget {
     required this.returnQty,
     required this.onToggle,
     required this.onQtyChanged,
+    this.compact = false,
   });
 
   @override
@@ -31,10 +33,30 @@ class ReturnItemTile extends StatelessWidget {
     final colors = context.appColors;
     final maxQty = item.quantity.toInt();
 
+    final hPad = compact ? AppDims.s3 : AppDims.s4;
+    final vPad = compact ? AppDims.s2 : AppDims.s3;
+    final checkSize = compact ? 18.0 : 22.0;
+    final checkRadius = compact ? 6.0 : 7.0;
+    final nameStyle = compact
+        ? AppTextStyles.sm200(context).copyWith(fontWeight: FontWeight.w700)
+        : AppTextStyles.bs200(context).copyWith(fontWeight: FontWeight.w700);
+    final metaStyle = compact
+        ? AppTextStyles.sm100(context).copyWith(color: colors.textSecondary)
+        : AppTextStyles.sm100(context).copyWith(color: colors.textSecondary);
+    final amountStyle = compact
+        ? AppTextStyles.sm200(context).copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w600,
+          )
+        : AppTextStyles.bs200(context).copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w600,
+          );
+
     return RepaintBoundary(
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(compact ? 11 : 14),
           border: Border.all(
             color: isSelected
                 ? AppColors.danger.withValues(alpha: 0.4)
@@ -46,63 +68,61 @@ class ReturnItemTile extends StatelessWidget {
           color: isSelected
               ? AppColors.dangerLight.withValues(alpha: 0.35)
               : colors.surface,
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(compact ? 10 : 13),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onToggle,
             highlightColor: AppColors.dangerLight.withValues(alpha: 0.5),
             splashColor: AppColors.dangerLight.withValues(alpha: 0.3),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDims.s4,
-                vertical: AppDims.s3,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
               child: Row(
                 children: [
-                  // Animated Checkbox
+                  // Animated checkbox
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     curve: Curves.easeOut,
-                    width: 22,
-                    height: 22,
+                    width: checkSize,
+                    height: checkSize,
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.danger : colors.surfaceSoft,
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(checkRadius),
                       border: Border.all(
                         color: isSelected ? AppColors.danger : colors.border,
                         width: isSelected ? 0 : 1.5,
                       ),
                     ),
                     child: isSelected
-                        ? const Icon(
-                      SolarIconsOutline.checkSquare,
-                      color: Colors.white,
-                      size: 14,
-                    )
+                        ? Icon(
+                            SolarIconsOutline.checkSquare,
+                            color: Colors.white,
+                            size: compact ? 11 : 14,
+                          )
                         : null,
                   ),
-                  const SizedBox(width: AppDims.s3),
+                  SizedBox(width: compact ? AppDims.s2 : AppDims.s3),
 
-                  // Product Info
+                  // Product info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           item.productName,
-                          style: AppTextStyles.bs200(context)
-                              .copyWith(fontWeight: FontWeight.w700),
+                          style: nameStyle,
+                          maxLines: compact ? 1 : 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${AppFormat.moneyWithUnit(item.unitPrice)} × $maxQty ${context.tr.sold}',
-                          style: AppTextStyles.sm100(context)
-                              .copyWith(color: colors.textSecondary),
+                          style: metaStyle,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: AppDims.s3),
+                  SizedBox(width: compact ? AppDims.s2 : AppDims.s3),
 
                   // Qty stepper or amount
                   AnimatedSwitcher(
@@ -110,15 +130,12 @@ class ReturnItemTile extends StatelessWidget {
                     switchInCurve: Curves.easeOut,
                     switchOutCurve: Curves.easeIn,
                     child: isSelected
-                        ? _qtyStepper(context, returnQty, maxQty)
+                        ? _qtyStepper(context, returnQty, maxQty, colors)
                         : Text(
-                      key: const ValueKey('amount'),
-                      AppFormat.moneyWithUnit(item.subtotal),
-                      style: AppTextStyles.bs200(context).copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                            key: const ValueKey('amount'),
+                            AppFormat.moneyWithUnit(item.subtotal),
+                            style: amountStyle,
+                          ),
                   ),
                 ],
               ),
@@ -129,10 +146,14 @@ class ReturnItemTile extends StatelessWidget {
     );
   }
 
-  Widget _qtyStepper(BuildContext context, int value, int max) {
-    final colors = context.appColors;
-
+  Widget _qtyStepper(
+    BuildContext context,
+    int value,
+    int max,
+    AppThemeColors colors,
+  ) {
     return Row(
+      key: const ValueKey('stepper'),
       mainAxisSize: MainAxisSize.min,
       children: [
         StepBtn(
@@ -145,12 +166,17 @@ class ReturnItemTile extends StatelessWidget {
           colors: colors,
         ),
         SizedBox(
-          width: 36,
+          width: compact ? 28 : 36,
           child: Text(
             value.toString(),
             textAlign: TextAlign.center,
-            style: AppTextStyles.bs300(context)
-                .copyWith(fontWeight: FontWeight.w900),
+            style: compact
+                ? AppTextStyles.sm200(context).copyWith(
+                    fontWeight: FontWeight.w900,
+                  )
+                : AppTextStyles.bs300(context).copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
           ),
         ),
         StepBtn(

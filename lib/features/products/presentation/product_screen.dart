@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/category_filter.dart';
+import 'package:amana_pos/features/products/presentation/widgets/desktop_products_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
@@ -49,11 +51,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
 
   bool _isRequestingMore = false;
+  bool _initialized = false;
   Timer? _loadMoreDebounce;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized || context.isDesktop) return;
+    _initialized = true;
     context.read<ProductBloc>().add(const OnProductInitial());
     _scrollCtrl.addListener(_onScroll);
   }
@@ -110,6 +115,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (context.isDesktop) return const DesktopProductsView();
+
     return BlocBuilder<ProductBloc, ProductState>(
       buildWhen: (prev, curr) =>
       prev.productStatus != curr.productStatus ||

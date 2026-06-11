@@ -1,7 +1,9 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/add_user_sheet.dart';
+import 'package:amana_pos/features/users/presentation/widgets/desktop_users_view.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_card_skeleton.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_empty_view.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_error_view.dart';
@@ -35,14 +37,20 @@ class UsersScreen extends StatefulWidget {
 }
 
 class _UsersScreenState extends State<UsersScreen> {
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized || context.isDesktop) return;
+    _initialized = true;
     context.read<UserBloc>().add(OnUserInitial());
   }
 
   @override
   Widget build(BuildContext context) {
+    if (context.isDesktop) return const DesktopUsersView();
+
     final colors = context.appColors;
 
     return Scaffold(
@@ -579,8 +587,8 @@ class _LoadingView extends StatelessWidget {
         parent: BouncingScrollPhysics(),
       ),
       itemCount: 5,
-      separatorBuilder: (_, __) => const SizedBox(height: AppDims.s3),
-      itemBuilder: (_, __) => const UserCardSkeleton(),
+      separatorBuilder: (_, _) => const SizedBox(height: AppDims.s3),
+      itemBuilder: (_, _) => const UserCardSkeleton(),
     );
   }
 }

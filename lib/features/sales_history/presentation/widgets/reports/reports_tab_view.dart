@@ -13,16 +13,14 @@ import 'package:amana_pos/features/sales_history/presentation/widgets/reports/to
 import 'package:amana_pos/features/sales_history/presentation/widgets/reports/top_products_card.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-const _kTrendHeight = 360.0;
-const _kSmallCardH = 175.0;
-const _kBottomCardH = 220.0;
+const _kTrendHeight = 400.0;
+const _kSideCardH  = 192.0;
+const _kBottomCardH = 240.0;
 
-/// The assembly widget for the Sales Reports tab.
-///
-/// Returns a [SliverMainAxisGroup] that contains the [DateRangeBar] and the
-/// appropriate content based on the current [SalesReportState].
+/// Assembly widget for the Sales Reports tab.
 class ReportsTabView extends StatelessWidget {
   const ReportsTabView({super.key});
 
@@ -40,8 +38,9 @@ class ReportsTabView extends StatelessWidget {
             if (state.status == SalesReportBlocStatus.failure) {
               return ReportsErrorView(
                 message: state.errorMessage,
-                onRetry: () =>
-                    context.read<SalesReportBloc>().add(const SalesReportRefreshed()),
+                onRetry: () => context
+                    .read<SalesReportBloc>()
+                    .add(const SalesReportRefreshed()),
               );
             }
 
@@ -51,7 +50,6 @@ class ReportsTabView extends StatelessWidget {
               return SliverToBoxAdapter(child: _ReportsContent(report: report));
             }
 
-            // initial state — show nothing yet
             return const SliverToBoxAdapter(child: SizedBox.shrink());
           },
         ),
@@ -70,9 +68,13 @@ class _ReportsContent extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: AppDims.s3),
+
+        // KPI row with staggered entrance (animated inside ReportsKpiRow)
         ReportsKpiRow(summary: report.summary),
+
         const SizedBox(height: AppDims.s4),
-        // Bento row 1: trend (2/3) + stacked small cards (1/3)
+
+        // Bento row 1: trend (2/3) + stacked side cards (1/3)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -89,21 +91,27 @@ class _ReportsContent extends StatelessWidget {
               child: Column(
                 children: [
                   SizedBox(
-                    height: _kSmallCardH,
-                    child: PaymentBreakdownCard(paymentMethods: report.paymentMethods),
+                    height: _kSideCardH,
+                    child: PaymentBreakdownCard(
+                        paymentMethods: report.paymentMethods),
                   ),
                   const SizedBox(height: AppDims.s3),
                   SizedBox(
-                    height: _kSmallCardH,
+                    height: _kSideCardH,
                     child: PeakHoursCard(peakHours: report.peakHours),
                   ),
                 ],
               ),
             ),
           ],
-        ),
+        )
+            .animate(delay: 200.ms)
+            .fadeIn(duration: 400.ms)
+            .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic),
+
         const SizedBox(height: AppDims.s3),
-        // Bento row 2: 3 equal columns
+
+        // Bento row 2: 3 equal bottom cards
         Row(
           children: [
             Expanded(
@@ -127,7 +135,11 @@ class _ReportsContent extends StatelessWidget {
               ),
             ),
           ],
-        ),
+        )
+            .animate(delay: 350.ms)
+            .fadeIn(duration: 400.ms)
+            .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic),
+
         const SizedBox(height: AppDims.s4),
       ],
     );

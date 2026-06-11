@@ -29,7 +29,7 @@ class NotificationDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final config = typeConfig(item.type);
+    final config = typeConfig(colors, item.type);
 
     final title = item.title?.trim().isNotEmpty == true
         ? item.title!.trim()

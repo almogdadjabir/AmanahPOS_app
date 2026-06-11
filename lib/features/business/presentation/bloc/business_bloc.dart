@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/business/data/models/requests/add_business_request_dto.dart';
+import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/business/data/models/requests/add_shop_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/requests/edit_business_request_dto.dart';
@@ -6,6 +7,7 @@ import 'package:amana_pos/features/business/data/models/requests/edit_shop_reque
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -77,7 +79,8 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         ),
       );
 
-      final response = await useCase.getBusinessList();
+      final response =
+      await getIt<AppProgressCubit>().run(() => useCase.getBusinessList());
 
       if (emit.isDone) return;
 

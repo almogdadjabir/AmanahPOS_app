@@ -1,31 +1,25 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
 import 'package:amana_pos/core/responsive/layout_metrics.dart';
+import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
-import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
-import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/edit_bankak_sheet.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/edit_profile_sheet.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/language_picker_sheet.dart';
+import 'package:amana_pos/features/settings/presentation/widgets/desktop_settings_view.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/owner_header.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/set_password_sheet.dart';
+import 'package:amana_pos/features/settings/presentation/widgets/settings_actions.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_group_card.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/settings_logout_dialog.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_row_item.dart';
 import 'package:amana_pos/common/widgets/section_label.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_sync_pill.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_theme_picker.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/theme_picker_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
-import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +41,8 @@ class SettingsScreen extends StatelessWidget {
       child: BlocBuilder<AuthBloc, AuthState>(
         buildWhen: (previous, current) =>
         previous.profile != current.profile ||
-            previous.authStatus != current.authStatus,
+            previous.authStatus != current.authStatus ||
+            previous.defaultBusiness != current.defaultBusiness,
         builder: (context, authState) {
           final profile = authState.profile;
 
@@ -62,61 +57,15 @@ class SettingsScreen extends StatelessWidget {
 
           final isOwner = authState.permissions.isOwner;
 
-          return Scaffold(
-            backgroundColor: colors.background,
-            appBar: AppBar(
-              backgroundColor: colors.background,
-              elevation: 0,
-              leading: IconButton(
-                icon: DirectionalIcon(
-                  icon: SolarIconsOutline.altArrowLeft,
-                  color: colors.textPrimary,
-                  size: 22,
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              actions: const [
-                Padding(
-                  padding: EdgeInsetsDirectional.only(end: AppDims.s3),
-                  child: SettingsSyncPill(),
-                ),
-              ],
-            ),
-            body: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: context.maxContentWidth),
-                child: ListView(
-                  padding: const EdgeInsets.all(AppDims.s4),
-                  children: [
-                    OwnerHeader(
-                      fullName: profile.fullName,
-                      phone: profile.phone,
-                      role: profile.role,
-                    ),
-                    const SizedBox(height: AppDims.s8),
+          if (context.isDesktop) {
+            return DesktopSettingsView(
+              profile: profile,
+              isOwner: isOwner,
+              businessName: authState.defaultBusiness?.name,
+            );
+          }
 
-                    _ManageSection(),
-                    const SizedBox(height: AppDims.s5),
-
-                    _AccountSection(
-                      profile: profile,
-                      isOwner: isOwner,
-                    ),
-                    const SizedBox(height: AppDims.s5),
-
-                    _AppearanceSection(),
-                    const SizedBox(height: AppDims.s5),
-
-                    _SupportSection(),
-                    const SizedBox(height: AppDims.s6),
-
-                    _SignOutButton(),
-                    const SizedBox(height: AppDims.s6),
-                  ],
-                ),
-              ),
-            ),
-          );
+          return _MobileSettingsScreen(profile: profile, isOwner: isOwner);
         },
       ),
     );
@@ -159,6 +108,72 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+/// Mobile/tablet settings: a single scrolling list of grouped cards.
+class _MobileSettingsScreen extends StatelessWidget {
+  final User profile;
+  final bool isOwner;
+
+  const _MobileSettingsScreen({required this.profile, required this.isOwner});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Scaffold(
+      backgroundColor: colors.background,
+      appBar: AppBar(
+        backgroundColor: colors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: DirectionalIcon(
+            icon: SolarIconsOutline.altArrowLeft,
+            color: colors.textPrimary,
+            size: 22,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsetsDirectional.only(end: AppDims.s3),
+            child: SettingsSyncPill(),
+          ),
+        ],
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: context.maxContentWidth),
+          child: ListView(
+            padding: const EdgeInsets.all(AppDims.s4),
+            children: [
+              OwnerHeader(
+                fullName: profile.fullName,
+                phone: profile.phone,
+                role: profile.role,
+              ),
+              const SizedBox(height: AppDims.s8),
+
+              _ManageSection(),
+              const SizedBox(height: AppDims.s5),
+
+              _AccountSection(profile: profile, isOwner: isOwner),
+              const SizedBox(height: AppDims.s5),
+
+              _AppearanceSection(),
+              const SizedBox(height: AppDims.s5),
+
+              _SupportSection(),
+              const SizedBox(height: AppDims.s6),
+
+              _SignOutButton(),
+              const SizedBox(height: AppDims.s6),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ManageSection extends StatelessWidget {
   const _ManageSection();
 
@@ -177,19 +192,19 @@ class _ManageSection extends StatelessWidget {
               icon: SolarIconsOutline.layersMinimalistic,
               title: tr.settingsCategories,
               subtitle: tr.settingsCategoriesSubtitle,
-              onTap: () => _selectMainFeature(context, AppFeature.categories),
+              onTap: () => selectMainFeature(context, AppFeature.categories),
             ),
             SettingsRowItem(
               icon: SolarIconsOutline.userPlus,
               title: tr.settingsCashiers,
               subtitle: tr.settingsCashiersSubtitle,
-              onTap: () => _selectMainFeature(context, AppFeature.users),
+              onTap: () => selectMainFeature(context, AppFeature.users),
             ),
             SettingsRowItem(
               icon: SolarIconsOutline.usersGroupTwoRounded,
               title: tr.settingsCustomers,
               subtitle: tr.settingsCustomersSubtitle,
-              onTap: () => _selectMainFeature(context, AppFeature.customers),
+              onTap: () => selectMainFeature(context, AppFeature.customers),
             ),
             SettingsRowItem(
               icon: SolarIconsOutline.roundArrowLeftUp,
@@ -211,11 +226,6 @@ class _ManageSection extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  void _selectMainFeature(BuildContext context, AppFeature feature) {
-    context.read<NavigationBloc>().add(NavigationFeatureSelected(feature));
-    Navigator.of(context).pop();
   }
 }
 
@@ -242,18 +252,20 @@ class _AccountSection extends StatelessWidget {
             SettingsRowItem(
               icon: SolarIconsOutline.user,
               title: tr.settingsProfile,
-              subtitle: _profileSubtitle(context, profile),
+              subtitle: profileSubtitle(context, profile),
               trailing: tr.commonEdit,
-              onTap: () => _openProfileSheet(context, profile),
+              onTap: () => openProfileSheet(context, profile),
             ),
             if (isOwner)
               SettingsRowItem(
                 icon: SolarIconsOutline.card,
                 iconColor: const Color(0xFF2DD4BF),
                 title: tr.settingsBankakPayments,
-                subtitle: _bankakSubtitle(context, profile),
-                trailing: _hasBankak(profile) ? tr.commonActive : tr.commonSetup,
-                onTap: () => _openBankakSheet(context, profile),
+                subtitle: bankakSubtitle(context, profile),
+                trailing: hasBankakAccount(profile)
+                    ? tr.commonActive
+                    : tr.commonSetup,
+                onTap: () => openBankakSheet(context, profile),
               ),
             SettingsRowItem(
               icon: SolarIconsOutline.lockPassword,
@@ -261,81 +273,11 @@ class _AccountSection extends StatelessWidget {
               title: tr.settingsPassword,
               subtitle: tr.settingsPasswordSubtitle,
               trailing: tr.commonChange,
-              onTap: () => _openPasswordSheet(context),
+              onTap: () => openPasswordSheet(context),
             ),
           ],
         ),
       ],
-    );
-  }
-
-  static bool _hasBankak(User profile) {
-    return profile.bankakAccount?.accountNumber?.trim().isNotEmpty == true;
-  }
-
-  static String _bankakSubtitle(BuildContext context, User profile) {
-    final tr = context.tr;
-    final account = profile.bankakAccount?.accountNumber?.trim();
-
-    if (account == null || account.isEmpty) {
-      return tr.settingsBankakNotConfigured;
-    }
-
-    final masked = account.length > 4
-        ? '•••• ${account.substring(account.length - 4)}'
-        : account;
-
-    return tr.settingsBankakReady(masked);
-  }
-
-  static String _profileSubtitle(BuildContext context, User profile) {
-    final email = profile.email?.trim();
-
-    if (email != null && email.isNotEmpty) {
-      return email;
-    }
-
-    return profile.phone?.trim() ?? context.tr.settingsProfileSubtitleFallback;
-  }
-
-  void _openProfileSheet(BuildContext context, User profile) {
-    showAdaptivePanel(
-      context,
-      desktopWidth: 480,
-      builder: (_) => BlocProvider.value(
-        value: context.read<SettingsBloc>(),
-        child: EditProfileSheet(
-          fullName: profile.fullName ?? '',
-          email: profile.email ?? '',
-          bankakAccountNumber: profile.bankakAccount?.accountNumber ?? '',
-        ),
-      ),
-    );
-  }
-
-  void _openBankakSheet(BuildContext context, User profile) {
-    showAdaptivePanel(
-      context,
-      desktopWidth: 480,
-      builder: (_) => BlocProvider.value(
-        value: context.read<SettingsBloc>(),
-        child: EditBankakSheet(
-          fullName: profile.fullName ?? '',
-          email: profile.email ?? '',
-          currentAccountNumber: profile.bankakAccount?.accountNumber ?? '',
-        ),
-      ),
-    );
-  }
-
-  void _openPasswordSheet(BuildContext context) {
-    showAdaptivePanel(
-      context,
-      desktopWidth: 480,
-      builder: (_) => BlocProvider.value(
-        value: context.read<SettingsBloc>(),
-        child: const SetPasswordSheet(),
-      ),
     );
   }
 }
@@ -400,24 +342,13 @@ class _SupportSection extends StatelessWidget {
                   icon: SolarIconsOutline.global,
                   title: tr.settingsLanguage,
                   subtitle: tr.currentLanguageName,
-                  onTap: () => _openLanguageSheet(context),
+                  onTap: () => openLanguageSheet(context),
                 );
               },
             ),
           ],
         ),
       ],
-    );
-  }
-
-  void _openLanguageSheet(BuildContext context) {
-    showAdaptivePanel(
-      context,
-      desktopWidth: 480,
-      builder: (_) => BlocProvider.value(
-        value: context.read<LocaleBloc>(),
-        child: const LanguagePickerSheet(),
-      ),
     );
   }
 }
@@ -431,7 +362,7 @@ class _SignOutButton extends StatelessWidget {
     final colors = context.appColors;
 
     return TextButton.icon(
-      onPressed: () => _confirmLogout(context),
+      onPressed: () => confirmLogout(context),
       icon: Icon(
         Icons.logout_rounded,
         size: 18,
@@ -445,17 +376,5 @@ class _SignOutButton extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => const SettingsLogoutDialog(),
-    );
-
-    if (confirmed == true) {
-      getIt<AuthBloc>().add(const OnLogoutEvent());
-    }
   }
 }

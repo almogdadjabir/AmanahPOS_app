@@ -1,4 +1,5 @@
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
@@ -8,6 +9,7 @@ import 'package:amana_pos/features/inventory/data/offline/offline_inbound_queue.
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/users/data/models/movement_type.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
@@ -96,7 +98,8 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       }
     }
 
-    final response = await useCase.getStock(page: 1);
+    final response =
+    await getIt<AppProgressCubit>().run(() => useCase.getStock(page: 1));
     final error = response.getLeft().toNullable();
     final result = response.getRight().toNullable();
 

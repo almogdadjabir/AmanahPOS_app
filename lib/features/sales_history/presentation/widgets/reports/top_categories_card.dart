@@ -13,7 +13,7 @@ class TopCategoriesCard extends StatelessWidget {
     return RankedListCard(
       title: context.tr.topCategoriesTitle,
       items: categories
-          .map((c) => (name: c.name, amount: c.grossAmount))
+          .map((c) => (name: c.name, amount: c.grossAmount, subtitle: null as String?))
           .toList(),
       emptyMessage: context.tr.reportsNoSalesInRange,
     );
