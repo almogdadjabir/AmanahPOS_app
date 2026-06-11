@@ -27,6 +27,7 @@ import 'package:amana_pos/features/returns/domain/usecases/returns_usecase.dart'
 import 'package:amana_pos/features/returns/presentation/bloc/returns_bloc.dart';
 import 'package:amana_pos/features/sales_history/domain/usecases/sales_history_usecase.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history_bloc.dart';
+import 'package:amana_pos/features/sales_history/presentation/bloc/sales_report_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/splash/domain/blocs/splash_bloc.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
@@ -168,10 +169,19 @@ class FeatureBlocProviders {
 
 
   static Widget salesHistory({required Widget child}) {
-    return BlocProvider(
-      create: (_) => SalesHistoryBloc(
-        useCase: getIt<SalesHistoryUseCase>(),
-      ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => SalesHistoryBloc(
+            useCase: getIt<SalesHistoryUseCase>(),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => SalesReportBloc(
+            useCase: getIt<SalesHistoryUseCase>(),
+          ),
+        ),
+      ],
       child: child,
     );
   }
