@@ -4,7 +4,7 @@ import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history
 import 'package:amana_pos/features/sales_history/presentation/widgets/desktop_sales_history_top_bar.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/desktop_sales_stats_row.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/desktop_sales_table.dart';
-import 'package:amana_pos/features/sales_history/presentation/widgets/reports/reports_placeholder_view.dart';
+import 'package:amana_pos/features/sales_history/presentation/widgets/reports/reports_tab_view.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_detail_sheet.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sales_view_tab_switch.dart';
 import 'package:amana_pos/features/sales_history/utility/sale_utility.dart';
@@ -92,7 +92,7 @@ class _DesktopSalesHistoryViewState extends State<DesktopSalesHistoryView> {
 
   List<Widget> _buildSlivers(BuildContext context) {
     if (_activeView == SalesView.reports) {
-      return const [ReportsPlaceholderView()];
+      return const [ReportsTabView()];
     }
 
     return [
