@@ -41,6 +41,7 @@ void main() {
   setUpAll(() => registerFallbackValue(const SalesReportRangeChanged(preset: ReportPreset.today)));
 
   setUp(() => bloc = MockSalesReportBloc());
+  tearDown(() => bloc.close());
 
   Widget wrap(Widget sliver) => MaterialApp(
     theme: AppTheme.light,

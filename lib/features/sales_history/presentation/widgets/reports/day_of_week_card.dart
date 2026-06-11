@@ -9,8 +9,10 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-// ISO weekday abbreviations: index 0 = Mon (weekday 1) … index 6 = Sun (weekday 7)
-const _kDayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+// ISO weekday abbreviations (locale-neutral fallback): index 0=Mon … 6=Sun.
+// Used only when the bar-chart bottom-title widget cannot access context.
+const _kDayLabelsEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const _kDayLabelsAr = ['إث', 'ث', 'أر', 'خ', 'ج', 'س', 'أح'];
 
 class DayOfWeekCard extends StatelessWidget {
   const DayOfWeekCard({super.key, required this.dayOfWeek});
@@ -91,17 +93,23 @@ class _DayOfWeekChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sort by weekday so bars appear Mon → Sun
-    final sorted = [...dayOfWeek]..sort((a, b) => a.weekday.compareTo(b.weekday));
+    final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final dayLabels = isAr ? _kDayLabelsAr : _kDayLabelsEn;
 
-    final rawMax = sorted.isEmpty
+    // Skip entries with invalid weekday (0 = missing data from API)
+    final valid = dayOfWeek
+        .where((s) => s.weekday >= 1 && s.weekday <= 7)
+        .toList()
+      ..sort((a, b) => a.weekday.compareTo(b.weekday));
+
+    final rawMax = valid.isEmpty
         ? 0.0
-        : sorted.map((s) => s.amount).reduce(max);
+        : valid.map((s) => s.amount).reduce(max);
     final maxY = rawMax <= 0 ? 10.0 : rawMax * 1.2;
 
-    // x value = weekday - 1 (0-indexed), so it maps directly into _kDayLabels
+    // x value = weekday - 1 (0-indexed) → maps directly into dayLabels
     final barGroups = <BarChartGroupData>[
-      for (final stat in sorted)
+      for (final stat in valid)
         BarChartGroupData(
           x: stat.weekday - 1,
           barRods: [
@@ -139,11 +147,11 @@ class _DayOfWeekChart extends StatelessWidget {
               reservedSize: 18,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index < 0 || index >= _kDayLabels.length) {
+                if (index < 0 || index >= dayLabels.length) {
                   return const SizedBox.shrink();
                 }
                 return Text(
-                  _kDayLabels[index],
+                  dayLabels[index],
                   style: const TextStyle(fontSize: 9),
                 );
               },

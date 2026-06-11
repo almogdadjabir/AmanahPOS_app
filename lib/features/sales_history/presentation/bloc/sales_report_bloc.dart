@@ -43,7 +43,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
     result.fold(
       (error) => emit(state.copyWith(
         status: SalesReportBlocStatus.failure,
-        errorMessage: error ?? 'Failed to load report',
+        errorMessage: error,
       )),
       (report) => emit(state.copyWith(
         status: SalesReportBlocStatus.loaded,

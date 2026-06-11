@@ -130,7 +130,7 @@ class ReportsEmptyView extends StatelessWidget {
 /// Displays an error message and a retry button to allow the user to
 /// retry loading the report.
 class ReportsErrorView extends StatelessWidget {
-  final String message;
+  final String? message;
   final VoidCallback onRetry;
 
   const ReportsErrorView({
@@ -154,7 +154,7 @@ class ReportsErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppDims.s3),
             Text(
-              message,
+              (message?.isNotEmpty == true) ? message! : context.tr.reportsLoadError,
               style: AppTextStyles.bs200(context).copyWith(
                 color: context.appColors.textSecondary,
               ),

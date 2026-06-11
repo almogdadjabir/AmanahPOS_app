@@ -39,7 +39,7 @@ class ReportsTabView extends StatelessWidget {
 
             if (state.status == SalesReportBlocStatus.failure) {
               return ReportsErrorView(
-                message: state.errorMessage ?? '',
+                message: state.errorMessage,
                 onRetry: () =>
                     context.read<SalesReportBloc>().add(const SalesReportRefreshed()),
               );

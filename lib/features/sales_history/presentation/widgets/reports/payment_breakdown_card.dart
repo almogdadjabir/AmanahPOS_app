@@ -130,9 +130,12 @@ class _DonutChart extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      '${paymentMethods[i].method}  ${AppFormat.compactMoney(paymentMethods[i].amount)}',
-                      style: const TextStyle(fontSize: 9),
+                    Flexible(
+                      child: Text(
+                        '${paymentMethods[i].method}  ${AppFormat.compactMoney(paymentMethods[i].amount)}',
+                        style: const TextStyle(fontSize: 9),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
