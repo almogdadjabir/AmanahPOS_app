@@ -1,4 +1,5 @@
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
+import 'package:amana_pos/features/sales_history/data/models/sales_report_dto.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract class SalesHistoryRepository {
@@ -10,4 +11,11 @@ abstract class SalesHistoryRepository {
   });
 
   Future<Either<String?, SaleHistoryItem>> getSaleById(String saleId);
+
+  Future<Either<String?, SalesReport>> getSalesReport({
+    required DateTime from,
+    required DateTime to,
+    String? shopId,
+    String? timezone,
+  });
 }

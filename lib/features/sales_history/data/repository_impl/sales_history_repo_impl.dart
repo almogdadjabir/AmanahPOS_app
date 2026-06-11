@@ -3,6 +3,7 @@ import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/data/models/sales_list_response_dto.dart';
+import 'package:amana_pos/features/sales_history/data/models/sales_report_dto.dart';
 import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -66,6 +67,37 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
   }
 
   @override
+  Future<Either<String?, SalesReport>> getSalesReport({
+    required DateTime from,
+    required DateTime to,
+    String? shopId,
+    String? timezone,
+  }) async {
+    try {
+      final isOnline = await _networkMonitor.isOnline;
+      if (!isOnline) {
+        return const Left(null);
+      }
+
+      final uri = _buildReportUri(
+        from: from,
+        to: to,
+        shopId: shopId,
+        timezone: timezone,
+      );
+
+      final result = await _requestHandler.handleGetRequest(
+        uri,
+        (data) => SalesReportDto.fromJson(data as Map<String, dynamic>),
+      );
+
+      return result.map((dto) => dto.toDomain());
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
   Future<Either<String?, SaleHistoryItem>> getSaleById(String saleId) async {
     try {
       final result = await _requestHandler.handleGetRequest(
@@ -90,6 +122,23 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
     if (shopId?.isNotEmpty == true) buf.write('&shop=$shopId');
     return buf.toString();
   }
+
+  String _buildReportUri({
+    required DateTime from,
+    required DateTime to,
+    String? shopId,
+    String? timezone,
+  }) {
+    final buf = StringBuffer(
+      'api/v1/sales/reports/?date_from=${_formatDate(from)}&date_to=${_formatDate(to)}',
+    );
+    if (shopId?.isNotEmpty == true) buf.write('&shop_id=$shopId');
+    if (timezone?.isNotEmpty == true) buf.write('&timezone=${Uri.encodeComponent(timezone!)}');
+    return buf.toString();
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   Future<List<SaleHistoryItem>> _getOfflineItems() async {
     try {
