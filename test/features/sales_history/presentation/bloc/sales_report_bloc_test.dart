@@ -3,6 +3,7 @@ import 'package:amana_pos/features/sales_history/domain/usecases/sales_history_u
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_report_bloc.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_report_event.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_report_state.dart';
+import 'package:flutter/material.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -81,10 +82,33 @@ void main() {
     act: (bloc) => bloc.add(
       const SalesReportRangeChanged(preset: ReportPreset.yesterday),
     ),
-    skip: 2, // skip auto-load of today
+    skip: 2, // skip loading+loaded emitted by the constructor auto-fire (Today preset)
     expect: () => [
       isA<SalesReportState>().having((s) => s.preset, 'yesterday', ReportPreset.yesterday),
       isA<SalesReportState>().having((s) => s.status, 'loaded', SalesReportBlocStatus.loaded),
     ],
+  );
+
+  blocTest<SalesReportBloc, SalesReportState>(
+    'SalesReportRangeChanged with custom range passes correct dates to useCase',
+    build: () => SalesReportBloc(useCase: useCase),
+    act: (bloc) => bloc.add(
+      SalesReportRangeChanged(
+        preset: ReportPreset.custom,
+        customRange: DateTimeRange(
+          start: DateTime(2026, 6, 1),
+          end: DateTime(2026, 6, 10),
+        ),
+      ),
+    ),
+    skip: 2, // skip loading+loaded emitted by the constructor auto-fire (Today preset)
+    verify: (_) {
+      verify(() => useCase.getSalesReport(
+        from: DateTime(2026, 6, 1),
+        to: DateTime(2026, 6, 10),
+        shopId: any(named: 'shopId'),
+        timezone: any(named: 'timezone'),
+      )).called(1);
+    },
   );
 }

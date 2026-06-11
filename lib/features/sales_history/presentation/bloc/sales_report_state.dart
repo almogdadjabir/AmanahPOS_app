@@ -1,10 +1,12 @@
 import 'package:amana_pos/features/sales_history/data/models/sales_report_dto.dart';
-import 'package:amana_pos/features/sales_history/presentation/bloc/sales_report_event.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 enum SalesReportBlocStatus { initial, loading, loaded, failure }
 
-class SalesReportState {
+enum ReportPreset { today, yesterday, custom }
+
+class SalesReportState extends Equatable {
   final SalesReportBlocStatus status;
   final ReportPreset preset;
   final DateTimeRange? customRange;
@@ -27,12 +29,16 @@ class SalesReportState {
     String? errorMessage,
     bool clearReport = false,
     bool clearError = false,
+    bool clearCustomRange = false,
   }) =>
       SalesReportState(
         status: status ?? this.status,
         preset: preset ?? this.preset,
-        customRange: customRange ?? this.customRange,
+        customRange: clearCustomRange ? null : (customRange ?? this.customRange),
         report: clearReport ? null : (report ?? this.report),
         errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       );
+
+  @override
+  List<Object?> get props => [status, preset, customRange, report, errorMessage];
 }

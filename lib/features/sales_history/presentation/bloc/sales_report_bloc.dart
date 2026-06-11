@@ -22,6 +22,8 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
       status: SalesReportBlocStatus.loading,
       preset: event.preset,
       customRange: event.customRange,
+      clearReport: true,
+      clearCustomRange: event.preset != ReportPreset.custom,
     ));
     await _fetch(emit);
   }
@@ -37,6 +39,7 @@ class SalesReportBloc extends Bloc<SalesReportEvent, SalesReportState> {
   Future<void> _fetch(Emitter<SalesReportState> emit) async {
     final (from, to) = _resolvedDates;
     final result = await _useCase.getSalesReport(from: from, to: to);
+    if (emit.isDone) return;
     result.fold(
       (error) => emit(state.copyWith(
         status: SalesReportBlocStatus.failure,
