@@ -77,8 +77,17 @@ void main() {
     expect(find.byType(ReportsErrorView), findsOneWidget);
   });
 
-  testWidgets('shows ReportsEmptyView when report is empty', (tester) async {
-    final emptyReport = SalesReport(
+  testWidgets('shows ReportsEmptyView only when report is null', (tester) async {
+    when(() => bloc.state).thenReturn(
+      const SalesReportState(status: SalesReportBlocStatus.loaded, report: null),
+    );
+    await tester.pumpWidget(wrap(const ReportsTabView()));
+    await tester.pump();
+    expect(find.byType(ReportsEmptyView), findsOneWidget);
+  });
+
+  testWidgets('shows _ReportsContent layout when report has zero sales', (tester) async {
+    final zeroReport = SalesReport(
       rangeFrom: '2026-06-10',
       rangeTo: '2026-06-10',
       currency: 'SDG',
@@ -90,15 +99,16 @@ void main() {
       paymentMethods: const [],
       topProducts: const [],
       topCategories: const [],
-      peakHours: const [],
-      dayOfWeek: const [],
+      peakHours: List.generate(24, (h) => PeakHourStat(hour: h, salesCount: 0, amount: 0)),
+      dayOfWeek: List.generate(7, (d) => DayOfWeekStat(weekday: d + 1, salesCount: 0, amount: 0)),
     );
     when(() => bloc.state).thenReturn(
-      SalesReportState(status: SalesReportBlocStatus.loaded, report: emptyReport),
+      SalesReportState(status: SalesReportBlocStatus.loaded, report: zeroReport),
     );
     await tester.pumpWidget(wrap(const ReportsTabView()));
-    await tester.pumpAndSettle();
-    expect(find.byType(ReportsEmptyView), findsOneWidget);
+    await tester.pump();
+    expect(find.byType(ReportsEmptyView), findsNothing);
+    expect(find.text('Today'), findsOneWidget); // DateRangeBar still visible
   });
 
   testWidgets('shows DateRangeBar when loaded with data', (tester) async {

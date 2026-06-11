@@ -47,9 +47,7 @@ class ReportsTabView extends StatelessWidget {
 
             if (state.status == SalesReportBlocStatus.loaded) {
               final report = state.report;
-              if (report == null || report.isEmpty) {
-                return const ReportsEmptyView();
-              }
+              if (report == null) return const ReportsEmptyView();
               return SliverToBoxAdapter(child: _ReportsContent(report: report));
             }
 
