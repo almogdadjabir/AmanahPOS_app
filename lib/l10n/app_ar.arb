@@ -834,6 +834,19 @@
   "avgSale": "متوسط البيع",
   "refunds": "المرتجعات",
   "reportsComingSoon": "التقارير والإحصائيات قادمة قريباً.",
+  "reportsRevenue": "الإيرادات",
+  "reportsGross": "الإجمالي",
+  "reportsNet": "الصافي",
+  "revenueAndSalesTrend": "اتجاه الإيرادات والمبيعات",
+  "paymentMethodsTitle": "طرق الدفع",
+  "peakHoursTitle": "أوقات الذروة",
+  "topProductsTitle": "أفضل المنتجات",
+  "topCategoriesTitle": "أفضل الفئات",
+  "dayOfWeekTitle": "يوم الأسبوع",
+  "selectDateRange": "اختر نطاق التاريخ",
+  "reportsNoSalesInRange": "لا توجد مبيعات في هذه الفترة.",
+  "reportsLoadError": "فشل تحميل التقرير.",
+  "reportsRefresh": "تحديث التقرير",
   "searchSalesHistoryHint": "البحث برقم الإيصال أو العميل"
 
 }

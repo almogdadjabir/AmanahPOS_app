@@ -851,6 +851,19 @@
   "avgSale": "Avg sale",
   "refunds": "Refunds",
   "reportsComingSoon": "Reports & Statistics are coming soon.",
+  "reportsRevenue": "Revenue",
+  "reportsGross": "Gross",
+  "reportsNet": "Net",
+  "revenueAndSalesTrend": "Revenue & Sales Trend",
+  "paymentMethodsTitle": "Payment Methods",
+  "peakHoursTitle": "Peak Hours",
+  "topProductsTitle": "Top Products",
+  "topCategoriesTitle": "Top Categories",
+  "dayOfWeekTitle": "Day of Week",
+  "selectDateRange": "Select date range",
+  "reportsNoSalesInRange": "No sales in this period.",
+  "reportsLoadError": "Failed to load report.",
+  "reportsRefresh": "Refresh report",
   "searchSalesHistoryHint": "Search by receipt or customer"
 
 }
