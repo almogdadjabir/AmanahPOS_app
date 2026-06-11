@@ -11,10 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
-// Maximum destinations shown directly in the rail.
-// Anything beyond this limit moves to the More drawer.
-const _kMaxRailDestinations = 6;
-
 class DesktopNavigationRail extends StatelessWidget {
   const DesktopNavigationRail({super.key, required this.extended});
 
@@ -100,12 +96,8 @@ class DesktopNavigationRail extends StatelessWidget {
       builder: (context, state) {
         final allTabs = _buildAllTabs(context, state.permissions);
 
-        // Split: first N go in the rail, rest go to the More drawer.
-        final railTabs = allTabs.take(_kMaxRailDestinations).toList();
-        final overflowTabs = allTabs.skip(_kMaxRailDestinations).toList();
-
         final isPosActive = state.currentFeature == AppFeature.pos;
-        final activeIdx = _activeRailIndex(railTabs, state.currentFeature);
+        final activeIdx = _activeRailIndex(allTabs, state.currentFeature);
         final colors = context.appColors;
 
         return NavigationRail(
@@ -128,7 +120,7 @@ class DesktopNavigationRail extends StatelessWidget {
             fontSize: 12,
           ),
           onDestinationSelected: (i) {
-            final feature = railTabs[i].feature;
+            final feature = allTabs[i].feature;
             if (feature != null) {
               context
                   .read<NavigationBloc>()
@@ -146,17 +138,6 @@ class DesktopNavigationRail extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Overflow features (only present once permitted tabs exceed
-                // _kMaxRailDestinations).
-                if (overflowTabs.isNotEmpty) ...[
-                  _MoreButton(
-                    extended: extended,
-                    isOverflowActive: overflowTabs.any(
-                      (t) => t.feature == state.currentFeature,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                ],
                 _SettingsButton(extended: extended),
                 const SizedBox(height: AppSpacing.md),
                 _SellFab(
@@ -169,7 +150,7 @@ class DesktopNavigationRail extends StatelessWidget {
             ),
           ),
           destinations: [
-            for (final tab in railTabs)
+            for (final tab in allTabs)
               NavigationRailDestination(
                 icon: Icon(tab.icon),
                 selectedIcon: Icon(tab.activeIcon),
@@ -181,69 +162,12 @@ class DesktopNavigationRail extends StatelessWidget {
     );
   }
 
-  static int? _activeRailIndex(List<NavTab> railTabs, AppFeature? currentFeature) {
+  static int? _activeRailIndex(List<NavTab> tabs, AppFeature? currentFeature) {
     if (currentFeature == AppFeature.pos) return null;
-    for (int i = 0; i < railTabs.length; i++) {
-      if (railTabs[i].feature == currentFeature) return i;
+    for (int i = 0; i < tabs.length; i++) {
+      if (tabs[i].feature == currentFeature) return i;
     }
     return null;
-  }
-}
-
-// ── More button ───────────────────────────────────────────────────────────────
-
-class _MoreButton extends StatelessWidget {
-  final bool extended;
-  final bool isOverflowActive;
-
-  const _MoreButton({required this.extended, required this.isOverflowActive});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return GestureDetector(
-      onTap: () => Scaffold.of(context).openDrawer(),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: extended ? 200 : 48,
-        height: 48,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: isOverflowActive
-              ? colors.primary.withValues(alpha: 0.10)
-              : Colors.transparent,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              SolarIconsOutline.menuDots,
-              size: 22,
-              color: isOverflowActive ? colors.primary : colors.textSecondary,
-            ),
-            if (extended) ...[
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  'More',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isOverflowActive
-                        ? colors.primary
-                        : colors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }
 

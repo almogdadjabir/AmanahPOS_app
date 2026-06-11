@@ -1,5 +1,4 @@
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
-import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_more_drawer.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_navigation_rail.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_top_bar.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -24,7 +23,6 @@ class _DesktopShellState extends State<DesktopShell> {
 
     return Scaffold(
       backgroundColor: colors.background,
-      drawer: const DesktopMoreDrawer(),
       body: Row(
         children: [
           DesktopNavigationRail(extended: _railExtended),
