@@ -4,7 +4,6 @@ class CreateSaleRequestDto {
   final String? customer;
   final String paymentMethod;
   final String discountAmount;
-  final String taxAmount;
   final List<CreateSaleItemDto> items;
 
   const CreateSaleRequestDto({
@@ -13,7 +12,6 @@ class CreateSaleRequestDto {
     required this.customer,
     required this.paymentMethod,
     required this.discountAmount,
-    required this.taxAmount,
     required this.items,
   });
 
@@ -24,7 +22,6 @@ class CreateSaleRequestDto {
       if (customer != null && customer!.isNotEmpty) 'customer': customer,
       'payment_method': paymentMethod,
       'discount_amount': discountAmount,
-      'tax_amount': taxAmount,
       'items': items.map((item) => item.toJson()).toList(),
     };
   }

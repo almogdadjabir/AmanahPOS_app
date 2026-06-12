@@ -153,7 +153,6 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           paymentMethod: state.paymentMethod,
           items: state.items,
           discountAmount: '0',
-          taxAmount: '0',
         ),
       );
 

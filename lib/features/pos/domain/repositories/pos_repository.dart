@@ -1,5 +1,6 @@
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/data/model/pos_submit_result.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract class PosRepository {
@@ -9,6 +10,6 @@ abstract class PosRepository {
     required String paymentMethod,
     required List<PosCartItem> items,
     String discountAmount,
-    String taxAmount,
+    TaxConfig taxConfig,
   });
 }

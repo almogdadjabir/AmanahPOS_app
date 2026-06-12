@@ -24,6 +24,10 @@ class OfflineSaleDto {
   final String? customerId;
   final String paymentMethod;
   final String discountAmount;
+
+  /// Local preview only (computed via TaxCalculator at queue time).
+  /// Displayed on the pending-sync screen — NEVER sent to the server,
+  /// which recomputes tax at sync time (docs/TAX_SUPPORT.md §4).
   final String taxAmount;
   final String subtotal;
   final String total;
@@ -54,7 +58,6 @@ class OfflineSaleDto {
       'customer': customerId,
       'payment_method': paymentMethod,
       'discount_amount': discountAmount,
-      'tax_amount': taxAmount,
       'created_at': createdAt.toUtc().toIso8601String(),
       'items': items.map((item) {
         return {

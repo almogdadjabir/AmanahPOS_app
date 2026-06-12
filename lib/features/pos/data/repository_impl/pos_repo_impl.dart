@@ -7,6 +7,7 @@ import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/data/model/pos_submit_result.dart';
 import 'package:amana_pos/features/pos/data/model/requests/create_sale_request_dto.dart';
 import 'package:amana_pos/features/pos/domain/repositories/pos_repository.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,7 +31,7 @@ class PosRepoImpl extends PosRepository {
     required String paymentMethod,
     required List<PosCartItem> items,
     String discountAmount = '0',
-    String taxAmount = '0',
+    TaxConfig taxConfig = const TaxConfig.disabled(),
   }) async {
     final validationError = _validateSaleInput(
       shopId: shopId,
@@ -52,7 +53,6 @@ class PosRepoImpl extends PosRepository {
       paymentMethod: paymentMethod,
       items: validItems,
       discountAmount: discountAmount,
-      taxAmount: taxAmount,
     );
 
     final isOnline = await _networkMonitor.isOnline;
@@ -65,7 +65,7 @@ class PosRepoImpl extends PosRepository {
         paymentMethod: paymentMethod,
         items: validItems,
         discountAmount: discountAmount,
-        taxAmount: taxAmount,
+        taxConfig: taxConfig,
       );
     }
 
@@ -84,7 +84,7 @@ class PosRepoImpl extends PosRepository {
         paymentMethod: paymentMethod,
         items: validItems,
         discountAmount: discountAmount,
-        taxAmount: taxAmount,
+        taxConfig: taxConfig,
       );
     } catch (_) {
       return const Left('Failed to submit sale. Please try again.');
@@ -132,7 +132,7 @@ class PosRepoImpl extends PosRepository {
     required String paymentMethod,
     required List<PosCartItem> items,
     required String discountAmount,
-    required String taxAmount,
+    required TaxConfig taxConfig,
   }) async {
     final offlineSaleDto = _buildOfflineSaleDto(
       clientSaleId: clientSaleId,
@@ -141,7 +141,7 @@ class PosRepoImpl extends PosRepository {
       paymentMethod: paymentMethod,
       items: items,
       discountAmount: discountAmount,
-      taxAmount: taxAmount,
+      taxConfig: taxConfig,
     );
 
     await _offlineSalesQueue.enqueueSale(offlineSaleDto);
@@ -156,7 +156,6 @@ class PosRepoImpl extends PosRepository {
     required String paymentMethod,
     required List<PosCartItem> items,
     required String discountAmount,
-    required String taxAmount,
   }) {
     return CreateSaleRequestDto(
       clientSaleId: clientSaleId,
@@ -164,7 +163,6 @@ class PosRepoImpl extends PosRepository {
       customer: customerId,
       paymentMethod: paymentMethod,
       discountAmount: discountAmount,
-      taxAmount: taxAmount,
       items: items.map((item) {
         return CreateSaleItemDto(
           productId: item.product.id!.trim(),
@@ -182,7 +180,7 @@ class PosRepoImpl extends PosRepository {
     required String paymentMethod,
     required List<PosCartItem> items,
     required String discountAmount,
-    required String taxAmount,
+    required TaxConfig taxConfig,
   }) {
     final subtotal = items.fold<double>(
       0,
@@ -190,8 +188,11 @@ class PosRepoImpl extends PosRepository {
     );
 
     final discount = double.tryParse(discountAmount) ?? 0;
-    final tax = double.tryParse(taxAmount) ?? 0;
-    final total = subtotal - discount + tax;
+    // Local preview of what the server will compute at sync time.
+    final computation = TaxCalculator.compute(
+      taxableAmount: subtotal - discount,
+      config: taxConfig,
+    );
 
     return OfflineSaleDto(
       clientSaleId: clientSaleId,
@@ -199,9 +200,9 @@ class PosRepoImpl extends PosRepository {
       customerId: customerId,
       paymentMethod: paymentMethod,
       discountAmount: discountAmount,
-      taxAmount: taxAmount,
+      taxAmount: computation.taxAmount.toStringAsFixed(2),
       subtotal: subtotal.toStringAsFixed(2),
-      total: total.toStringAsFixed(2),
+      total: computation.netAmount.toStringAsFixed(2),
       createdAt: DateTime.now().toUtc(),
       items: items.map((cartItem) {
         final price = cartItem.price;
