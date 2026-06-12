@@ -36,18 +36,61 @@ class TotalsSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            TotalRow(
-              label: context.tr.subtotal,
-              value: money(state.subtotal),
-            ),
-            const SizedBox(height: AppDims.s3),
-            _DashedDivider(color: colors.border),
-            const SizedBox(height: AppDims.s3),
-            TotalRow(
-              label: context.tr.total,
-              value: money(state.total),
-              isTotal: true,
-            ),
+            if (state.taxConfig.isActive && state.taxAmount > 0 &&
+                !state.taxConfig.inclusive) ...[
+              // Exclusive: Subtotal → Tax (VAT 15%) → Total
+              TotalRow(
+                label: context.tr.subtotal,
+                value: money(state.subtotal),
+              ),
+              const SizedBox(height: AppDims.s3),
+              TotalRow(
+                label: context.tr.taxWithRate(
+                  state.taxConfig.name,
+                  state.taxConfig.rateLabel,
+                ),
+                value: money(state.taxAmount),
+              ),
+              const SizedBox(height: AppDims.s3),
+              _DashedDivider(color: colors.border),
+              const SizedBox(height: AppDims.s3),
+              TotalRow(
+                label: context.tr.total,
+                value: money(state.total),
+                isTotal: true,
+              ),
+            ] else if (state.taxConfig.isActive && state.taxAmount > 0) ...[
+              // Inclusive: Total (incl. VAT 15%) → Tax included
+              TotalRow(
+                label: context.tr.totalInclTax(
+                  state.taxConfig.name,
+                  state.taxConfig.rateLabel,
+                ),
+                value: money(state.total),
+                isTotal: true,
+              ),
+              const SizedBox(height: AppDims.s3),
+              _DashedDivider(color: colors.border),
+              const SizedBox(height: AppDims.s3),
+              TotalRow(
+                label: context.tr.taxIncluded,
+                value: money(state.taxAmount),
+              ),
+            ] else ...[
+              // Tax disabled — unchanged layout
+              TotalRow(
+                label: context.tr.subtotal,
+                value: money(state.subtotal),
+              ),
+              const SizedBox(height: AppDims.s3),
+              _DashedDivider(color: colors.border),
+              const SizedBox(height: AppDims.s3),
+              TotalRow(
+                label: context.tr.total,
+                value: money(state.total),
+                isTotal: true,
+              ),
+            ],
           ],
         ),
       ),
