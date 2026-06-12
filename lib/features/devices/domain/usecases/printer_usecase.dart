@@ -28,16 +28,22 @@ class PrinterUseCase {
 
   Future<bool> connect(PrinterDevice device) => repository.connect(device);
 
-  Future<bool> isConnected() => repository.isConnected();
+  /// Whether the saved default printer is currently reachable.
+  Future<bool> isConnected() async {
+    final printer = await repository.getSavedPrinter();
+    if (printer == null) return false;
+    return repository.isConnected(printer);
+  }
 
   Future<void> disconnect() => repository.disconnect();
 
   /// Prints [data] on the saved printer, reconnecting first if the
   /// connection dropped. Throws [PrinterException] on failure.
   Future<void> printReceipt(ReceiptData data) async {
-    await _ensureConnected();
+    final printer = await _ensureConnected();
 
-    final ok = await repository.printBytes(encoder.encodeReceipt(data));
+    final ok =
+        await repository.printBytes(printer, encoder.encodeReceipt(data));
     if (!ok) {
       throw const PrinterException(PrinterError.printFailed);
     }
@@ -50,6 +56,7 @@ class PrinterUseCase {
     final printer = await _ensureConnected();
 
     final ok = await repository.printBytes(
+      printer,
       encoder.encodeTestTicket(
         businessName: businessName,
         printerName: printer.name,
@@ -67,7 +74,7 @@ class PrinterUseCase {
       throw const PrinterException(PrinterError.noPrinterSaved);
     }
 
-    if (!await repository.isConnected()) {
+    if (!await repository.isConnected(printer)) {
       final connected = await repository.connect(printer);
       if (!connected) {
         throw const PrinterException(PrinterError.connectionFailed);

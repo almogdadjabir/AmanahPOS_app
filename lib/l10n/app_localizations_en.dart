@@ -209,6 +209,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not search for printers. Try again.';
 
   @override
+  String get printerNetworkSection => 'Network printer (LAN/WiFi)';
+
+  @override
+  String get printerAddNetwork => 'Add network printer';
+
+  @override
+  String get printerIpAddress => 'IP address';
+
+  @override
+  String get printerPort => 'Port';
+
+  @override
+  String get printerNameOptional => 'Name (optional)';
+
+  @override
+  String get printerInvalidIp => 'Enter a valid IP address.';
+
+  @override
+  String get printerNetworkHint =>
+      'For printers connected with a LAN cable or WiFi, like the SAM4s GIANT-100. To find the printer\'s IP address, hold the FEED button while turning the printer on - it prints a self-test page showing the IP.';
+
+  @override
+  String get printerNetworkLabel => 'LAN/WiFi printer';
+
+  @override
   String get printReceipt => 'Print receipt';
 
   @override

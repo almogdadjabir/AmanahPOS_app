@@ -1,6 +1,7 @@
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/features/devices/data/datasources/bluetooth_printer_channel.dart';
+import 'package:amana_pos/features/devices/data/datasources/network_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/services/printer_permission_service.dart';
 import 'package:amana_pos/features/devices/domain/entities/printer_device.dart';
 import 'package:amana_pos/features/devices/domain/printer_error.dart';
@@ -8,11 +9,13 @@ import 'package:amana_pos/features/devices/domain/repositories/printer_repositor
 
 class PrinterRepoImpl implements PrinterRepository {
   final BluetoothPrinterChannel channel;
+  final NetworkPrinterChannel networkChannel;
   final CacheStorage cacheStorage;
   final PrinterPermissionService permissionService;
 
   PrinterRepoImpl({
     required this.channel,
+    required this.networkChannel,
     required this.cacheStorage,
     required this.permissionService,
   });
@@ -69,6 +72,14 @@ class PrinterRepoImpl implements PrinterRepository {
 
   @override
   Future<bool> connect(PrinterDevice device) async {
+    if (device.isNetwork) {
+      try {
+        return await networkChannel.connect(device.address, device.port);
+      } catch (e) {
+        throw PrinterException(PrinterError.connectionFailed, e);
+      }
+    }
+
     if (!await ensurePermissions()) {
       throw const PrinterException(PrinterError.permissionDenied);
     }
@@ -81,9 +92,11 @@ class PrinterRepoImpl implements PrinterRepository {
   }
 
   @override
-  Future<bool> isConnected() async {
+  Future<bool> isConnected(PrinterDevice device) async {
     try {
-      return await channel.isConnected();
+      return device.isNetwork
+          ? await networkChannel.isConnected()
+          : await channel.isConnected();
     } catch (_) {
       return false;
     }
@@ -91,17 +104,22 @@ class PrinterRepoImpl implements PrinterRepository {
 
   @override
   Future<void> disconnect() async {
+    // Disconnecting an absent or dead link is a no-op, so drop both
+    // transports rather than tracking which one is live.
     try {
+      await networkChannel.disconnect();
       await channel.disconnect();
     } catch (_) {
-      // Disconnecting a dead link is not an error worth surfacing.
+      // Not an error worth surfacing.
     }
   }
 
   @override
-  Future<bool> printBytes(List<int> bytes) async {
+  Future<bool> printBytes(PrinterDevice device, List<int> bytes) async {
     try {
-      return await channel.writeBytes(bytes);
+      return device.isNetwork
+          ? await networkChannel.writeBytes(bytes)
+          : await channel.writeBytes(bytes);
     } catch (e) {
       throw PrinterException(PrinterError.printFailed, e);
     }

@@ -96,6 +96,10 @@ class _PrinterSettingsScreenState extends State<PrinterSettingsScreen> {
                   SectionLabel(label: tr.printerAvailable),
                   const SizedBox(height: AppDims.s2),
                   _ScanSection(state: state),
+                  const SizedBox(height: AppDims.s5),
+                  SectionLabel(label: tr.printerNetworkSection),
+                  const SizedBox(height: AppDims.s2),
+                  const _NetworkPrinterSection(),
                   const SizedBox(height: AppDims.s6),
                 ],
               ),
@@ -210,7 +214,9 @@ class _SavedPrinterCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      printer.address,
+                      printer.isNetwork
+                          ? '${context.tr.printerNetworkLabel} · ${printer.displayAddress}'
+                          : printer.displayAddress,
                       style: AppTextStyles.bs100(context).copyWith(
                         color: colors.textHint,
                         fontFamily: 'monospace',
@@ -474,6 +480,176 @@ class _DeviceTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Network printer (LAN/WiFi) ───────────────────────────────────────────────
+
+/// Manual setup for ESC/POS network printers (TCP port 9100) such as the
+/// SAM4s GIANT-100, which has no Bluetooth radio and never appears in scans.
+class _NetworkPrinterSection extends StatelessWidget {
+  const _NetworkPrinterSection();
+
+  Future<void> _openAddDialog(BuildContext context) async {
+    final device = await showDialog<PrinterDevice>(
+      context: context,
+      builder: (_) => const _NetworkPrinterDialog(),
+    );
+
+    if (device != null && context.mounted) {
+      context.read<PrinterBloc>().add(PrinterDeviceSelected(device));
+      GlobalSnackBar.showSuccess(message: context.tr.printerSavedAsDefault);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OutlinedButton.icon(
+          onPressed: () => _openAddDialog(context),
+          icon: const Icon(SolarIconsOutline.wifiRouter, size: 16),
+          label: Text(tr.printerAddNetwork),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            side: BorderSide(color: colors.border),
+          ),
+        ),
+        const SizedBox(height: AppDims.s3),
+        Text(
+          tr.printerNetworkHint,
+          style: AppTextStyles.bs100(context).copyWith(
+            color: colors.textHint,
+            height: 1.45,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NetworkPrinterDialog extends StatefulWidget {
+  const _NetworkPrinterDialog();
+
+  @override
+  State<_NetworkPrinterDialog> createState() => _NetworkPrinterDialogState();
+}
+
+class _NetworkPrinterDialogState extends State<_NetworkPrinterDialog> {
+  static final _ipPattern = RegExp(
+    r'^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}'
+    r'(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$',
+  );
+
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _ipController = TextEditingController();
+  final _portController = TextEditingController(
+    text: '${PrinterDevice.defaultNetworkPort}',
+  );
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ipController.dispose();
+    _portController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final ip = _ipController.text.trim();
+    final name = _nameController.text.trim();
+    final port = int.tryParse(_portController.text.trim()) ??
+        PrinterDevice.defaultNetworkPort;
+
+    Navigator.of(context).pop(
+      PrinterDevice(
+        name: name.isEmpty ? context.tr.printerNetworkLabel : name,
+        address: ip,
+        type: PrinterConnectionType.network,
+        port: port,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+
+    return AlertDialog(
+      backgroundColor: colors.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDims.rXl),
+        side: BorderSide(color: colors.border),
+      ),
+      title: Text(
+        tr.printerAddNetwork,
+        style: AppTextStyles.bs500(context).copyWith(
+          fontWeight: FontWeight.w900,
+          color: colors.textPrimary,
+        ),
+      ),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _nameController,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(labelText: tr.printerNameOptional),
+            ),
+            const SizedBox(height: AppDims.s3),
+            TextFormField(
+              controller: _ipController,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: tr.printerIpAddress,
+                hintText: '192.168.1.50',
+              ),
+              validator: (value) =>
+                  _ipPattern.hasMatch(value?.trim() ?? '')
+                      ? null
+                      : tr.printerInvalidIp,
+            ),
+            const SizedBox(height: AppDims.s3),
+            TextFormField(
+              controller: _portController,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _submit(),
+              decoration: InputDecoration(labelText: tr.printerPort),
+              validator: (value) {
+                final port = int.tryParse(value?.trim() ?? '');
+                return port != null && port > 0 && port <= 65535
+                    ? null
+                    : tr.printerInvalidIp;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(tr.cancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(tr.save),
+        ),
+      ],
     );
   }
 }

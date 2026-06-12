@@ -18,6 +18,7 @@ import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dar
 import 'package:amana_pos/core/sync/sync_manager.dart';
 import 'package:amana_pos/features/dashboard/data/datasources/dashboard_local_data_source.dart';
 import 'package:amana_pos/features/devices/data/datasources/bluetooth_printer_channel.dart';
+import 'package:amana_pos/features/devices/data/datasources/network_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/repository_impl/printer_repo_impl.dart';
 import 'package:amana_pos/features/devices/data/services/printer_permission_service.dart';
 import 'package:amana_pos/features/devices/domain/repositories/printer_repository.dart';
@@ -183,9 +184,13 @@ class DependenciesProvider {
           () => BarcodePermissionService(),
     );
 
-    // Bluetooth receipt printer
+    // Receipt printer (Bluetooth + LAN/WiFi)
     getIt.registerLazySingleton<BluetoothPrinterChannel>(
           () => PrintBluetoothThermalChannel(),
+    );
+
+    getIt.registerLazySingleton<NetworkPrinterChannel>(
+          () => NetworkPrinterChannel(),
     );
 
     getIt.registerLazySingleton<PrinterPermissionService>(
@@ -195,6 +200,7 @@ class DependenciesProvider {
     getIt.registerLazySingleton<PrinterRepository>(
           () => PrinterRepoImpl(
         channel: getIt<BluetoothPrinterChannel>(),
+        networkChannel: getIt<NetworkPrinterChannel>(),
         cacheStorage: getIt<CacheStorage>(),
         permissionService: getIt<PrinterPermissionService>(),
       ),

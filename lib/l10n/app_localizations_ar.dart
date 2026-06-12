@@ -207,6 +207,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get printerErrorScanFailed => 'تعذر البحث عن الطابعات. حاول مجدداً.';
 
   @override
+  String get printerNetworkSection => 'طابعة الشبكة (LAN/WiFi)';
+
+  @override
+  String get printerAddNetwork => 'إضافة طابعة شبكة';
+
+  @override
+  String get printerIpAddress => 'عنوان IP';
+
+  @override
+  String get printerPort => 'المنفذ';
+
+  @override
+  String get printerNameOptional => 'الاسم (اختياري)';
+
+  @override
+  String get printerInvalidIp => 'أدخل عنوان IP صحيحاً.';
+
+  @override
+  String get printerNetworkHint =>
+      'للطابعات المتصلة بكابل LAN أو WiFi مثل SAM4s GIANT-100. لمعرفة عنوان IP للطابعة، اضغط مع الاستمرار على زر FEED أثناء تشغيل الطابعة لطباعة صفحة الفحص الذاتي التي تعرض العنوان.';
+
+  @override
+  String get printerNetworkLabel => 'طابعة LAN/WiFi';
+
+  @override
   String get printReceipt => 'طباعة الإيصال';
 
   @override

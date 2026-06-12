@@ -482,6 +482,54 @@ abstract class AppLocalizations {
   /// **'Could not search for printers. Try again.'**
   String get printerErrorScanFailed;
 
+  /// No description provided for @printerNetworkSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Network printer (LAN/WiFi)'**
+  String get printerNetworkSection;
+
+  /// No description provided for @printerAddNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Add network printer'**
+  String get printerAddNetwork;
+
+  /// No description provided for @printerIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'IP address'**
+  String get printerIpAddress;
+
+  /// No description provided for @printerPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get printerPort;
+
+  /// No description provided for @printerNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get printerNameOptional;
+
+  /// No description provided for @printerInvalidIp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid IP address.'**
+  String get printerInvalidIp;
+
+  /// No description provided for @printerNetworkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For printers connected with a LAN cable or WiFi, like the SAM4s GIANT-100. To find the printer\'s IP address, hold the FEED button while turning the printer on - it prints a self-test page showing the IP.'**
+  String get printerNetworkHint;
+
+  /// No description provided for @printerNetworkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LAN/WiFi printer'**
+  String get printerNetworkLabel;
+
   /// No description provided for @printReceipt.
   ///
   /// In en, this message translates to:

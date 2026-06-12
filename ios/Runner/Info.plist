@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>AmanaPOS connects to receipt printers on your local network (LAN/WiFi).</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>AmanaPOS uses Bluetooth to connect to your receipt printer.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
