@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/common/localization/app_localizations_product_extensions.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
@@ -71,8 +72,9 @@ class _DesktopProductDetailDrawerState
           prev.submitStatus != curr.submitStatus &&
           curr.submitStatus == ProductSubmitStatus.success,
       listener: (context, state) {
-        final stillExists =
-            state.products.any((p) => p.id == widget.product.id);
+        final stillExists = state.products.any(
+          (p) => p.id == widget.product.id,
+        );
         if (!stillExists) widget.onClose();
       },
       child: BlocSelector<ProductBloc, ProductState, ProductData?>(
@@ -113,7 +115,8 @@ class _DrawerBody extends StatelessWidget {
     final colors = context.appColors;
     final margin = _computeMargin(product);
     final hasDetails = _hasAnyDetail(product);
-    final hasAlerts = showStock &&
+    final hasAlerts =
+        showStock &&
         (product.minStockLevel != null || product.expiryAlertDays != null);
 
     return DecoratedBox(
@@ -201,13 +204,13 @@ class _DrawerBody extends StatelessWidget {
 
                   if (showStock) ...[
                     const SizedBox(height: AppDims.s5),
-                    WorkspaceSectionHeader(title: context.tr.stockByShop)
-                        .animate()
-                        .fadeIn(delay: 180.ms, duration: 200.ms),
+                    WorkspaceSectionHeader(
+                      title: context.tr.stockByShop,
+                    ).animate().fadeIn(delay: 180.ms, duration: 200.ms),
                     const SizedBox(height: AppDims.s3),
-                    ProductStockSectionView(product: product)
-                        .animate()
-                        .fadeIn(delay: 200.ms, duration: 220.ms),
+                    ProductStockSectionView(
+                      product: product,
+                    ).animate().fadeIn(delay: 200.ms, duration: 220.ms),
                   ],
                 ],
               ),
@@ -266,6 +269,9 @@ class _ImageHeaderState extends State<_ImageHeader> {
     final isActive = product.isActive != false;
     final categoryName = product.categoryName?.trim();
     final productName = product.name?.trim();
+    final displayName = productName?.isNotEmpty == true
+        ? productName!
+        : context.tr.product;
 
     return SizedBox(
       height: 240,
@@ -280,13 +286,13 @@ class _ImageHeaderState extends State<_ImageHeader> {
             onExit: (_) => setState(() => _hovered = false),
             child: imageUrl != null
                 ? OfflineCachedImage(imageUrl: imageUrl, fit: BoxFit.cover)
-                    .animate(target: _hovered ? 1 : 0)
-                    .scaleXY(
-                      begin: 1.0,
-                      end: 1.04,
-                      duration: 400.ms,
-                      curve: Curves.easeOut,
-                    )
+                      .animate(target: _hovered ? 1 : 0)
+                      .scaleXY(
+                        begin: 1.0,
+                        end: 1.04,
+                        duration: 400.ms,
+                        curve: Curves.easeOut,
+                      )
                 : DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -360,19 +366,23 @@ class _ImageHeaderState extends State<_ImageHeader> {
                   _GlassPill(label: categoryName),
                   const SizedBox(height: AppDims.s2),
                 ],
-                Text(
-                  productName?.isNotEmpty == true
-                      ? productName!
-                      : context.tr.product,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs500(context).copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    height: 1.18,
-                    shadows: const [
-                      Shadow(color: Color(0x55000000), blurRadius: 12),
-                    ],
+                // Full width so a single-line RTL name aligns to the right
+                // instead of shrink-wrapping at the left edge.
+                SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    displayName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textDirection: displayName.contentDirection,
+                    style: AppTextStyles.bs500(context).copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      height: 1.18,
+                      shadows: const [
+                        Shadow(color: Color(0x55000000), blurRadius: 12),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -447,10 +457,9 @@ class _GlassPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         child: Text(
           label,
-          style: AppTextStyles.sm200(context).copyWith(
-            color: textColor,
-            fontWeight: FontWeight.w800,
-          ),
+          style: AppTextStyles.sm200(
+            context,
+          ).copyWith(color: textColor, fontWeight: FontWeight.w800),
         ),
       ),
     );
@@ -567,7 +576,10 @@ class _StatTile extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.13)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: AppDims.s3),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: AppDims.s3,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -618,8 +630,8 @@ class _MarginCard extends StatelessWidget {
     final color = margin >= 30
         ? const Color(0xFF16A34A)
         : margin >= 10
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFFDC2626);
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFFDC2626);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -642,7 +654,11 @@ class _MarginCard extends StatelessWidget {
                   child: SizedBox(
                     width: 30,
                     height: 30,
-                    child: Icon(SolarIconsOutline.chart, color: color, size: 15),
+                    child: Icon(
+                      SolarIconsOutline.chart,
+                      color: color,
+                      size: 15,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppDims.s2),
@@ -656,10 +672,9 @@ class _MarginCard extends StatelessWidget {
                 const Spacer(),
                 Text(
                   '${margin.toStringAsFixed(1)}%',
-                  style: AppTextStyles.bs300(context).copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: AppTextStyles.bs300(
+                    context,
+                  ).copyWith(color: color, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
@@ -676,7 +691,10 @@ class _MarginCard extends StatelessWidget {
             const SizedBox(height: AppDims.s3),
             Row(
               children: [
-                _MarginStat(label: tr.fieldCostPrice, value: _fmtPrice(product.costPrice)),
+                _MarginStat(
+                  label: tr.fieldCostPrice,
+                  value: _fmtPrice(product.costPrice),
+                ),
                 const SizedBox(width: AppDims.s5),
                 _MarginStat(label: tr.price, value: _fmtPrice(product.price)),
               ],
@@ -691,7 +709,9 @@ class _MarginCard extends StatelessWidget {
     if (v == null) return '–';
     if (v is num) return v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 2);
     final d = double.tryParse(v.toString());
-    return d != null ? d.toStringAsFixed(d.truncateToDouble() == d ? 0 : 2) : '–';
+    return d != null
+        ? d.toStringAsFixed(d.truncateToDouble() == d ? 0 : 2)
+        : '–';
   }
 }
 
@@ -709,18 +729,16 @@ class _MarginStat extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.sm100(context).copyWith(
-            color: colors.textSecondary,
-            fontWeight: FontWeight.w700,
-          ),
+          style: AppTextStyles.sm100(
+            context,
+          ).copyWith(color: colors.textSecondary, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 3),
         Text(
           value,
-          style: AppTextStyles.bs300(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-          ),
+          style: AppTextStyles.bs300(
+            context,
+          ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
         ),
       ],
     );
@@ -743,52 +761,62 @@ class _DetailsCard extends StatelessWidget {
 
     final sku = product.sku?.trim();
     if (sku != null && sku.isNotEmpty) {
-      rows.add(_DetailItem(
-        icon: SolarIconsOutline.tag,
-        label: tr.fieldSku,
-        value: sku,
-        copyable: true,
-      ));
+      rows.add(
+        _DetailItem(
+          icon: SolarIconsOutline.tag,
+          label: tr.fieldSku,
+          value: sku,
+          copyable: true,
+        ),
+      );
     }
 
     final barcode = product.barcode?.trim();
     if (barcode != null && barcode.isNotEmpty) {
-      rows.add(_DetailItem(
-        icon: SolarIconsOutline.qrCode,
-        label: tr.fieldBarcode,
-        value: barcode,
-        copyable: true,
-      ));
+      rows.add(
+        _DetailItem(
+          icon: SolarIconsOutline.qrCode,
+          label: tr.fieldBarcode,
+          value: barcode,
+          copyable: true,
+        ),
+      );
     }
 
     final unit = product.unit?.trim();
     if (unit != null && unit.isNotEmpty) {
-      rows.add(_DetailItem(
-        icon: SolarIconsOutline.tuning,
-        label: tr.fieldUnit,
-        value: unit,
-        copyable: false,
-      ));
+      rows.add(
+        _DetailItem(
+          icon: SolarIconsOutline.tuning,
+          label: tr.fieldUnit,
+          value: unit,
+          copyable: false,
+        ),
+      );
     }
 
     final desc = product.description?.trim();
     if (desc != null && desc.isNotEmpty) {
-      rows.add(_DetailItem(
-        icon: SolarIconsOutline.documentText,
-        label: tr.fieldDescription,
-        value: desc,
-        copyable: false,
-        multiLine: true,
-      ));
+      rows.add(
+        _DetailItem(
+          icon: SolarIconsOutline.documentText,
+          label: tr.fieldDescription,
+          value: desc,
+          copyable: false,
+          multiLine: true,
+        ),
+      );
     }
 
     if (product.createdAt != null) {
-      rows.add(_DetailItem(
-        icon: SolarIconsOutline.calendarDate,
-        label: 'Created',
-        value: _fmtDate(product.createdAt!),
-        copyable: false,
-      ));
+      rows.add(
+        _DetailItem(
+          icon: SolarIconsOutline.calendarDate,
+          label: 'Created',
+          value: _fmtDate(product.createdAt!),
+          copyable: false,
+        ),
+      );
     }
 
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -821,8 +849,18 @@ class _DetailsCard extends StatelessWidget {
     try {
       final dt = DateTime.parse(iso);
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
     } catch (_) {
@@ -1068,10 +1106,9 @@ class _AlertBadge extends StatelessWidget {
             ),
             Text(
               value,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: color,
-                fontWeight: FontWeight.w900,
-              ),
+              style: AppTextStyles.bs200(
+                context,
+              ).copyWith(color: color, fontWeight: FontWeight.w900),
             ),
           ],
         ),
@@ -1177,10 +1214,9 @@ class _DrawerActionButtonState extends State<_DrawerActionButton> {
               const SizedBox(width: AppDims.s2),
               Text(
                 widget.label,
-                style: AppTextStyles.bs200(context).copyWith(
-                  color: widget.color,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: AppTextStyles.bs200(
+                  context,
+                ).copyWith(color: widget.color, fontWeight: FontWeight.w900),
               ),
             ],
           ),

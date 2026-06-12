@@ -3,6 +3,7 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:flutter/material.dart';
 
 class PosProductCard extends StatefulWidget {
@@ -44,11 +45,13 @@ class _PosProductCardState extends State<PosProductCard> {
 
     final product = widget.product;
     final stock = product.stockLevel ?? 0;
-    final trackInventory = !widget.isRestaurant && (product.trackInventory ?? true);
+    final trackInventory =
+        !widget.isRestaurant && (product.trackInventory ?? true);
 
     final isOut = trackInventory && stock <= 0;
     final isLow = trackInventory && stock > 0 && stock <= 5;
     final hasCartQuantity = widget.quantityInCart > 0;
+    final displayName = _productName(product);
 
     final borderColor = hasCartQuantity
         ? colors.primary.withValues(alpha: 0.95)
@@ -67,191 +70,211 @@ class _PosProductCardState extends State<PosProductCard> {
       onEnter: (_) => _setHovered(true),
       onExit: (_) => _setHovered(false),
       child: GestureDetector(
-      onTap: isOut ? null : widget.onTap,
-      onTapDown: isOut ? null : (_) => _setPressed(true),
-      onTapCancel: isOut ? null : () => _setPressed(false),
-      onTapUp: isOut ? null : (_) => _setPressed(false),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        scale: _pressed ? 0.975 : 1,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 180),
-          opacity: isOut ? 0.52 : 1,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(
-                color: borderColor,
-                width: hasCartQuantity ? 1.6 : _hovered && !isOut ? 1.3 : 1.1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: hasCartQuantity
-                      ? colors.primary.withValues(alpha: isDark ? 0.20 : 0.12)
+        onTap: isOut ? null : widget.onTap,
+        onTapDown: isOut ? null : (_) => _setPressed(true),
+        onTapCancel: isOut ? null : () => _setPressed(false),
+        onTapUp: isOut ? null : (_) => _setPressed(false),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          scale: _pressed ? 0.975 : 1,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 180),
+            opacity: isOut ? 0.52 : 1,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: borderColor,
+                  width: hasCartQuantity
+                      ? 1.6
                       : _hovered && !isOut
-                      ? colors.shadow.withValues(alpha: isDark ? 0.30 : 0.11)
-                      : colors.shadow.withValues(alpha: isDark ? 0.24 : 0.08),
-                  blurRadius: hasCartQuantity ? 22 : _hovered ? 20 : 16,
-                  offset: Offset(0, _hovered ? 6 : 10),
+                      ? 1.3
+                      : 1.1,
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(25),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: Padding(
+                boxShadow: [
+                  BoxShadow(
+                    color: hasCartQuantity
+                        ? colors.primary.withValues(alpha: isDark ? 0.20 : 0.12)
+                        : _hovered && !isOut
+                        ? colors.shadow.withValues(alpha: isDark ? 0.30 : 0.11)
+                        : colors.shadow.withValues(alpha: isDark ? 0.24 : 0.08),
+                    blurRadius: hasCartQuantity
+                        ? 22
+                        : _hovered
+                        ? 20
+                        : 16,
+                    offset: Offset(0, _hovered ? 6 : 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppDims.s3,
+                              AppDims.s3,
+                              AppDims.s3,
+                              0,
+                            ),
+                            child: _ProductVisual(product: product),
+                          ),
+                        ),
+
+                        Padding(
                           padding: const EdgeInsets.fromLTRB(
                             AppDims.s3,
                             AppDims.s3,
                             AppDims.s3,
-                            0,
+                            AppDims.s3,
                           ),
-                          child: _ProductVisual(product: product),
-                        ),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppDims.s3,
-                          AppDims.s3,
-                          AppDims.s3,
-                          AppDims.s3,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              _productName(product),
-                              maxLines: 2,
-                              textAlign: TextAlign.end,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.bs100(context).copyWith(
-                                color: colors.textPrimary,
-                                fontWeight: FontWeight.w900,
-                                height: 1.12,
-                                letterSpacing: -0.25,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                displayName,
+                                maxLines: 2,
+                                // Absolute alignment: keep the name on the
+                                // card's trailing edge even when the name's own
+                                // direction differs from the app locale
+                                // (TextAlign.end would flip with textDirection).
+                                textAlign:
+                                    Directionality.of(context) ==
+                                        TextDirection.rtl
+                                    ? TextAlign.left
+                                    : TextAlign.right,
+                                textDirection: displayName.contentDirection,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.bs100(context).copyWith(
+                                  color: colors.textPrimary,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.12,
+                                  letterSpacing: -0.25,
+                                ),
                               ),
-                            ),
 
-                            const SizedBox(height: AppDims.s3),
+                              const SizedBox(height: AppDims.s3),
 
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Align(
-                                    alignment: AlignmentDirectional.centerEnd,
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: Align(
                                       alignment: AlignmentDirectional.centerEnd,
-                                      child: Text(
-                                        _formatPrice(product.price),
-                                        maxLines: 1,
-                                        softWrap: false,
-                                        style: AppTextStyles.bs100(context).copyWith(
-                                          color: isOut ? colors.textHint : colors.primary,
-                                          fontWeight: FontWeight.w900,
-                                          height: 1,
-                                          letterSpacing: -0.2,
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment:
+                                            AlignmentDirectional.centerEnd,
+                                        child: Text(
+                                          _formatPrice(product.price),
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          style: AppTextStyles.bs100(context)
+                                              .copyWith(
+                                                color: isOut
+                                                    ? colors.textHint
+                                                    : colors.primary,
+                                                fontWeight: FontWeight.w900,
+                                                height: 1,
+                                                letterSpacing: -0.2,
+                                              ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
 
-                                if (!widget.isRestaurant && trackInventory) ...[
-                                  const SizedBox(height: 6),
-                                  _StockText(
-                                    stock: stock,
-                                    isOut: isOut,
-                                    isLow: isLow,
-                                  ),
+                                  if (!widget.isRestaurant &&
+                                      trackInventory) ...[
+                                    const SizedBox(height: 6),
+                                    _StockText(
+                                      stock: stock,
+                                      isOut: isOut,
+                                      isLow: isLow,
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  if (!widget.isRestaurant && trackInventory)
-                    Positioned(
-                      top: 18,
-                      left: 18,
-                      child: _StockBadge(
-                        stock: stock,
-                        isOut: isOut,
-                        isLow: isLow,
-                      ),
-                    ),
-
-                  if (hasCartQuantity)
-                    Positioned(
-                      top: 18,
-                      right: 18,
-                      child: _CartQuantityBadge(
-                        quantity: widget.quantityInCart,
-                      ),
-                    ),
-
-                  if (showHoverHint)
-                    Positioned(
-                      top: 18,
-                      right: 18,
-                      child: Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: colors.primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.primary.withValues(alpha: 0.35),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-
-                  if (isOut)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colors.background.withValues(
-                            alpha: isDark ? 0.18 : 0.32,
+                              ),
+                            ],
                           ),
                         ),
-                        child: Center(
-                          child: _OutOfStockBadge(),
+                      ],
+                    ),
+
+                    if (!widget.isRestaurant && trackInventory)
+                      Positioned(
+                        top: 18,
+                        left: 18,
+                        child: _StockBadge(
+                          stock: stock,
+                          isOut: isOut,
+                          isLow: isLow,
                         ),
                       ),
-                    ),
-                ],
+
+                    if (hasCartQuantity)
+                      Positioned(
+                        top: 18,
+                        right: 18,
+                        child: _CartQuantityBadge(
+                          quantity: widget.quantityInCart,
+                        ),
+                      ),
+
+                    if (showHoverHint)
+                      Positioned(
+                        top: 18,
+                        right: 18,
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: colors.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colors.primary.withValues(alpha: 0.35),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+
+                    if (isOut)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colors.background.withValues(
+                              alpha: isDark ? 0.18 : 0.32,
+                            ),
+                          ),
+                          child: Center(child: _OutOfStockBadge()),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -269,11 +292,13 @@ class _PosProductCardState extends State<PosProductCard> {
     if (parsed == null) return value.toString();
 
     final hasDecimals = parsed % 1 != 0;
-    final amount = hasDecimals ? parsed.toStringAsFixed(2) : parsed.toStringAsFixed(0);
+    final amount = hasDecimals
+        ? parsed.toStringAsFixed(2)
+        : parsed.toStringAsFixed(0);
 
     return amount.replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
+      (match) => '${match[1]},',
     );
   }
 }
@@ -281,9 +306,7 @@ class _PosProductCardState extends State<PosProductCard> {
 class _ProductVisual extends StatelessWidget {
   final ProductData product;
 
-  const _ProductVisual({
-    required this.product,
-  });
+  const _ProductVisual({required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -302,10 +325,7 @@ class _ProductVisual extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (hasImage)
-              OfflineCachedImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-              )
+              OfflineCachedImage(imageUrl: imageUrl, fit: BoxFit.cover)
             else
               Center(
                 child: Text(
@@ -375,7 +395,7 @@ class _ProductVisual extends StatelessWidget {
 
     final hash = seed.codeUnits.fold<int>(
       0,
-          (previous, element) => previous + element,
+      (previous, element) => previous + element,
     );
 
     return palette[hash % palette.length];
@@ -421,17 +441,11 @@ class _StockBadge extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(minWidth: 42),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: colors.surface.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withValues(alpha: 0.75),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.75), width: 1),
         boxShadow: [
           BoxShadow(
             color: colors.shadow.withValues(alpha: 0.22),
@@ -493,11 +507,9 @@ class _StockText extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.end,
-        style: AppTextStyles.sm100(context).copyWith(
-          color: color,
-          fontWeight: FontWeight.w800,
-          height: 1,
-        ),
+        style: AppTextStyles.sm100(
+          context,
+        ).copyWith(color: color, fontWeight: FontWeight.w800, height: 1),
       ),
     );
   }
@@ -506,9 +518,7 @@ class _StockText extends StatelessWidget {
 class _CartQuantityBadge extends StatelessWidget {
   final int quantity;
 
-  const _CartQuantityBadge({
-    required this.quantity,
-  });
+  const _CartQuantityBadge({required this.quantity});
 
   @override
   Widget build(BuildContext context) {
@@ -516,10 +526,7 @@ class _CartQuantityBadge extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(minWidth: 34),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(999),
@@ -556,21 +563,16 @@ class _OutOfStockBadge extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: colors.danger.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         'Out of stock',
-        style: AppTextStyles.sm200(context).copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
-          height: 1,
-        ),
+        style: AppTextStyles.sm200(
+          context,
+        ).copyWith(color: Colors.white, fontWeight: FontWeight.w900, height: 1),
       ),
     );
   }

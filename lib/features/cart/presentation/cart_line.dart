@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/cart/presentation/qty_stepper.dart';
@@ -75,6 +76,7 @@ class CartLine extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.end,
+                            textDirection: productName.contentDirection,
                             style: AppTextStyles.bs400(context).copyWith(
                               color: colors.textPrimary,
                               fontWeight: FontWeight.w900,

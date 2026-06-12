@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
@@ -429,6 +430,7 @@ class _ItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final displayName = name.trim().isEmpty ? context.tr.product : name.trim();
 
     return Padding(
       padding: const EdgeInsetsDirectional.symmetric(
@@ -439,10 +441,11 @@ class _ItemRow extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              name.trim().isEmpty ? context.tr.product : name.trim(),
+              displayName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.start,
+              textDirection: displayName.contentDirection,
               style: AppTextStyles.bs200(context).copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w700,

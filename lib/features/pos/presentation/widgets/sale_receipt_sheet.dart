@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -327,32 +328,36 @@ class SaleReceiptSheet extends StatelessWidget {
                             Divider(
                                 height: 1,
                                 color: colors.border.withValues(alpha: 0.6)),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: AppDims.s4,
-                                vertical: AppDims.s3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    items[i].product.name ?? 'Item',
-                                    style: AppTextStyles.bs200(context),
+                          Builder(builder: (context) {
+                            final itemName = items[i].product.name ?? 'Item';
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppDims.s4,
+                                  vertical: AppDims.s3),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      itemName,
+                                      textDirection: itemName.contentDirection,
+                                      style: AppTextStyles.bs200(context),
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '×${items[i].quantity}',
-                                  style: AppTextStyles.bs100(context).copyWith(
-                                      color: colors.textSecondary),
-                                ),
-                                const SizedBox(width: AppDims.s3),
-                                Text(
-                                  AppFormat.moneyWithUnit(items[i].lineTotal),
-                                  style: AppTextStyles.bs200(context).copyWith(
-                                      fontWeight: FontWeight.w700),
-                                ),
-                              ],
-                            ),
-                          ),
+                                  Text(
+                                    '×${items[i].quantity}',
+                                    style: AppTextStyles.bs100(context).copyWith(
+                                        color: colors.textSecondary),
+                                  ),
+                                  const SizedBox(width: AppDims.s3),
+                                  Text(
+                                    AppFormat.moneyWithUnit(items[i].lineTotal),
+                                    style: AppTextStyles.bs200(context).copyWith(
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                         ],
                       ],
                     ),

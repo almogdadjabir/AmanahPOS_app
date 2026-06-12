@@ -7,27 +7,22 @@ import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductGridCard extends StatelessWidget {
   final ProductData product;
 
-  const ProductGridCard({
-    super.key,
-    required this.product,
-  });
+  const ProductGridCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final showStock = context.select<AuthBloc, bool>(
-          (bloc) => !bloc.state.permissions.isRestaurant,
+      (bloc) => !bloc.state.permissions.isRestaurant,
     );
 
-    return _ProductGridCardContent(
-      product: product,
-      showStock: showStock,
-    );
+    return _ProductGridCardContent(product: product, showStock: showStock);
   }
 }
 
@@ -47,6 +42,9 @@ class _ProductGridCardContent extends StatelessWidget {
 
     final isActive = product.isActive ?? false;
     final productName = product.name?.trim();
+    final displayName = productName?.isNotEmpty == true
+        ? productName!
+        : tr.product;
     final categoryName = product.categoryName?.trim();
 
     return RepaintBoundary(
@@ -93,16 +91,20 @@ class _ProductGridCardContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        productName?.isNotEmpty == true
-                            ? productName!
-                            : tr.product,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs300(context).copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: colors.textPrimary,
-                          height: 1.15,
+                      // Full width so a single-line RTL name aligns to the
+                      // right instead of shrink-wrapping at the left edge.
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          displayName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textDirection: displayName.contentDirection,
+                          style: AppTextStyles.bs300(context).copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colors.textPrimary,
+                            height: 1.15,
+                          ),
                         ),
                       ),
 
@@ -181,10 +183,9 @@ class _InactivePill extends StatelessWidget {
         ),
         child: Text(
           context.tr.inactive,
-          style: AppTextStyles.bs100(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
+          style: AppTextStyles.bs100(
+            context,
+          ).copyWith(fontWeight: FontWeight.w900, color: Colors.white),
         ),
       ),
     );

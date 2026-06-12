@@ -7,6 +7,7 @@ import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/widgets/directional_icon.dart'; // update path if needed
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,21 +16,15 @@ import 'package:solar_icons/solar_icons.dart';
 class ProductListCard extends StatelessWidget {
   final ProductData product;
 
-  const ProductListCard({
-    super.key,
-    required this.product,
-  });
+  const ProductListCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final showStock = context.select<AuthBloc, bool>(
-          (bloc) => !bloc.state.permissions.isRestaurant,
+      (bloc) => !bloc.state.permissions.isRestaurant,
     );
 
-    return _ProductListCardContent(
-      product: product,
-      showStock: showStock,
-    );
+    return _ProductListCardContent(product: product, showStock: showStock);
   }
 }
 
@@ -49,6 +44,9 @@ class _ProductListCardContent extends StatelessWidget {
 
     final isActive = product.isActive ?? false;
     final productName = product.name?.trim();
+    final displayName = productName?.isNotEmpty == true
+        ? productName!
+        : tr.product;
     final categoryName = product.categoryName?.trim();
 
     return RepaintBoundary(
@@ -80,15 +78,19 @@ class _ProductListCardContent extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          productName?.isNotEmpty == true
-                              ? productName!
-                              : tr.product,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bs500(context).copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: colors.textPrimary,
+                        // Full width so a single-line RTL name aligns to the
+                        // right instead of shrink-wrapping at the left edge.
+                        SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textDirection: displayName.contentDirection,
+                            style: AppTextStyles.bs500(context).copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: colors.textPrimary,
+                            ),
                           ),
                         ),
 
@@ -172,10 +174,7 @@ class _ProductImage extends StatelessWidget {
   final ProductData product;
   final double size;
 
-  const _ProductImage({
-    required this.product,
-    required this.size,
-  });
+  const _ProductImage({required this.product, required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -217,10 +216,9 @@ class _InactiveBadge extends StatelessWidget {
         ),
         child: Text(
           context.tr.inactive,
-          style: AppTextStyles.bs100(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: colors.textHint,
-          ),
+          style: AppTextStyles.bs100(
+            context,
+          ).copyWith(fontWeight: FontWeight.w900, color: colors.textHint),
         ),
       ),
     );

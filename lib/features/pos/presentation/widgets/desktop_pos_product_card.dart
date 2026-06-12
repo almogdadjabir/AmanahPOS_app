@@ -3,6 +3,7 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:flutter/material.dart';
 
 /// Compact product tile for the desktop POS grid.
@@ -55,6 +56,7 @@ class _DesktopPosProductCardState extends State<DesktopPosProductCard> {
     final isOut = trackInventory && stock <= 0;
     final isLow = trackInventory && stock > 0 && stock <= 5;
     final inCart = widget.quantityInCart > 0;
+    final displayName = _productName(product);
 
     final borderColor = inCart
         ? colors.primary.withValues(alpha: 0.85)
@@ -136,15 +138,23 @@ class _DesktopPosProductCardState extends State<DesktopPosProductCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        _productName(product),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs100(context).copyWith(
-                          color: isOut ? colors.textHint : colors.textPrimary,
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                          letterSpacing: -0.15,
+                      SizedBox(
+                        width: double.infinity,
+                        // Full width so a single-line RTL name aligns to the
+                        // right instead of shrink-wrapping at the left edge.
+                        child: Text(
+                          displayName,
+                          // Show the full name (wraps up to 5 lines) instead of
+                          // truncating short and long names alike to one line.
+                          maxLines: 5,
+                          overflow: TextOverflow.ellipsis,
+                          textDirection: displayName.contentDirection,
+                          style: AppTextStyles.bs100(context).copyWith(
+                            color: isOut ? colors.textHint : colors.textPrimary,
+                            fontWeight: FontWeight.w800,
+                            height: 1.15,
+                            letterSpacing: -0.15,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),

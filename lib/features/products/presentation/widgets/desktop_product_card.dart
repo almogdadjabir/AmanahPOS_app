@@ -6,6 +6,7 @@ import 'package:amana_pos/features/products/presentation/widgets/stock_chip.dart
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -40,6 +41,9 @@ class _DesktopProductCardState extends State<DesktopProductCard> {
 
     final isActive = product.isActive ?? false;
     final productName = product.name?.trim();
+    final displayName = productName?.isNotEmpty == true
+        ? productName!
+        : tr.product;
     final categoryName = product.categoryName?.trim();
 
     return MouseRegion(
@@ -130,47 +134,64 @@ class _DesktopProductCardState extends State<DesktopProductCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              productName?.isNotEmpty == true
-                                  ? productName!
-                                  : tr.product,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.bs300(context).copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: colors.textPrimary,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              children: [
-                                Icon(
-                                  SolarIconsOutline.tag,
-                                  size: 12,
-                                  color: colors.textHint,
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Flexible(
+                                // Full width so a single-line RTL name aligns
+                                // to the right instead of shrink-wrapping at
+                                // the left edge.
+                                child: SizedBox(
+                                  width: double.infinity,
                                   child: Text(
-                                    categoryName?.isNotEmpty == true
-                                        ? categoryName!
-                                        : tr.noCategory,
-                                    maxLines: 1,
+                                    displayName,
+                                    // Wrap the full name (up to 5 lines) instead
+                                    // of cutting every name to a single line.
+                                    maxLines: 5,
                                     overflow: TextOverflow.ellipsis,
-                                    style: AppTextStyles.sm300(context)
+                                    textDirection: displayName.contentDirection,
+                                    style: AppTextStyles.bs200(context)
                                         .copyWith(
-                                      color: colors.textSecondary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                          fontWeight: FontWeight.w900,
+                                          color: colors.textPrimary,
+                                          height: 1.2,
+                                        ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                              const SizedBox(height: 3),
+                              Directionality(
+                                textDirection: (categoryName?.isNotEmpty == true
+                                    ? categoryName!
+                                    : tr.noCategory).contentDirection,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      SolarIconsOutline.tag,
+                                      size: 12,
+                                      color: colors.textHint,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        categoryName?.isNotEmpty == true
+                                            ? categoryName!
+                                            : tr.noCategory,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTextStyles.sm300(context)
+                                            .copyWith(
+                                              color: colors.textSecondary,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -196,8 +217,9 @@ class _DesktopProductCardState extends State<DesktopProductCard> {
                                 color: _hovered
                                     ? colors.primary.withValues(alpha: 0.12)
                                     : colors.surfaceSoft,
-                                borderRadius:
-                                    BorderRadius.circular(AppDims.rMd),
+                                borderRadius: BorderRadius.circular(
+                                  AppDims.rMd,
+                                ),
                                 border: Border.all(
                                   color: _hovered
                                       ? colors.primary.withValues(alpha: 0.30)
@@ -262,10 +284,9 @@ class _Pill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTextStyles.sm100(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: color,
-          ),
+          style: AppTextStyles.sm100(
+            context,
+          ).copyWith(fontWeight: FontWeight.w900, color: color),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:amana_pos/features/inventory/presentation/widgets/stock_action_s
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -22,6 +23,7 @@ class StockCard extends StatelessWidget {
     final isOut = item.isOutOfStock ?? false;
     final isLow = item.isLowStock ?? false;
     final qty = item.qty;
+    final displayName = item.productName ?? 'Product';
 
     final statusColor = isOut
         ? colors.danger
@@ -80,9 +82,10 @@ class StockCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.productName ?? 'Product',
+                      displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      textDirection: displayName.contentDirection,
                       style: AppTextStyles.bs500(context).copyWith(
                         fontWeight: FontWeight.w900,
                         color: colors.textPrimary,

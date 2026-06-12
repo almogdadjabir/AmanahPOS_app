@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/utils/product_image_url.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -12,10 +13,7 @@ import 'package:solar_icons/solar_icons.dart';
 class ProductDetailAppBarView extends StatelessWidget {
   final ProductData product;
 
-  const ProductDetailAppBarView({
-    super.key,
-    required this.product,
-  });
+  const ProductDetailAppBarView({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +52,7 @@ class ProductDetailAppBarView extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             RepaintBoundary(
-              child: OfflineCachedImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-              ),
+              child: OfflineCachedImage(imageUrl: imageUrl, fit: BoxFit.cover),
             ),
 
             const _HeaderGradientOverlay(),
@@ -135,22 +130,28 @@ class _ProductHeaderInfo extends StatelessWidget {
 
         const SizedBox(height: AppDims.s3),
 
-        Text(
-          productName,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.lg200(context).copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            height: 1.05,
-            letterSpacing: -0.5,
-            shadows: [
-              Shadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        // Full width so a single-line RTL name aligns to the right
+        // instead of shrink-wrapping at the left edge.
+        SizedBox(
+          width: double.infinity,
+          child: Text(
+            productName,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textDirection: productName.contentDirection,
+            style: AppTextStyles.lg200(context).copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              letterSpacing: -0.5,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -186,10 +187,7 @@ class _HeroIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _HeroIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _HeroIconButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -202,9 +200,7 @@ class _HeroIconButton extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
           ),
           child: const SizedBox(
             width: 46,
@@ -226,9 +222,7 @@ class _HeroIconButton extends StatelessWidget {
 class _CategoryPill extends StatelessWidget {
   final String label;
 
-  const _CategoryPill({
-    required this.label,
-  });
+  const _CategoryPill({required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -236,9 +230,7 @@ class _CategoryPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.22),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(

@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/step_btn.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -112,6 +113,7 @@ class ReturnItemTile extends StatelessWidget {
                           style: nameStyle,
                           maxLines: compact ? 1 : 2,
                           overflow: TextOverflow.ellipsis,
+                          textDirection: item.productName.contentDirection,
                         ),
                         const SizedBox(height: 2),
                         Text(

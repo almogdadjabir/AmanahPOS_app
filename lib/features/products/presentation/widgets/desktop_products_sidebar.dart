@@ -7,6 +7,7 @@ import 'package:amana_pos/features/products/presentation/widgets/add_product_she
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -237,35 +238,39 @@ class _CategoryRowState extends State<_CategoryRow> {
                       : Colors.transparent,
               borderRadius: BorderRadius.circular(AppDims.rMd),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: selected ? colors.primary : colors.textHint,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: AppDims.s2),
-                Expanded(
-                  child: Text(
-                    widget.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.sm300(context).copyWith(
-                      color: selected ? colors.primary : colors.textPrimary,
-                      fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+            child: Directionality(
+              textDirection: widget.label.contentDirection,
+              child: Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: selected ? colors.primary : colors.textHint,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                ),
-                if (selected)
-                  Icon(
-                    SolarIconsBold.checkCircle,
-                    size: 15,
-                    color: colors.primary,
+                  const SizedBox(width: AppDims.s2),
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      maxLines: 1,
+                      textDirection: widget.label.contentDirection,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.sm300(context).copyWith(
+                        color: selected ? colors.primary : colors.textPrimary,
+                        fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+                      ),
+                    ),
                   ),
-              ],
+                  if (selected)
+                    Icon(
+                      SolarIconsBold.checkCircle,
+                      size: 15,
+                      color: colors.primary,
+                    ),
+                ],
+              ),
             ),
           ),
         ),
