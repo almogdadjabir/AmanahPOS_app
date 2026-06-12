@@ -7,6 +7,7 @@ class SalesReportSummary {
   final double averageSaleAmount;
   final double refundAmount;
   final int refundCount;
+  final double totalTaxCollected;
 
   const SalesReportSummary({
     required this.grossSalesAmount,
@@ -15,6 +16,7 @@ class SalesReportSummary {
     required this.averageSaleAmount,
     required this.refundAmount,
     required this.refundCount,
+    this.totalTaxCollected = 0,
   });
 }
 
@@ -158,6 +160,7 @@ class SalesReportDto {
         averageSaleAmount: (_summaryDouble(summaryJson, 'average_sale_amount')),
         refundAmount: (_summaryDouble(summaryJson, 'refund_amount')),
         refundCount: summaryJson['refund_count'] as int? ?? 0,
+        totalTaxCollected: (_summaryDouble(summaryJson, 'total_tax_collected')),
       ),
       trend: SalesTrend(
         interval: trendJson['interval'] as String? ?? 'day',

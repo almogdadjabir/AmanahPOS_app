@@ -13,6 +13,7 @@ void main() {
         'average_sale_amount': 3228.0,
         'refund_amount': 0.0,
         'refund_count': 0,
+        'total_tax_collected': 750.0,
       },
       'trend': {
         'interval': 'day',
@@ -72,6 +73,17 @@ void main() {
       final report = SalesReportDto.fromJson(json).toDomain();
       expect(report.topProducts[0].name, 'ببسي');
       expect(report.topCategories[0].name, 'مشروبات');
+    });
+
+    test('parses total tax collected', () {
+      final report = SalesReportDto.fromJson(json).toDomain();
+      expect(report.summary.totalTaxCollected, 750.0);
+    });
+
+    test('missing total_tax_collected defaults to 0', () {
+      final report = SalesReportDto.fromJson({'summary': <String, dynamic>{}})
+          .toDomain();
+      expect(report.summary.totalTaxCollected, 0.0);
     });
 
     test('isEmpty is true when salesCount is 0', () {

@@ -58,6 +58,16 @@ class ReportsKpiRow extends StatelessWidget {
         labelColor: AppColors.success,
         icon: SolarIconsOutline.chart,
       ),
+      if (summary.totalTaxCollected > 0)
+        _KpiCard(
+          label: context.tr.taxCollected,
+          value: AppFormat.moneyWithUnit(summary.totalTaxCollected),
+          forceValueLtr: true,
+          background: AppColors.warningLight,
+          valueColor: AppColors.warning,
+          labelColor: AppColors.warning,
+          icon: SolarIconsOutline.documentText,
+        ),
       _KpiCard(
         label: context.tr.refunds,
         value: refundValue,
