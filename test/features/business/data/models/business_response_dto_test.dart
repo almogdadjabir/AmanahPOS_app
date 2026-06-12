@@ -44,4 +44,35 @@ void main() {
       expect(json['tax_inclusive'], true);
     });
   });
+
+  group('BusinessData logo', () {
+    // Regression: `logo` was code-generated as type `Null?`, so any business
+    // with a non-null logo threw "type 'String' is not a subtype of type
+    // 'Null'" during BusinessResponseDTO parsing → "something went wrong".
+    test('parses a non-null logo string without throwing', () {
+      final data = BusinessData.fromJson({
+        'id': 'b1',
+        'name': 'Bet Al Mandi',
+        'logo': '/media/businesses/logos/512.png',
+      });
+
+      expect(data.logo, '/media/businesses/logos/512.png');
+    });
+
+    test('still accepts a null logo', () {
+      final data = BusinessData.fromJson({'id': 'b1', 'logo': null});
+      expect(data.logo, isNull);
+    });
+
+    test('BusinessResponseDTO parses a list item that has a logo', () {
+      final dto = BusinessResponseDTO.fromJson({
+        'success': true,
+        'data': [
+          {'id': 'b1', 'name': 'Bet Al Mandi', 'logo': '/media/x.png'},
+        ],
+      });
+
+      expect(dto.data!.first.logo, '/media/x.png');
+    });
+  });
 }

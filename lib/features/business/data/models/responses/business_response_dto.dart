@@ -30,7 +30,7 @@ class BusinessData {
   String? slug;
   String? businessType;
   Owner? owner;
-  Null? logo;
+  String? logo;
   String? address;
   String? phone;
   String? email;
