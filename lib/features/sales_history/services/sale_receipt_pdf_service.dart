@@ -390,6 +390,7 @@ class SaleReceiptPdfService {
       SaleReceiptPdfStrings strings,
       ) {
     return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
         if (item.taxAmount > 0) ...[
           pw.Row(
@@ -401,7 +402,9 @@ class SaleReceiptPdfService {
                       : pw.CrossAxisAlignment.start,
                   children: [
                     _t(
-                      strings.taxUpper,
+                      item.taxInclusive
+                          ? strings.taxIncludedUpper
+                          : strings.taxUpper,
                       color: _muted,
                       size: 7.5,
                       bold: true,
@@ -420,7 +423,7 @@ class SaleReceiptPdfService {
               ),
             ],
           ),
-          pw.SizedBox(height: 6),
+          pw.SizedBox(height: 10),
         ],
         pw.Row(
           children: [
@@ -640,6 +643,7 @@ class SaleReceiptPdfStrings {
     required this.amountUpper,
     required this.totalUpper,
     required this.taxUpper,
+    required this.taxIncludedUpper,
     required this.noItemDetailsAvailable,
     required this.offlineSalePdfWarning,
     required this.thankYouForPurchase,
@@ -676,6 +680,7 @@ class SaleReceiptPdfStrings {
   final String amountUpper;
   final String totalUpper;
   final String taxUpper;
+  final String taxIncludedUpper;
 
   final String noItemDetailsAvailable;
   final String offlineSalePdfWarning;
@@ -718,6 +723,7 @@ class SaleReceiptPdfStrings {
       amountUpper: languageCode == 'ar' ? tr.amount : 'AMOUNT',
       totalUpper: languageCode == 'ar' ? tr.total : 'TOTAL',
       taxUpper: languageCode == 'ar' ? tr.taxLabel : 'TAX',
+      taxIncludedUpper: languageCode == 'ar' ? tr.taxIncluded : 'TAX INCLUDED',
       noItemDetailsAvailable: tr.noItemDetailsAvailable,
       offlineSalePdfWarning: tr.offlineSalePdfWarning,
       thankYouForPurchase: tr.thankYouForPurchase,
