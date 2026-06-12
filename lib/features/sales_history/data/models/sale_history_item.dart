@@ -150,6 +150,8 @@ class SaleHistoryItem {
         paymentMethod: row['payment_method']?.toString() ?? 'cash',
         total: _parseAmount(row['total']?.toString()) ?? 0,
         // Local preview stored at queue time; the server recomputes on sync.
+        // Note: pending_sales stores only tax_amount (no rate/inclusive), so
+        // pending sales show a plain "Tax" label until synced.
         taxAmount: _parseAmount(row['tax_amount']?.toString()) ?? 0,
         itemCount: itemRows.length,
         status: SaleHistoryStatus.fromString(row['status']?.toString()),

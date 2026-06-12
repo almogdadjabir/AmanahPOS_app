@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/services/sale_receipt_pdf_service.dart';
 import 'package:amana_pos/theme/app_colors.dart';
@@ -566,10 +567,7 @@ class _TaxLineRow extends StatelessWidget {
     final label = item.taxInclusive
         ? context.tr.taxIncluded
         : item.taxRate > 0
-            ? context.tr.taxWithRatePercent(
-                item.taxRate % 1 == 0
-                    ? item.taxRate.toStringAsFixed(0)
-                    : item.taxRate.toStringAsFixed(2))
+            ? context.tr.taxWithRatePercent(formatTaxRate(item.taxRate))
             : context.tr.taxLabel;
 
     return Padding(
