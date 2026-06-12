@@ -25,6 +25,8 @@ void main() {
         onViewChanged: (_) {},
         searchController: ctrl,
         onRefresh: () {},
+        returnsActive: false,
+        onReturnsTap: () {},
       ),
     ));
     await tester.pumpAndSettle();
@@ -44,6 +46,8 @@ void main() {
         onViewChanged: (v) => received = v,
         searchController: ctrl,
         onRefresh: () {},
+        returnsActive: false,
+        onReturnsTap: () {},
       ),
     ));
     await tester.pumpAndSettle();
@@ -63,6 +67,8 @@ void main() {
         onViewChanged: (_) {},
         searchController: ctrl,
         onRefresh: () => called = true,
+        returnsActive: false,
+        onReturnsTap: () {},
       ),
     ));
     await tester.pumpAndSettle();

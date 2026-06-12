@@ -102,7 +102,7 @@ void main() {
     verify(() => posBloc.add(const PosCategoryChanged('cat1'))).called(1);
   });
 
-  testWidgets('is exactly 160px wide', (tester) async {
+  testWidgets('is exactly 220px wide', (tester) async {
     await tester.pumpWidget(_pumpSidebar(
       posBloc: posBloc,
       productBloc: productBloc,
@@ -113,7 +113,7 @@ void main() {
     final box = tester.renderObject<RenderBox>(
       find.byType(DesktopCategorySidebar),
     );
-    expect(box.size.width, equals(160.0));
+    expect(box.size.width, equals(220.0));
   });
 
   testWidgets('tapping All Items dispatches PosCategoryChanged(null)',
