@@ -2076,4 +2076,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchSalesHistoryHint => 'Search by receipt or customer';
+
+  @override
+  String get taxLabel => 'Tax';
+
+  @override
+  String taxWithRate(String taxName, String taxRate) {
+    return 'Tax ($taxName $taxRate%)';
+  }
+
+  @override
+  String taxWithRatePercent(String taxRate) {
+    return 'Tax ($taxRate%)';
+  }
+
+  @override
+  String totalInclTax(String taxName, String taxRate) {
+    return 'Total (incl. $taxName $taxRate%)';
+  }
+
+  @override
+  String get taxIncluded => 'Tax included';
+
+  @override
+  String get taxCollected => 'Tax Collected';
+
+  @override
+  String get taxDisabled => 'Tax disabled';
+
+  @override
+  String get pricesIncludeTax => 'Prices include tax';
+
+  @override
+  String get pricesExcludeTax => 'Prices exclude tax';
 }

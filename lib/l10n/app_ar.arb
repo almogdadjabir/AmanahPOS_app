@@ -852,6 +852,16 @@
   "thisMonth": "هذا الشهر",
   "reportsNetSales": "صافي المبيعات",
   "reportsSalesCount": "المعاملات",
-  "searchSalesHistoryHint": "البحث برقم الإيصال أو العميل"
+  "searchSalesHistoryHint": "البحث برقم الإيصال أو العميل",
+
+  "taxLabel": "الضريبة",
+  "taxWithRate": "الضريبة ({taxName} {taxRate}%)",
+  "taxWithRatePercent": "الضريبة ({taxRate}%)",
+  "totalInclTax": "الإجمالي (شامل {taxName} {taxRate}%)",
+  "taxIncluded": "الضريبة المشمولة",
+  "taxCollected": "الضرائب المحصلة",
+  "taxDisabled": "الضريبة غير مفعلة",
+  "pricesIncludeTax": "الأسعار شاملة الضريبة",
+  "pricesExcludeTax": "الأسعار غير شاملة الضريبة"
 
 }

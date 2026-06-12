@@ -3973,6 +3973,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search by receipt or customer'**
   String get searchSalesHistoryHint;
+
+  /// No description provided for @taxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get taxLabel;
+
+  /// No description provided for @taxWithRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ({taxName} {taxRate}%)'**
+  String taxWithRate(String taxName, String taxRate);
+
+  /// No description provided for @taxWithRatePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ({taxRate}%)'**
+  String taxWithRatePercent(String taxRate);
+
+  /// No description provided for @totalInclTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Total (incl. {taxName} {taxRate}%)'**
+  String totalInclTax(String taxName, String taxRate);
+
+  /// No description provided for @taxIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax included'**
+  String get taxIncluded;
+
+  /// No description provided for @taxCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Collected'**
+  String get taxCollected;
+
+  /// No description provided for @taxDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax disabled'**
+  String get taxDisabled;
+
+  /// No description provided for @pricesIncludeTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices include tax'**
+  String get pricesIncludeTax;
+
+  /// No description provided for @pricesExcludeTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices exclude tax'**
+  String get pricesExcludeTax;
 }
 
 class _AppLocalizationsDelegate

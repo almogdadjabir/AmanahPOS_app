@@ -869,6 +869,33 @@
   "thisMonth": "This Month",
   "reportsNetSales": "Net Sales",
   "reportsSalesCount": "Transactions",
-  "searchSalesHistoryHint": "Search by receipt or customer"
+  "searchSalesHistoryHint": "Search by receipt or customer",
+
+  "taxLabel": "Tax",
+  "taxWithRate": "Tax ({taxName} {taxRate}%)",
+  "@taxWithRate": {
+    "placeholders": {
+      "taxName": {"type": "String"},
+      "taxRate": {"type": "String"}
+    }
+  },
+  "taxWithRatePercent": "Tax ({taxRate}%)",
+  "@taxWithRatePercent": {
+    "placeholders": {
+      "taxRate": {"type": "String"}
+    }
+  },
+  "totalInclTax": "Total (incl. {taxName} {taxRate}%)",
+  "@totalInclTax": {
+    "placeholders": {
+      "taxName": {"type": "String"},
+      "taxRate": {"type": "String"}
+    }
+  },
+  "taxIncluded": "Tax included",
+  "taxCollected": "Tax Collected",
+  "taxDisabled": "Tax disabled",
+  "pricesIncludeTax": "Prices include tax",
+  "pricesExcludeTax": "Prices exclude tax"
 
 }

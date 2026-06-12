@@ -2058,4 +2058,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchSalesHistoryHint => 'البحث برقم الإيصال أو العميل';
+
+  @override
+  String get taxLabel => 'الضريبة';
+
+  @override
+  String taxWithRate(String taxName, String taxRate) {
+    return 'الضريبة ($taxName $taxRate%)';
+  }
+
+  @override
+  String taxWithRatePercent(String taxRate) {
+    return 'الضريبة ($taxRate%)';
+  }
+
+  @override
+  String totalInclTax(String taxName, String taxRate) {
+    return 'الإجمالي (شامل $taxName $taxRate%)';
+  }
+
+  @override
+  String get taxIncluded => 'الضريبة المشمولة';
+
+  @override
+  String get taxCollected => 'الضرائب المحصلة';
+
+  @override
+  String get taxDisabled => 'الضريبة غير مفعلة';
+
+  @override
+  String get pricesIncludeTax => 'الأسعار شاملة الضريبة';
+
+  @override
+  String get pricesExcludeTax => 'الأسعار غير شاملة الضريبة';
 }
