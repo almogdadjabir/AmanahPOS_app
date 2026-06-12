@@ -43,6 +43,11 @@ class PosRemoteDataSource {
         clientSaleId: dto.clientSaleId,
         saleId: saleData['id']?.toString(),
         receiptNumber: saleData['receipt_number']?.toString(),
+        taxAmount: saleData['tax_amount']?.toString(),
+        taxRate: saleData['tax_rate']?.toString(),
+        taxInclusive:
+            saleData['tax_inclusive'] is bool ? saleData['tax_inclusive'] as bool : null,
+        netAmount: saleData['net_amount']?.toString(),
       );
     } on DioException catch (e) {
       throw _mapDioException(e);
