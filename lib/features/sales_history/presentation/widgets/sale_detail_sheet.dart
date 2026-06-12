@@ -370,6 +370,18 @@ class _ItemsCard extends StatelessWidget {
               color: colors.border,
             ),
             if (item.taxAmount > 0) ...[
+              if (!item.taxInclusive) ...[
+                _SubtotalRow(
+                  subtotal: item.items.fold<double>(
+                    0,
+                    (sum, i) => sum + i.subtotal,
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  color: colors.border.withValues(alpha: 0.6),
+                ),
+              ],
               _TaxLineRow(item: item),
               Divider(
                 height: 1,
@@ -589,6 +601,46 @@ class _TaxLineRow extends StatelessWidget {
           const SizedBox(width: AppDims.s3),
           Text(
             AppFormat.moneyWithUnit(item.taxAmount),
+            textDirection: ui.TextDirection.ltr,
+            style: AppTextStyles.bs200(context).copyWith(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubtotalRow extends StatelessWidget {
+  const _SubtotalRow({required this.subtotal});
+
+  final double subtotal;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: AppDims.s4,
+        vertical: AppDims.s3,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.tr.subtotal,
+              style: AppTextStyles.bs200(context).copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppDims.s3),
+          Text(
+            AppFormat.moneyWithUnit(subtotal),
             textDirection: ui.TextDirection.ltr,
             style: AppTextStyles.bs200(context).copyWith(
               color: colors.textPrimary,

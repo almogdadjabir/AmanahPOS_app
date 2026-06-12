@@ -393,6 +393,39 @@ class SaleReceiptPdfService {
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
         if (item.taxAmount > 0) ...[
+          if (!item.taxInclusive) ...[
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: strings.isRtl
+                        ? pw.CrossAxisAlignment.end
+                        : pw.CrossAxisAlignment.start,
+                    children: [
+                      _t(
+                        strings.subtotalUpper,
+                        color: _muted,
+                        size: 7.5,
+                        bold: true,
+                        spacing: strings.isRtl ? 0 : 1.0,
+                        strings: strings,
+                      ),
+                    ],
+                  ),
+                ),
+                _ltrText(
+                  AppFormat.moneyWithUnit(
+                    item.items.fold<double>(0, (sum, i) => sum + i.subtotal),
+                  ),
+                  color: _muted,
+                  size: 10,
+                  bold: true,
+                  align: pw.TextAlign.right,
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 10),
+          ],
           pw.Row(
             children: [
               pw.Expanded(
@@ -644,6 +677,7 @@ class SaleReceiptPdfStrings {
     required this.totalUpper,
     required this.taxUpper,
     required this.taxIncludedUpper,
+    required this.subtotalUpper,
     required this.noItemDetailsAvailable,
     required this.offlineSalePdfWarning,
     required this.thankYouForPurchase,
@@ -681,6 +715,7 @@ class SaleReceiptPdfStrings {
   final String totalUpper;
   final String taxUpper;
   final String taxIncludedUpper;
+  final String subtotalUpper;
 
   final String noItemDetailsAvailable;
   final String offlineSalePdfWarning;
@@ -724,6 +759,7 @@ class SaleReceiptPdfStrings {
       totalUpper: languageCode == 'ar' ? tr.total : 'TOTAL',
       taxUpper: languageCode == 'ar' ? tr.taxLabel : 'TAX',
       taxIncludedUpper: languageCode == 'ar' ? tr.taxIncluded : 'TAX INCLUDED',
+      subtotalUpper: languageCode == 'ar' ? tr.subtotal : 'SUBTOTAL',
       noItemDetailsAvailable: tr.noItemDetailsAvailable,
       offlineSalePdfWarning: tr.offlineSalePdfWarning,
       thankYouForPurchase: tr.thankYouForPurchase,
