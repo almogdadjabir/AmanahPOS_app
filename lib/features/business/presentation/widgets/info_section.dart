@@ -167,5 +167,9 @@ String _taxSummary(BuildContext context, BusinessData business) {
   final mode = config.inclusive
       ? context.tr.pricesIncludeTax
       : context.tr.pricesExcludeTax;
-  return '${config.name} · ${config.rateLabel}% · $mode';
+  final isRtl = Directionality.of(context) == TextDirection.rtl;
+  // Order segments for the reading direction so bidi rendering stays tidy.
+  return isRtl
+      ? '$mode · ${config.rateLabel}% · ${config.name}'
+      : '${config.name} · ${config.rateLabel}% · $mode';
 }
