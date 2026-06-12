@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>AmanaPOS uses Bluetooth to connect to your receipt printer.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>AmanaPOS uses Bluetooth to connect to your receipt printer.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>AmanaPOS needs camera access so you can take product and category photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
