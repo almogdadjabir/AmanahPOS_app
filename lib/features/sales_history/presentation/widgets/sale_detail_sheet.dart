@@ -368,6 +368,13 @@ class _ItemsCard extends StatelessWidget {
               height: 1,
               color: colors.border,
             ),
+            if (item.taxAmount > 0) ...[
+              _TaxLineRow(item: item),
+              Divider(
+                height: 1,
+                color: colors.border.withValues(alpha: 0.6),
+              ),
+            ],
             _TotalRow(total: item.total),
           ],
         ),
@@ -542,6 +549,55 @@ class _TotalRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TaxLineRow extends StatelessWidget {
+  const _TaxLineRow({required this.item});
+
+  final SaleHistoryItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    final label = item.taxInclusive
+        ? context.tr.taxIncluded
+        : item.taxRate > 0
+            ? context.tr.taxWithRatePercent(
+                item.taxRate % 1 == 0
+                    ? item.taxRate.toStringAsFixed(0)
+                    : item.taxRate.toStringAsFixed(2))
+            : context.tr.taxLabel;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: AppDims.s4,
+        vertical: AppDims.s3,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyles.bs200(context).copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppDims.s3),
+          Text(
+            AppFormat.moneyWithUnit(item.taxAmount),
+            textDirection: ui.TextDirection.ltr,
+            style: AppTextStyles.bs200(context).copyWith(
+              color: colors.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
       ),
     );
   }

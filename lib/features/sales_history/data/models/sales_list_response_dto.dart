@@ -33,6 +33,9 @@ class SaleDto {
   final String paymentMethod;
   final String totalAmount;
   final String netAmount;
+  final String taxAmount;
+  final String taxRate;
+  final bool taxInclusive;
   final String status;
   final String? clientSaleId;
   final List<SaleItemDto> items;
@@ -48,6 +51,9 @@ class SaleDto {
     required this.paymentMethod,
     required this.totalAmount,
     required this.netAmount,
+    this.taxAmount = '0',
+    this.taxRate = '0',
+    this.taxInclusive = false,
     required this.status,
     required this.clientSaleId,
     required this.items,
@@ -87,6 +93,9 @@ class SaleDto {
       paymentMethod: json['payment_method']?.toString() ?? 'cash',
       totalAmount: json['total_amount']?.toString() ?? '0',
       netAmount: json['net_amount']?.toString() ?? '0',
+      taxAmount: json['tax_amount']?.toString() ?? '0',
+      taxRate: json['tax_rate']?.toString() ?? '0',
+      taxInclusive: json['tax_inclusive'] == true,
       status: json['status']?.toString() ?? 'completed',
       clientSaleId: json['client_sale_id']?.toString(),
       items: (json['items'] as List<dynamic>? ?? [])

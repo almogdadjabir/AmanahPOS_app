@@ -76,6 +76,11 @@ class SaleHistoryItem {
   final String paymentMethod;
 
   final double total;
+  // Historical snapshot from the sale (docs/TAX_SUPPORT.md §3) — never the
+  // business's live settings. 0 for pre-tax sales.
+  final double taxAmount;
+  final double taxRate;
+  final bool taxInclusive;
   final int itemCount;
   final SaleHistoryStatus status;
   final DateTime createdAt;
@@ -93,6 +98,9 @@ class SaleHistoryItem {
     required this.customerName,
     required this.paymentMethod,
     required this.total,
+    this.taxAmount = 0,
+    this.taxRate = 0,
+    this.taxInclusive = false,
     required this.itemCount,
     required this.status,
     required this.createdAt,
@@ -115,6 +123,9 @@ class SaleHistoryItem {
       customerName: dto.customerName,
       paymentMethod: dto.paymentMethod,
       total: total,
+      taxAmount: _parseAmount(dto.taxAmount) ?? 0,
+      taxRate: _parseAmount(dto.taxRate) ?? 0,
+      taxInclusive: dto.taxInclusive,
       itemCount: dto.items.length,
       status: SaleHistoryStatus.fromString(dto.status),
       createdAt: dto.createdAt,
@@ -138,6 +149,8 @@ class SaleHistoryItem {
         customerName: null,
         paymentMethod: row['payment_method']?.toString() ?? 'cash',
         total: _parseAmount(row['total']?.toString()) ?? 0,
+        // Local preview stored at queue time; the server recomputes on sync.
+        taxAmount: _parseAmount(row['tax_amount']?.toString()) ?? 0,
         itemCount: itemRows.length,
         status: SaleHistoryStatus.fromString(row['status']?.toString()),
         createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
@@ -176,6 +189,9 @@ class SaleHistoryItem {
     customerName: customerName,
     paymentMethod: paymentMethod,
     total: total,
+    taxAmount: taxAmount,
+    taxRate: taxRate,
+    taxInclusive: taxInclusive,
     itemCount: itemCount,
     status: status ?? this.status,
     createdAt: createdAt,
