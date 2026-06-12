@@ -1,6 +1,11 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
+import 'package:amana_pos/features/devices/domain/entities/receipt_data.dart';
+import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
+import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
 import 'package:amana_pos/utilities/content_direction.dart';
+import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
@@ -9,6 +14,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -123,6 +129,50 @@ class SaleReceiptSheet extends StatelessWidget {
     sb.writeln(businessName);
     sb.writeln('Powered by AmanaPOS');
     return sb.toString();
+  }
+
+  /// Mirrors [_buildReceiptText] for the thermal printer, with amounts
+  /// pre-formatted so the ESC/POS encoder stays presentation-free.
+  ReceiptData _buildReceiptData() {
+    final summary = <ReceiptRow>[];
+    if (taxAmount > 0 && !taxInclusive) {
+      summary.add(ReceiptRow(
+        label: 'Subtotal',
+        value: AppFormat.moneyWithUnit(subtotal),
+      ));
+      summary.add(ReceiptRow(
+        label: 'Tax ($taxName $taxRateLabel%)',
+        value: AppFormat.moneyWithUnit(taxAmount),
+      ));
+    }
+    summary.add(ReceiptRow(
+      label: 'TOTAL',
+      value: AppFormat.moneyWithUnit(total),
+      emphasized: true,
+    ));
+    if (taxAmount > 0 && taxInclusive) {
+      summary.add(ReceiptRow(
+        label: 'Incl. $taxName $taxRateLabel%',
+        value: AppFormat.moneyWithUnit(taxAmount),
+      ));
+    }
+
+    return ReceiptData(
+      businessName: businessName,
+      reference: 'Ref: $_displayRef',
+      dateLabel: AppFormat.receiptDate(DateTime.now()),
+      lines: [
+        for (final item in items)
+          ReceiptLine(
+            name: item.product.name ?? 'Item',
+            quantity: item.quantity,
+            amount: AppFormat.moneyWithUnit(item.lineTotal),
+          ),
+      ],
+      summary: summary,
+      paymentLabel: _paymentLabel,
+      offlineNote: isOffline ? 'Saved offline - pending sync' : null,
+    );
   }
 
   Future<void> _shareWhatsApp() async {
@@ -456,6 +506,10 @@ class SaleReceiptSheet extends StatelessWidget {
                   ],
                   const SizedBox(height: AppDims.s6),
 
+                  // Print on the saved Bluetooth receipt printer
+                  _PrintReceiptButton(buildReceipt: _buildReceiptData),
+                  const SizedBox(height: AppDims.s2),
+
                   // WhatsApp share
                   FilledButton.icon(
                     onPressed: _shareWhatsApp,
@@ -511,6 +565,94 @@ class SaleReceiptSheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Prints the receipt on the saved Bluetooth printer, reflecting the live
+/// [PrinterBloc] state: set-up shortcut when no printer is saved, progress
+/// while connecting/printing, and snackbars on success/failure.
+class _PrintReceiptButton extends StatelessWidget {
+  final ReceiptData Function() buildReceipt;
+
+  const _PrintReceiptButton({required this.buildReceipt});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return BlocConsumer<PrinterBloc, PrinterState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        switch (state.status) {
+          case PrinterStatus.printSuccess:
+            GlobalSnackBar.showSuccess(
+              message: context.tr.printerStatusPrintSuccess,
+            );
+          case PrinterStatus.printFailed:
+          case PrinterStatus.connectionFailed:
+            final error = state.error;
+            if (error != null) {
+              GlobalSnackBar.showError(
+                message: printerErrorMessage(context, error),
+              );
+            }
+          default:
+            break;
+        }
+      },
+      builder: (context, state) {
+        if (!state.hasSavedPrinter) {
+          return OutlinedButton.icon(
+            onPressed: () => Navigator.of(context)
+                .pushNamed(RouteStrings.printerSettingsScreen),
+            icon: Icon(Icons.print_outlined,
+                size: 18, color: colors.textPrimary),
+            label: Text(context.tr.printerSetUp,
+                style: TextStyle(color: colors.textPrimary)),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: colors.border),
+              elevation: 0,
+              minimumSize: const Size.fromHeight(52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+          );
+        }
+
+        final isBusy = state.status.isBusy;
+
+        return FilledButton.icon(
+          onPressed: isBusy
+              ? null
+              : () => context
+                  .read<PrinterBloc>()
+                  .add(PrinterReceiptPrintRequested(buildReceipt())),
+          icon: isBusy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.print_rounded, size: 18),
+          label: Text(
+            isBusy ? state.status.label(context) : context.tr.printReceipt,
+          ),
+          style: FilledButton.styleFrom(
+            backgroundColor: colors.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            minimumSize: const Size.fromHeight(52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+        );
+      },
     );
   }
 }
