@@ -101,3 +101,9 @@ class PosBarcodeScanned extends PosEvent {
 class PosSessionReset extends PosEvent {
   const PosSessionReset();
 }
+
+class PosTaxConfigChanged extends PosEvent {
+  final TaxConfig taxConfig;
+  const PosTaxConfigChanged(this.taxConfig);
+  @override List<Object?> get props => [taxConfig];
+}

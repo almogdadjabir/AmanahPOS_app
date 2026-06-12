@@ -13,6 +13,7 @@ class PosState extends Equatable {
   final Map<String, int> lastSoldQuantities;
   final String? selectedShopId;
   final String? selectedShopName;
+  final TaxConfig taxConfig;
 
   // Receipt snapshot — set on success, consumed by SaleReceiptSheet
   final String? lastReceiptNumber;
@@ -22,6 +23,11 @@ class PosState extends Equatable {
   final double lastTotal;
   final String lastPaymentMethod;
   final bool lastSaleWasOffline;
+  final double lastSubtotal;
+  final double lastTaxAmount;
+  final String lastTaxName;
+  final double lastTaxRate;
+  final bool lastTaxInclusive;
 
   const PosState({
     this.items = const [],
@@ -34,6 +40,7 @@ class PosState extends Equatable {
     this.lastSoldQuantities = const {},
     this.selectedShopId,
     this.selectedShopName,
+    this.taxConfig = const TaxConfig.disabled(),
     this.lastReceiptNumber,
     this.lastSaleId,
     this.lastClientSaleId,
@@ -41,6 +48,11 @@ class PosState extends Equatable {
     this.lastTotal = 0,
     this.lastPaymentMethod = 'cash',
     this.lastSaleWasOffline = false,
+    this.lastSubtotal = 0,
+    this.lastTaxAmount = 0,
+    this.lastTaxName = 'VAT',
+    this.lastTaxRate = 0,
+    this.lastTaxInclusive = false,
   });
 
   factory PosState.initial() => const PosState();
@@ -49,7 +61,17 @@ class PosState extends Equatable {
   bool get isNotEmpty => items.isNotEmpty;
   int get itemCount => items.fold(0, (sum, i) => sum + i.quantity);
   double get subtotal => items.fold(0, (sum, i) => sum + i.lineTotal);
-  double get total => subtotal;
+
+  /// Local tax preview (docs/TAX_SUPPORT.md §2) — server stays authoritative.
+  double get taxAmount =>
+      TaxCalculator.compute(taxableAmount: subtotal, config: taxConfig)
+          .taxAmount;
+
+  /// Net payable total: subtotal + tax when exclusive, subtotal when
+  /// inclusive or tax disabled.
+  double get total =>
+      TaxCalculator.compute(taxableAmount: subtotal, config: taxConfig)
+          .netAmount;
 
   int quantityOf(String? productId) {
     if (productId == null) return 0;
@@ -75,6 +97,7 @@ class PosState extends Equatable {
     String? selectedShopId,
     String? selectedShopName,
     bool clearShop = false,
+    TaxConfig? taxConfig,
     String? lastReceiptNumber,
     String? lastSaleId,
     String? lastClientSaleId,
@@ -82,6 +105,11 @@ class PosState extends Equatable {
     double? lastTotal,
     String? lastPaymentMethod,
     bool? lastSaleWasOffline,
+    double? lastSubtotal,
+    double? lastTaxAmount,
+    String? lastTaxName,
+    double? lastTaxRate,
+    bool? lastTaxInclusive,
   }) {
     return PosState(
       items: items ?? this.items,
@@ -96,6 +124,7 @@ class PosState extends Equatable {
       lastSoldQuantities: lastSoldQuantities ?? this.lastSoldQuantities,
       selectedShopId: clearShop ? null : (selectedShopId ?? this.selectedShopId),
       selectedShopName: clearShop ? null : (selectedShopName ?? this.selectedShopName),
+      taxConfig: taxConfig ?? this.taxConfig,
       lastReceiptNumber: lastReceiptNumber ?? this.lastReceiptNumber,
       lastSaleId: lastSaleId ?? this.lastSaleId,
       lastClientSaleId: lastClientSaleId ?? this.lastClientSaleId,
@@ -103,6 +132,11 @@ class PosState extends Equatable {
       lastTotal: lastTotal ?? this.lastTotal,
       lastPaymentMethod: lastPaymentMethod ?? this.lastPaymentMethod,
       lastSaleWasOffline: lastSaleWasOffline ?? this.lastSaleWasOffline,
+      lastSubtotal: lastSubtotal ?? this.lastSubtotal,
+      lastTaxAmount: lastTaxAmount ?? this.lastTaxAmount,
+      lastTaxName: lastTaxName ?? this.lastTaxName,
+      lastTaxRate: lastTaxRate ?? this.lastTaxRate,
+      lastTaxInclusive: lastTaxInclusive ?? this.lastTaxInclusive,
     );
   }
 
@@ -113,5 +147,7 @@ class PosState extends Equatable {
     selectedShopId, selectedShopName,
     lastReceiptNumber, lastSaleId, lastClientSaleId,
     lastCartSnapshot, lastTotal, lastPaymentMethod, lastSaleWasOffline,
+    taxConfig, lastSubtotal, lastTaxAmount, lastTaxName, lastTaxRate,
+    lastTaxInclusive,
   ];
 }

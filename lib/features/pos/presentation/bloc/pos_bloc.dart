@@ -1,6 +1,7 @@
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
@@ -28,6 +29,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosShopSelected>(_onShopSelected);
     on<PosBarcodeScanned>(_onBarcodeScanned);
     on<PosSessionReset>(_onSessionReset);
+    on<PosTaxConfigChanged>(_onTaxConfigChanged);
   }
 
   void _onShopSelected(PosShopSelected event, Emitter<PosState> emit) {
@@ -35,6 +37,10 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       selectedShopId: event.shopId,
       selectedShopName: event.shopName,
     ));
+  }
+
+  void _onTaxConfigChanged(PosTaxConfigChanged event, Emitter<PosState> emit) {
+    emit(state.copyWith(taxConfig: event.taxConfig));
   }
 
   void _onBarcodeScanned(PosBarcodeScanned event, Emitter<PosState> emit) {}
@@ -136,7 +142,10 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
     // Snapshot BEFORE clearing
     final cartSnapshot = [...state.items];
+    final saleSubtotal = state.subtotal;
+    final salePreviewTax = state.taxAmount;
     final saleTotal = state.total;
+    final saleTaxConfig = state.taxConfig;
     final salePaymentMethod = state.paymentMethod;
     final soldQuantities = state.currentSoldQuantities;
 
@@ -153,6 +162,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           paymentMethod: state.paymentMethod,
           items: state.items,
           discountAmount: '0',
+          taxConfig: saleTaxConfig,
         ),
       );
 
@@ -175,7 +185,16 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             lastSaleId: result.saleId,
             lastClientSaleId: result.clientSaleId,
             lastCartSnapshot: cartSnapshot,
-            lastTotal: saleTotal,
+            lastSubtotal: saleSubtotal,
+            // Online sales: server values are authoritative; offline-queued
+            // sales fall back to the local preview.
+            lastTaxAmount:
+                double.tryParse(result.taxAmount ?? '') ?? salePreviewTax,
+            lastTotal: double.tryParse(result.netAmount ?? '') ?? saleTotal,
+            lastTaxName: saleTaxConfig.name,
+            lastTaxRate:
+                double.tryParse(result.taxRate ?? '') ?? saleTaxConfig.rate,
+            lastTaxInclusive: result.taxInclusive ?? saleTaxConfig.inclusive,
             lastPaymentMethod: salePaymentMethod,
             lastSaleWasOffline: result.queued,
             submitError: result.queued
@@ -210,6 +229,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     emit(PosState(
       selectedShopId: state.selectedShopId,
       selectedShopName: state.selectedShopName,
+      taxConfig: state.taxConfig,
     ));
   }
 
