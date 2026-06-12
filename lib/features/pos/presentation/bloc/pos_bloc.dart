@@ -174,6 +174,20 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           ));
         },
             (result) {
+          final serverTax = double.tryParse(result.taxAmount ?? '');
+          final serverNet = double.tryParse(result.netAmount ?? '');
+          final resolvedTaxAmount = serverTax ?? salePreviewTax;
+          final resolvedTotal = serverNet ?? saleTotal;
+          final resolvedInclusive =
+              result.taxInclusive ?? saleTaxConfig.inclusive;
+          // Keep receipt rows arithmetically consistent: with server values in
+          // exclusive mode, displayed subtotal must equal net − tax (the local
+          // subtotal can drift ±0.01 from the server's Decimal math).
+          final resolvedSubtotal =
+              (serverNet != null && serverTax != null && !resolvedInclusive)
+                  ? serverNet - serverTax
+                  : saleSubtotal;
+
           emit(state.copyWith(
             items: [],
             lastSoldQuantities: soldQuantities,
@@ -185,16 +199,15 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             lastSaleId: result.saleId,
             lastClientSaleId: result.clientSaleId,
             lastCartSnapshot: cartSnapshot,
-            lastSubtotal: saleSubtotal,
+            lastSubtotal: resolvedSubtotal,
             // Online sales: server values are authoritative; offline-queued
             // sales fall back to the local preview.
-            lastTaxAmount:
-                double.tryParse(result.taxAmount ?? '') ?? salePreviewTax,
-            lastTotal: double.tryParse(result.netAmount ?? '') ?? saleTotal,
+            lastTaxAmount: resolvedTaxAmount,
+            lastTotal: resolvedTotal,
             lastTaxName: saleTaxConfig.name,
             lastTaxRate:
                 double.tryParse(result.taxRate ?? '') ?? saleTaxConfig.rate,
-            lastTaxInclusive: result.taxInclusive ?? saleTaxConfig.inclusive,
+            lastTaxInclusive: resolvedInclusive,
             lastPaymentMethod: salePaymentMethod,
             lastSaleWasOffline: result.queued,
             submitError: result.queued

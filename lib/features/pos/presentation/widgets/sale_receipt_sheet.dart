@@ -406,7 +406,11 @@ class SaleReceiptSheet extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(context.tr.totalPaid,
+                            Text(
+                                taxAmount > 0 && taxInclusive
+                                    ? context.tr.totalInclTax(
+                                        taxName, taxRateLabel)
+                                    : context.tr.totalPaid,
                                 style: AppTextStyles.bs100(context).copyWith(
                                     color: colors.textSecondary)),
                             Text(_paymentLabel,
@@ -434,7 +438,7 @@ class SaleReceiptSheet extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                              '${context.tr.totalInclTax(taxName, taxRateLabel)} · ${context.tr.taxIncluded}',
+                              context.tr.taxIncluded,
                               style: AppTextStyles.sm100(context)
                                   .copyWith(color: colors.textHint)),
                           Text(AppFormat.moneyWithUnit(taxAmount),
