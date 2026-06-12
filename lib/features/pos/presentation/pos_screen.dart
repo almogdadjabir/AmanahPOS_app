@@ -10,6 +10,7 @@ import 'package:amana_pos/features/cart/presentation/products_empty.dart';
 import 'package:amana_pos/features/cart/presentation/products_loading_grid.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/today_cards.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/category_bar.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/desktop_category_sidebar.dart';
@@ -53,9 +54,23 @@ class _PosScreenState extends State<PosScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _dispatchTaxConfig();
       _autoSelectShop();
       _loadDashboardSummary();
     });
+  }
+
+  void _dispatchTaxConfig() {
+    if (!mounted) return;
+    // BusinessBloc has the freshest copy after a refresh; AuthBloc's
+    // defaultBusiness covers cold offline starts (loaded from SQLite cache).
+    final businessList = context.read<BusinessBloc>().state.businessList;
+    final business = (businessList != null && businessList.isNotEmpty)
+        ? businessList.first
+        : context.read<AuthBloc>().state.defaultBusiness;
+    context
+        .read<PosBloc>()
+        .add(PosTaxConfigChanged(TaxConfig.fromBusiness(business)));
   }
 
   void _loadDashboardSummary({bool forceRefresh = false}) {
@@ -232,60 +247,76 @@ class _PosScreenState extends State<PosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PosBloc, PosState>(
-      listenWhen: (prev, curr) =>
-          prev.submitStatus != curr.submitStatus ||
-          prev.submitError != curr.submitError,
-      listener: (context, state) {
-        if (state.submitStatus == PosSubmitStatus.idle &&
-            state.submitError?.isNotEmpty == true) {
-          GlobalSnackBar.show(message: state.submitError!, isError: true);
-          context.read<PosBloc>().add(const PosAcknowledgeSubmit());
-          return;
-        }
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<BusinessBloc, BusinessState>(
+          listenWhen: (prev, curr) => prev.businessList != curr.businessList,
+          listener: (context, _) => _dispatchTaxConfig(),
+        ),
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (prev, curr) =>
+              prev.defaultBusiness != curr.defaultBusiness,
+          listener: (context, _) => _dispatchTaxConfig(),
+        ),
+        BlocListener<PosBloc, PosState>(
+          listenWhen: (prev, curr) =>
+              prev.submitStatus != curr.submitStatus ||
+              prev.submitError != curr.submitError,
+          listener: (context, state) {
+            if (state.submitStatus == PosSubmitStatus.idle &&
+                state.submitError?.isNotEmpty == true) {
+              GlobalSnackBar.show(message: state.submitError!, isError: true);
+              context.read<PosBloc>().add(const PosAcknowledgeSubmit());
+              return;
+            }
 
-        if (state.submitStatus == PosSubmitStatus.success) {
-          context.read<ProductBloc>().add(
-            OnProductsSoldLocally(soldQuantities: state.lastSoldQuantities),
-          );
+            if (state.submitStatus == PosSubmitStatus.success) {
+              context.read<ProductBloc>().add(
+                OnProductsSoldLocally(
+                  soldQuantities: state.lastSoldQuantities,
+                ),
+              );
 
-          // On desktop the receipt sheet is shown by DesktopCartPanel's own
-          // BlocListener, so the snackbar would stack on top of it.
-          if (!context.isDesktop) {
-            final message = state.submitError?.isNotEmpty == true
-                ? state.submitError!
-                : context.tr.posSaleCompleted;
-            GlobalSnackBar.show(message: message, isInfo: true);
-          }
-          context.read<PosBloc>().add(const PosAcknowledgeSubmit());
+              // On desktop the receipt sheet is shown by DesktopCartPanel's own
+              // BlocListener, so the snackbar would stack on top of it.
+              if (!context.isDesktop) {
+                final message = state.submitError?.isNotEmpty == true
+                    ? state.submitError!
+                    : context.tr.posSaleCompleted;
+                GlobalSnackBar.show(message: message, isInfo: true);
+              }
+              context.read<PosBloc>().add(const PosAcknowledgeSubmit());
 
-          final shopId =
-              _autoSelectShop() ?? context.read<PosBloc>().state.selectedShopId;
+              final shopId =
+                  _autoSelectShop() ??
+                  context.read<PosBloc>().state.selectedShopId;
 
-          context.read<DashboardSummaryBloc>().add(
-            OnDashboardSummaryRefreshRequested(
-              shopId: shopId,
-              topSellersLimit: 10,
-            ),
-          );
-        }
+              context.read<DashboardSummaryBloc>().add(
+                OnDashboardSummaryRefreshRequested(
+                  shopId: shopId,
+                  topSellersLimit: 10,
+                ),
+              );
+            }
 
-        if (state.submitStatus == PosSubmitStatus.failure) {
-          final raw = state.submitError ?? context.tr.posFailedSale;
-          final message = raw.contains('BANKAK_ACCOUNT_REQUIRED')
-              ? context.tr.posBankakRequired
-              : raw.contains('SHOP_MISMATCH')
-              ? context.tr.posShopMismatch
-              : raw;
+            if (state.submitStatus == PosSubmitStatus.failure) {
+              final raw = state.submitError ?? context.tr.posFailedSale;
+              final message = raw.contains('BANKAK_ACCOUNT_REQUIRED')
+                  ? context.tr.posBankakRequired
+                  : raw.contains('SHOP_MISMATCH')
+                  ? context.tr.posShopMismatch
+                  : raw;
 
-          GlobalSnackBar.show(
-            message: message,
-            isError: true,
-            isAutoDismiss: false,
-          );
-          context.read<PosBloc>().add(const PosAcknowledgeSubmit());
-        }
-      },
+              GlobalSnackBar.show(
+                message: message,
+                isError: true,
+                isAutoDismiss: false,
+              );
+              context.read<PosBloc>().add(const PosAcknowledgeSubmit());
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         body: SafeArea(
           bottom: false,
