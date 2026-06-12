@@ -231,6 +231,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'For printers connected with a LAN cable or WiFi, like the SAM4s GIANT-100. To find the printer\'s IP address, hold the FEED button while turning the printer on - it prints a self-test page showing the IP.';
 
   @override
+  String get printerBleLabel => 'Bluetooth LE';
+
+  @override
   String get printerNetworkLabel => 'LAN/WiFi printer';
 
   @override

@@ -524,6 +524,12 @@ abstract class AppLocalizations {
   /// **'For printers connected with a LAN cable or WiFi, like the SAM4s GIANT-100. To find the printer\'s IP address, hold the FEED button while turning the printer on - it prints a self-test page showing the IP.'**
   String get printerNetworkHint;
 
+  /// No description provided for @printerBleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth LE'**
+  String get printerBleLabel;
+
   /// No description provided for @printerNetworkLabel.
   ///
   /// In en, this message translates to:

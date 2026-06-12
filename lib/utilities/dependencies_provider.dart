@@ -17,6 +17,7 @@ import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/sync/sync_manager.dart';
 import 'package:amana_pos/features/dashboard/data/datasources/dashboard_local_data_source.dart';
+import 'package:amana_pos/features/devices/data/datasources/ble_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/bluetooth_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/network_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/repository_impl/printer_repo_impl.dart';
@@ -189,6 +190,10 @@ class DependenciesProvider {
           () => PrintBluetoothThermalChannel(),
     );
 
+    getIt.registerLazySingleton<BlePrinterChannel>(
+          () => BlePrinterChannel(),
+    );
+
     getIt.registerLazySingleton<NetworkPrinterChannel>(
           () => NetworkPrinterChannel(),
     );
@@ -200,6 +205,7 @@ class DependenciesProvider {
     getIt.registerLazySingleton<PrinterRepository>(
           () => PrinterRepoImpl(
         channel: getIt<BluetoothPrinterChannel>(),
+        bleChannel: getIt<BlePrinterChannel>(),
         networkChannel: getIt<NetworkPrinterChannel>(),
         cacheStorage: getIt<CacheStorage>(),
         permissionService: getIt<PrinterPermissionService>(),

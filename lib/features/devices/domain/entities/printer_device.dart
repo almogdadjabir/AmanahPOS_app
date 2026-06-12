@@ -2,10 +2,13 @@ import 'package:equatable/equatable.dart';
 
 /// How the app reaches a receipt printer.
 ///
-/// - [bluetooth]: classic/BLE thermal printers paired over Bluetooth.
+/// - [bluetooth]: classic (SPP) printers paired in system settings; on
+///   iOS/macOS/Windows the underlying plugin speaks BLE through this type.
+/// - [ble]: Bluetooth Low Energy printers driven through GATT
+///   characteristics (covers BLE-only printers on Android).
 /// - [network]: LAN/WiFi printers speaking ESC/POS RAW on TCP port 9100
 ///   (e.g. SAM4s GIANT-100, which has no Bluetooth radio).
-enum PrinterConnectionType { bluetooth, network }
+enum PrinterConnectionType { bluetooth, ble, network }
 
 /// A receipt printer the user can save as default.
 class PrinterDevice extends Equatable {
@@ -13,7 +16,7 @@ class PrinterDevice extends Equatable {
 
   final String name;
 
-  /// Bluetooth MAC address, or IP address for network printers.
+  /// Bluetooth MAC address / BLE remote id, or IP for network printers.
   final String address;
 
   final PrinterConnectionType type;
@@ -32,9 +35,8 @@ class PrinterDevice extends Equatable {
     return PrinterDevice(
       name: json['name'] as String? ?? '',
       address: json['address'] as String? ?? '',
-      type: json['type'] == 'network'
-          ? PrinterConnectionType.network
-          : PrinterConnectionType.bluetooth,
+      type: PrinterConnectionType.values.asNameMap()[json['type']] ??
+          PrinterConnectionType.bluetooth,
       port: json['port'] as int? ?? defaultNetworkPort,
     );
   }
@@ -47,6 +49,8 @@ class PrinterDevice extends Equatable {
       };
 
   bool get isNetwork => type == PrinterConnectionType.network;
+
+  bool get isBle => type == PrinterConnectionType.ble;
 
   /// "192.168.1.50:9100" for network printers, the MAC for Bluetooth.
   String get displayAddress => isNetwork ? '$address:$port' : address;

@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/features/devices/data/datasources/ble_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/bluetooth_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/network_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/repository_impl/printer_repo_impl.dart';
@@ -10,6 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockChannel extends Mock implements BluetoothPrinterChannel {}
+
+class _MockBleChannel extends Mock implements BlePrinterChannel {}
 
 class _MockNetworkChannel extends Mock implements NetworkPrinterChannel {}
 
@@ -26,24 +29,38 @@ const networkPrinter = PrinterDevice(
   port: 9100,
 );
 
+const blePrinter = PrinterDevice(
+  name: 'BLE Thermal',
+  address: 'F0:E1:D2:C3:B4:A5',
+  type: PrinterConnectionType.ble,
+);
+
 void main() {
   late _MockChannel channel;
+  late _MockBleChannel bleChannel;
   late _MockNetworkChannel networkChannel;
   late _MockCacheStorage cache;
   late _MockPermissionService permissions;
   late PrinterRepoImpl repo;
 
-  setUp(() {
-    channel = _MockChannel();
-    networkChannel = _MockNetworkChannel();
-    cache = _MockCacheStorage();
-    permissions = _MockPermissionService();
-    repo = PrinterRepoImpl(
+  PrinterRepoImpl buildRepo({bool includeBleScan = false}) {
+    return PrinterRepoImpl(
       channel: channel,
+      bleChannel: bleChannel,
       networkChannel: networkChannel,
       cacheStorage: cache,
       permissionService: permissions,
+      includeBleScan: includeBleScan,
     );
+  }
+
+  setUp(() {
+    channel = _MockChannel();
+    bleChannel = _MockBleChannel();
+    networkChannel = _MockNetworkChannel();
+    cache = _MockCacheStorage();
+    permissions = _MockPermissionService();
+    repo = buildRepo();
 
     when(() => permissions.ensureBluetoothPermissions())
         .thenAnswer((_) async => true);
@@ -191,6 +208,83 @@ void main() {
         throwsA(isA<PrinterException>()
             .having((e) => e.error, 'error', PrinterError.connectionFailed)),
       );
+    });
+  });
+
+  group('BLE printers', () {
+    test('connect routes to the BLE channel after permission check',
+        () async {
+      when(() => bleChannel.connect(blePrinter.address))
+          .thenAnswer((_) async => true);
+
+      expect(await repo.connect(blePrinter), isTrue);
+
+      verify(() => permissions.ensureBluetoothPermissions()).called(1);
+      verify(() => bleChannel.connect(blePrinter.address)).called(1);
+      verifyNever(() => channel.connect(any()));
+    });
+
+    test('printBytes routes to the BLE channel', () async {
+      when(() => bleChannel.writeBytes(any())).thenAnswer((_) async => true);
+
+      expect(await repo.printBytes(blePrinter, [0x1B, 0x40]), isTrue);
+
+      verify(() => bleChannel.writeBytes([0x1B, 0x40])).called(1);
+      verifyNever(() => channel.writeBytes(any()));
+    });
+
+    test('isConnected routes to the BLE channel', () async {
+      when(() => bleChannel.isConnected()).thenAnswer((_) async => true);
+
+      expect(await repo.isConnected(blePrinter), isTrue);
+
+      verifyNever(() => channel.isConnected());
+    });
+  });
+
+  group('scan merging (Android)', () {
+    setUp(() {
+      when(() => channel.isBluetoothEnabled()).thenAnswer((_) async => true);
+    });
+
+    test('merges BLE results with classic ones, deduplicating by address',
+        () async {
+      repo = buildRepo(includeBleScan: true);
+      when(() => channel.discoverDevices())
+          .thenAnswer((_) async => [printer]);
+      when(() => bleChannel.scan()).thenAnswer((_) async => [
+            blePrinter,
+            // Same address as the classic entry: classic wins.
+            const PrinterDevice(
+              name: 'Duplicate',
+              address: 'AA:BB:CC',
+              type: PrinterConnectionType.ble,
+            ),
+          ]);
+
+      final devices = await repo.scanForDevices();
+
+      expect(devices, hasLength(2));
+      expect(devices, contains(printer));
+      expect(devices, contains(blePrinter));
+    });
+
+    test('keeps classic results when the BLE scan fails', () async {
+      repo = buildRepo(includeBleScan: true);
+      when(() => channel.discoverDevices())
+          .thenAnswer((_) async => [printer]);
+      when(() => bleChannel.scan()).thenThrow(Exception('ble boom'));
+
+      expect(await repo.scanForDevices(), [printer]);
+    });
+
+    test('skips the BLE scan entirely when disabled', () async {
+      when(() => channel.discoverDevices())
+          .thenAnswer((_) async => [printer]);
+
+      expect(await repo.scanForDevices(), [printer]);
+
+      verifyNever(() => bleChannel.scan());
     });
   });
 }

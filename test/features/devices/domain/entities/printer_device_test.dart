@@ -20,6 +20,16 @@ void main() {
       expect(PrinterDevice.fromJson(device.toJson()), device);
     });
 
+    test('BLE printer round-trips with type', () {
+      const device = PrinterDevice(
+        name: 'BLE Thermal',
+        address: 'F0:E1:D2:C3:B4:A5',
+        type: PrinterConnectionType.ble,
+      );
+
+      expect(PrinterDevice.fromJson(device.toJson()), device);
+    });
+
     test('legacy JSON without type defaults to bluetooth', () {
       final device = PrinterDevice.fromJson(
           const {'name': 'Old printer', 'address': 'AA:BB:CC'});

@@ -214,9 +214,14 @@ class _SavedPrinterCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      printer.isNetwork
-                          ? '${context.tr.printerNetworkLabel} · ${printer.displayAddress}'
-                          : printer.displayAddress,
+                      switch (printer.type) {
+                        PrinterConnectionType.network =>
+                          '${context.tr.printerNetworkLabel} · ${printer.displayAddress}',
+                        PrinterConnectionType.ble =>
+                          '${context.tr.printerBleLabel} · ${printer.displayAddress}',
+                        PrinterConnectionType.bluetooth =>
+                          printer.displayAddress,
+                      },
                       style: AppTextStyles.bs100(context).copyWith(
                         color: colors.textHint,
                         fontFamily: 'monospace',
@@ -463,7 +468,9 @@ class _DeviceTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    device.address,
+                    device.isBle
+                        ? '${tr.printerBleLabel} · ${device.address}'
+                        : device.address,
                     style: AppTextStyles.bs100(context).copyWith(
                       color: colors.textHint,
                       fontFamily: 'monospace',

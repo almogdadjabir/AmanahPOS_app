@@ -76,6 +76,7 @@
   "printerNameOptional": "الاسم (اختياري)",
   "printerInvalidIp": "أدخل عنوان IP صحيحاً.",
   "printerNetworkHint": "للطابعات المتصلة بكابل LAN أو WiFi مثل SAM4s GIANT-100. لمعرفة عنوان IP للطابعة، اضغط مع الاستمرار على زر FEED أثناء تشغيل الطابعة لطباعة صفحة الفحص الذاتي التي تعرض العنوان.",
+  "printerBleLabel": "بلوتوث LE",
   "printerNetworkLabel": "طابعة LAN/WiFi",
   "printReceipt": "طباعة الإيصال",
   "printerSetUp": "إعداد الطابعة",

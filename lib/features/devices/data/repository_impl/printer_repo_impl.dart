@@ -1,24 +1,37 @@
+import 'dart:io';
+
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/features/devices/data/datasources/ble_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/bluetooth_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/network_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/services/printer_permission_service.dart';
 import 'package:amana_pos/features/devices/domain/entities/printer_device.dart';
 import 'package:amana_pos/features/devices/domain/printer_error.dart';
 import 'package:amana_pos/features/devices/domain/repositories/printer_repository.dart';
+import 'package:flutter/foundation.dart';
 
 class PrinterRepoImpl implements PrinterRepository {
   final BluetoothPrinterChannel channel;
+  final BlePrinterChannel bleChannel;
   final NetworkPrinterChannel networkChannel;
   final CacheStorage cacheStorage;
   final PrinterPermissionService permissionService;
 
+  /// Whether scans should also run a BLE discovery. Only needed on Android,
+  /// where the classic-Bluetooth plugin can't see BLE-only printers; on
+  /// iOS/macOS/Windows the plugin scan is already BLE, so merging would
+  /// just duplicate results.
+  final bool includeBleScan;
+
   PrinterRepoImpl({
     required this.channel,
+    required this.bleChannel,
     required this.networkChannel,
     required this.cacheStorage,
     required this.permissionService,
-  });
+    bool? includeBleScan,
+  }) : includeBleScan = includeBleScan ?? (!kIsWeb && Platform.isAndroid);
 
   @override
   Future<PrinterDevice?> getSavedPrinter() {
@@ -62,7 +75,21 @@ class PrinterRepoImpl implements PrinterRepository {
     }
 
     try {
-      return await channel.discoverDevices();
+      final devices = await channel.discoverDevices();
+      final byAddress = {for (final d in devices) d.address: d};
+
+      if (includeBleScan) {
+        // Best-effort: classic results are still useful if BLE scan fails.
+        try {
+          for (final device in await bleChannel.scan()) {
+            byAddress.putIfAbsent(device.address, () => device);
+          }
+        } catch (_) {
+          // Ignore BLE scan failures; surface only classic results.
+        }
+      }
+
+      return byAddress.values.toList();
     } on PrinterException {
       rethrow;
     } catch (e) {
@@ -85,7 +112,9 @@ class PrinterRepoImpl implements PrinterRepository {
     }
 
     try {
-      return await channel.connect(device.address);
+      return device.isBle
+          ? await bleChannel.connect(device.address)
+          : await channel.connect(device.address);
     } catch (e) {
       throw PrinterException(PrinterError.connectionFailed, e);
     }
@@ -94,9 +123,9 @@ class PrinterRepoImpl implements PrinterRepository {
   @override
   Future<bool> isConnected(PrinterDevice device) async {
     try {
-      return device.isNetwork
-          ? await networkChannel.isConnected()
-          : await channel.isConnected();
+      if (device.isNetwork) return await networkChannel.isConnected();
+      if (device.isBle) return await bleChannel.isConnected();
+      return await channel.isConnected();
     } catch (_) {
       return false;
     }
@@ -104,10 +133,11 @@ class PrinterRepoImpl implements PrinterRepository {
 
   @override
   Future<void> disconnect() async {
-    // Disconnecting an absent or dead link is a no-op, so drop both
+    // Disconnecting an absent or dead link is a no-op, so drop all
     // transports rather than tracking which one is live.
     try {
       await networkChannel.disconnect();
+      await bleChannel.disconnect();
       await channel.disconnect();
     } catch (_) {
       // Not an error worth surfacing.
@@ -117,9 +147,9 @@ class PrinterRepoImpl implements PrinterRepository {
   @override
   Future<bool> printBytes(PrinterDevice device, List<int> bytes) async {
     try {
-      return device.isNetwork
-          ? await networkChannel.writeBytes(bytes)
-          : await channel.writeBytes(bytes);
+      if (device.isNetwork) return await networkChannel.writeBytes(bytes);
+      if (device.isBle) return await bleChannel.writeBytes(bytes);
+      return await channel.writeBytes(bytes);
     } catch (e) {
       throw PrinterException(PrinterError.printFailed, e);
     }

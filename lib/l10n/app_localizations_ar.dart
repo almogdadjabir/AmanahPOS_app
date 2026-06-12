@@ -229,6 +229,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'للطابعات المتصلة بكابل LAN أو WiFi مثل SAM4s GIANT-100. لمعرفة عنوان IP للطابعة، اضغط مع الاستمرار على زر FEED أثناء تشغيل الطابعة لطباعة صفحة الفحص الذاتي التي تعرض العنوان.';
 
   @override
+  String get printerBleLabel => 'بلوتوث LE';
+
+  @override
   String get printerNetworkLabel => 'طابعة LAN/WiFi';
 
   @override

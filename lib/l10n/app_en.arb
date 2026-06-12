@@ -76,6 +76,7 @@
   "printerNameOptional": "Name (optional)",
   "printerInvalidIp": "Enter a valid IP address.",
   "printerNetworkHint": "For printers connected with a LAN cable or WiFi, like the SAM4s GIANT-100. To find the printer's IP address, hold the FEED button while turning the printer on - it prints a self-test page showing the IP.",
+  "printerBleLabel": "Bluetooth LE",
   "printerNetworkLabel": "LAN/WiFi printer",
   "printReceipt": "Print receipt",
   "printerSetUp": "Set up printer",
