@@ -6,6 +6,8 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
+import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
@@ -155,6 +157,9 @@ class _MobileSettingsScreen extends StatelessWidget {
               _ManageSection(),
               const SizedBox(height: AppDims.s5),
 
+              _DevicesSection(),
+              const SizedBox(height: AppDims.s5),
+
               _AccountSection(profile: profile, isOwner: isOwner),
               const SizedBox(height: AppDims.s5),
 
@@ -220,6 +225,44 @@ class _ManageSection extends StatelessWidget {
               subtitle: tr.settingsSalesHistorySubtitle,
               onTap: () {
                 Navigator.of(context).pushNamed(RouteStrings.salesHistoryScreen);
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DevicesSection extends StatelessWidget {
+  const _DevicesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = context.tr;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionLabel(label: tr.settingsSectionDevices),
+        const SizedBox(height: AppDims.s2),
+        SettingsGroupCard(
+          items: [
+            BlocBuilder<PrinterBloc, PrinterState>(
+              builder: (context, state) {
+                final printer = state.savedPrinter;
+                return SettingsRowItem(
+                  icon: SolarIconsOutline.printer,
+                  title: printer?.name ?? tr.settingsAddPrinter,
+                  subtitle: printer != null
+                      ? state.status.label(context)
+                      : tr.settingsPrinterSubtitle,
+                  trailing: printer != null && state.status.isConnected
+                      ? tr.commonActive
+                      : null,
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(RouteStrings.printerSettingsScreen),
+                );
               },
             ),
           ],

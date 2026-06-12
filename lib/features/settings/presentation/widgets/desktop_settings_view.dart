@@ -1,6 +1,8 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/widgets/app_progress_line.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
+import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/desktop_manage_tile.dart';
@@ -16,6 +18,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 const double _kSidebarWidth = 320;
@@ -186,6 +189,34 @@ class _DesktopSettingsContent extends StatelessWidget {
         ),
         const SizedBox(height: AppDims.s4),
         _ManageGrid(),
+        const SizedBox(height: AppDims.s6),
+
+        WorkspaceSectionHeader(
+          title: tr.settingsSectionDevices,
+          color: colors.primary,
+        ),
+        const SizedBox(height: AppDims.s4),
+        SettingsGroupCard(
+          items: [
+            BlocBuilder<PrinterBloc, PrinterState>(
+              builder: (context, state) {
+                final printer = state.savedPrinter;
+                return DesktopSettingsRow(
+                  icon: SolarIconsOutline.printer,
+                  title: printer?.name ?? tr.settingsAddPrinter,
+                  subtitle: printer != null
+                      ? state.status.label(context)
+                      : tr.settingsPrinterSubtitle,
+                  trailing: printer != null && state.status.isConnected
+                      ? tr.commonActive
+                      : null,
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(RouteStrings.printerSettingsScreen),
+                );
+              },
+            ),
+          ],
+        ),
         const SizedBox(height: AppDims.s6),
 
         WorkspaceSectionHeader(

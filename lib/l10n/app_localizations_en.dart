@@ -112,6 +112,109 @@ class AppLocalizationsEn extends AppLocalizations {
       'Browse and search all transactions';
 
   @override
+  String get settingsSectionDevices => 'DEVICES';
+
+  @override
+  String get settingsAddPrinter => 'Add Printer';
+
+  @override
+  String get settingsPrinterSubtitle => 'Bluetooth receipt printer';
+
+  @override
+  String get printerScreenTitle => 'Receipt printer';
+
+  @override
+  String get printerDefaultLabel => 'Default printer';
+
+  @override
+  String get printerStatusNotConnected => 'Not connected';
+
+  @override
+  String get printerStatusConnecting => 'Connecting...';
+
+  @override
+  String get printerStatusConnected => 'Connected';
+
+  @override
+  String get printerStatusConnectionFailed => 'Connection failed';
+
+  @override
+  String get printerStatusPrinting => 'Printing...';
+
+  @override
+  String get printerStatusPrintSuccess => 'Printed successfully';
+
+  @override
+  String get printerStatusPrintFailed => 'Print failed';
+
+  @override
+  String get printerConnect => 'Connect';
+
+  @override
+  String get printerDisconnect => 'Disconnect';
+
+  @override
+  String get printerTestPrint => 'Test print';
+
+  @override
+  String get printerForget => 'Remove printer';
+
+  @override
+  String get printerForgetConfirmTitle => 'Remove this printer?';
+
+  @override
+  String get printerForgetConfirmBody => 'You can add it again at any time.';
+
+  @override
+  String get printerAvailable => 'Available printers';
+
+  @override
+  String get printerScan => 'Scan for printers';
+
+  @override
+  String get printerScanning => 'Scanning...';
+
+  @override
+  String get printerNoDevicesFound => 'No printers found';
+
+  @override
+  String get printerScanHint =>
+      'Make sure the printer is turned on. On Android and Windows, pair it first in the system Bluetooth settings.';
+
+  @override
+  String get printerSavedAsDefault => 'Saved as default printer';
+
+  @override
+  String get printerErrorBluetoothOff =>
+      'Bluetooth is off. Turn it on and try again.';
+
+  @override
+  String get printerErrorPermissionDenied =>
+      'Bluetooth permission denied. Allow Bluetooth access in app settings.';
+
+  @override
+  String get printerErrorConnectionFailed =>
+      'Could not connect to the printer. Check that it is turned on and in range.';
+
+  @override
+  String get printerErrorPrintFailed =>
+      'Printing failed. Check the printer and try again.';
+
+  @override
+  String get printerErrorNoPrinterSaved =>
+      'No printer set up. Add a printer in Settings.';
+
+  @override
+  String get printerErrorScanFailed =>
+      'Could not search for printers. Try again.';
+
+  @override
+  String get printReceipt => 'Print receipt';
+
+  @override
+  String get printerSetUp => 'Set up printer';
+
+  @override
   String get settingsProfile => 'Profile';
 
   @override

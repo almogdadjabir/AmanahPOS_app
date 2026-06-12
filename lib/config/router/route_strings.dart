@@ -18,4 +18,5 @@ class RouteStrings {
   // New
   static const String salesHistoryScreen = 'salesHistoryScreen';
   static const String returnsScreen = 'returnsScreen';
+  static const String printerSettingsScreen = 'printerSettingsScreen';
 }

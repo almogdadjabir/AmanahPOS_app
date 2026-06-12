@@ -111,6 +111,108 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsSalesHistorySubtitle => 'استعراض وبحث في جميع المعاملات';
 
   @override
+  String get settingsSectionDevices => 'الأجهزة';
+
+  @override
+  String get settingsAddPrinter => 'إضافة طابعة';
+
+  @override
+  String get settingsPrinterSubtitle => 'طابعة إيصالات بلوتوث';
+
+  @override
+  String get printerScreenTitle => 'طابعة الإيصالات';
+
+  @override
+  String get printerDefaultLabel => 'الطابعة الافتراضية';
+
+  @override
+  String get printerStatusNotConnected => 'غير متصلة';
+
+  @override
+  String get printerStatusConnecting => 'جارٍ الاتصال...';
+
+  @override
+  String get printerStatusConnected => 'متصلة';
+
+  @override
+  String get printerStatusConnectionFailed => 'فشل الاتصال';
+
+  @override
+  String get printerStatusPrinting => 'جارٍ الطباعة...';
+
+  @override
+  String get printerStatusPrintSuccess => 'تمت الطباعة بنجاح';
+
+  @override
+  String get printerStatusPrintFailed => 'فشلت الطباعة';
+
+  @override
+  String get printerConnect => 'اتصال';
+
+  @override
+  String get printerDisconnect => 'قطع الاتصال';
+
+  @override
+  String get printerTestPrint => 'طباعة تجريبية';
+
+  @override
+  String get printerForget => 'إزالة الطابعة';
+
+  @override
+  String get printerForgetConfirmTitle => 'إزالة هذه الطابعة؟';
+
+  @override
+  String get printerForgetConfirmBody => 'يمكنك إضافتها مرة أخرى في أي وقت.';
+
+  @override
+  String get printerAvailable => 'الطابعات المتاحة';
+
+  @override
+  String get printerScan => 'البحث عن طابعات';
+
+  @override
+  String get printerScanning => 'جارٍ البحث...';
+
+  @override
+  String get printerNoDevicesFound => 'لم يتم العثور على طابعات';
+
+  @override
+  String get printerScanHint =>
+      'تأكد من تشغيل الطابعة. على أندرويد وويندوز، قم بإقرانها أولاً من إعدادات بلوتوث في النظام.';
+
+  @override
+  String get printerSavedAsDefault => 'تم حفظها كطابعة افتراضية';
+
+  @override
+  String get printerErrorBluetoothOff =>
+      'البلوتوث مغلق. قم بتشغيله وحاول مجدداً.';
+
+  @override
+  String get printerErrorPermissionDenied =>
+      'تم رفض إذن البلوتوث. اسمح بالوصول للبلوتوث من إعدادات التطبيق.';
+
+  @override
+  String get printerErrorConnectionFailed =>
+      'تعذر الاتصال بالطابعة. تأكد أنها تعمل وضمن النطاق.';
+
+  @override
+  String get printerErrorPrintFailed =>
+      'فشلت الطباعة. تحقق من الطابعة وحاول مجدداً.';
+
+  @override
+  String get printerErrorNoPrinterSaved =>
+      'لم يتم إعداد طابعة. أضف طابعة من الإعدادات.';
+
+  @override
+  String get printerErrorScanFailed => 'تعذر البحث عن الطابعات. حاول مجدداً.';
+
+  @override
+  String get printReceipt => 'طباعة الإيصال';
+
+  @override
+  String get printerSetUp => 'إعداد الطابعة';
+
+  @override
   String get settingsProfile => 'الملف الشخصي';
 
   @override

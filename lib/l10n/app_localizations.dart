@@ -302,6 +302,198 @@ abstract class AppLocalizations {
   /// **'Browse and search all transactions'**
   String get settingsSalesHistorySubtitle;
 
+  /// No description provided for @settingsSectionDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'DEVICES'**
+  String get settingsSectionDevices;
+
+  /// No description provided for @settingsAddPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Printer'**
+  String get settingsAddPrinter;
+
+  /// No description provided for @settingsPrinterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth receipt printer'**
+  String get settingsPrinterSubtitle;
+
+  /// No description provided for @printerScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt printer'**
+  String get printerScreenTitle;
+
+  /// No description provided for @printerDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default printer'**
+  String get printerDefaultLabel;
+
+  /// No description provided for @printerStatusNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get printerStatusNotConnected;
+
+  /// No description provided for @printerStatusConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get printerStatusConnecting;
+
+  /// No description provided for @printerStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get printerStatusConnected;
+
+  /// No description provided for @printerStatusConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get printerStatusConnectionFailed;
+
+  /// No description provided for @printerStatusPrinting.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing...'**
+  String get printerStatusPrinting;
+
+  /// No description provided for @printerStatusPrintSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed successfully'**
+  String get printerStatusPrintSuccess;
+
+  /// No description provided for @printerStatusPrintFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Print failed'**
+  String get printerStatusPrintFailed;
+
+  /// No description provided for @printerConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get printerConnect;
+
+  /// No description provided for @printerDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get printerDisconnect;
+
+  /// No description provided for @printerTestPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Test print'**
+  String get printerTestPrint;
+
+  /// No description provided for @printerForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove printer'**
+  String get printerForget;
+
+  /// No description provided for @printerForgetConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this printer?'**
+  String get printerForgetConfirmTitle;
+
+  /// No description provided for @printerForgetConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can add it again at any time.'**
+  String get printerForgetConfirmBody;
+
+  /// No description provided for @printerAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available printers'**
+  String get printerAvailable;
+
+  /// No description provided for @printerScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan for printers'**
+  String get printerScan;
+
+  /// No description provided for @printerScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning...'**
+  String get printerScanning;
+
+  /// No description provided for @printerNoDevicesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No printers found'**
+  String get printerNoDevicesFound;
+
+  /// No description provided for @printerScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure the printer is turned on. On Android and Windows, pair it first in the system Bluetooth settings.'**
+  String get printerScanHint;
+
+  /// No description provided for @printerSavedAsDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as default printer'**
+  String get printerSavedAsDefault;
+
+  /// No description provided for @printerErrorBluetoothOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off. Turn it on and try again.'**
+  String get printerErrorBluetoothOff;
+
+  /// No description provided for @printerErrorPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth permission denied. Allow Bluetooth access in app settings.'**
+  String get printerErrorPermissionDenied;
+
+  /// No description provided for @printerErrorConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to the printer. Check that it is turned on and in range.'**
+  String get printerErrorConnectionFailed;
+
+  /// No description provided for @printerErrorPrintFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Printing failed. Check the printer and try again.'**
+  String get printerErrorPrintFailed;
+
+  /// No description provided for @printerErrorNoPrinterSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'No printer set up. Add a printer in Settings.'**
+  String get printerErrorNoPrinterSaved;
+
+  /// No description provided for @printerErrorScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not search for printers. Try again.'**
+  String get printerErrorScanFailed;
+
+  /// No description provided for @printReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Print receipt'**
+  String get printReceipt;
+
+  /// No description provided for @printerSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up printer'**
+  String get printerSetUp;
+
   /// No description provided for @settingsProfile.
   ///
   /// In en, this message translates to:

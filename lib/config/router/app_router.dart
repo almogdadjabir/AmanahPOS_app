@@ -4,6 +4,7 @@ import 'package:amana_pos/config/providers/feature_bloc_providers.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/business_detail_screen.dart';
+import 'package:amana_pos/features/devices/presentation/printer_settings_screen.dart';
 import 'package:amana_pos/features/business/presentation/shop_detail_screen.dart';
 import 'package:amana_pos/features/business/presentation/shop_management_screen.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
@@ -145,6 +146,9 @@ class AppRouter {
           ),
           settings,
         );
+
+      case RouteStrings.printerSettingsScreen:
+        return _buildRoute(const PrinterSettingsScreen(), settings);
 
       case RouteStrings.returnsScreen:
         final preloadedSale = settings.arguments as SaleHistoryItem?;
