@@ -108,7 +108,8 @@ class DesktopCartPanel extends StatelessWidget {
           buildWhen: (prev, curr) =>
               prev.items != curr.items ||
               prev.paymentMethod != curr.paymentMethod ||
-              prev.submitStatus != curr.submitStatus,
+              prev.submitStatus != curr.submitStatus ||
+              prev.taxConfig != curr.taxConfig,
           builder: (context, state) {
             final isLoading = state.submitStatus == PosSubmitStatus.loading;
 
