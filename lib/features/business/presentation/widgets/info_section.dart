@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -44,6 +45,11 @@ class InfoSection extends StatelessWidget {
           label: context.tr.bizEmailLabel,
           value: business.email!.trim(),
         ),
+      _InfoItem(
+        icon: Icons.percent_rounded,
+        label: context.tr.taxLabel,
+        value: _taxSummary(context, business),
+      ),
       _InfoItem(
         icon: Icons.store_outlined,
         label: context.tr.bizShopsLabel,
@@ -153,4 +159,13 @@ class _InfoRow extends StatelessWidget {
       ),
     );
   }
+}
+
+String _taxSummary(BuildContext context, BusinessData business) {
+  final config = TaxConfig.fromBusiness(business);
+  if (!config.isActive) return context.tr.taxDisabled;
+  final mode = config.inclusive
+      ? context.tr.pricesIncludeTax
+      : context.tr.pricesExcludeTax;
+  return '${config.name} · ${config.rateLabel}% · $mode';
 }
