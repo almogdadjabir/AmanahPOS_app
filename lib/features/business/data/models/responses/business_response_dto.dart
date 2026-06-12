@@ -34,6 +34,10 @@ class BusinessData {
   String? address;
   String? phone;
   String? email;
+  bool? taxEnabled;
+  String? taxName;
+  String? taxRate;
+  bool? taxInclusive;
   ActiveSubscription? activeSubscription;
   bool? isActive;
   int? shopCount;
@@ -51,6 +55,10 @@ class BusinessData {
         this.address,
         this.phone,
         this.email,
+        this.taxEnabled,
+        this.taxName,
+        this.taxRate,
+        this.taxInclusive,
         this.activeSubscription,
         this.isActive,
         this.shopCount,
@@ -68,6 +76,10 @@ class BusinessData {
     address = json['address'];
     phone = json['phone'];
     email = json['email'];
+    taxEnabled = json['tax_enabled'];
+    taxName = json['tax_name'];
+    taxRate = json['tax_rate']?.toString();
+    taxInclusive = json['tax_inclusive'];
     activeSubscription = json['active_subscription'] != null
         ? new ActiveSubscription.fromJson(json['active_subscription'])
         : null;
@@ -96,6 +108,10 @@ class BusinessData {
     data['address'] = address;
     data['phone'] = phone;
     data['email'] = email;
+    data['tax_enabled'] = taxEnabled;
+    data['tax_name'] = taxName;
+    data['tax_rate'] = taxRate;
+    data['tax_inclusive'] = taxInclusive;
     if (activeSubscription != null) {
       data['active_subscription'] = activeSubscription!.toJson();
     }
