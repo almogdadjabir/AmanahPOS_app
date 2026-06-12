@@ -7,6 +7,7 @@ import 'package:amana_pos/features/cart/presentation/payment_selector.dart';
 import 'package:amana_pos/features/cart/presentation/totals_section.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
+import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/sale_receipt_sheet.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -92,6 +93,11 @@ class ExpandedCart extends StatelessWidget {
       paymentMethod: state.lastPaymentMethod,
       isOffline: state.lastSaleWasOffline,
       businessName: businessName,
+      subtotal: state.lastSubtotal,
+      taxAmount: state.lastTaxAmount,
+      taxName: state.lastTaxName,
+      taxRateLabel: formatTaxRate(state.lastTaxRate),
+      taxInclusive: state.lastTaxInclusive,
     );
   }
 

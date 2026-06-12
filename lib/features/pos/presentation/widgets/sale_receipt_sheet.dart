@@ -19,6 +19,11 @@ class SaleReceiptSheet extends StatelessWidget {
   final String paymentMethod;
   final bool isOffline;
   final String businessName;
+  final double subtotal;
+  final double taxAmount;
+  final String taxName;
+  final String taxRateLabel;
+  final bool taxInclusive;
 
   const SaleReceiptSheet({
     super.key,
@@ -29,6 +34,11 @@ class SaleReceiptSheet extends StatelessWidget {
     required this.paymentMethod,
     required this.isOffline,
     required this.businessName,
+    this.subtotal = 0,
+    this.taxAmount = 0,
+    this.taxName = 'VAT',
+    this.taxRateLabel = '0',
+    this.taxInclusive = false,
   });
 
   static void show(
@@ -40,6 +50,11 @@ class SaleReceiptSheet extends StatelessWidget {
     required String paymentMethod,
     required bool isOffline,
     required String businessName,
+    double subtotal = 0,
+    double taxAmount = 0,
+    String taxName = 'VAT',
+    String taxRateLabel = '0',
+    bool taxInclusive = false,
   }) {
     showAdaptivePanel(
       context,
@@ -52,6 +67,11 @@ class SaleReceiptSheet extends StatelessWidget {
         paymentMethod: paymentMethod,
         isOffline: isOffline,
         businessName: businessName,
+        subtotal: subtotal,
+        taxAmount: taxAmount,
+        taxName: taxName,
+        taxRateLabel: taxRateLabel,
+        taxInclusive: taxInclusive,
       ),
     );
   }
@@ -89,7 +109,14 @@ class SaleReceiptSheet extends StatelessWidget {
       sb.writeln('$name x${item.quantity}  ${AppFormat.moneyWithUnit(item.lineTotal)}');
     }
     sb.writeln('─────────────────────────');
+    if (taxAmount > 0 && !taxInclusive) {
+      sb.writeln('Subtotal: ${AppFormat.moneyWithUnit(subtotal)}');
+      sb.writeln('Tax ($taxName $taxRateLabel%): ${AppFormat.moneyWithUnit(taxAmount)}');
+    }
     sb.writeln('TOTAL:   ${AppFormat.moneyWithUnit(total)}');
+    if (taxAmount > 0 && taxInclusive) {
+      sb.writeln('Incl. $taxName $taxRateLabel%: ${AppFormat.moneyWithUnit(taxAmount)}');
+    }
     sb.writeln('Payment: $_paymentLabel');
     sb.writeln('─────────────────────────');
     sb.writeln(businessName);
@@ -332,6 +359,43 @@ class SaleReceiptSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: AppDims.s3),
 
+                  // Tax breakdown (exclusive mode)
+                  if (taxAmount > 0 && !taxInclusive) ...[
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppDims.s1),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(context.tr.subtotal,
+                                  style: AppTextStyles.bs100(context).copyWith(
+                                      color: colors.textSecondary)),
+                              Text(AppFormat.moneyWithUnit(subtotal),
+                                  style: AppTextStyles.bs200(context).copyWith(
+                                      fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                          const SizedBox(height: AppDims.s2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                  context.tr.taxWithRate(
+                                      taxName, taxRateLabel),
+                                  style: AppTextStyles.bs100(context).copyWith(
+                                      color: colors.textSecondary)),
+                              Text(AppFormat.moneyWithUnit(taxAmount),
+                                  style: AppTextStyles.bs200(context).copyWith(
+                                      fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppDims.s3),
+                  ],
                   // Total row
                   Padding(
                     padding:
@@ -360,6 +424,27 @@ class SaleReceiptSheet extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Tax included note (inclusive mode)
+                  if (taxAmount > 0 && taxInclusive) ...[
+                    const SizedBox(height: AppDims.s2),
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: AppDims.s1),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                              '${context.tr.totalInclTax(taxName, taxRateLabel)} · ${context.tr.taxIncluded}',
+                              style: AppTextStyles.sm100(context)
+                                  .copyWith(color: colors.textHint)),
+                          Text(AppFormat.moneyWithUnit(taxAmount),
+                              style: AppTextStyles.bs100(context).copyWith(
+                                  color: colors.textSecondary,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: AppDims.s6),
 
                   // WhatsApp share
