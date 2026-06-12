@@ -19,24 +19,17 @@ class DesktopCategorySidebar extends StatelessWidget {
     final colors = context.appColors;
 
     return SizedBox(
-      width: 200,
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: colors.surface),
+      width: 220,
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(AppDims.rXl),
+          border: Border.all(color: colors.border.withValues(alpha: 0.75)),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top accent bar — marks this as the active navigation panel
-            Container(
-              height: 3,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    colors.primary,
-                    colors.primary.withValues(alpha: 0.30),
-                  ],
-                ),
-              ),
-            ),
             const _CompactStatsBlock(),
             Divider(height: 1, thickness: 1, color: colors.border),
             const Expanded(child: _CategoryList()),
@@ -67,8 +60,8 @@ class _CompactStatsBlock extends StatelessWidget {
 
         final name = isCashier
             ? (shift?.cashierName?.trim().isNotEmpty == true
-                ? shift!.cashierName!
-                : authState.profile?.fullName ?? 'Cashier')
+                  ? shift!.cashierName!
+                  : authState.profile?.fullName ?? 'Cashier')
             : context.tr.posTodaySales;
 
         final amount = isCashier
@@ -195,8 +188,7 @@ class _CompactStatsBlock extends StatelessWidget {
 
   String _fmt(num value) {
     final v = value.toDouble();
-    final formatted =
-        v % 1 == 0 ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
+    final formatted = v % 1 == 0 ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
     return formatted.replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
       (m) => '${m[1]},',
@@ -281,8 +273,7 @@ class _CategoryList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProductBloc, ProductState>(
       buildWhen: (prev, curr) =>
-          prev.categories != curr.categories ||
-          prev.products != curr.products,
+          prev.categories != curr.categories || prev.products != curr.products,
       builder: (context, productState) {
         final categories = productState.categories;
 
@@ -290,12 +281,10 @@ class _CategoryList extends StatelessWidget {
         final counts = <String?, int>{};
         for (final product in productState.products) {
           if (product.isActive ?? true) {
-            counts[product.category] =
-                (counts[product.category] ?? 0) + 1;
+            counts[product.category] = (counts[product.category] ?? 0) + 1;
           }
         }
-        final totalCount =
-            counts.values.fold<int>(0, (a, b) => a + b);
+        final totalCount = counts.values.fold<int>(0, (a, b) => a + b);
 
         return BlocBuilder<PosBloc, PosState>(
           buildWhen: (prev, curr) =>
@@ -312,9 +301,9 @@ class _CategoryList extends StatelessWidget {
                   label: context.tr.posAllCategory,
                   isSelected: selectedId == null,
                   count: totalCount,
-                  onTap: () => context
-                      .read<PosBloc>()
-                      .add(const PosCategoryChanged(null)),
+                  onTap: () => context.read<PosBloc>().add(
+                    const PosCategoryChanged(null),
+                  ),
                 ),
                 for (final category in categories)
                   _CategoryItem(
@@ -324,9 +313,9 @@ class _CategoryList extends StatelessWidget {
                         : 'Category',
                     isSelected: selectedId == category.id,
                     count: counts[category.id] ?? 0,
-                    onTap: () => context
-                        .read<PosBloc>()
-                        .add(PosCategoryChanged(category.id)),
+                    onTap: () => context.read<PosBloc>().add(
+                      PosCategoryChanged(category.id),
+                    ),
                   ),
               ],
             );
@@ -344,7 +333,11 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
-          AppDims.s3, AppDims.s2, AppDims.s3, AppDims.s1),
+        AppDims.s3,
+        AppDims.s2,
+        AppDims.s3,
+        AppDims.s1,
+      ),
       child: Text(
         'CATEGORIES',
         style: AppTextStyles.sm100(context).copyWith(
@@ -388,9 +381,7 @@ class _CategoryItemState extends State<_CategoryItem> {
     final showCount = widget.count != null && widget.count! > 0;
 
     return MouseRegion(
-      cursor: isSelected
-          ? SystemMouseCursors.basic
-          : SystemMouseCursors.click,
+      cursor: isSelected ? SystemMouseCursors.basic : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
@@ -442,8 +433,7 @@ class _CategoryItemState extends State<_CategoryItem> {
                         : _hovered
                         ? colors.textPrimary
                         : colors.textSecondary,
-                    fontWeight:
-                        isSelected ? FontWeight.w800 : FontWeight.w600,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                     height: 1,
                   ),
                 ),
@@ -467,12 +457,10 @@ class _CategoryItemState extends State<_CategoryItem> {
                   child: Text(
                     '${widget.count}',
                     style: AppTextStyles.sm100(context).copyWith(
-                      color: isSelected
-                          ? colors.primary
-                          : colors.textHint,
+                      color: isSelected ? colors.primary : colors.textHint,
                       fontWeight: FontWeight.w800,
                       height: 1,
-                      fontSize: 10,
+                      fontSize: 12,
                     ),
                   ),
                 ),

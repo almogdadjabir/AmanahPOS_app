@@ -216,6 +216,8 @@ class _DesktopModuleGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navigationBloc = context.read<NavigationBloc>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -250,8 +252,9 @@ class _DesktopModuleGrid extends StatelessWidget {
                       : context.tr.bizProductsItems,
                   accentColor: AppColors.info,
                   animDelay: 120,
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(RouteStrings.productScreen),
+                  onTap: () => navigationBloc.add(
+                    const NavigationFeatureSelected(AppFeature.products),
+                  ),
                 ),
               ),
             ],
@@ -272,8 +275,8 @@ class _DesktopModuleGrid extends StatelessWidget {
                       : context.tr.bizUserPlural,
                   accentColor: AppColors.secondary,
                   animDelay: 180,
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(RouteStrings.cashiersScreen),
+                  onTap: () => navigationBloc.add(
+                      const NavigationFeatureSelected(AppFeature.users)),
                 ),
               ),
               const SizedBox(width: AppDims.s3),
@@ -284,8 +287,8 @@ class _DesktopModuleGrid extends StatelessWidget {
                   subtitle: context.tr.bizReportSubtitle,
                   accentColor: AppColors.success,
                   animDelay: 240,
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(RouteStrings.salesHistoryScreen),
+                  onTap: () =>navigationBloc.add(
+                      const NavigationFeatureSelected(AppFeature.salesHistory)),
                 ),
               ),
             ],

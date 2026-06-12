@@ -16,10 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class DesktopCartPanel extends StatelessWidget {
-  const DesktopCartPanel({
-    super.key,
-    required this.onCheckout,
-  });
+  const DesktopCartPanel({super.key, required this.onCheckout});
 
   final VoidCallback onCheckout;
 
@@ -36,10 +33,9 @@ class DesktopCartPanel extends StatelessWidget {
         ),
         title: Text(
           context.tr.clearCartQuestion,
-          style: AppTextStyles.bs500(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: colors.textPrimary,
-          ),
+          style: AppTextStyles.bs500(
+            context,
+          ).copyWith(fontWeight: FontWeight.w900, color: colors.textPrimary),
         ),
         content: Text(
           context.tr.clearCartDescription,
@@ -72,7 +68,8 @@ class DesktopCartPanel extends StatelessWidget {
 
   void _showReceiptSheet(BuildContext context, PosState state) {
     final authState = context.read<AuthBloc>().state;
-    final businessName = authState.defaultBusiness?.name ??
+    final businessName =
+        authState.defaultBusiness?.name ??
         authState.profile?.fullName ??
         'AmanaPOS';
     SaleReceiptSheet.show(
@@ -100,8 +97,13 @@ class DesktopCartPanel extends StatelessWidget {
           if (context.mounted) _showReceiptSheet(context, state);
         });
       },
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: colors.surface),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(AppDims.rXl),
+          border: Border.all(color: colors.border.withValues(alpha: 0.75)),
+        ),
         child: BlocBuilder<PosBloc, PosState>(
           buildWhen: (prev, curr) =>
               prev.items != curr.items ||
@@ -129,7 +131,11 @@ class DesktopCartPanel extends StatelessWidget {
                       : ListView.separated(
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsetsDirectional.fromSTEB(
-                              AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s3),
+                            AppDims.s4,
+                            AppDims.s3,
+                            AppDims.s4,
+                            AppDims.s3,
+                          ),
                           itemCount: state.items.length,
                           separatorBuilder: (_, _) =>
                               const SizedBox(height: AppDims.s3),
@@ -144,7 +150,9 @@ class DesktopCartPanel extends StatelessWidget {
                 ),
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: colors.surface,
+                    // Soft tint anchors the action zone against the white
+                    // lines area above
+                    color: colors.surfaceSoft.withValues(alpha: 0.45),
                     border: Border(
                       top: BorderSide(
                         color: colors.border.withValues(alpha: 0.75),
@@ -154,11 +162,16 @@ class DesktopCartPanel extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      PaymentSelector(paymentMethod: state.paymentMethod),
+                      // Order of operations: what's due → how they pay → charge
                       TotalsSection(state: state),
+                      PaymentSelector(paymentMethod: state.paymentMethod),
                       Padding(
                         padding: const EdgeInsetsDirectional.fromSTEB(
-                            AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s4),
+                          AppDims.s4,
+                          AppDims.s3,
+                          AppDims.s4,
+                          AppDims.s4,
+                        ),
                         child: SizedBox(
                           width: double.infinity,
                           height: 56,
@@ -170,7 +183,9 @@ class DesktopCartPanel extends StatelessWidget {
                               foregroundColor: colors.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(
+                                  AppDims.rLg,
+                                ),
                               ),
                             ),
                             child: AnimatedSwitcher(
@@ -181,7 +196,7 @@ class DesktopCartPanel extends StatelessWidget {
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
-                                        color: colors.onPrimary,
+                                        color: colors.textSecondary,
                                         strokeWidth: 2.5,
                                       ),
                                     )
@@ -226,10 +241,7 @@ class _EmptyCartState extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colors.surfaceSoft,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: colors.border,
-                  width: 1.5,
-                ),
+                border: Border.all(color: colors.border, width: 1.5),
               ),
               child: Icon(
                 SolarIconsOutline.cartLarge_4,
@@ -284,13 +296,34 @@ class _DesktopCartHeader extends StatelessWidget {
       height: 56,
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(
-            AppDims.s4, 0, AppDims.s4, 0),
+          AppDims.s4,
+          0,
+          AppDims.s4,
+          0,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: colors.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppDims.rMd),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Icon(
+                SolarIconsOutline.cartLarge_4,
+                color: colors.primary,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: AppDims.s2 + 2),
             Text(
               context.tr.reviewSale,
-              style: AppTextStyles.bs400(context).copyWith(
+              style: AppTextStyles.bs300(context).copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w900,
                 height: 1,
@@ -377,7 +410,7 @@ class _CheckoutContent extends StatelessWidget {
             money(total),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs500(context).copyWith(
+            style: AppTextStyles.bs400(context).copyWith(
               color: colors.onPrimary,
               fontWeight: FontWeight.w900,
               letterSpacing: -0.4,
@@ -389,7 +422,7 @@ class _CheckoutContent extends StatelessWidget {
           context.tr.completeSale,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs400(context).copyWith(
+          style: AppTextStyles.bs300(context).copyWith(
             color: colors.onPrimary,
             fontWeight: FontWeight.w900,
             letterSpacing: -0.25,
@@ -399,4 +432,3 @@ class _CheckoutContent extends StatelessWidget {
     );
   }
 }
-

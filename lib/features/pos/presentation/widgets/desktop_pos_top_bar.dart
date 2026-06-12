@@ -69,8 +69,18 @@ class _DesktopPosTopBarState extends State<DesktopPosTopBar>
   String _formatDate(DateTime dt) {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day}';
   }
@@ -252,7 +262,8 @@ class _ShopSwitcherRow extends StatelessWidget {
     return BlocBuilder<BusinessBloc, BusinessState>(
       buildWhen: (prev, curr) => prev.businessList != curr.businessList,
       builder: (context, bizState) {
-        final shops = bizState.businessList
+        final shops =
+            bizState.businessList
                 ?.expand((b) => b.shops ?? [])
                 .where((s) => s.id != null && (s.isActive ?? true))
                 .toList() ??
@@ -260,8 +271,7 @@ class _ShopSwitcherRow extends StatelessWidget {
         if (shops.length < 2) return const SizedBox.shrink();
 
         return BlocBuilder<PosBloc, PosState>(
-          buildWhen: (prev, curr) =>
-              prev.selectedShopId != curr.selectedShopId,
+          buildWhen: (prev, curr) => prev.selectedShopId != curr.selectedShopId,
           builder: (context, posState) {
             final colors = context.appColors;
 
@@ -274,8 +284,9 @@ class _ShopSwitcherRow extends StatelessWidget {
                     final isSelected = shop.id == posState.selectedShopId;
 
                     return Padding(
-                      padding:
-                          const EdgeInsetsDirectional.only(end: AppDims.s2),
+                      padding: const EdgeInsetsDirectional.only(
+                        end: AppDims.s2,
+                      ),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         decoration: BoxDecoration(
@@ -284,8 +295,7 @@ class _ShopSwitcherRow extends StatelessWidget {
                               : colors.surfaceSoft,
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(
-                            color:
-                                isSelected ? colors.primary : colors.border,
+                            color: isSelected ? colors.primary : colors.border,
                             width: isSelected ? 1.5 : 1,
                           ),
                         ),
@@ -296,9 +306,9 @@ class _ShopSwitcherRow extends StatelessWidget {
                             onTap: isSelected
                                 ? null
                                 : () => onShopSelected(
-                                      shop.id!,
-                                      shop.name ?? 'Shop',
-                                    ),
+                                    shop.id!,
+                                    shop.name ?? 'Shop',
+                                  ),
                             borderRadius: BorderRadius.circular(999),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -312,7 +322,7 @@ class _ShopSwitcherRow extends StatelessWidget {
                                     Icons.storefront_rounded,
                                     size: 13,
                                     color: isSelected
-                                        ? Colors.white
+                                        ? colors.onPrimary
                                         : colors.textSecondary,
                                   ),
                                   const SizedBox(width: 5),
@@ -320,11 +330,11 @@ class _ShopSwitcherRow extends StatelessWidget {
                                     shop.name ?? 'Shop',
                                     style: AppTextStyles.bs100(context)
                                         .copyWith(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : colors.textSecondary,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                                          color: isSelected
+                                              ? colors.onPrimary
+                                              : colors.textSecondary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
