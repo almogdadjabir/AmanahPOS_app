@@ -75,7 +75,8 @@ void main() {
     });
 
     test('rounds to 2 decimals half-up', () {
-      // 33.33 * 0.15 = 4.9995 → 5.00
+      // 33.33 * 0.15 ≈ 4.9995 → 5.00. Note: exact half-cent boundaries can
+      // drift ±0.01 vs the server's Decimal math (see _round2 in tax_config).
       const cfg = TaxConfig(enabled: true, name: 'VAT', rate: 15, inclusive: false);
       final r = TaxCalculator.compute(taxableAmount: 33.33, config: cfg);
       expect(r.taxAmount, 5.00);

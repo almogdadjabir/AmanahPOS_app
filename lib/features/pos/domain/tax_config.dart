@@ -80,6 +80,10 @@ class TaxCalculator {
   }
 
   // Dart's round() is half-away-from-zero, which equals ROUND_HALF_UP for
-  // the non-negative amounts we deal with.
+  // the non-negative amounts we deal with. Caveat: because inputs are binary
+  // doubles, results can drift ±0.01 from the server's Decimal ROUND_HALF_UP
+  // at exact half-cent boundaries (e.g. 1.50 @ 15%: true product 0.225 →
+  // server 0.23, but the double is 0.2249999... → preview 0.22). Acceptable:
+  // this calculator is preview-only and the server is always authoritative.
   static double _round2(double v) => (v * 100).roundToDouble() / 100;
 }
