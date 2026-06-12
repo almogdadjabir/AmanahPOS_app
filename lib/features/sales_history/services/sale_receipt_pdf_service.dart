@@ -389,38 +389,73 @@ class SaleReceiptPdfService {
       SaleHistoryItem item,
       SaleReceiptPdfStrings strings,
       ) {
-    return pw.Row(
+    return pw.Column(
       children: [
-        pw.Expanded(
-          child: pw.Column(
-            crossAxisAlignment: strings.isRtl
-                ? pw.CrossAxisAlignment.end
-                : pw.CrossAxisAlignment.start,
+        if (item.taxAmount > 0) ...[
+          pw.Row(
             children: [
-              _t(
-                strings.totalUpper,
-                color: _muted,
-                size: 7.5,
-                bold: true,
-                spacing: strings.isRtl ? 0 : 1.0,
-                strings: strings,
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: strings.isRtl
+                      ? pw.CrossAxisAlignment.end
+                      : pw.CrossAxisAlignment.start,
+                  children: [
+                    _t(
+                      strings.taxUpper,
+                      color: _muted,
+                      size: 7.5,
+                      bold: true,
+                      spacing: strings.isRtl ? 0 : 1.0,
+                      strings: strings,
+                    ),
+                  ],
+                ),
               ),
-              pw.SizedBox(height: 3),
-              _t(
-                strings.paidVia(strings.paymentLabel(item.paymentLabel)),
+              _ltrText(
+                AppFormat.moneyWithUnit(item.taxAmount),
                 color: _muted,
-                size: 8.5,
-                strings: strings,
+                size: 10,
+                bold: true,
+                align: pw.TextAlign.right,
               ),
             ],
           ),
-        ),
-        _ltrText(
-          AppFormat.moneyWithUnit(item.total),
-          color: _accentGreen,
-          size: 26,
-          bold: true,
-          align: pw.TextAlign.right,
+          pw.SizedBox(height: 6),
+        ],
+        pw.Row(
+          children: [
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: strings.isRtl
+                    ? pw.CrossAxisAlignment.end
+                    : pw.CrossAxisAlignment.start,
+                children: [
+                  _t(
+                    strings.totalUpper,
+                    color: _muted,
+                    size: 7.5,
+                    bold: true,
+                    spacing: strings.isRtl ? 0 : 1.0,
+                    strings: strings,
+                  ),
+                  pw.SizedBox(height: 3),
+                  _t(
+                    strings.paidVia(strings.paymentLabel(item.paymentLabel)),
+                    color: _muted,
+                    size: 8.5,
+                    strings: strings,
+                  ),
+                ],
+              ),
+            ),
+            _ltrText(
+              AppFormat.moneyWithUnit(item.total),
+              color: _accentGreen,
+              size: 26,
+              bold: true,
+              align: pw.TextAlign.right,
+            ),
+          ],
         ),
       ],
     );
@@ -604,6 +639,7 @@ class SaleReceiptPdfStrings {
     required this.qtyUpper,
     required this.amountUpper,
     required this.totalUpper,
+    required this.taxUpper,
     required this.noItemDetailsAvailable,
     required this.offlineSalePdfWarning,
     required this.thankYouForPurchase,
@@ -639,6 +675,7 @@ class SaleReceiptPdfStrings {
   final String qtyUpper;
   final String amountUpper;
   final String totalUpper;
+  final String taxUpper;
 
   final String noItemDetailsAvailable;
   final String offlineSalePdfWarning;
@@ -680,6 +717,7 @@ class SaleReceiptPdfStrings {
       qtyUpper: languageCode == 'ar' ? tr.qty : 'QTY',
       amountUpper: languageCode == 'ar' ? tr.amount : 'AMOUNT',
       totalUpper: languageCode == 'ar' ? tr.total : 'TOTAL',
+      taxUpper: languageCode == 'ar' ? tr.taxLabel : 'TAX',
       noItemDetailsAvailable: tr.noItemDetailsAvailable,
       offlineSalePdfWarning: tr.offlineSalePdfWarning,
       thankYouForPurchase: tr.thankYouForPurchase,
