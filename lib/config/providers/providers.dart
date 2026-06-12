@@ -9,6 +9,8 @@ import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
+import 'package:amana_pos/features/devices/domain/usecases/printer_usecase.dart';
+import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
@@ -62,6 +64,14 @@ List<BlocProvider> getAppProviders(BuildContext context) {
       create: (_) => PosBloc(
         useCase: getIt<PosUseCase>(),
       ),
+    ),
+
+    // Global so the POS receipt sheet and Devices settings share one
+    // connection to the saved Bluetooth receipt printer.
+    BlocProvider<PrinterBloc>(
+      create: (_) => PrinterBloc(
+        useCase: getIt<PrinterUseCase>(),
+      )..add(const PrinterInitialized()),
     ),
 
     BlocProvider<ProductBloc>(

@@ -14,6 +14,10 @@ class AppFormat {
   /// Returns "2,200 SDG" (use sparingly; UI usually splits amount and unit).
   static String moneyWithUnit(num value) => '${_money.format(value)} $currency';
 
+  /// Returns "12 Jun 2026 14:30" — used on printed receipts.
+  static String receiptDate(DateTime date) =>
+      DateFormat('d MMM yyyy HH:mm', 'en_US').format(date);
+
   /// "ABC" → "AB" — used as image placeholder fallback.
   static String initials(String text, {int max = 2}) {
     final parts = text.trim().split(RegExp(r'\s+'));
