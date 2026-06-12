@@ -188,7 +188,10 @@ class PosRepoImpl extends PosRepository {
     );
 
     final discount = double.tryParse(discountAmount) ?? 0;
-    // Local preview of what the server will compute at sync time.
+    // Local preview of what the server will compute at sync time. In
+    // inclusive mode, tax is extracted from (not added to) the taxable
+    // amount, so the stored total equals subtotal − discount and can be
+    // <= subtotal even when taxAmount > 0.
     final computation = TaxCalculator.compute(
       taxableAmount: subtotal - discount,
       config: taxConfig,
