@@ -686,6 +686,36 @@ abstract class AppLocalizations {
   /// **'System'**
   String get themeSystem;
 
+  /// No description provided for @settingsAnimations.
+  ///
+  /// In en, this message translates to:
+  /// **'Animations'**
+  String get settingsAnimations;
+
+  /// No description provided for @settingsAnimationsAutoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off on low-memory devices'**
+  String get settingsAnimationsAutoSubtitle;
+
+  /// No description provided for @animationsAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get animationsAuto;
+
+  /// No description provided for @animationsAlwaysOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on'**
+  String get animationsAlwaysOn;
+
+  /// No description provided for @animationsAlwaysOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Always off'**
+  String get animationsAlwaysOff;
+
   /// No description provided for @loginWelcomeTitle.
   ///
   /// In en, this message translates to:

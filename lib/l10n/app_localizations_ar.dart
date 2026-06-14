@@ -310,6 +310,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get themeSystem => 'النظام';
 
   @override
+  String get settingsAnimations => 'الحركات';
+
+  @override
+  String get settingsAnimationsAutoSubtitle =>
+      'متوقفة على الأجهزة محدودة الذاكرة';
+
+  @override
+  String get animationsAuto => 'تلقائي';
+
+  @override
+  String get animationsAlwaysOn => 'تشغيل دائمًا';
+
+  @override
+  String get animationsAlwaysOff => 'إيقاف دائمًا';
+
+  @override
   String get loginWelcomeTitle => 'مرحباً بعودتك';
 
   @override

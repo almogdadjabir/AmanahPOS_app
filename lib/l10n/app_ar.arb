@@ -110,6 +110,12 @@
   "themeDark": "داكن",
   "themeSystem": "النظام",
 
+  "settingsAnimations": "الحركات",
+  "settingsAnimationsAutoSubtitle": "متوقفة على الأجهزة محدودة الذاكرة",
+  "animationsAuto": "تلقائي",
+  "animationsAlwaysOn": "تشغيل دائمًا",
+  "animationsAlwaysOff": "إيقاف دائمًا",
+
   "loginWelcomeTitle": "مرحباً بعودتك",
   "loginSubtitle": "أدخل رقم جوالك لاستلام رمز التحقق المكون من 6 أرقام.",
   "loginMobileLabel": "رقم الجوال",

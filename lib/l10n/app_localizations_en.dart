@@ -312,6 +312,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeSystem => 'System';
 
   @override
+  String get settingsAnimations => 'Animations';
+
+  @override
+  String get settingsAnimationsAutoSubtitle => 'Off on low-memory devices';
+
+  @override
+  String get animationsAuto => 'Automatic';
+
+  @override
+  String get animationsAlwaysOn => 'Always on';
+
+  @override
+  String get animationsAlwaysOff => 'Always off';
+
+  @override
   String get loginWelcomeTitle => 'Welcome back';
 
   @override

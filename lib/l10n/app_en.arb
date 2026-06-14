@@ -110,6 +110,12 @@
   "themeDark": "Dark",
   "themeSystem": "System",
 
+  "settingsAnimations": "Animations",
+  "settingsAnimationsAutoSubtitle": "Off on low-memory devices",
+  "animationsAuto": "Automatic",
+  "animationsAlwaysOn": "Always on",
+  "animationsAlwaysOff": "Always off",
+
   "loginWelcomeTitle": "Welcome back",
   "loginSubtitle": "Enter your mobile number to receive a 6-digit verification code.",
   "loginMobileLabel": "Mobile number",
