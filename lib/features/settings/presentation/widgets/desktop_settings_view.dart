@@ -1,7 +1,5 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/common/widgets/app_progress_line.dart';
-import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
 import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
@@ -11,10 +9,8 @@ import 'package:amana_pos/features/settings/presentation/widgets/desktop_manage_
 import 'package:amana_pos/features/settings/presentation/widgets/desktop_settings_row.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/desktop_settings_sidebar.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_actions.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/settings_animation_picker.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_group_card.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_sync_pill.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/settings_theme_picker.dart';
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -258,55 +254,6 @@ class _DesktopSettingsContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: AppDims.s6),
-        WorkspaceSectionHeader(
-          title: tr.settingsSectionAppearance,
-          color: colors.primary,
-        ),
-        const SizedBox(height: AppDims.s4),
-        BlocSelector<ThemeBloc, ThemeState, ScreenMode?>(
-          selector: (state) => state.mode,
-          builder: (context, mode) {
-            return SettingsThemePicker(
-              selectedMode: mode ?? ScreenMode.device,
-              onModeSelected: (selectedMode) {
-                context.read<ThemeBloc>().add(
-                      OnThemeChangeEvent(mode: selectedMode),
-                    );
-              },
-            );
-          },
-        ),
-        const SizedBox(height: AppDims.s4),
-        Text(
-          tr.settingsAnimations,
-          style: AppTextStyles.bs200(context).copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: AppDims.s2),
-        BlocSelector<ThemeBloc, ThemeState, AnimationPreference>(
-          selector: (state) => state.animationPreference,
-          builder: (context, pref) {
-            return SettingsAnimationPicker(
-              selected: pref,
-              onSelected: (p) {
-                context.read<ThemeBloc>().add(OnAnimationsPreferenceChanged(p));
-              },
-            );
-          },
-        ),
-        const SizedBox(height: AppDims.s1),
-        if (context.select<ThemeBloc, AnimationPreference>(
-              (b) => b.state.animationPreference,
-            ) ==
-            AnimationPreference.auto)
-          Text(
-            tr.settingsAnimationsAutoSubtitle,
-            style: AppTextStyles.bs100(context).copyWith(
-              color: context.appColors.textSecondary,
-            ),
-          ),
         const SizedBox(height: AppDims.s6),
         WorkspaceSectionHeader(
           title: tr.settingsSectionSupport,

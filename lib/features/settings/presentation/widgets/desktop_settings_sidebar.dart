@@ -4,6 +4,7 @@ import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/owner_header.dart';
+import 'package:amana_pos/features/settings/presentation/widgets/settings_animation_picker.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_theme_picker.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -200,6 +201,44 @@ class DesktopSettingsSidebar extends StatelessWidget {
                     .read<ThemeBloc>()
                     .add(OnThemeChangeEvent(mode: selectedMode));
               },
+            );
+          },
+        ),
+        const SizedBox(height: AppDims.s3),
+        Text(
+          tr.settingsAnimations,
+          style: AppTextStyles.sm100(context).copyWith(
+            color: colors.textHint,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
+        ),
+        const SizedBox(height: AppDims.s2),
+        BlocSelector<ThemeBloc, ThemeState, AnimationPreference>(
+          selector: (state) => state.animationPreference,
+          builder: (context, pref) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SettingsAnimationPicker(
+                  selected: pref,
+                  onSelected: (p) {
+                    context
+                        .read<ThemeBloc>()
+                        .add(OnAnimationsPreferenceChanged(p));
+                  },
+                ),
+                if (pref == AnimationPreference.auto) ...[
+                  const SizedBox(height: AppDims.s1),
+                  Text(
+                    tr.settingsAnimationsAutoSubtitle,
+                    style: AppTextStyles.bs100(context).copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
             );
           },
         ),
