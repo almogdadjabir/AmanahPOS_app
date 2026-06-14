@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/barcode_scanner/presentation/screens/barcode_scanner_screen.dart';
 import 'package:amana_pos/config/providers/feature_bloc_providers.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
@@ -165,6 +166,17 @@ class AppRouter {
   }
 
   PageRoute _buildRoute(Widget child, RouteSettings settings) {
+    if (!Motion.on) {
+      return PageRouteBuilder(
+        settings: settings,
+        pageBuilder: (context, animation, secondaryAnimation) => child,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            child,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      );
+    }
+
     final isIOS = !kIsWeb && Platform.isIOS;
 
     // Only enable on iOS AND if feature flag is true
