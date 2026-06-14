@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -67,7 +68,11 @@ class _AnimatedMenuIconState extends State<AnimatedMenuIcon>
   void didUpdateWidget(AnimatedMenuIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isOpen != oldWidget.isOpen) {
-      widget.isOpen ? _ctrl.forward() : _ctrl.reverse();
+      if (!Motion.on) {
+        _ctrl.value = widget.isOpen ? 1.0 : 0.0;
+      } else {
+        widget.isOpen ? _ctrl.forward() : _ctrl.reverse();
+      }
     }
   }
 
