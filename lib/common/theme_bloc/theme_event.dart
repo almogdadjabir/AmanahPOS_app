@@ -26,3 +26,23 @@ class OnThemeLoadedEvent extends ThemeEvent {
     required this.isBigFontSize
   });
 }
+
+class OnAnimationsPreferenceChanged extends ThemeEvent {
+  final AnimationPreference preference;
+  const OnAnimationsPreferenceChanged(this.preference);
+
+  @override
+  List<Object?> get props => [preference];
+}
+
+class OnAnimationsLoadedEvent extends ThemeEvent {
+  final AnimationPreference preference;
+  final bool animationsEnabled;
+  const OnAnimationsLoadedEvent({
+    required this.preference,
+    required this.animationsEnabled,
+  });
+
+  @override
+  List<Object?> get props => [preference, animationsEnabled];
+}
