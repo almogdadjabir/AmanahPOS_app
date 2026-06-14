@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
+import 'package:amana_pos/common/motion/device_memory_probe.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
@@ -34,6 +35,7 @@ List<BlocProvider> getAppProviders(BuildContext context) {
     BlocProvider<ThemeBloc>(
       create: (_) => ThemeBloc(
         cacheStorage: getIt<CacheStorage>(),
+        memoryProbe: const SystemMemoryProbe(),
       ),
     ),
 
