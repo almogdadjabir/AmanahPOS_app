@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 const _kLoadingSkeletonIconSize = 48.0;
@@ -40,7 +41,7 @@ class ReportsLoadingSkeleton extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppDims.rMd),
                     ),
                   )
-                      .animate(delay: (index * 80).ms, onPlay: (c) => c.repeat())
+                      .mAnimate(delay: (index * 80).ms, onPlay: (c) => c.repeat())
                       .shimmer(
                         duration: 1200.ms,
                         color: Colors.white.withAlpha(60),
@@ -62,7 +63,7 @@ class ReportsLoadingSkeleton extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppDims.rXl),
                     ),
                   )
-                      .animate(delay: 100.ms, onPlay: (c) => c.repeat())
+                      .mAnimate(delay: 100.ms, onPlay: (c) => c.repeat())
                       .shimmer(
                         duration: 1400.ms,
                         color: Colors.white.withAlpha(60),
@@ -80,7 +81,7 @@ class ReportsLoadingSkeleton extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppDims.rXl),
                         ),
                       )
-                          .animate(delay: 200.ms, onPlay: (c) => c.repeat())
+                          .mAnimate(delay: 200.ms, onPlay: (c) => c.repeat())
                           .shimmer(
                             duration: 1400.ms,
                             color: Colors.white.withAlpha(60),
@@ -93,7 +94,7 @@ class ReportsLoadingSkeleton extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppDims.rXl),
                         ),
                       )
-                          .animate(delay: 300.ms, onPlay: (c) => c.repeat())
+                          .mAnimate(delay: 300.ms, onPlay: (c) => c.repeat())
                           .shimmer(
                             duration: 1400.ms,
                             color: Colors.white.withAlpha(60),
@@ -119,7 +120,7 @@ class ReportsLoadingSkeleton extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppDims.rXl),
                     ),
                   )
-                      .animate(
+                      .mAnimate(
                         delay: (400 + index * 100).ms,
                         onPlay: (c) => c.repeat(),
                       )
@@ -154,7 +155,7 @@ class ReportsEmptyView extends StatelessWidget {
               size: _kLoadingSkeletonIconSize,
               color: context.appColors.textHint,
             )
-                .animate()
+                .mAnimate()
                 .fadeIn(duration: 400.ms)
                 .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
             const SizedBox(height: AppDims.s3),
@@ -163,7 +164,7 @@ class ReportsEmptyView extends StatelessWidget {
               style: AppTextStyles.bs200(context).copyWith(
                 color: context.appColors.textHint,
               ),
-            ).animate(delay: 100.ms).fadeIn(duration: 300.ms).slideY(begin: 0.1),
+            ).mAnimate(delay: 100.ms).fadeIn(duration: 300.ms).slideY(begin: 0.1),
           ],
         ),
       ),
@@ -194,7 +195,7 @@ class ReportsErrorView extends StatelessWidget {
               SolarIconsOutline.closeCircle,
               size: _kErrorIconSize,
               color: context.appColors.danger,
-            ).animate().fadeIn(duration: 300.ms).scale(
+            ).mAnimate().fadeIn(duration: 300.ms).scale(
               begin: const Offset(0.7, 0.7),
               curve: Curves.easeOutBack,
             ),
@@ -205,12 +206,12 @@ class ReportsErrorView extends StatelessWidget {
                 color: context.appColors.textSecondary,
               ),
               textAlign: TextAlign.center,
-            ).animate(delay: 80.ms).fadeIn(duration: 280.ms).slideY(begin: 0.1),
+            ).mAnimate(delay: 80.ms).fadeIn(duration: 280.ms).slideY(begin: 0.1),
             const SizedBox(height: AppDims.s3),
             TextButton(
               onPressed: onRetry,
               child: Text(context.tr.retry),
-            ).animate(delay: 160.ms).fadeIn(duration: 280.ms),
+            ).mAnimate(delay: 160.ms).fadeIn(duration: 280.ms),
           ],
         ),
       ),

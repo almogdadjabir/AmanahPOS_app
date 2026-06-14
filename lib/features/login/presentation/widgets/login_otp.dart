@@ -10,6 +10,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginOtp extends StatelessWidget {
@@ -106,13 +107,13 @@ class LoginOtp extends StatelessWidget {
                     ? _StatusBanner(
                   message: state.otpError ?? 'OTP does not match. Please try again.',
                   isError: true,
-                ).animate().fadeIn(duration: 200.ms)
+                ).mAnimate().fadeIn(duration: 200.ms)
                     : state.isPinMatched
                     ? _StatusBanner(
                   message: tr.otpVerifiedSigningIn,
                   isError: false,
                 )
-                    .animate()
+                    .mAnimate()
                     .fadeIn(duration: 300.ms)
                     .slideY(begin: 0.2, end: 0)
                     : const SizedBox.shrink(),
@@ -228,7 +229,7 @@ class LoginOtp extends StatelessWidget {
                         size: 26,
                       ),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 100.ms, duration: 500.ms)
                         .scale(
                           begin: const Offset(0.85, 0.85),
@@ -245,7 +246,7 @@ class LoginOtp extends StatelessWidget {
                         color: colors.textPrimary,
                       ),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 150.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0),
 
@@ -285,7 +286,7 @@ class LoginOtp extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
+                    ).mAnimate().fadeIn(delay: 200.ms, duration: 500.ms),
 
                     const SizedBox(height: AppSpacing.xxl),
 
@@ -309,13 +310,13 @@ class LoginOtp extends StatelessWidget {
                           ? _StatusBanner(
                               message: state.otpError!,
                               isError: true,
-                            ).animate().fadeIn(duration: 200.ms)
+                            ).mAnimate().fadeIn(duration: 200.ms)
                           : state.isPinMatched
                               ? _StatusBanner(
                                   message: tr.otpVerifiedSigningIn,
                                   isError: false,
                                 )
-                                  .animate()
+                                  .mAnimate()
                                   .fadeIn(duration: 300.ms)
                                   .slideY(begin: 0.2, end: 0)
                               : const SizedBox.shrink(),

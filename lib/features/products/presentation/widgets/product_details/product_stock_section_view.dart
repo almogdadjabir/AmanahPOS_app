@@ -8,6 +8,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProductStockSectionView extends StatelessWidget {
@@ -58,7 +59,7 @@ class ProductStockSectionView extends StatelessWidget {
                 bottom: isLast ? 0 : AppDims.s3,
               ),
               child: ProductStockCard(stock: stock)
-                  .animate()
+                  .mAnimate()
                   .fadeIn(
                 delay: Duration(milliseconds: 24 + (index % 5) * 18),
                 duration: 220.ms,
@@ -177,7 +178,7 @@ class _SkeletonBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
       ),
     )
-        .animate(
+        .mAnimate(
       onPlay: (controller) => controller.repeat(reverse: true),
     )
         .fade(

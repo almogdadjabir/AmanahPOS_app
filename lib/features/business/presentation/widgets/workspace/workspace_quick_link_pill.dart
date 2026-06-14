@@ -3,6 +3,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class WorkspaceQuickLinkPill extends StatefulWidget {
   final IconData icon;
@@ -95,7 +96,7 @@ class _WorkspaceQuickLinkPillState extends State<WorkspaceQuickLinkPill> {
         ),
       ),
     )
-        .animate()
+        .mAnimate()
         .fadeIn(
           duration: 320.ms,
           delay: Duration(milliseconds: widget.animDelay),

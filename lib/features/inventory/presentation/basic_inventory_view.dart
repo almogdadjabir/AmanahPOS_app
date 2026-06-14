@@ -15,6 +15,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BasicInventoryView extends StatefulWidget {
@@ -123,7 +124,7 @@ class _BasicInventoryViewState extends State<BasicInventoryView> {
                           );
                         }
                       },
-                    ).animate().fadeIn(duration: 280.ms);
+                    ).mAnimate().fadeIn(duration: 280.ms);
                   },
                 ),
               ),

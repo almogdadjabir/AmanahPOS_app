@@ -7,6 +7,7 @@ import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/widgets/amana_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -77,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       height: 1,
                     ),
                   )
-                      .animate(delay: 280.ms)
+                      .mAnimate(delay: 280.ms)
                       .fadeIn(duration: 400.ms)
                       .slideY(
                         begin: 0.2,
@@ -96,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       letterSpacing: 4.5,
                     ),
                   )
-                      .animate(delay: 400.ms)
+                      .mAnimate(delay: 400.ms)
                       .fadeIn(duration: 400.ms),
 
                   const Spacer(),
@@ -112,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.5,
                     ),
-                  ).animate(delay: 700.ms).fadeIn(duration: 400.ms),
+                  ).mAnimate(delay: 700.ms).fadeIn(duration: 400.ms),
 
                   const SizedBox(height: 36),
                 ],
@@ -147,7 +148,7 @@ class _SplashGlow extends StatelessWidget {
           ),
         ),
       ),
-    ).animate().fadeIn(duration: 900.ms, curve: Curves.easeOut);
+    ).mAnimate().fadeIn(duration: 900.ms, curve: Curves.easeOut);
   }
 }
 
@@ -176,7 +177,7 @@ class _SplashLogoSection extends StatelessWidget {
               ),
             ),
           )
-              .animate(
+              .mAnimate(
                 onPlay: (c) => c.repeat(reverse: true),
               )
               .fade(
@@ -197,7 +198,7 @@ class _SplashLogoSection extends StatelessWidget {
               ),
             ),
           )
-              .animate(
+              .mAnimate(
                 delay: 460.ms,
                 onPlay: (c) => c.repeat(reverse: true),
               )
@@ -209,7 +210,7 @@ class _SplashLogoSection extends StatelessWidget {
               ),
 
           AmanaPosLogoMark(size: 96)
-              .animate()
+              .mAnimate()
               .scale(
                 begin: const Offset(0.72, 0.72),
                 end: const Offset(1.0, 1.0),
@@ -295,6 +296,6 @@ class _SplashProgressBarState extends State<_SplashProgressBar> {
           );
         },
       ),
-    ).animate(delay: 600.ms).fadeIn(duration: 300.ms);
+    ).mAnimate(delay: 600.ms).fadeIn(duration: 300.ms);
   }
 }

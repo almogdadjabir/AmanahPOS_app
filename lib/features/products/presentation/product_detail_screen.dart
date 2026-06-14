@@ -18,6 +18,7 @@ import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -98,7 +99,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     product: current,
                     showStock: _showStock,
                   )
-                      .animate()
+                      .mAnimate()
                       .fadeIn(duration: 320.ms)
                       .slideY(
                     begin: 0.06,
@@ -120,7 +121,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     product: current,
                     showStock: _showStock,
                   )
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 80.ms, duration: 320.ms)
                       .slideY(
                     begin: 0.06,

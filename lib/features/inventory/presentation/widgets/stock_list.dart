@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class StockList extends StatelessWidget {
   final List<StockData> items;
@@ -34,7 +35,7 @@ class StockList extends StatelessWidget {
               final item = items[index];
 
               return StockCard(item: item)
-                  .animate()
+                  .mAnimate()
                   .fadeIn(
                 delay: Duration(milliseconds: 24 + (index % 6) * 18),
                 duration: 220.ms,

@@ -18,6 +18,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -87,7 +88,7 @@ class _DesktopWorkspace extends StatelessWidget {
                       Expanded(
                         flex: 10,
                         child: todayCard
-                            .animate()
+                            .mAnimate()
                             .fadeIn(duration: 350.ms)
                             .slideY(
                               begin: 0.08,
@@ -114,7 +115,7 @@ class _DesktopWorkspace extends StatelessWidget {
             const _QuickLinksSection(),
             const SizedBox(height: AppDims.s3),
             _DesktopSubscriptionStrip(data: data)
-                .animate()
+                .mAnimate()
                 .fadeIn(duration: 350.ms, delay: 200.ms)
                 .slideY(
                   begin: 0.05,
@@ -436,7 +437,7 @@ class _DesktopModuleCardState extends State<_DesktopModuleCard> {
         ),
       ),
     )
-        .animate()
+        .mAnimate()
         .fadeIn(
           duration: 320.ms,
           delay: Duration(milliseconds: widget.animDelay),
@@ -754,7 +755,7 @@ class _MobileWorkspace extends StatelessWidget {
                   );
                 },
               )
-                  .animate()
+                  .mAnimate()
                   .fadeIn(duration: 350.ms)
                   .slideY(
                 begin: 0.08,

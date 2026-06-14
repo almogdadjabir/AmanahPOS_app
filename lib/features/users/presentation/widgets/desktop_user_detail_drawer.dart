@@ -10,6 +10,7 @@ import 'package:amana_pos/utilities/extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -106,7 +107,7 @@ class _DrawerBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _QuickStatsRow(user: user)
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 50.ms, duration: 200.ms)
                       .slideY(
                         begin: 0.04,
@@ -116,7 +117,7 @@ class _DrawerBody extends StatelessWidget {
                       ),
                   const SizedBox(height: AppDims.s3),
                   _DetailsCard(user: user)
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 90.ms, duration: 200.ms)
                       .slideY(
                         begin: 0.04,
@@ -255,7 +256,7 @@ class _AvatarHeader extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 160.ms);
+    ).mAnimate().fadeIn(duration: 160.ms);
   }
 }
 

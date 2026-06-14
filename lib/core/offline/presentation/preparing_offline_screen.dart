@@ -8,6 +8,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreparingOfflineScreen {
@@ -87,7 +88,7 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                     const Spacer(),
 
                     const OfflineHero()
-                        .animate()
+                        .mAnimate()
                         .fadeIn(duration: 420.ms)
                         .scale(
                       begin: const Offset(0.92, 0.92),
@@ -106,7 +107,7 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(duration: 420.ms)
                         .slideY(
                       begin: 0.16,
@@ -125,7 +126,7 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 90.ms, duration: 420.ms)
                         .slideY(
                       begin: 0.16,
@@ -136,7 +137,7 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                     const SizedBox(height: AppDims.s6),
 
                     PreparationSteps(state: state)
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 180.ms, duration: 420.ms)
                         .slideY(
                       begin: 0.12,
@@ -147,7 +148,7 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                     const Spacer(),
 
                     FooterStatus(state: state)
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 260.ms, duration: 420.ms)
                         .slideY(
                       begin: 0.22,

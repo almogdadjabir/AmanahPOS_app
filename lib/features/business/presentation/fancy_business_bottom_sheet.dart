@@ -7,6 +7,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class FancyBusinessBottomSheet {
   static bool isShowing = false;
@@ -85,7 +86,7 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                     letterSpacing: -0.5,
                   ),
                 )
-                    .animate()
+                    .mAnimate()
                     .fadeIn(duration: 420.ms)
                     .slideY(begin: 0.16, end: 0, curve: Curves.easeOutCubic),
 
@@ -100,14 +101,14 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 )
-                    .animate()
+                    .mAnimate()
                     .fadeIn(delay: 90.ms, duration: 420.ms)
                     .slideY(begin: 0.16, end: 0, curve: Curves.easeOutCubic),
 
                 const SizedBox(height: AppDims.s6),
 
                 const FeatureSlider()
-                    .animate()
+                    .mAnimate()
                     .fadeIn(delay: 180.ms, duration: 420.ms)
                     .slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
 
@@ -137,7 +138,7 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                     ),
                   ),
                 )
-                    .animate()
+                    .mAnimate()
                     .fadeIn(delay: 260.ms, duration: 420.ms)
                     .slideY(begin: 0.22, end: 0, curve: Curves.easeOutCubic),
 
@@ -151,7 +152,7 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 )
-                    .animate()
+                    .mAnimate()
                     .fadeIn(delay: 330.ms, duration: 420.ms),
 
                 const SizedBox(height: AppDims.s2),

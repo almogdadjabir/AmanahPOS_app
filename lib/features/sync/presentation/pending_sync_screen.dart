@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -285,7 +286,7 @@ class _SaleCardState extends State<_SaleCard> {
           ),
         ),
       )
-          .animate(delay: Duration(milliseconds: widget.index * 50))
+          .mAnimate(delay: Duration(milliseconds: widget.index * 50))
           .fadeIn(duration: 280.ms)
           .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic),
     );
@@ -629,7 +630,7 @@ class _EmptyView extends StatelessWidget {
             ),
           ),
         ],
-      ).animate().fadeIn(duration: 360.ms).scale(
+      ).mAnimate().fadeIn(duration: 360.ms).scale(
             begin: const Offset(0.92, 0.92),
             end: const Offset(1, 1),
             curve: Curves.easeOutBack,
@@ -658,7 +659,7 @@ class _LoadingView extends StatelessWidget {
             border: Border.all(color: colors.border.withValues(alpha: 0.4)),
           ),
         )
-            .animate(onPlay: (c) => c.repeat())
+            .mAnimate(onPlay: (c) => c.repeat())
             .shimmer(duration: 1200.ms, color: colors.border.withValues(alpha: 0.3)),
       ),
     );

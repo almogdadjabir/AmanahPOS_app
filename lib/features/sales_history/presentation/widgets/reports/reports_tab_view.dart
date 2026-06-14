@@ -14,6 +14,7 @@ import 'package:amana_pos/features/sales_history/presentation/widgets/reports/to
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 const _kTrendHeight = 400.0;
@@ -105,7 +106,7 @@ class _ReportsContent extends StatelessWidget {
             ),
           ],
         )
-            .animate(delay: 200.ms)
+            .mAnimate(delay: 200.ms)
             .fadeIn(duration: 400.ms)
             .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic),
 
@@ -136,7 +137,7 @@ class _ReportsContent extends StatelessWidget {
             ),
           ],
         )
-            .animate(delay: 350.ms)
+            .mAnimate(delay: 350.ms)
             .fadeIn(duration: 400.ms)
             .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic),
 

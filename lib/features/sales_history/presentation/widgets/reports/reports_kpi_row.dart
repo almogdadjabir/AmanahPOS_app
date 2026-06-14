@@ -8,6 +8,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class ReportsKpiRow extends StatelessWidget {
@@ -84,7 +85,7 @@ class ReportsKpiRow extends StatelessWidget {
         for (var i = 0; i < cards.length; i++) ...[
           Expanded(
             child: cards[i]
-                .animate(delay: (i * 60).ms)
+                .mAnimate(delay: (i * 60).ms)
                 .fadeIn(duration: 350.ms)
                 .slideY(begin: 0.08, end: 0, duration: 350.ms, curve: Curves.easeOutCubic),
           ),

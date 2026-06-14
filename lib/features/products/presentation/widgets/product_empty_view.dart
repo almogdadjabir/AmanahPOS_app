@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class ProductEmptyView extends StatelessWidget {
@@ -38,7 +39,7 @@ class ProductEmptyView extends StatelessWidget {
           children: [
             // ── Catalog preview grid ──────────────────────────────────────
             _CatalogGrid(onPressed: onPrimaryAction)
-                .animate()
+                .mAnimate()
                 .fadeIn(duration: 380.ms)
                 .scale(
                   begin: const Offset(0.93, 0.93),
@@ -60,7 +61,7 @@ class ProductEmptyView extends StatelessWidget {
                 letterSpacing: -0.4,
               ),
             )
-                .animate(delay: 150.ms)
+                .mAnimate(delay: 150.ms)
                 .fadeIn(duration: 300.ms)
                 .slideY(
                   begin: 0.28,
@@ -81,7 +82,7 @@ class ProductEmptyView extends StatelessWidget {
                 height: 1.58,
               ),
             )
-                .animate(delay: 210.ms)
+                .mAnimate(delay: 210.ms)
                 .fadeIn(duration: 300.ms)
                 .slideY(
                   begin: 0.28,
@@ -97,7 +98,7 @@ class ProductEmptyView extends StatelessWidget {
                 label: primaryActionText!,
                 onPressed: onPrimaryAction!,
               )
-                  .animate(delay: 270.ms)
+                  .mAnimate(delay: 270.ms)
                   .fadeIn(duration: 300.ms)
                   .slideY(
                     begin: 0.28,
@@ -134,7 +135,7 @@ class _CatalogGrid extends StatelessWidget {
                 accentColor: colors.warning,
                 icon: SolarIconsOutline.box,
               )
-                  .animate(delay: 40.ms)
+                  .mAnimate(delay: 40.ms)
                   .fadeIn(duration: 280.ms)
                   .scale(
                     begin: const Offset(0.82, 0.82),
@@ -149,7 +150,7 @@ class _CatalogGrid extends StatelessWidget {
                 accentColor: colors.success,
                 icon: SolarIconsOutline.tag,
               )
-                  .animate(delay: 100.ms)
+                  .mAnimate(delay: 100.ms)
                   .fadeIn(duration: 280.ms)
                   .scale(
                     begin: const Offset(0.82, 0.82),
@@ -168,7 +169,7 @@ class _CatalogGrid extends StatelessWidget {
                 accentColor: colors.info,
                 icon: SolarIconsOutline.layersMinimalistic,
               )
-                  .animate(delay: 160.ms)
+                  .mAnimate(delay: 160.ms)
                   .fadeIn(duration: 280.ms)
                   .scale(
                     begin: const Offset(0.82, 0.82),
@@ -181,7 +182,7 @@ class _CatalogGrid extends StatelessWidget {
             // The "your product goes here" slot
             Expanded(
               child: _EmptySlot(onPressed: onPressed)
-                  .animate(delay: 220.ms)
+                  .mAnimate(delay: 220.ms)
                   .fadeIn(duration: 280.ms)
                   .scale(
                     begin: const Offset(0.82, 0.82),
@@ -343,7 +344,7 @@ class _EmptySlot extends StatelessWidget {
           ),
         ),
       )
-          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .mAnimate(onPlay: (c) => c.repeat(reverse: true))
           .scaleXY(
             begin: 1.0,
             end: 1.026,

@@ -9,6 +9,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum _LoginMode { otp, password }
@@ -134,7 +135,7 @@ class _LoginFormState extends State<LoginForm> {
                             ),
                           ),
                         ],
-                      ).animate().shake(hz: 4, duration: 400.ms)
+                      ).mAnimate().shake(hz: 4, duration: 400.ms)
                     : const SizedBox.shrink(),
               ),
               if (_mode == _LoginMode.password) ...[
@@ -203,7 +204,7 @@ class _LoginFormState extends State<LoginForm> {
                     const SizedBox(height: AppSpacing.xl),
 
                     const AmanaPosLogo()
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 100.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
 
@@ -215,7 +216,7 @@ class _LoginFormState extends State<LoginForm> {
                           weight: AppTextStyles.extraBold,
                           color: colors.textPrimary),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 200.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
 
@@ -226,7 +227,7 @@ class _LoginFormState extends State<LoginForm> {
                       style: AppTextStyles.bs400(context,
                           color: colors.textSecondary),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 250.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
 
@@ -249,7 +250,7 @@ class _LoginFormState extends State<LoginForm> {
                           .read<LoginBloc>()
                           .add(OnLoginSubmitEvent()),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 300.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
 
@@ -269,7 +270,7 @@ class _LoginFormState extends State<LoginForm> {
                                       color: colors.danger),
                                 ),
                               ],
-                            ).animate().shake(hz: 4, duration: 400.ms)
+                            ).mAnimate().shake(hz: 4, duration: 400.ms)
                           : const SizedBox.shrink(),
                     ),
                   ],
@@ -296,7 +297,7 @@ class _LoginFormState extends State<LoginForm> {
                         : null,
                     isLoading: state.isLoading,
                   )
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 400.ms, duration: 500.ms)
                       .slideY(begin: 0.3, end: 0, curve: Curves.easeOutCubic),
 

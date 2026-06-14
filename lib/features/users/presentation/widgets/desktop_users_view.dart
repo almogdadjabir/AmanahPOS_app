@@ -13,6 +13,7 @@ import 'package:amana_pos/utilities/extension.dart';
 import 'package:amana_pos/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -279,7 +280,7 @@ class _DesktopUsersContent extends StatelessWidget {
                   users: users,
                   selectedFilter: filter,
                   onFilterChanged: onFilterChanged,
-                ).animate().fadeIn(duration: 280.ms),
+                ).mAnimate().fadeIn(duration: 280.ms),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: AppDims.s5)),
               if (users.isEmpty)
@@ -305,7 +306,7 @@ class _DesktopUsersContent extends StatelessWidget {
                       user: visible[index],
                       onTap: () => onUserTap(visible[index]),
                     )
-                        .animate(delay: (index % 20 * 20).ms)
+                        .mAnimate(delay: (index % 20 * 20).ms)
                         .fadeIn(duration: 220.ms)
                         .slideY(begin: 0.04, end: 0, curve: Curves.easeOut);
                   },

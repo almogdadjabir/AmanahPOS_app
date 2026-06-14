@@ -3,6 +3,7 @@ import 'package:amana_pos/features/category/presentation/widgets/category_card.d
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class CategoryList extends StatelessWidget {
   final List<CategoryData> categories;
@@ -32,7 +33,7 @@ class CategoryList extends StatelessWidget {
             ),
             child: RepaintBoundary(
               child: CategoryCard(category: category)
-                  .animate()
+                  .mAnimate()
                   .fadeIn(
                 delay: Duration(milliseconds: 24 + (index % 6) * 18),
                 duration: 220.ms,

@@ -14,6 +14,7 @@ import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -264,7 +265,7 @@ class _DesktopCustomersContent extends StatelessWidget {
                   customers: allCustomers,
                   selectedFilter: filter,
                   onFilterChanged: onFilterChanged,
-                ).animate().fadeIn(duration: 280.ms),
+                ).mAnimate().fadeIn(duration: 280.ms),
               ),
               const SliverToBoxAdapter(
                 child: SizedBox(height: AppDims.s5),
@@ -294,7 +295,7 @@ class _DesktopCustomersContent extends StatelessWidget {
                       const SizedBox(height: AppDims.s3),
                   itemBuilder: (context, index) {
                     return _DesktopCustomerRow(customer: visible[index])
-                        .animate(delay: (index % 20 * 20).ms)
+                        .mAnimate(delay: (index % 20 * 20).ms)
                         .fadeIn(duration: 220.ms)
                         .slideY(begin: 0.04, end: 0, curve: Curves.easeOut);
                   },

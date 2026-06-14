@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -102,7 +103,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                           const SizedBox(height: AppDims.s3),
                       itemBuilder: (context, i) {
                         return ExpiryAlertCard(item: state.expired[i])
-                            .animate(
+                            .mAnimate(
                               delay: Duration(milliseconds: i < 6 ? i * 40 : 0),
                             )
                             .fadeIn(duration: 220.ms)
@@ -135,7 +136,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                       itemBuilder: (context, i) {
                         final offset = state.expired.length + i;
                         return ExpiryAlertCard(item: state.expiringSoon[i])
-                            .animate(
+                            .mAnimate(
                               delay: Duration(
                                   milliseconds: offset < 8 ? offset * 40 : 0),
                             )
@@ -234,7 +235,7 @@ class _LoadingView extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDims.rLg),
           border: Border.all(color: colors.border),
         ),
-      ).animate(delay: Duration(milliseconds: i * 40))
+      ).mAnimate(delay: Duration(milliseconds: i * 40))
           .shimmer(duration: 1200.ms,
               color: colors.border.withValues(alpha: 0.6)),
     );
@@ -292,7 +293,7 @@ class _EmptyView extends StatelessWidget {
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 300.ms),
+          ).mAnimate().fadeIn(duration: 300.ms),
         ],
       ),
     );

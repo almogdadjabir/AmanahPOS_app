@@ -18,6 +18,7 @@ import 'package:amana_pos/widgets/workspace_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -154,7 +155,7 @@ class _DrawerBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _QuickStatsRow(product: product, showStock: showStock)
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 50.ms, duration: 200.ms)
                       .slideY(
                         begin: 0.04,
@@ -166,7 +167,7 @@ class _DrawerBody extends StatelessWidget {
                   if (margin != null) ...[
                     const SizedBox(height: AppDims.s3),
                     _MarginCard(product: product, margin: margin)
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 90.ms, duration: 200.ms)
                         .slideY(
                           begin: 0.04,
@@ -179,7 +180,7 @@ class _DrawerBody extends StatelessWidget {
                   if (hasDetails) ...[
                     const SizedBox(height: AppDims.s3),
                     _DetailsCard(product: product)
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 130.ms, duration: 200.ms)
                         .slideY(
                           begin: 0.04,
@@ -192,7 +193,7 @@ class _DrawerBody extends StatelessWidget {
                   if (hasAlerts) ...[
                     const SizedBox(height: AppDims.s3),
                     _AlertsCard(product: product)
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 160.ms, duration: 200.ms)
                         .slideY(
                           begin: 0.04,
@@ -206,11 +207,11 @@ class _DrawerBody extends StatelessWidget {
                     const SizedBox(height: AppDims.s5),
                     WorkspaceSectionHeader(
                       title: context.tr.stockByShop,
-                    ).animate().fadeIn(delay: 180.ms, duration: 200.ms),
+                    ).mAnimate().fadeIn(delay: 180.ms, duration: 200.ms),
                     const SizedBox(height: AppDims.s3),
                     ProductStockSectionView(
                       product: product,
-                    ).animate().fadeIn(delay: 200.ms, duration: 220.ms),
+                    ).mAnimate().fadeIn(delay: 200.ms, duration: 220.ms),
                   ],
                 ],
               ),
@@ -286,7 +287,7 @@ class _ImageHeaderState extends State<_ImageHeader> {
             onExit: (_) => setState(() => _hovered = false),
             child: imageUrl != null
                 ? OfflineCachedImage(imageUrl: imageUrl, fit: BoxFit.cover)
-                      .animate(target: _hovered ? 1 : 0)
+                      .mAnimate(target: _hovered ? 1 : 0)
                       .scaleXY(
                         begin: 1.0,
                         end: 1.04,
@@ -390,7 +391,7 @@ class _ImageHeaderState extends State<_ImageHeader> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 160.ms);
+    ).mAnimate().fadeIn(duration: 160.ms);
   }
 }
 

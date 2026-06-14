@@ -6,6 +6,7 @@ import 'package:amana_pos/features/products/presentation/widgets/product_list_ca
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class ProductsBody extends StatelessWidget {
   final List<ProductData> products;
@@ -89,7 +90,7 @@ class _GridBody extends StatelessWidget {
                     final product = products[index];
 
                     return ProductGridCard(product: product)
-                        .animate()
+                        .mAnimate()
                         .fadeIn(
                       delay: Duration(milliseconds: 18 + (index % 6) * 16),
                       duration: 210.ms,
@@ -158,7 +159,7 @@ class _ListBody extends StatelessWidget {
               final product = products[index];
 
               return ProductListCard(product: product)
-                  .animate()
+                  .mAnimate()
                   .fadeIn(
                 delay: Duration(milliseconds: 18 + (index % 6) * 16),
                 duration: 210.ms,

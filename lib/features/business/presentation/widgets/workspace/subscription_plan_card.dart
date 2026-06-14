@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:solar_icons/solar_icons.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
@@ -209,7 +210,7 @@ class SubscriptionPlanCard extends StatelessWidget {
         ],
       ),
     )
-        .animate()
+        .mAnimate()
         .fadeIn(duration: 350.ms, delay: 120.ms)
         .slideY(
       begin: 0.08,

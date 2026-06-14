@@ -3,6 +3,7 @@ import 'package:amana_pos/features/users/presentation/widgets/cashier_card.dart'
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class UserList extends StatelessWidget {
   final List<UserData> users;
@@ -30,7 +31,7 @@ class UserList extends StatelessWidget {
               bottom: index == users.length - 1 ? 0 : AppDims.s3,
             ),
             child: CashierCard(user: user)
-                .animate()
+                .mAnimate()
                 .fadeIn(
               delay: Duration(milliseconds: 24 + (index % 6) * 18),
               duration: 220.ms,

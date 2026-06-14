@@ -10,6 +10,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -89,7 +90,7 @@ class ShopManagementScreen extends StatelessWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: ShopQuickStats(shops: shops)
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 80.ms, duration: 320.ms)
                       .slideY(
                     begin: 0.06,
@@ -112,7 +113,7 @@ class ShopManagementScreen extends StatelessWidget {
                     child: _EmptyShopManagement(
                       onAddTap: () => showAddShopSheet(context, data.id),
                     )
-                        .animate()
+                        .mAnimate()
                         .fadeIn(delay: 120.ms, duration: 320.ms)
                         .slideY(
                       begin: 0.06,
@@ -138,7 +139,7 @@ class ShopManagementScreen extends StatelessWidget {
                         shop: shops[index],
                         businessId: data.id,
                       )
-                          .animate()
+                          .mAnimate()
                           .fadeIn(
                         delay: Duration(milliseconds: 80 + (index * 40)),
                         duration: 280.ms,

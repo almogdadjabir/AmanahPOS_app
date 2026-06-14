@@ -2,6 +2,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class NotificationSkeleton extends StatelessWidget {
   const NotificationSkeleton({super.key});
@@ -15,7 +16,7 @@ class NotificationSkeleton extends StatelessWidget {
       separatorBuilder: (_, _) =>
           Divider(height: 1, color: colors.border.withValues(alpha: 0.5)),
       itemBuilder: (_, i) => _SkeletonTile(colors: colors)
-          .animate(delay: Duration(milliseconds: i * 40))
+          .mAnimate(delay: Duration(milliseconds: i * 40))
           .shimmer(duration: 1200.ms, color: colors.border.withValues(alpha: 0.6)),
     );
   }

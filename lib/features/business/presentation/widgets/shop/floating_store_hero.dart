@@ -2,6 +2,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 
 class FloatingStoreHero extends StatelessWidget {
   const FloatingStoreHero({super.key});
@@ -21,7 +22,7 @@ class FloatingStoreHero extends StatelessWidget {
             color: colors.primary.withValues(alpha: 0.06),
           ),
         )
-            .animate(
+            .mAnimate(
           onPlay: (controller) => controller.repeat(reverse: true),
         )
             .scale(
@@ -78,7 +79,7 @@ class FloatingStoreHero extends StatelessWidget {
             ),
           ),
         )
-            .animate(
+            .mAnimate(
           onPlay: (controller) => controller.repeat(reverse: true),
         )
             .moveY(
@@ -119,7 +120,7 @@ class FloatingStoreHero extends StatelessWidget {
         ),
       ],
     )
-        .animate()
+        .mAnimate()
         .fadeIn(duration: 420.ms)
         .scale(
       begin: const Offset(0.88, 0.88),
@@ -152,7 +153,7 @@ class FloatingStoreHero extends StatelessWidget {
         size: 20,
       ),
     )
-        .animate(
+        .mAnimate(
       delay: delay,
       onPlay: (controller) => controller.repeat(reverse: true),
     )

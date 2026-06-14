@@ -10,6 +10,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/utilities/extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BusinessDetailScreen extends StatelessWidget {
@@ -45,7 +46,7 @@ class BusinessDetailScreen extends StatelessWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: _BusinessProfileCard(business: b)
-                      .animate()
+                      .mAnimate()
                       .fadeIn(duration: 320.ms)
                       .slideY(
                     begin: 0.06,
@@ -79,7 +80,7 @@ class BusinessDetailScreen extends StatelessWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: InfoSection(business: b)
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 80.ms, duration: 320.ms)
                       .slideY(
                     begin: 0.06,
@@ -101,7 +102,7 @@ class BusinessDetailScreen extends StatelessWidget {
                     shops: b.shops ?? const [],
                     businessId: b.id,
                   )
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 140.ms, duration: 320.ms)
                       .slideY(
                     begin: 0.06,
@@ -120,7 +121,7 @@ class BusinessDetailScreen extends StatelessWidget {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: _BusinessSettingsCard()
-                      .animate()
+                      .mAnimate()
                       .fadeIn(delay: 200.ms, duration: 320.ms)
                       .slideY(
                     begin: 0.06,

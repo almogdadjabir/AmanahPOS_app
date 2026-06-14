@@ -9,6 +9,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -81,7 +82,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
                 selectedFilter: _selectedFilter,
                 onFilterChanged: _onFilterChanged,
               )
-                  .animate()
+                  .mAnimate()
                   .fadeIn(duration: 280.ms)
                   .slideY(
                 begin: 0.04,

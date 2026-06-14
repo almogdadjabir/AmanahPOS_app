@@ -13,6 +13,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -189,7 +190,7 @@ class _DesktopCategoriesContent extends StatelessWidget {
             categories: categories,
             selectedFilter: filter,
             onFilterChanged: onFilterChanged,
-          ).animate().fadeIn(duration: 280.ms),
+          ).mAnimate().fadeIn(duration: 280.ms),
         ),
 
         const SliverToBoxAdapter(child: SizedBox(height: AppDims.s5)),
@@ -223,7 +224,7 @@ class _DesktopCategoriesContent extends StatelessWidget {
               (context, index) {
                 return RepaintBoundary(
                   child: DesktopCategoryCard(category: visible[index])
-                      .animate(delay: (index % 12 * 22).ms)
+                      .mAnimate(delay: (index % 12 * 22).ms)
                       .fadeIn(duration: 240.ms)
                       .slideY(begin: 0.05, end: 0, curve: Curves.easeOut),
                 );

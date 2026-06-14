@@ -21,6 +21,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
 
@@ -339,7 +340,7 @@ class _DesktopProductsContent extends StatelessWidget {
                   isRestaurant: isRestaurant,
                   selectedFilter: quickFilter,
                   onFilterChanged: onQuickFilterChanged,
-                ).animate().fadeIn(duration: 280.ms),
+                ).mAnimate().fadeIn(duration: 280.ms),
               ),
               const SliverToBoxAdapter(
                 child: SizedBox(height: AppDims.s5),
@@ -379,7 +380,7 @@ class _DesktopProductsContent extends StatelessWidget {
                       showStock: showStock,
                       onProductTap: onProductTap,
                     )
-                        .animate(delay: (index % 12 * 25).ms)
+                        .mAnimate(delay: (index % 12 * 25).ms)
                         .fadeIn(duration: 240.ms)
                         .slideY(begin: 0.06, end: 0, curve: Curves.easeOut);
                   }, childCount: visible.length),
@@ -392,7 +393,7 @@ class _DesktopProductsContent extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final item = visible[index];
                     return ProductListCard(product: item)
-                        .animate(delay: (index % 12 * 25).ms)
+                        .mAnimate(delay: (index % 12 * 25).ms)
                         .fadeIn(duration: 240.ms)
                         .slideY(begin: 0.06, end: 0, curve: Curves.easeOut);
                   },
