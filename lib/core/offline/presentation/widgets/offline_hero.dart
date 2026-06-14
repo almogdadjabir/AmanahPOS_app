@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -20,11 +21,18 @@ class _OfflineHeroState extends State<OfflineHero>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
+    );
 
     _float = Tween<double>(begin: -6, end: 6).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
+
+    if (Motion.on) {
+      _controller.repeat(reverse: true);
+    } else {
+      // Rest centered (Tween midpoint => 0 offset) and never spin.
+      _controller.value = 0.5;
+    }
   }
 
   @override
