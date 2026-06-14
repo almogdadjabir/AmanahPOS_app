@@ -1,4 +1,5 @@
 import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
+import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/providers/providers.dart';
@@ -56,15 +57,26 @@ class App extends StatelessWidget {
                 // pushes the factor above 1.0, causing overflows in
                 // mobile-designed widgets. Lock to 1.0 on desktop.
                 builder: (context, child) {
+                  Widget result = child!;
                   if (Platform.isMacOS || Platform.isWindows) {
-                    return MediaQuery(
+                    result = MediaQuery(
                       data: MediaQuery.of(context).copyWith(
                         textScaler: TextScaler.noScaling,
                       ),
-                      child: child!,
+                      child: result,
                     );
                   }
-                  return child!;
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: Motion.animationsEnabled,
+                    builder: (context, enabled, mqChild) {
+                      return MediaQuery(
+                        data: MediaQuery.of(context)
+                            .copyWith(disableAnimations: !enabled),
+                        child: mqChild!,
+                      );
+                    },
+                    child: result,
+                  );
                 },
               );
             },
