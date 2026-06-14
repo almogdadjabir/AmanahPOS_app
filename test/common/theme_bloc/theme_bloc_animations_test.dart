@@ -43,9 +43,11 @@ void main() {
       act: (bloc) =>
           bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOff)),
       wait: const Duration(milliseconds: 10),
-      verify: (_) {
+      verify: (bloc) {
         verify(() => cache.save(Constants.animationPreference, 'alwaysOff')).called(1);
         expect(Motion.on, isFalse);
+        expect(bloc.state.animationPreference, AnimationPreference.alwaysOff);
+        expect(bloc.state.animationsEnabled, isFalse);
       },
     );
 
@@ -57,6 +59,7 @@ void main() {
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {
         expect(bloc.state.animationsEnabled, isFalse);
+        expect(bloc.state.animationPreference, AnimationPreference.auto);
         expect(Motion.on, isFalse);
       },
     );
@@ -69,7 +72,43 @@ void main() {
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {
         expect(bloc.state.animationsEnabled, isTrue);
+        expect(bloc.state.animationPreference, AnimationPreference.auto);
         expect(Motion.on, isTrue);
+      },
+    );
+
+    blocTest<ThemeBloc, ThemeState>(
+      'alwaysOn enables animations even on a low-RAM device',
+      build: () => build(memMb: 1024),
+      act: (bloc) =>
+          bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOn)),
+      wait: const Duration(milliseconds: 10),
+      verify: (bloc) {
+        expect(bloc.state.animationsEnabled, isTrue);
+        expect(bloc.state.animationPreference, AnimationPreference.alwaysOn);
+        expect(Motion.on, isTrue);
+      },
+    );
+
+    blocTest<ThemeBloc, ThemeState>(
+      'user change beats the startup auto-load (guard test)',
+      build: () => build(),
+      act: (bloc) async {
+        bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOff));
+        // Wait for the user preference handler to complete before firing the
+        // startup-style load event.
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        bloc.add(const OnAnimationsLoadedEvent(
+          preference: AnimationPreference.auto,
+          animationsEnabled: true,
+        ));
+      },
+      wait: const Duration(milliseconds: 10),
+      verify: (bloc) {
+        // The late loaded event must have been ignored by the guard.
+        expect(bloc.state.animationPreference, AnimationPreference.alwaysOff);
+        expect(bloc.state.animationsEnabled, isFalse);
+        expect(Motion.on, isFalse);
       },
     );
   });

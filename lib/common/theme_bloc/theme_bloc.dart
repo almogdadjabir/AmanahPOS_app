@@ -104,6 +104,15 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     add(OnAnimationsLoadedEvent(preference: pref, animationsEnabled: enabled));
   }
 
+  void _applyResolved(
+    AnimationPreference pref,
+    bool enabled,
+    Emitter<ThemeState> emit,
+  ) {
+    Motion.on = enabled;
+    emit(state.copyWith(animationPreference: pref, animationsEnabled: enabled));
+  }
+
   void _onAnimationsLoaded(
     OnAnimationsLoadedEvent event,
     Emitter<ThemeState> emit,
@@ -111,11 +120,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     // Skip if the user has already explicitly changed the preference —
     // prevents the startup async load from overwriting a user-triggered change.
     if (_userAnimationPreferenceSet) return;
-    Motion.on = event.animationsEnabled;
-    emit(state.copyWith(
-      animationPreference: event.preference,
-      animationsEnabled: event.animationsEnabled,
-    ));
+    _applyResolved(event.preference, event.animationsEnabled, emit);
   }
 
   Future<void> _onAnimationsPreferenceChanged(
@@ -128,10 +133,6 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         ? await memoryProbe.totalMemoryMb()
         : null;
     final enabled = resolveAnimationsEnabled(event.preference, memMb);
-    Motion.on = enabled;
-    emit(state.copyWith(
-      animationPreference: event.preference,
-      animationsEnabled: enabled,
-    ));
+    _applyResolved(event.preference, enabled, emit);
   }
 }
