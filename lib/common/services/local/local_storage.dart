@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _fastKeys = {
   Constants.appTheme,
   Constants.appLocale,
+  Constants.animationPreference,
 };
 
 class CacheStorage {

@@ -9,6 +9,7 @@ class Constants {
   static const appTheme = 'app_theme';
   static const isBigFontSize = 'is_big_font_size';
   static const appLocale = 'app_locale';
+  static const animationPreference = 'animation_preference';
   static const xTenantID = 'x_tenant_iD';
   static const savedPrinter = 'saved_printer';
 
