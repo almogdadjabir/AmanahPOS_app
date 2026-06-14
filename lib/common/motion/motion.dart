@@ -1,4 +1,3 @@
-// lib/common/motion/motion.dart
 import 'package:flutter/foundation.dart';
 
 /// App-wide motion switch. Context-free so it can be read from the static

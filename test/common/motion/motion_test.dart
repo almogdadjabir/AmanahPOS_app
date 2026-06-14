@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUp(() => Motion.animationsEnabled.value = true);
+  tearDown(() => Motion.animationsEnabled.value = true);
 
   test('on reflects the notifier value', () {
     Motion.animationsEnabled.value = false;

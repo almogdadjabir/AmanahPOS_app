@@ -15,10 +15,11 @@ void main() {
 
     test('auto -> off at or below 2 GB threshold', () {
       expect(resolveAnimationsEnabled(AnimationPreference.auto, 1024), isFalse);
-      expect(resolveAnimationsEnabled(AnimationPreference.auto, 2048), isFalse);
+      expect(resolveAnimationsEnabled(AnimationPreference.auto, kLowEndMemoryThresholdMb), isFalse);
     });
 
     test('auto -> on above 2 GB threshold', () {
+      expect(resolveAnimationsEnabled(AnimationPreference.auto, kLowEndMemoryThresholdMb + 1), isTrue);
       expect(resolveAnimationsEnabled(AnimationPreference.auto, 3072), isTrue);
     });
 

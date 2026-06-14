@@ -1,4 +1,3 @@
-// lib/common/motion/motion_resolver.dart
 import 'package:amana_pos/config/enum.dart';
 
 /// Devices with total RAM at or below this (MB) are treated as low-end.
