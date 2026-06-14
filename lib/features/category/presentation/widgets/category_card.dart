@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/common/motion/motion_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -88,13 +89,11 @@ class CategoryCard extends StatelessWidget {
     final categoryBloc = context.read<CategoryBloc>();
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) {
-          return BlocProvider.value(
-            value: categoryBloc,
-            child: CategoryDetailScreen(category: category),
-          );
-        },
+      motionPageRoute(
+        BlocProvider.value(
+          value: categoryBloc,
+          child: CategoryDetailScreen(category: category),
+        ),
       ),
     );
   }

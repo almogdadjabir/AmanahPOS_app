@@ -5,6 +5,7 @@ import 'package:amana_pos/features/category/presentation/category_detail_screen.
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/common/motion/motion_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -191,8 +192,8 @@ class _DesktopCategoryCardState extends State<DesktopCategoryCard> {
     final categoryBloc = context.read<CategoryBloc>();
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
+      motionPageRoute(
+        BlocProvider.value(
           value: categoryBloc,
           child: CategoryDetailScreen(category: widget.category),
         ),
