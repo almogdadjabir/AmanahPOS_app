@@ -27,6 +27,9 @@ class _OfflineHeroState extends State<OfflineHero>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
+    // Motion is read once at init — acceptable because the setting changes at
+    // most once per session and the widget is remounted when the screen re-enters
+    // the tree, at which point the latest value is picked up.
     if (Motion.on) {
       _controller.repeat(reverse: true);
     } else {

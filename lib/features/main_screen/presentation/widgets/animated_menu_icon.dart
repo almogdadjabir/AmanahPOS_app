@@ -68,6 +68,9 @@ class _AnimatedMenuIconState extends State<AnimatedMenuIcon>
   void didUpdateWidget(AnimatedMenuIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isOpen != oldWidget.isOpen) {
+      // Motion is checked here rather than stored at init — acceptable because
+      // the setting changes at most once per session and this widget stays
+      // mounted, so each toggle picks up the current value live.
       if (!Motion.on) {
         _ctrl.value = widget.isOpen ? 1.0 : 0.0;
       } else {

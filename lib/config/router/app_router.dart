@@ -80,64 +80,74 @@ class AppRouter {
 
         return _buildRoute(UserDetailScreen(user: user), settings);
       case RouteStrings.productScreen:
-        return MaterialPageRoute(
-          builder: (_) => ProductsScreen(isWithAppbar: true),
+        return _materialOrInstant(
+          ProductsScreen(isWithAppbar: true),
+          settings,
         );
 
       case RouteStrings.cashiersScreen:
-        return MaterialPageRoute(
-          builder: (_) => const UsersScreen(isWithAppbar: true),
+        return _materialOrInstant(
+          const UsersScreen(isWithAppbar: true),
+          settings,
         );
 
       case RouteStrings.shopManagementScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-          builder: (_) => ShopManagementScreen(
+        return _materialOrInstant(
+          ShopManagementScreen(
             business: args['businessData'] as BusinessData,
           ),
+          settings,
         );
+
       case RouteStrings.productDetailScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-          builder: (_) => FeatureBlocProviders.inventory(
+        return _materialOrInstant(
+          FeatureBlocProviders.inventory(
             child: ProductDetailScreen(
               product: args['product'] as ProductData,
             ),
           ),
+          settings,
         );
+
       case RouteStrings.settingsScreen:
-        return MaterialPageRoute(
-          builder: (_) => FeatureBlocProviders.settings(
+        return _materialOrInstant(
+          FeatureBlocProviders.settings(
             child: const SettingsScreen(),
           ),
+          settings,
         );
 
       case RouteStrings.notificationsScreen:
-        return MaterialPageRoute(
-          builder: (_) => const NotificationsScreen(),
+        return _materialOrInstant(
+          const NotificationsScreen(),
+          settings,
         );
 
       case RouteStrings.barcodeScannerScreen:
-        return MaterialPageRoute<String>(
-          builder: (_) => FeatureBlocProviders.barcodeScanner(
+        return _materialOrInstant(
+          FeatureBlocProviders.barcodeScanner(
             child: const BarcodeScannerScreen(),
           ),
-          settings: settings,
+          settings,
         );
 
       case RouteStrings.expiryAlertsScreen:
-        return MaterialPageRoute(
-          builder: (_) => FeatureBlocProviders.expiryAlerts(
+        return _materialOrInstant(
+          FeatureBlocProviders.expiryAlerts(
             child: const ExpiryAlertsScreen(),
           ),
+          settings,
         );
 
       case RouteStrings.pendingSyncScreen:
-        return MaterialPageRoute(
-          builder: (_) => BlocProvider(
+        return _materialOrInstant(
+          BlocProvider(
             create: (_) => getIt<PendingSyncBloc>(),
             child: const PendingSyncScreen(),
           ),
+          settings,
         );
 
       case RouteStrings.salesHistoryScreen:
@@ -165,16 +175,31 @@ class AppRouter {
     }
   }
 
+  /// Returns an instant (zero-duration, no-transition) route. Used by both
+  /// [_buildRoute] when motion is off and [_materialOrInstant] for screens
+  /// that previously used [MaterialPageRoute] directly.
+  PageRoute _instantRoute(Widget child, RouteSettings settings) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
+    );
+  }
+
+  /// When motion is on, returns a standard [MaterialPageRoute] (vertical
+  /// slide-up transition). When motion is off, returns an instant route so
+  /// screens that bypassed [_buildRoute] still respect the off-switch.
+  PageRoute _materialOrInstant(Widget child, RouteSettings settings) {
+    if (!Motion.on) return _instantRoute(child, settings);
+    return MaterialPageRoute(builder: (_) => child, settings: settings);
+  }
+
   PageRoute _buildRoute(Widget child, RouteSettings settings) {
     if (!Motion.on) {
-      return PageRouteBuilder(
-        settings: settings,
-        pageBuilder: (context, animation, secondaryAnimation) => child,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            child,
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      );
+      return _instantRoute(child, settings);
     }
 
     final isIOS = !kIsWeb && Platform.isIOS;

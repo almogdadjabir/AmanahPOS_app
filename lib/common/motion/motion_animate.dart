@@ -5,8 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 extension MotionAnimate on Widget {
   /// Drop-in for [Widget.animate]. When motion is off, renders the effect
-  /// chain at its end state instantly (no autoplay, value pinned to 1.0),
-  /// so entrance effects (fadeIn/slideY/etc.) show the final appearance.
+  /// chain at its end state instantly (no autoplay, value pinned to 1.0,
+  /// and onPlay/target suppressed to prevent assertion failures and
+  /// unintended animateTo calls) so entrance effects (fadeIn/slideY/etc.)
+  /// show the final appearance without running.
   Animate mAnimate({
     Key? key,
     List<Effect>? effects,
@@ -25,13 +27,13 @@ extension MotionAnimate on Widget {
       key: key,
       effects: effects,
       onInit: onInit,
-      onPlay: onPlay,
+      onPlay: motionOff ? null : onPlay,
       onComplete: onComplete,
       autoPlay: motionOff ? false : autoPlay,
       delay: delay,
       controller: controller,
       adapter: adapter,
-      target: target,
+      target: motionOff ? null : target,
       value: motionOff ? 1.0 : value,
     );
   }

@@ -53,29 +53,20 @@ class App extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
-                // Desktop OSes can apply system-level text scaling that
-                // pushes the factor above 1.0, causing overflows in
-                // mobile-designed widgets. Lock to 1.0 on desktop.
+                // Merge desktop text-scaling lock and animation-disable flag
+                // into a single MediaQuery so all descendants (including on
+                // macOS/Windows) see both fields from the same ancestor.
                 builder: (context, child) {
-                  Widget result = child!;
-                  if (Platform.isMacOS || Platform.isWindows) {
-                    result = MediaQuery(
-                      data: MediaQuery.of(context).copyWith(
-                        textScaler: TextScaler.noScaling,
-                      ),
-                      child: result,
-                    );
-                  }
                   return ValueListenableBuilder<bool>(
                     valueListenable: Motion.animationsEnabled,
-                    builder: (context, enabled, mqChild) {
-                      return MediaQuery(
-                        data: MediaQuery.of(context)
-                            .copyWith(disableAnimations: !enabled),
-                        child: mqChild!,
-                      );
+                    builder: (context, enabled, _) {
+                      var data = MediaQuery.of(context)
+                          .copyWith(disableAnimations: !enabled);
+                      if (Platform.isMacOS || Platform.isWindows) {
+                        data = data.copyWith(textScaler: TextScaler.noScaling);
+                      }
+                      return MediaQuery(data: data, child: child!);
                     },
-                    child: result,
                   );
                 },
               );
