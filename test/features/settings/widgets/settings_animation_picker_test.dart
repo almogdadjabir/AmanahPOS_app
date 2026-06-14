@@ -12,6 +12,7 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.light,
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -28,5 +29,30 @@ void main() {
     await tester.pump();
 
     expect(picked, AnimationPreference.alwaysOff);
+  });
+
+  testWidgets('tapping Always on when alwaysOff is selected invokes callback with alwaysOn',
+      (tester) async {
+    AnimationPreference? picked;
+
+    await tester.pumpWidget(MaterialApp(
+      theme: AppTheme.light,
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: SettingsAnimationPicker(
+          selected: AnimationPreference.alwaysOff,
+          onSelected: (p) => picked = p,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // Tap the "Always on" option.
+    await tester.tap(find.text('Always on'));
+    await tester.pump();
+
+    expect(picked, AnimationPreference.alwaysOn);
   });
 }

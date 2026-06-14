@@ -362,25 +362,32 @@ class _AppearanceSection extends StatelessWidget {
         BlocSelector<ThemeBloc, ThemeState, AnimationPreference>(
           selector: (state) => state.animationPreference,
           builder: (context, pref) {
-            return SettingsAnimationPicker(
-              selected: pref,
-              onSelected: (p) {
-                context.read<ThemeBloc>().add(OnAnimationsPreferenceChanged(p));
-              },
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SettingsAnimationPicker(
+                  selected: pref,
+                  onSelected: (p) {
+                    if (p == pref) return;
+                    context
+                        .read<ThemeBloc>()
+                        .add(OnAnimationsPreferenceChanged(p));
+                  },
+                ),
+                if (pref == AnimationPreference.auto) ...[
+                  const SizedBox(height: AppDims.s1),
+                  Text(
+                    tr.settingsAnimationsAutoSubtitle,
+                    style: AppTextStyles.bs100(context).copyWith(
+                      color: context.appColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
             );
           },
         ),
-        const SizedBox(height: AppDims.s1),
-        if (context.select<ThemeBloc, AnimationPreference>(
-              (b) => b.state.animationPreference,
-            ) ==
-            AnimationPreference.auto)
-          Text(
-            tr.settingsAnimationsAutoSubtitle,
-            style: AppTextStyles.bs100(context).copyWith(
-              color: context.appColors.textSecondary,
-            ),
-          ),
       ],
     );
   }

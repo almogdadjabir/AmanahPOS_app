@@ -224,6 +224,7 @@ class DesktopSettingsSidebar extends StatelessWidget {
                 SettingsAnimationPicker(
                   selected: pref,
                   onSelected: (p) {
+                    if (p == pref) return;
                     context
                         .read<ThemeBloc>()
                         .add(OnAnimationsPreferenceChanged(p));
