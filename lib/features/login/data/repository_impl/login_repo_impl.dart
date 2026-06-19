@@ -1,6 +1,7 @@
 import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/features/login/data/models/login_request.dart';
 import 'package:amana_pos/features/login/data/models/login_response.dart';
+import 'package:amana_pos/features/login/data/models/password_login_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_resend_response.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
@@ -19,6 +20,15 @@ class LoginRepoImpl extends LoginRepository {
     return requestHandler.handlePostRequest(
       'api-public/v1/auth/login/otp/',
           (data) => LoginResponse.fromJson(data as Map<String, dynamic>),
+      data: request.toJson(),
+    );
+  }
+
+  @override
+  Future<Either<String?, OtpVerifyResponse>> passwordLogin(PasswordLoginRequest request) {
+    return requestHandler.handlePostRequest(
+      'api-public/v1/auth/login/password/',
+          (data) => OtpVerifyResponse.fromJson(data as Map<String, dynamic>),
       data: request.toJson(),
     );
   }

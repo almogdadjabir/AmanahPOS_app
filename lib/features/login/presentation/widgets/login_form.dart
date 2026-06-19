@@ -34,7 +34,11 @@ class _LoginFormState extends State<LoginForm> {
   void initState() {
     super.initState();
     _phoneController.addListener(_onPhoneChange);
+    // Rebuild so the desktop "Sign In" button enables/disables with the field.
+    _passwordController.addListener(_onPasswordChange);
   }
+
+  void _onPasswordChange() => setState(() {});
 
   void _onPhoneChange() {
     context.read<LoginBloc>().add(
@@ -45,6 +49,7 @@ class _LoginFormState extends State<LoginForm> {
   @override
   void dispose() {
     _phoneController.removeListener(_onPhoneChange);
+    _passwordController.removeListener(_onPasswordChange);
     _phoneController.dispose();
     _passwordController.dispose();
     _focus.dispose();
@@ -57,7 +62,8 @@ class _LoginFormState extends State<LoginForm> {
       buildWhen: (prev, curr) =>
           prev.mobileError != curr.mobileError ||
           prev.isLoading != curr.isLoading ||
-          prev.isMobileValid != curr.isMobileValid,
+          prev.isMobileValid != curr.isMobileValid ||
+          prev.country != curr.country,
       builder: (context, state) {
         final tr = context.tr;
         final colors = context.appColors;
@@ -108,8 +114,17 @@ class _LoginFormState extends State<LoginForm> {
                 controller: _phoneController,
                 focusNode: _focus,
                 error: hasError,
-                onCompleted: (_) =>
-                    context.read<LoginBloc>().add(OnLoginSubmitEvent()),
+                country: state.country,
+                onCountryChanged: (c) => context
+                    .read<LoginBloc>()
+                    .add(OnCountryChangedEvent(country: c)),
+                onCompleted: (_) {
+                  // Only OTP mode auto-submits on a complete number; password
+                  // mode still needs the password field.
+                  if (_mode == _LoginMode.otp) {
+                    context.read<LoginBloc>().add(OnLoginSubmitEvent());
+                  }
+                },
               ),
               SizedBox(
                 height: 28,
@@ -170,18 +185,35 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ],
               const SizedBox(height: 16),
-              AppButton.wide(
-                label: _mode == _LoginMode.otp ? tr.loginContinue : 'Sign In',
-                onPressed: state.isMobileValid
-                    ? () =>
-                        context.read<LoginBloc>().add(OnLoginSubmitEvent())
-                    : null,
-                isLoading: state.isLoading,
-                suffixIcon: const Icon(
-                  Icons.arrow_forward,
-                  color: Colors.white,
-                  size: 18,
-                ),
+              Builder(
+                builder: (context) {
+                  final isPassword = _mode == _LoginMode.password;
+                  final canSubmit = isPassword
+                      ? state.isMobileValid &&
+                          _passwordController.text.isNotEmpty
+                      : state.isMobileValid;
+                  return AppButton.wide(
+                    label: isPassword ? 'Sign In' : tr.loginContinue,
+                    onPressed: canSubmit
+                        ? () {
+                            final bloc = context.read<LoginBloc>();
+                            if (isPassword) {
+                              bloc.add(OnPasswordLoginEvent(
+                                password: _passwordController.text,
+                              ));
+                            } else {
+                              bloc.add(OnLoginSubmitEvent());
+                            }
+                          }
+                        : null,
+                    isLoading: state.isLoading,
+                    suffixIcon: const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  );
+                },
               ),
             ],
           );
@@ -246,6 +278,10 @@ class _LoginFormState extends State<LoginForm> {
                       controller: _phoneController,
                       focusNode: _focus,
                       error: hasError,
+                      country: state.country,
+                      onCountryChanged: (c) => context
+                          .read<LoginBloc>()
+                          .add(OnCountryChangedEvent(country: c)),
                       onCompleted: (_) => context
                           .read<LoginBloc>()
                           .add(OnLoginSubmitEvent()),

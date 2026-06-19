@@ -19,6 +19,22 @@ class OnMobileChangedEvent extends LoginEvent {
 
 class OnLoginSubmitEvent extends LoginEvent {}
 
+class OnPasswordLoginEvent extends LoginEvent {
+  final String password;
+  const OnPasswordLoginEvent({required this.password});
+
+  @override
+  List<Object?> get props => [password];
+}
+
+class OnCountryChangedEvent extends LoginEvent {
+  final LoginCountry country;
+  const OnCountryChangedEvent({required this.country});
+
+  @override
+  List<Object?> get props => [country];
+}
+
 class OnResetEvent extends LoginEvent {
   final bool? isPhoneChange;
   const OnResetEvent({this.isPhoneChange});

@@ -1,6 +1,7 @@
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/features/login/data/models/login_request.dart';
 import 'package:amana_pos/features/login/data/models/login_response.dart';
+import 'package:amana_pos/features/login/data/models/password_login_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_resend_response.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
@@ -20,6 +21,7 @@ class LoginUseCase {
   });
 
   Future<Either<String?, LoginResponse>> userLogin(LoginRequest request) => repository.userLogin(request);
+  Future<Either<String?, OtpVerifyResponse>> passwordLogin(PasswordLoginRequest request) => repository.passwordLogin(request);
   Future<Either<String?, OtpVerifyResponse>> otpVerify(OtpVerifyRequest request) => repository.otpVerify(request);
   Future<Either<String?, OtpResendResponse>> otpResend() => repository.otpResend();
 

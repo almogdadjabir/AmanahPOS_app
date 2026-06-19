@@ -1,4 +1,5 @@
 import 'package:amana_pos/core/responsive/responsive.dart';
+import 'package:amana_pos/widgets/login_country.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -15,6 +16,11 @@ class PhoneNumberField extends StatefulWidget {
   final ValueChanged<String>? onCompleted;
   final bool error;
   final String? errorText;
+  final LoginCountry country;
+
+  /// When provided, the country chip becomes a tappable dropdown that lets the
+  /// user switch country. When null the chip is static (single-country mode).
+  final ValueChanged<LoginCountry>? onCountryChanged;
 
   const PhoneNumberField({
     super.key,
@@ -24,6 +30,8 @@ class PhoneNumberField extends StatefulWidget {
     this.onCompleted,
     this.error = false,
     this.errorText,
+    this.country = LoginCountry.sudan,
+    this.onCountryChanged,
   });
 
   @override
@@ -134,25 +142,9 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                 textDirection: TextDirection.ltr,
                 child: Row(
                   children: [
-                    const SizedBox(width: AppSpacing.md),
-
-                    const Text(
-                      '🇸🇩',
-                      style: TextStyle(fontSize: 18),
-                    ),
-
-                    const SizedBox(width: 6),
-
-                    Text(
-                      '+249',
-                      textDirection: TextDirection.ltr,
-                      style: AppTextStyles.bs400(
-                        context,
-                        weight: AppTextStyles.bold,
-                        color: colors.textPrimary,
-                      ).copyWith(
-                        fontSize: context.isDesktop ? 16 : null,
-                      ),
+                    _CountryChip(
+                      country: widget.country,
+                      onCountryChanged: widget.onCountryChanged,
                     ),
 
                     Padding(
@@ -191,7 +183,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                             ),
                             decoration: InputDecoration(
                               filled: false,
-                              hintText: '912345678',
+                              hintText: widget.country.hint,
                               hintTextDirection: TextDirection.ltr,
                               hintStyle: AppTextStyles.bs400(
                                 context,
@@ -240,6 +232,125 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
         ),
 
       ],
+    );
+  }
+}
+
+/// Country chip shown at the start of the phone field. When [onCountryChanged]
+/// is provided it opens a clean dropdown to switch country; otherwise it is a
+/// static label.
+class _CountryChip extends StatelessWidget {
+  const _CountryChip({required this.country, this.onCountryChanged});
+
+  final LoginCountry country;
+  final ValueChanged<LoginCountry>? onCountryChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final selectable = onCountryChanged != null;
+    final dialStyle = AppTextStyles.bs400(
+      context,
+      weight: AppTextStyles.bold,
+      color: colors.textPrimary,
+    ).copyWith(fontSize: context.isDesktop ? 16 : null);
+
+    Widget content(VoidCallback? onTap) => GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(country.flag, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 6),
+                Text(country.dialCode,
+                    textDirection: TextDirection.ltr, style: dialStyle),
+                if (selectable) ...[
+                  const SizedBox(width: 2),
+                  Icon(SolarIconsOutline.altArrowDown,
+                      size: 16, color: colors.textHint),
+                ],
+              ],
+            ),
+          ),
+        );
+
+    if (!selectable) return content(null);
+
+    return MenuAnchor(
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(colors.surface),
+        elevation: const WidgetStatePropertyAll(8),
+        shadowColor: WidgetStatePropertyAll(colors.shadow),
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        ),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: AppRadius.borderMd,
+            side: BorderSide(color: colors.border),
+          ),
+        ),
+      ),
+      menuChildren: [
+        for (final c in LoginCountry.values)
+          _CountryMenuItem(
+            country: c,
+            selected: c == country,
+            onTap: () => onCountryChanged!(c),
+          ),
+      ],
+      builder: (context, controller, _) => content(
+        () => controller.isOpen ? controller.close() : controller.open(),
+      ),
+    );
+  }
+}
+
+class _CountryMenuItem extends StatelessWidget {
+  const _CountryMenuItem({
+    required this.country,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final LoginCountry country;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return MenuItemButton(
+      onPressed: onTap,
+      leadingIcon: Text(country.flag, style: const TextStyle(fontSize: 12)),
+      trailingIcon: selected
+          ? Icon(SolarIconsOutline.checkCircle, size: 12, color: colors.primary)
+          : const SizedBox(width: 12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              country.label,
+              style: AppTextStyles.bs100(
+                context,
+                weight: selected ? AppTextStyles.bold : AppTextStyles.semibold,
+                color: colors.textPrimary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              country.dialCode,
+              textDirection: TextDirection.ltr,
+              style: AppTextStyles.bs100(context, color: colors.textHint),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

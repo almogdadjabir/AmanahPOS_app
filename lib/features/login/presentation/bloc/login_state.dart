@@ -21,6 +21,7 @@ class LoginState extends Equatable {
   final bool isFormValid;
   final bool isMobileValid;
   final bool validationActive;
+  final LoginCountry country;
   final LoginResponse? loginResponse;
 
   // OTP
@@ -40,6 +41,7 @@ class LoginState extends Equatable {
     required this.isFormValid,
     required this.isMobileValid,
     required this.validationActive,
+    this.country = LoginCountry.sudan,
     this.isPinMatched = false,
     this.otp,
     this.loginResponse,
@@ -90,6 +92,7 @@ class LoginState extends Equatable {
     bool? isPasswordValidLength,
     bool? viewPassword,
     bool? validationActive,
+    LoginCountry? country,
     String? otp,
     bool? isPinMatched,
     LoginResponse? loginResponse,
@@ -112,6 +115,7 @@ class LoginState extends Equatable {
       isFormValid: isFormValid ?? this.isFormValid,
       isMobileValid: isMobileValid ?? this.isMobileValid,
       validationActive: validationActive ?? this.validationActive,
+      country: country ?? this.country,
       otp: otp ?? this.otp,
       otpError: clearOtpError ? null : (otpError ?? this.otpError),
       loginResponse: loginResponse ?? this.loginResponse,
@@ -132,6 +136,7 @@ class LoginState extends Equatable {
     isFormValid,
     isMobileValid,
     validationActive,
+    country,
     otp,
     loginResponse,
     isPinMatched,

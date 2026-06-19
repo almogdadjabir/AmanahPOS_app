@@ -8,9 +8,11 @@ import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/features/login/data/models/login_request.dart';
 import 'package:amana_pos/features/login/data/models/login_response.dart';
+import 'package:amana_pos/features/login/data/models/password_login_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_request.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
+import 'package:amana_pos/widgets/login_country.dart';
 import 'package:amana_pos/widgets/phone_number_field.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
@@ -46,7 +48,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
   void _initializeEvents() {
     on<OnMobileChangedEvent>(_onMobileChanged);
+    on<OnCountryChangedEvent>(_onCountryChanged);
     on<OnLoginSubmitEvent>(_onLoginSubmit);
+    on<OnPasswordLoginEvent>(_onPasswordLogin);
     on<OnChangeOtpEvent>(_onChangeOtp);
     on<OnSubmitOtpEvent>(_onSubmitOtp);
     on<OnResendOtpEvent>(_onResendOtp);
@@ -72,6 +76,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
 
+  void _onCountryChanged(
+      OnCountryChangedEvent event,
+      Emitter<LoginState> emit,
+      ) {
+    emit(state.copyWith(country: event.country));
+  }
+
+
   Future<void> _onLoginSubmit(
       OnLoginSubmitEvent event,
       Emitter<LoginState> emit,
@@ -94,7 +106,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     try {
       final response = await useCase.userLogin(
-          LoginRequest(phone: '+249$digits')//'+971544097335'),
+          LoginRequest(phone: '${state.country.dialCode}$digits'),
       );
 
       if (emit.isDone) return;
@@ -132,6 +144,86 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
 
+  Future<void> _onPasswordLogin(
+      OnPasswordLoginEvent event,
+      Emitter<LoginState> emit,
+      ) async {
+    final digits = (state.phoneNumber ?? '').replaceAll(RegExp(r'\D'), '');
+
+    if (digits.length < phoneMaxLength(digits)) {
+      emit(state.copyWith(
+        mobileError: 'Please enter a valid mobile number.',
+        status: PageStatus.failure,
+      ));
+      return;
+    }
+
+    if (event.password.isEmpty) {
+      emit(state.copyWith(
+        status: PageStatus.failure,
+        responseError: 'Please enter your password.',
+      ));
+      return;
+    }
+
+    emit(state.copyWith(
+      isLoading: true,
+      status: PageStatus.loading,
+      clearMobileError: true,
+    ));
+
+    try {
+      final response = await useCase.passwordLogin(
+        PasswordLoginRequest(
+          phone: '${state.country.dialCode}$digits',
+          password: event.password,
+        ),
+      );
+
+      if (emit.isDone) return;
+
+      final String? error = response.isLeft()
+          ? response.getLeft().toNullable()
+          : null;
+      final OtpVerifyResponse? loginResponse = response.isRight()
+          ? response.getRight().toNullable()
+          : null;
+
+      if (error != null) {
+        emit(state.copyWith(
+          isLoading: false,
+          status: PageStatus.failure,
+          responseError:
+              error.isEmpty ? 'Invalid phone number or password.' : error,
+        ));
+        return;
+      }
+
+      final authBloc = getIt<AuthBloc>();
+      authBloc.add(OnLoadProfileEvent(user: loginResponse?.loginData?.user));
+
+      await _storeTokens(
+        loginResponse?.loginData?.access,
+        loginResponse?.loginData?.refresh,
+      );
+
+      if (emit.isDone) return;
+      emit(state.copyWith(
+        isLoading: false,
+        status: PageStatus.success,
+        loginStatus: LoginStatus.competed,
+      ));
+    } catch (e) {
+      if (emit.isDone) return;
+      log('LoginBloc._onPasswordLogin error: $e');
+      emit(state.copyWith(
+        isLoading: false,
+        status: PageStatus.failure,
+        responseError: friendlyError(e),
+      ));
+    }
+  }
+
   void _onChangeOtp(
       OnChangeOtpEvent event,
       Emitter<LoginState> emit,
@@ -167,8 +259,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       final response = await useCase.otpVerify(
         OtpVerifyRequest(
-            phone: '+249$digits',
-            // phone: '+971544097335',
+            phone: '${state.country.dialCode}$digits',
             otp: code,
             fcmToken: await fcmTokenService.getToken(),
             platform: 'android',
