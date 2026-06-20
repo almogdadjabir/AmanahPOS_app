@@ -1,6 +1,6 @@
 enum Flavor { dev, prod }
 
-const String devBaseURL = 'http://192.168.1.175:8080/';
+const String devBaseURL = 'http://192.168.1.176:8080/';
 const String prodBaseURL = 'https://api.amanapos.com/';
 
 const double mobileHeight = 932.0;
