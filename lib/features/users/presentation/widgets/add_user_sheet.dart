@@ -2,6 +2,7 @@ import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
+import 'package:amana_pos/features/pin/presentation/widgets/pin_digits_field.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_sheet_shell.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/role_hint.dart';
@@ -48,6 +49,8 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _phoneCtrl;
+  late final TextEditingController _pinCtrl;
+  String? _pinError;
 
   late final FocusNode _nameFocus;
   late final FocusNode _phoneFocus;
@@ -77,6 +80,10 @@ class _AddUserSheetState extends State<_AddUserSheet> {
 
     _nameCtrl = TextEditingController();
     _phoneCtrl = TextEditingController();
+    _pinCtrl = TextEditingController();
+    _pinCtrl.addListener(() {
+      if (_pinError != null) setState(() => _pinError = null);
+    });
 
     _nameFocus = FocusNode();
     _phoneFocus = FocusNode();
@@ -92,6 +99,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
+    _pinCtrl.dispose();
 
     _nameFocus.dispose();
     _phoneFocus.dispose();
@@ -164,11 +172,17 @@ class _AddUserSheetState extends State<_AddUserSheet> {
       return;
     }
 
+    if (_pinCtrl.text.trim().length != 4) {
+      setState(() => _pinError = 'Enter a 4-digit PIN.');
+      return;
+    }
+
     context.read<UserBloc>().add(
       OnAddUser(
         phone: _fullPhone,
         fullName: _nameCtrl.text.trim(),
         role: _selectedRole,
+        pin: _pinCtrl.text.trim(),
         shopId: _selectedShopId,
       ),
     );
@@ -283,6 +297,15 @@ class _AddUserSheetState extends State<_AddUserSheet> {
               RoleHint(role: _selectedRole),
 
               const SizedBox(height: AppDims.s4),
+
+              const FieldLabel(label: 'PIN', required: true),
+              const SizedBox(height: AppDims.s1),
+              PinDigitsField(
+                controller: _pinCtrl,
+                errorText: _pinError,
+              ),
+
+              const SizedBox(height: AppDims.s2),
 
               if (_showShopPicker) ...[
                 FieldLabel(
