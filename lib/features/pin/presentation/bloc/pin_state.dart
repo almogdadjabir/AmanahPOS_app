@@ -1,6 +1,6 @@
 part of 'pin_bloc.dart';
 
-enum PinMode { setup, unlock }
+enum PinMode { setup, unlock, change }
 
 enum PinPhase { entering, confirming, success, mismatch, error, locked }
 
@@ -12,6 +12,7 @@ class PinState {
   final Duration lockoutRemaining;
   final String? errorText;
   final PinUserRecord? unlockedUser;
+  final bool currentVerified;
 
   const PinState({
     required this.entered,
@@ -21,11 +22,13 @@ class PinState {
     required this.lockoutRemaining,
     this.errorText,
     this.unlockedUser,
+    this.currentVerified = false,
   });
 
   factory PinState.initial(PinMode mode) => PinState(
         entered: '', firstEntry: '', mode: mode,
         phase: PinPhase.entering, lockoutRemaining: Duration.zero,
+        currentVerified: false,
       );
 
   PinState copyWith({
@@ -36,6 +39,7 @@ class PinState {
     String? errorText,
     bool clearError = false,
     PinUserRecord? unlockedUser,
+    bool? currentVerified,
   }) =>
       PinState(
         entered: entered ?? this.entered,
@@ -45,5 +49,6 @@ class PinState {
         lockoutRemaining: lockoutRemaining ?? this.lockoutRemaining,
         errorText: clearError ? null : (errorText ?? this.errorText),
         unlockedUser: unlockedUser ?? this.unlockedUser,
+        currentVerified: currentVerified ?? this.currentVerified,
       );
 }

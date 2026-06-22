@@ -21,6 +21,7 @@ class PinBloc extends Bloc<PinEvent, PinState> {
   final PinMode mode;
   final User? enrollUser;
   final EnrollTokens? enrollTokens;
+  final String? changeUserId;
 
   Timer? _lockTimer;
 
@@ -31,6 +32,7 @@ class PinBloc extends Bloc<PinEvent, PinState> {
     required this.mode,
     this.enrollUser,
     this.enrollTokens,
+    this.changeUserId,
   }) : super(PinState.initial(mode)) {
     on<PinDigitPressed>(_onDigit);
     on<PinBackspace>(_onBackspace);
@@ -86,6 +88,8 @@ class PinBloc extends Bloc<PinEvent, PinState> {
     if (entered.length == 4) {
       if (mode == PinMode.setup) {
         await _handleSetup(entered, emit);
+      } else if (mode == PinMode.change) {
+        await _handleChange(entered, emit);
       } else {
         await _handleUnlock(entered, emit);
       }
@@ -144,6 +148,44 @@ class PinBloc extends Bloc<PinEvent, PinState> {
       enrolledAt: now,
       lastUnlockAt: now,
     ));
+    emit(state.copyWith(phase: PinPhase.success));
+  }
+
+  Future<void> _handleChange(String pin, Emitter<PinState> emit) async {
+    if (!state.currentVerified) {
+      final match = await vault.findUserByPin(pin);
+      if (match == null || match.userId != changeUserId) {
+        emit(state.copyWith(
+            phase: PinPhase.mismatch, entered: '',
+            errorText: 'Incorrect PIN. Try again.'));
+        return;
+      }
+      emit(state.copyWith(
+          currentVerified: true, entered: '', phase: PinPhase.entering));
+      return;
+    }
+    if (state.firstEntry.isEmpty) {
+      emit(state.copyWith(
+          firstEntry: pin, entered: '', phase: PinPhase.confirming));
+      return;
+    }
+    if (pin != state.firstEntry) {
+      emit(state.copyWith(
+          phase: PinPhase.mismatch, entered: '', firstEntry: '',
+          errorText: 'PINs did not match. Try again.'));
+      return;
+    }
+    final result = await vault.changePin(changeUserId ?? '', pin);
+    if (result == ChangePinResult.pinTaken) {
+      emit(state.copyWith(
+          phase: PinPhase.error, entered: '', firstEntry: '',
+          errorText: 'This PIN is already in use. Choose another.'));
+      return;
+    }
+    if (result == ChangePinResult.userNotFound) {
+      emit(state.copyWith(phase: PinPhase.error, errorText: 'Change unavailable.'));
+      return;
+    }
     emit(state.copyWith(phase: PinPhase.success));
   }
 
