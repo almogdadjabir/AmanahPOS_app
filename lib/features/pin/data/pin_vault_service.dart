@@ -2,6 +2,8 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/features/pin/data/pin_hasher.dart';
 import 'package:amana_pos/features/pin/data/pin_user_record.dart';
 
+enum ChangePinResult { success, pinTaken, userNotFound }
+
 class PinVaultService {
   PinVaultService(this._cache);
 
@@ -101,5 +103,41 @@ class PinVaultService {
 
   Future<void> clearVault() async {
     await _cache.saveObject(_key, null);
+  }
+
+  Future<ChangePinResult> changePin(String userId, String newPin) async {
+    final vault = await _read();
+    final users = _users(vault);
+    final index = users.indexWhere((u) => u.userId == userId);
+    if (index < 0) return ChangePinResult.userNotFound;
+
+    // Reject if a DIFFERENT user already uses this PIN.
+    for (var i = 0; i < users.length; i++) {
+      if (i == index) continue;
+      if (PinHasher.hashPin(newPin, users[i].pinSalt) == users[i].pinHash) {
+        return ChangePinResult.pinTaken;
+      }
+    }
+
+    final old = users[index];
+    final salt = PinHasher.generateSalt();
+    users[index] = PinUserRecord(
+      userId: old.userId,
+      businessId: old.businessId,
+      tenantId: old.tenantId,
+      fullName: old.fullName,
+      role: old.role,
+      phone: old.phone,
+      pinSalt: salt,
+      pinHash: PinHasher.hashPin(newPin, salt),
+      accessToken: old.accessToken,
+      refreshToken: old.refreshToken,
+      profileJson: old.profileJson,
+      enrolledAt: old.enrolledAt,
+      lastUnlockAt: old.lastUnlockAt,
+    );
+    vault['users'] = users.map((e) => e.toJson()).toList();
+    await _write(vault);
+    return ChangePinResult.success;
   }
 }
