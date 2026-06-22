@@ -13,7 +13,17 @@ class UsersUseCase {
     required String phone,
     required String fullName,
     required String role,
-  }) => repository.addUser(phone: phone, fullName: fullName, role: role);
+    required String pin,
+  }) => repository.addUser(
+      phone: phone, fullName: fullName, role: role, pin: pin);
+
+  Future<Either<String?, bool>> setCashierPin({
+    required String userId,
+    required String pin,
+  }) => repository.setCashierPin(userId: userId, pin: pin);
+
+  Future<Either<String?, bool>> disableCashierPin(String userId) =>
+      repository.disableCashierPin(userId);
 
   Future<Either<String?, bool>> editUser({
     required String userId,

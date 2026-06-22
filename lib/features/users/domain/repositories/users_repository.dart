@@ -9,6 +9,7 @@ abstract class UsersRepository {
     required String phone,
     required String fullName,
     required String role,
+    required String pin,
   });
 
   Future<Either<String?, bool>> editUser({
@@ -16,6 +17,13 @@ abstract class UsersRepository {
     required String fullName,
     required String role,
   });
+
+  Future<Either<String?, bool>> setCashierPin({
+    required String userId,
+    required String pin,
+  });
+
+  Future<Either<String?, bool>> disableCashierPin(String userId);
 
   Future<Either<String?, bool>> deactivateUser(String userId);
 

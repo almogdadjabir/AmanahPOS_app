@@ -20,12 +20,34 @@ class UsersRepoImpl extends UsersRepository {
     required String phone,
     required String fullName,
     required String role,
+    required String pin,
   }) {
     // POST returns the created user object — parse it as UserData
     return requestHandler.handlePostRequest(
       'api/v1/users/',
           (data) => UserData.fromJson(data as Map<String, dynamic>),
-      data: {'phone': phone, 'full_name': fullName, 'role': role},
+      data: {'phone': phone, 'full_name': fullName, 'role': role, 'pin': pin},
+    );
+  }
+
+  @override
+  Future<Either<String?, bool>> setCashierPin({
+    required String userId,
+    required String pin,
+  }) {
+    return requestHandler.handlePatchRequest(
+      'api/v1/users/$userId/',
+          (_) => true,
+      data: {'pin': pin},
+    );
+  }
+
+  @override
+  Future<Either<String?, bool>> disableCashierPin(String userId) {
+    return requestHandler.handlePatchRequest(
+      'api/v1/users/$userId/',
+          (_) => true,
+      data: {'pin': null},
     );
   }
 

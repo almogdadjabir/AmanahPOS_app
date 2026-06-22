@@ -15,6 +15,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<OnEditUser>(_onEditUser);
     on<OnDeactivateUser>(_onDeactivateUser);
     on<OnAssignUserShop>(_onAssignUserShop);
+    on<OnSetCashierPin>(_onSetCashierPin);
+    on<OnDisableCashierPin>(_onDisableCashierPin);
   }
 
   Future<void> _onInitial(
@@ -38,6 +40,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       phone:    event.phone,
       fullName: event.fullName,
       role:     event.role,
+      pin:      event.pin,
     );
 
     await result.fold(
@@ -93,6 +96,35 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           (error) => emit(state.copyWith(
           submitStatus: UserSubmitStatus.failure, submitError: error)),
           (_) => add(OnUserInitial()),
+    );
+  }
+
+  Future<void> _onSetCashierPin(
+      OnSetCashierPin event, Emitter<UserState> emit) async {
+    emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
+    final result = await useCase.setCashierPin(
+        userId: event.userId, pin: event.pin);
+    result.fold(
+          (error) => emit(state.copyWith(
+          submitStatus: UserSubmitStatus.failure, submitError: error)),
+          (_) {
+        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
+        add(OnUserInitial());
+      },
+    );
+  }
+
+  Future<void> _onDisableCashierPin(
+      OnDisableCashierPin event, Emitter<UserState> emit) async {
+    emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
+    final result = await useCase.disableCashierPin(event.userId);
+    result.fold(
+          (error) => emit(state.copyWith(
+          submitStatus: UserSubmitStatus.failure, submitError: error)),
+          (_) {
+        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
+        add(OnUserInitial());
+      },
     );
   }
 
