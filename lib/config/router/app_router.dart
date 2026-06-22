@@ -11,6 +11,7 @@ import 'package:amana_pos/features/business/presentation/shop_management_screen.
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
 import 'package:amana_pos/features/pin/presentation/bloc/pin_bloc.dart';
+import 'package:amana_pos/features/pin/presentation/pin_change_screen.dart';
 import 'package:amana_pos/features/pin/presentation/pin_setup_screen.dart';
 import 'package:amana_pos/features/pin/presentation/pin_unlock_screen.dart';
 import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
@@ -179,6 +180,16 @@ class AppRouter {
       case RouteStrings.pinUnlockScreen:
         return _buildRoute(
           FeatureBlocProviders.pinUnlock(child: const PinUnlockScreen()),
+          settings,
+        );
+
+      case RouteStrings.pinChangeScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          FeatureBlocProviders.pinChange(
+            userId: args['userId'] as String,
+            child: const PinChangeScreen(),
+          ),
           settings,
         );
 

@@ -70,6 +70,19 @@ class FeatureBlocProviders {
     );
   }
 
+  static Widget pinChange({required Widget child, required String userId}) {
+    return BlocProvider(
+      create: (_) => PinBloc(
+        vault: getIt<PinVaultService>(),
+        cache: getIt<CacheStorage>(),
+        authBloc: getIt<AuthBloc>(),
+        mode: PinMode.change,
+        changeUserId: userId,
+      ),
+      child: child,
+    );
+  }
+
   static Widget splash({required Widget child}) {
     return BlocProvider(
       create: (_) => SplashBloc(

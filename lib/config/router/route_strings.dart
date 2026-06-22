@@ -21,4 +21,5 @@ class RouteStrings {
   static const String printerSettingsScreen = 'printerSettingsScreen';
   static const String pinSetupScreen = 'pinSetupScreen';
   static const String pinUnlockScreen = 'pinUnlockScreen';
+  static const String pinChangeScreen = 'pinChangeScreen';
 }
