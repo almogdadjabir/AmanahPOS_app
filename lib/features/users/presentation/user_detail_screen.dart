@@ -1,8 +1,10 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
+import 'package:amana_pos/features/users/presentation/widgets/cashier_pin_sheet.dart';
 import 'package:amana_pos/features/users/presentation/widgets/deactivate_user_sheet.dart';
 import 'package:amana_pos/features/users/presentation/widgets/edit_user_sheet.dart';
+import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -66,6 +68,13 @@ class UserDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: AppDims.s2),
                     _ActivitySection(user: currentUser),
+                    const SizedBox(height: AppDims.s5),
+                    const _SectionTitle(
+                      title: 'Security',
+                      subtitle: 'Manage this cashier\'s unlock PIN',
+                    ),
+                    const SizedBox(height: AppDims.s2),
+                    _SecuritySection(user: currentUser),
                   ],
                 ),
               ),
@@ -348,6 +357,121 @@ class _SectionTitle extends StatelessWidget {
             height: 1.35,
           ),
         ),
+      ],
+    );
+  }
+}
+
+class _SecuritySection extends StatelessWidget {
+  const _SecuritySection({required this.user});
+
+  final UserData user;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final userId = user.id?.trim() ?? '';
+
+    return _Card(
+      children: [
+        _ActionRow(
+          icon: SolarIconsOutline.lockKeyhole,
+          label: 'Change PIN',
+          onTap: userId.isEmpty
+              ? null
+              : () => showCashierPinSheet(context, userId: userId),
+        ),
+        _ActionRow(
+          icon: SolarIconsOutline.forbiddenCircle,
+          label: 'Disable PIN',
+          iconColor: colors.danger,
+          isLast: true,
+          onTap: userId.isEmpty ? null : () => _confirmDisable(context, userId),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDisable(BuildContext context, String userId) async {
+    final userBloc = context.read<UserBloc>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Disable PIN?'),
+        content: const Text(
+            'This cashier will no longer have a PIN until you set a new one.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Disable')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    userBloc.add(OnDisableCashierPin(userId));
+    GlobalSnackBar.show(message: 'PIN disabled.', isInfo: true);
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.iconColor,
+    this.isLast = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final Color? iconColor;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppDims.rLg),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: AppDims.s4,
+              vertical: AppDims.s3,
+            ),
+            child: Row(
+              children: [
+                _InfoIcon(icon: icon, iconColor: iconColor),
+                const SizedBox(width: AppDims.s3),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AppTextStyles.bs300(context).copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(SolarIconsOutline.altArrowRight,
+                    size: 18, color: colors.textHint),
+              ],
+            ),
+          ),
+        ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: AppDims.s4 + 34 + AppDims.s3,
+            endIndent: AppDims.s4,
+            color: colors.border,
+          ),
       ],
     );
   }
