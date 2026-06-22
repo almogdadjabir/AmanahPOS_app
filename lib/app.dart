@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
 import 'package:amana_pos/common/motion/motion.dart';
+import 'package:amana_pos/common/services/app_lock_observer.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/providers/providers.dart';
@@ -65,7 +66,10 @@ class App extends StatelessWidget {
                       if (Platform.isMacOS || Platform.isWindows) {
                         data = data.copyWith(textScaler: TextScaler.noScaling);
                       }
-                      return MediaQuery(data: data, child: child!);
+                      return MediaQuery(
+                        data: data,
+                        child: AppLockObserver(child: child!),
+                      );
                     },
                   );
                 },
