@@ -212,6 +212,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         isLoading: false,
         status: PageStatus.success,
         loginStatus: LoginStatus.competed,
+        loggedInUser: loginResponse?.loginData?.user,
       ));
     } catch (e) {
       if (emit.isDone) return;
@@ -294,6 +295,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         isLoading: false,
         status: PageStatus.success,
         isPinMatched: true,
+        loggedInUser: loginResponse?.loginData?.user,
       ));
 
       await _storeTokens(

@@ -2,7 +2,6 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/responsive/responsive.dart';
-import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
@@ -170,13 +169,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (state.loginStatus == LoginStatus.competed) {
         final navigator = Navigator.of(context);
+        final profile = state.loggedInUser;
         () async {
           final vault = getIt<PinVaultService>();
           final cache = getIt<CacheStorage>();
-          final profile = await cache.getTypedObject<User>(
-            Constants.cachedProfile,
-            (json) => User.fromJson(json),
-          );
           final userId = profile?.id ?? '';
           final alreadyEnrolled =
               userId.isNotEmpty && await vault.isUserEnrolled(userId);
