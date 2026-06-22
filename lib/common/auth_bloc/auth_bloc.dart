@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final OfflineStatusBloc offlineStatusBloc;
 
   String? _currentUserXTenantID;
+  String? _currentBusinessId;
   bool _loggedOut = false;
   DateTime? _lastBusinessFetchAt;
 
@@ -44,15 +45,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       if (event.user != null) {
         final incomingId = _userIdFrom(event.user!);
+        final incomingBusiness = event.user!.businessId;
+
         final isDifferentUser = _loggedOut ||
             (_currentUserXTenantID != null && _currentUserXTenantID != incomingId);
+        final isDifferentBusiness = _loggedOut ||
+            (_currentBusinessId != null &&
+                _currentBusinessId != incomingBusiness);
         _loggedOut = false;
 
-        if (isDifferentUser) {
+        // Only wipe the offline catalog when the business actually changes.
+        // Cashiers of the same business switching via PIN keep the cache.
+        if (isDifferentBusiness) {
           await offlineLocalCache.clearAllOnLogout();
         }
 
         _currentUserXTenantID = incomingId;
+        _currentBusinessId = incomingBusiness;
         _emitProfileLoaded(emit, event.user!, userSwitched: isDifferentUser);
         add(OnLoadBusinessEvent());
         return;
@@ -88,18 +97,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (fresh != null) {
         final incomingId = _userIdFrom(fresh.user!);
+        final incomingBusiness = fresh.user!.businessId;
 
         final isDifferentUser = _loggedOut ||
             (_currentUserXTenantID != null && _currentUserXTenantID != incomingId);
+        final isDifferentBusiness = _loggedOut ||
+            (_currentBusinessId != null &&
+                _currentBusinessId != incomingBusiness);
         _loggedOut = false;
 
 
-        if (isDifferentUser) {
-          // Wipe the DB so old user's data is gone before the new session starts.
+        if (isDifferentBusiness) {
+          // Wipe the DB so the old business's data is gone before the new
+          // session starts. Same-business user switches keep the cache.
           await offlineLocalCache.clearAllOnLogout();
         }
 
         _currentUserXTenantID = incomingId;
+        _currentBusinessId = incomingBusiness;
         await useCase.cacheStorage.saveObject(
           Constants.cachedProfile,
           fresh.user!.toJson(),
@@ -161,6 +176,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } catch (_) {}
 
       _currentUserXTenantID = null;
+      _currentBusinessId = null;
       _loggedOut = true;
       _lastBusinessFetchAt = null;
 
@@ -320,6 +336,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> close() {
     _loggedOut = false;
     _currentUserXTenantID = null;
+    _currentBusinessId = null;
     return super.close();
   }
 }
