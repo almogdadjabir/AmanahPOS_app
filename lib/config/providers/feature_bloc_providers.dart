@@ -18,8 +18,11 @@ import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.da
 import 'package:amana_pos/features/inventory/presentation/bloc/premium_inventory_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/stock_levels_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/vendors_bloc.dart';
+import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
+import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
+import 'package:amana_pos/features/pin/presentation/bloc/pin_bloc.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
 import 'package:amana_pos/features/registration/domain/usecases/registration_usecase.dart';
 import 'package:amana_pos/features/registration/presentation/bloc/registration_bloc.dart';
@@ -36,6 +39,36 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FeatureBlocProviders {
   const FeatureBlocProviders._();
+
+  static Widget pinSetup({
+    required Widget child,
+    required User user,
+    required EnrollTokens tokens,
+  }) {
+    return BlocProvider(
+      create: (_) => PinBloc(
+        vault: getIt<PinVaultService>(),
+        cache: getIt<CacheStorage>(),
+        authBloc: getIt<AuthBloc>(),
+        mode: PinMode.setup,
+        enrollUser: user,
+        enrollTokens: tokens,
+      ),
+      child: child,
+    );
+  }
+
+  static Widget pinUnlock({required Widget child}) {
+    return BlocProvider(
+      create: (_) => PinBloc(
+        vault: getIt<PinVaultService>(),
+        cache: getIt<CacheStorage>(),
+        authBloc: getIt<AuthBloc>(),
+        mode: PinMode.unlock,
+      ),
+      child: child,
+    );
+  }
 
   static Widget splash({required Widget child}) {
     return BlocProvider(

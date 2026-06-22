@@ -8,7 +8,11 @@ import 'package:amana_pos/features/business/presentation/business_detail_screen.
 import 'package:amana_pos/features/devices/presentation/printer_settings_screen.dart';
 import 'package:amana_pos/features/business/presentation/shop_detail_screen.dart';
 import 'package:amana_pos/features/business/presentation/shop_management_screen.dart';
+import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
+import 'package:amana_pos/features/pin/presentation/bloc/pin_bloc.dart';
+import 'package:amana_pos/features/pin/presentation/pin_setup_screen.dart';
+import 'package:amana_pos/features/pin/presentation/pin_unlock_screen.dart';
 import 'package:amana_pos/features/main_screen/presentation/main_screen.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/product_detail_screen.dart';
@@ -160,6 +164,23 @@ class AppRouter {
 
       case RouteStrings.printerSettingsScreen:
         return _buildRoute(const PrinterSettingsScreen(), settings);
+
+      case RouteStrings.pinSetupScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _buildRoute(
+          FeatureBlocProviders.pinSetup(
+            user: args['user'] as User,
+            tokens: args['tokens'] as EnrollTokens,
+            child: const PinSetupScreen(),
+          ),
+          settings,
+        );
+
+      case RouteStrings.pinUnlockScreen:
+        return _buildRoute(
+          FeatureBlocProviders.pinUnlock(child: const PinUnlockScreen()),
+          settings,
+        );
 
       case RouteStrings.returnsScreen:
         final preloadedSale = settings.arguments as SaleHistoryItem?;
