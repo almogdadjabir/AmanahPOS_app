@@ -4,6 +4,7 @@ enum SplashStatus {
   initial,
   loading,
   authenticated,
+  pinLocked,
   unauthenticated,
   failure,
 }

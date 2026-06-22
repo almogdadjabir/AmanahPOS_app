@@ -74,6 +74,7 @@ class FeatureBlocProviders {
     return BlocProvider(
       create: (_) => SplashBloc(
         cacheStorage: getIt<CacheStorage>(),
+        vault: getIt<PinVaultService>(),
       ),
       child: child,
     );

@@ -39,6 +39,12 @@ class _SplashScreenState extends State<SplashScreen> {
               (route) => false,
             );
             break;
+          case SplashStatus.pinLocked:
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              RouteStrings.pinUnlockScreen,
+              (route) => false,
+            );
+            break;
           case SplashStatus.unauthenticated:
           case SplashStatus.failure:
             Navigator.of(context).pushNamedAndRemoveUntil(
