@@ -1,5 +1,10 @@
+import 'package:amana_pos/common/services/local/local_storage.dart';
+import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/responsive/responsive.dart';
+import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
+import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_form.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_otp.dart';
@@ -164,10 +169,39 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (state.loginStatus == LoginStatus.competed) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          RouteStrings.mainScreen,
-          (route) => false,
-        );
+        final navigator = Navigator.of(context);
+        () async {
+          final vault = getIt<PinVaultService>();
+          final cache = getIt<CacheStorage>();
+          final profile = await cache.getTypedObject<User>(
+            Constants.cachedProfile,
+            (json) => User.fromJson(json),
+          );
+          final userId = profile?.id ?? '';
+          final alreadyEnrolled =
+              userId.isNotEmpty && await vault.isUserEnrolled(userId);
+          if (!mounted) return;
+
+          if (profile != null && !alreadyEnrolled) {
+            final access = await cache.read(Constants.authToken) ?? '';
+            final refresh = await cache.read(Constants.refreshToken) ?? '';
+            final tenantId = await cache.read(Constants.xTenantID) ?? '';
+            if (!mounted) return;
+            navigator.pushNamedAndRemoveUntil(
+              RouteStrings.pinSetupScreen,
+              (route) => false,
+              arguments: {
+                'user': profile,
+                'tokens': (access: access, refresh: refresh, tenantId: tenantId),
+              },
+            );
+          } else {
+            navigator.pushNamedAndRemoveUntil(
+              RouteStrings.mainScreen,
+              (route) => false,
+            );
+          }
+        }();
         context.read<LoginBloc>().add(const OnResetEvent());
         return;
       }
