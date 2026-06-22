@@ -10,6 +10,8 @@ import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
 import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
+import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/desktop_settings_view.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/owner_header.dart';
@@ -319,11 +321,54 @@ class _AccountSection extends StatelessWidget {
               trailing: tr.commonChange,
               onTap: () => openPasswordSheet(context),
             ),
+            SettingsRowItem(
+              icon: SolarIconsOutline.lockKeyhole,
+              title: 'Change PIN',
+              subtitle: 'Update your unlock PIN',
+              onTap: () {
+                final userId = profile.id;
+                if (userId == null || userId.isEmpty) return;
+                Navigator.of(context).pushNamed(
+                  RouteStrings.pinChangeScreen,
+                  arguments: {'userId': userId},
+                );
+              },
+            ),
+            SettingsRowItem(
+              icon: SolarIconsOutline.forbiddenCircle,
+              iconColor: const Color(0xFFEF4444),
+              title: 'Disable PIN',
+              subtitle: 'Remove PIN unlock on this device',
+              onTap: () => _confirmDisablePin(context, profile.id),
+            ),
           ],
         ),
       ],
     );
   }
+}
+
+Future<void> _confirmDisablePin(BuildContext context, String? userId) async {
+  if (userId == null || userId.isEmpty) return;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Disable PIN?'),
+      content: const Text(
+          'You\'ll sign in with your phone number next time instead of a PIN.'),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Disable')),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+  await getIt<PinVaultService>().removeUser(userId);
+  GlobalSnackBar.show(message: 'PIN disabled.', isInfo: true);
 }
 
 class _AppearanceSection extends StatelessWidget {
