@@ -54,7 +54,7 @@ class ShopManagementScreen extends StatelessWidget {
                 ),
                 title: Text(
                   context.tr.shopManagement,
-                  style: AppTextStyles.bs500(context).copyWith(
+                  style: AppTextStyles.bs100(context).copyWith(
                     color: context.appColors.textPrimary,
                     fontWeight: FontWeight.w900,
                   ),
@@ -72,7 +72,7 @@ class ShopManagementScreen extends StatelessWidget {
                       icon: const Icon(Icons.add_rounded, size: 17),
                       label: Text(
                         context.tr.addShop,
-                        style: AppTextStyles.bs300(context).copyWith(
+                        style: AppTextStyles.sm100(context).copyWith(
                           fontWeight: FontWeight.w900,
                         ),
                       ),

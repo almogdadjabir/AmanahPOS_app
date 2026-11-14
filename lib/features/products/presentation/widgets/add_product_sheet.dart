@@ -36,6 +36,7 @@ void showAddProductSheet(
   showAdaptivePanel(
     context,
     desktopWidth: 480,
+    showDragHandle: false,
     builder: (_) => BlocProvider.value(
       value: productBloc,
       child: _AddProductSheet(
@@ -89,9 +90,6 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   bool _trackInventory = true;
   PickedAppImage? _pickedImage;
 
-  // Shops the opening stock can be recorded against. Resolved once from the
-  // active business. Empty for businesses with no shops (e.g. restaurants),
-  // in which case the opening-stock field is hidden.
   List<ShopData> _shops = const [];
   ShopData? _selectedShop;
 
@@ -228,8 +226,6 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
     final bloc = context.read<ProductBloc>();
 
-    // Opening stock is optional and only meaningful for stock-tracked,
-    // non-restaurant products that have a valid target shop.
     final openingStockRaw = _openingStockCtrl.text.trim();
     final hasOpeningStock = shouldTrackInventory &&
         openingStockRaw.isNotEmpty &&
@@ -538,12 +534,7 @@ class _AutoCategoryInfo extends StatelessWidget {
     );
   }
 }
-// ─── Opening stock ────────────────────────────────────────────────────────────
 
-/// Optional "how many do you have right now" field shown at product creation.
-/// When filled, the product is created and an `opening` stock movement is
-/// recorded against [selectedShop] in one step. A shop chooser appears only
-/// when the business has more than one shop.
 class _OpeningStockSection extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode? focusNode;
@@ -599,7 +590,7 @@ class _OpeningStockSection extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Opening stock',
-                      style: AppTextStyles.bs400(context).copyWith(
+                      style: AppTextStyles.bs100(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
                       ),

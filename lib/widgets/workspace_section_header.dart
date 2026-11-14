@@ -29,7 +29,7 @@ class WorkspaceSectionHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.start,
-            style: AppTextStyles.bs300(context).copyWith(
+            style: AppTextStyles.bs100(context).copyWith(
               color: titleColor,
               fontWeight: FontWeight.w900,
               letterSpacing: 3.2,

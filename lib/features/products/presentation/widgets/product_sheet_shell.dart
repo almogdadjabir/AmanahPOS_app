@@ -75,7 +75,7 @@ class ProductSheetShell extends StatelessWidget {
                         ),
                       ),
                       icon: Icon(
-                        SolarIconsOutline.closeCircle,
+                        Icons.close,
                         size: 24,
                         color: colors.textSecondary,
                       ),
@@ -121,7 +121,7 @@ class _SheetTitleBlock extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs600(context).copyWith(
+          style: AppTextStyles.bs200(context).copyWith(
             fontWeight: FontWeight.w800,
             color: colors.textPrimary,
           ),
@@ -132,7 +132,7 @@ class _SheetTitleBlock extends StatelessWidget {
             subtitleText,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs300(context).copyWith(
+            style: AppTextStyles.sm200(context).copyWith(
               color: colors.textHint,
               fontWeight: FontWeight.w600,
             ),
@@ -382,7 +382,7 @@ class ProductSubmitButton extends StatelessWidget {
                 key: const ValueKey('label'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs600(context).copyWith(
+                style: AppTextStyles.bs100(context).copyWith(
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),

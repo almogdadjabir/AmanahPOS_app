@@ -76,7 +76,7 @@ class ShopQuickStats extends StatelessWidget {
           const SizedBox(height: AppDims.s1),
           Text(
             value,
-            style: AppTextStyles.bs500(context).copyWith(
+            style: AppTextStyles.bs200(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
@@ -87,7 +87,7 @@ class ShopQuickStats extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bs100(context).copyWith(
+            style: AppTextStyles.sm200(context).copyWith(
               color: colors.textHint,
               fontWeight: FontWeight.w700,
             ),

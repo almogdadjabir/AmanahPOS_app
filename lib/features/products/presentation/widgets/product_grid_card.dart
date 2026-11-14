@@ -91,8 +91,6 @@ class _ProductGridCardContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Full width so a single-line RTL name aligns to the
-                      // right instead of shrink-wrapping at the left edge.
                       SizedBox(
                         width: double.infinity,
                         child: Text(
@@ -100,7 +98,7 @@ class _ProductGridCardContent extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           textDirection: displayName.contentDirection,
-                          style: AppTextStyles.bs300(context).copyWith(
+                          style: AppTextStyles.bs100(context).copyWith(
                             fontWeight: FontWeight.w900,
                             color: colors.textPrimary,
                             height: 1.15,
@@ -116,7 +114,7 @@ class _ProductGridCardContent extends StatelessWidget {
                             : tr.noCategory,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs100(context).copyWith(
+                        style: AppTextStyles.sm200(context).copyWith(
                           fontWeight: FontWeight.w600,
                           color: colors.textHint,
                         ),
@@ -131,7 +129,7 @@ class _ProductGridCardContent extends StatelessWidget {
                               _formatPrice(product.price),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.bs300(context).copyWith(
+                              style: AppTextStyles.bs100(context).copyWith(
                                 fontWeight: FontWeight.w900,
                                 color: colors.primary,
                               ),

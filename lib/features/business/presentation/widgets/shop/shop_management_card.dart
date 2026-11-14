@@ -72,7 +72,7 @@ class ShopManagementCard extends StatelessWidget {
                           : context.tr.shop,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs500(context).copyWith(
+                      style: AppTextStyles.bs100(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
                       ),
@@ -93,7 +93,7 @@ class ShopManagementCard extends StatelessWidget {
                               shop.address!.trim(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.bs200(context).copyWith(
+                              style: AppTextStyles.sm100(context).copyWith(
                                 color: colors.textSecondary,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -118,7 +118,7 @@ class ShopManagementCard extends StatelessWidget {
                       ),
                       child: Text(
                         isActive ? context.tr.active : context.tr.inactive,
-                        style: AppTextStyles.bs100(context).copyWith(
+                        style: AppTextStyles.sm100(context).copyWith(
                           color: isActive
                               ? const Color(0xFF16A34A)
                               : colors.textHint,

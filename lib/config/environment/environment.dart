@@ -1,6 +1,6 @@
 enum Flavor { dev, prod }
 
-const String devBaseURL = 'http://192.168.1.176:8080/';
+const String devBaseURL = 'http://172.16.10.54:8000/';
 const String prodBaseURL = 'https://api.amanapos.com/';
 
 const double mobileHeight = 932.0;
@@ -17,10 +17,10 @@ Flavor? get env => selectedEnv;
 String get baseUrl {
   switch (selectedEnv) {
     case Flavor.prod:
-      return prodBaseURL;
+      return devBaseURL;
     case Flavor.dev:
-      return prodBaseURL;
+      return devBaseURL;
     default:
-      return prodBaseURL;
+      return devBaseURL;
   }
 }

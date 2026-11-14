@@ -42,13 +42,13 @@ class AppFormField extends StatelessWidget {
       maxLines: maxLines,
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted ?? (_) => nextFocus?.requestFocus(),
-      style: AppTextStyles.bs300(context).copyWith(
+      style: AppTextStyles.bs100(context).copyWith(
         fontWeight: FontWeight.w600,
         color: context.appColors.textPrimary,
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: AppTextStyles.bs300(context).copyWith(
+        hintStyle: AppTextStyles.bs100(context).copyWith(
           color: context.appColors.textHint,
         ),
         prefixIcon: Icon(
@@ -59,7 +59,7 @@ class AppFormField extends StatelessWidget {
         filled: true,
         fillColor: context.appColors.surfaceSoft,
         errorMaxLines: 2,
-        errorStyle: AppTextStyles.bs300(context).copyWith(
+        errorStyle: AppTextStyles.bs100(context).copyWith(
           fontWeight: FontWeight.w600,
           color: context.appColors.danger,
           height: 1.3,

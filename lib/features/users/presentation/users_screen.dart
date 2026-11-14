@@ -90,7 +90,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 context.tr.addCashier,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs300(context).copyWith(
+                style: AppTextStyles.bs200(context).copyWith(
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -233,7 +233,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
                       _sectionTitle(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs700(context).copyWith(
+                      style: AppTextStyles.bs200(context).copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
                         height: 1.05,
@@ -261,7 +261,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
                         context.tr.addUser,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bs300(context).copyWith(
+                        style: AppTextStyles.bs100(context).copyWith(
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -468,7 +468,7 @@ class _HeaderText extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs700(context).copyWith(
+          style: AppTextStyles.bs200(context).copyWith(
             color: colors.textPrimary,
             fontWeight: FontWeight.w900,
             height: 1.05,
@@ -479,7 +479,7 @@ class _HeaderText extends StatelessWidget {
           subtitle,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs300(context).copyWith(
+          style: AppTextStyles.sm200(context).copyWith(
             color: colors.textSecondary,
             fontWeight: FontWeight.w700,
             height: 1.35,
@@ -550,7 +550,7 @@ class _UserMiniStat extends StatelessWidget {
                 child: Text(
                   value,
                   maxLines: 1,
-                  style: AppTextStyles.bs500(context).copyWith(
+                  style: AppTextStyles.bs100(context).copyWith(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w900,
                     height: 1,
@@ -563,7 +563,7 @@ class _UserMiniStat extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bs100(context).copyWith(
+                style: AppTextStyles.sm100(context).copyWith(
                   color: isSelected ? color : colors.textSecondary,
                   fontWeight: FontWeight.w900,
                   height: 1,
@@ -635,7 +635,7 @@ class _UserFilterEmptyView extends StatelessWidget {
           Text(
             content.title,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bs500(context).copyWith(
+            style: AppTextStyles.bs100(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
@@ -644,7 +644,7 @@ class _UserFilterEmptyView extends StatelessWidget {
           Text(
             content.message,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bs300(context).copyWith(
+            style: AppTextStyles.sm200(context).copyWith(
               color: colors.textSecondary,
               fontWeight: FontWeight.w700,
               height: 1.35,

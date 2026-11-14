@@ -77,7 +77,7 @@ class PinKeypad extends StatelessWidget {
                   )
                 : Text(
                     key,
-                    style: AppTextStyles.lg100(
+                    style: AppTextStyles.bs400(
                       context,
                       color: enabled ? colors.textPrimary : colors.disabled,
                     ).copyWith(fontWeight: FontWeight.w500),

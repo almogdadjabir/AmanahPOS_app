@@ -102,7 +102,7 @@ class _CashierMainInfo extends StatelessWidget {
           fullName,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs500(context).copyWith(
+          style: AppTextStyles.bs100(context).copyWith(
             fontWeight: FontWeight.w900,
             color: colors.textPrimary,
             height: 1.1,
@@ -189,7 +189,7 @@ class _CashierAvatar extends StatelessWidget {
         child: Center(
           child: Text(
             user.fullName?.initials ?? '?',
-            style: AppTextStyles.bs600(context).copyWith(
+            style: AppTextStyles.bs100(context).copyWith(
               fontWeight: FontWeight.w900,
               color: roleColor,
               height: 1,
@@ -226,7 +226,7 @@ class _AccessHint extends StatelessWidget {
             text,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs100(context).copyWith(
+            style: AppTextStyles.sm200(context).copyWith(
               color: colors.textSecondary,
               fontWeight: FontWeight.w700,
               height: 1.2,
@@ -302,7 +302,7 @@ class _PhoneBadge extends StatelessWidget {
                     phone,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bs100(context).copyWith(
+                    style: AppTextStyles.sm200(context).copyWith(
                       fontWeight: FontWeight.w800,
                       color: colors.textSecondary,
                       height: 1,
@@ -371,7 +371,7 @@ class _PillBadge extends StatelessWidget {
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs100(context).copyWith(
+          style: AppTextStyles.sm100(context).copyWith(
             fontWeight: FontWeight.w900,
             color: color,
             height: 1,

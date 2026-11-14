@@ -174,7 +174,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(maxLen),
                             ],
-                            style: AppTextStyles.bs400(
+                            style: AppTextStyles.bs200(
                               context,
                               weight: AppTextStyles.semibold,
                               color: colors.textPrimary,
@@ -185,7 +185,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                               filled: false,
                               hintText: widget.country.hint,
                               hintTextDirection: TextDirection.ltr,
-                              hintStyle: AppTextStyles.bs400(
+                              hintStyle: AppTextStyles.bs200(
                                 context,
                                 color: colors.textHint,
                               ).copyWith(
@@ -249,7 +249,7 @@ class _CountryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final selectable = onCountryChanged != null;
-    final dialStyle = AppTextStyles.bs400(
+    final dialStyle = AppTextStyles.bs200(
       context,
       weight: AppTextStyles.bold,
       color: colors.textPrimary,
@@ -263,7 +263,11 @@ class _CountryChip extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(country.flag, style: const TextStyle(fontSize: 18)),
+                Text(country.flag, style: AppTextStyles.bs200(
+                  context,
+                  weight: AppTextStyles.semibold,
+                  color: colors.textPrimary,
+                )),
                 const SizedBox(width: 6),
                 Text(country.dialCode,
                     textDirection: TextDirection.ltr, style: dialStyle),

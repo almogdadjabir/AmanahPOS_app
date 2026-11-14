@@ -131,7 +131,7 @@ class CategoryChip extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bs300(context).copyWith(
+              style: AppTextStyles.bs100(context).copyWith(
                 fontWeight: FontWeight.w900,
                 color: isSelected ? Colors.white : colors.textSecondary,
               ),

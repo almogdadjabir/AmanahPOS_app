@@ -712,78 +712,62 @@ class _MobileWorkspace extends StatelessWidget {
         clipBehavior: Clip.none,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s2,
-              AppDims.s4,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: BlocBuilder<DashboardSummaryBloc, DashboardSummaryState>(
-                buildWhen: (prev, curr) =>
-                    prev.status != curr.status || prev.summary != curr.summary,
-                builder: (context, state) {
-                  final summary = state.summary;
+          SliverToBoxAdapter(
+            child: BlocBuilder<DashboardSummaryBloc, DashboardSummaryState>(
+              buildWhen: (prev, curr) =>
+                  prev.status != curr.status || prev.summary != curr.summary,
+              builder: (context, state) {
+                final summary = state.summary;
 
-                  if (state.isLoading && summary == null) {
-                    return const SizedBox(
-                      height: 170,
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
-                  if (summary == null) {
-                    return OwnerTodayCard(
-                      amount: 0,
-                      salesCount: 0,
-                      sparkline: const [0, 0],
-                      liveLabel: 'NO DATA',
-                    );
-                  }
-
-                  return OwnerTodayCard(
-                    amount: summary.today.grossSalesAmount,
-                    salesCount: summary.today.salesCount,
-                    sparkline: summary.sparklineAmounts.isEmpty
-                        ? const [0, 0]
-                        : summary.sparklineAmounts,
-                    dateLabel:
-                        _dashboardDateLabel(context, summary.today.date),
-                    liveLabel: summary.liveLabel,
-                    currencyLabel: summary.currency,
+                if (state.isLoading && summary == null) {
+                  return const SizedBox(
+                    height: 170,
+                    child: Center(child: CircularProgressIndicator()),
                   );
-                },
-              )
-                  .mAnimate()
-                  .fadeIn(duration: 350.ms)
-                  .slideY(
-                begin: 0.08,
-                end: 0,
-                curve: Curves.easeOutCubic,
-              ),
+                }
+
+                if (summary == null) {
+                  return OwnerTodayCard(
+                    amount: 0,
+                    salesCount: 0,
+                    sparkline: const [0, 0],
+                    liveLabel: 'NO DATA',
+                  );
+                }
+
+                return OwnerTodayCard(
+                  amount: summary.today.grossSalesAmount,
+                  salesCount: summary.today.salesCount,
+                  sparkline: summary.sparklineAmounts.isEmpty
+                      ? const [0, 0]
+                      : summary.sparklineAmounts,
+                  dateLabel:
+                      _dashboardDateLabel(context, summary.today.date),
+                  liveLabel: summary.liveLabel,
+                  currencyLabel: summary.currency,
+                );
+              },
+            )
+                .mAnimate()
+                .fadeIn(duration: 350.ms)
+                .slideY(
+              begin: 0.08,
+              end: 0,
+              curve: Curves.easeOutCubic,
             ),
           ),
 
           SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s5,
-              AppDims.s4,
-              0,
-            ),
+            padding: const EdgeInsets.only(
+                top: AppDims.s4),
             sliver: SliverToBoxAdapter(
               child: WorkspaceSectionHeader(title: context.tr.bizManageLabel),
             ),
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s3,
-              AppDims.s4,
-              0,
-            ),
+            padding: const EdgeInsets.only(
+                top: AppDims.s4),
             sliver: SliverToBoxAdapter(
               child: GridView.count(
                 crossAxisCount: context.isTablet ? 4 : 2,
@@ -839,12 +823,8 @@ class _MobileWorkspace extends StatelessWidget {
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDims.s4,
-              AppDims.s5,
-              AppDims.s4,
-              AppDims.s6,
-            ),
+            padding: const EdgeInsets.only(
+              top: AppDims.s4),
             sliver: SliverToBoxAdapter(
               child: SubscriptionPlanCard(data: data),
             ),

@@ -172,7 +172,7 @@ class _UserAppBar extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.bs700(context).copyWith(
+                        style: AppTextStyles.bs200(context).copyWith(
                           fontWeight: FontWeight.w900,
                           color: colors.textPrimary,
                           height: 1.05,
@@ -234,7 +234,7 @@ class _Avatar extends StatelessWidget {
         child: Center(
           child: Text(
             initials,
-            style: AppTextStyles.lg100(context).copyWith(
+            style: AppTextStyles.bs100(context).copyWith(
               fontWeight: FontWeight.w900,
               color: color,
               height: 1,
@@ -342,7 +342,7 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: AppTextStyles.bs600(context).copyWith(
+          style: AppTextStyles.bs100(context).copyWith(
             color: colors.textPrimary,
             fontWeight: FontWeight.w900,
             height: 1.05,
@@ -351,7 +351,7 @@ class _SectionTitle extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: AppTextStyles.bs200(context).copyWith(
+          style: AppTextStyles.sm200(context).copyWith(
             color: colors.textSecondary,
             fontWeight: FontWeight.w700,
             height: 1.35,
@@ -452,7 +452,7 @@ class _ActionRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: AppTextStyles.bs300(context).copyWith(
+                    style: AppTextStyles.bs100(context).copyWith(
                       fontWeight: FontWeight.w800,
                       color: colors.textPrimary,
                     ),
@@ -538,7 +538,7 @@ class _InfoRow extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.end,
-      style: AppTextStyles.bs300(context).copyWith(
+      style: AppTextStyles.bs100(context).copyWith(
         fontWeight: FontWeight.w900,
         color: valueColor ?? colors.textPrimary,
       ),
@@ -561,7 +561,7 @@ class _InfoRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: AppTextStyles.bs300(context).copyWith(
+                  style: AppTextStyles.bs100(context).copyWith(
                     fontWeight: FontWeight.w800,
                     color: colors.textSecondary,
                   ),
@@ -709,7 +709,7 @@ class _Badge extends StatelessWidget {
             ],
             Text(
               label,
-              style: AppTextStyles.bs100(context).copyWith(
+              style: AppTextStyles.sm200(context).copyWith(
                 fontWeight: FontWeight.w900,
                 color: color,
                 height: 1,

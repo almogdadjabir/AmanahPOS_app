@@ -93,7 +93,7 @@ class ImageUploadBox extends StatelessWidget {
                       Expanded(
                         child: Text(
                           hasLocalImage ? 'New image selected' : 'Current image',
-                          style: AppTextStyles.bs300(context).copyWith(
+                          style: AppTextStyles.sm300(context).copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
                           ),
@@ -257,7 +257,7 @@ class _PlaceholderContent extends StatelessWidget {
           const SizedBox(height: AppDims.s3),
           Text(
             title,
-            style: AppTextStyles.bs400(context).copyWith(
+            style: AppTextStyles.bs100(context).copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
@@ -266,7 +266,7 @@ class _PlaceholderContent extends StatelessWidget {
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bs200(context).copyWith(
+            style: AppTextStyles.sm200(context).copyWith(
               color: colors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
@@ -307,7 +307,7 @@ class _ImageActionTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: AppTextStyles.bs400(context).copyWith(
+                  style: AppTextStyles.bs100(context).copyWith(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                   ),

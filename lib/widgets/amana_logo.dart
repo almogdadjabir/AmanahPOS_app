@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
+import 'package:amana_pos/config/app_assets.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AmanaPosLogoMark extends StatelessWidget {
   const AmanaPosLogoMark({
@@ -14,43 +16,11 @@ class AmanaPosLogoMark extends StatelessWidget {
   final double size;
   final bool isInAppBar;
 
-  static const Color _emerald = Color(0xFF0E5A48);
-  static const Color _emeraldLight = Color(0xFF127558);
-  static const Color _emeraldDark = Color(0xFF073126);
-  static const Color _ivory = Color(0xFFF6F1E6);
-
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 56 / 256),
-          boxShadow: isInAppBar
-              ? null
-              : [
-            BoxShadow(
-              color: _emerald.withValues(alpha: 0.22),
-              blurRadius: size * 0.42,
-              offset: Offset(0, size * 0.18),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.07),
-              blurRadius: size * 0.24,
-              offset: Offset(0, size * 0.10),
-            ),
-          ],
-        ),
-        child: CustomPaint(
-          painter: const _AmanaPosLogoMarkPainter(
-            emerald: _emerald,
-            emeraldLight: _emeraldLight,
-            emeraldDark: _emeraldDark,
-            ivory: _ivory,
-            drawBackground: true,
-          ),
-        ),
-      ),
+      child: SvgPicture.asset(AppAssets.amanaMark, width: size, height: size),
     );
   }
 }
@@ -78,7 +48,8 @@ class AmanaPosLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        AmanaPosLogoMark(size: markSize),
+        // AmanaPosLogoMark(size: markSize),
+        SvgPicture.asset(AppAssets.amanaMark, width: markSize, height: markSize),
         if (showArabicName) ...[
           SizedBox(width: gap),
           Text(

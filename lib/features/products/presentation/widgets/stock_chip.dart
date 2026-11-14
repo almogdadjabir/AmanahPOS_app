@@ -41,7 +41,7 @@ class StockChip extends StatelessWidget {
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.bs100(context).copyWith(
+        style: AppTextStyles.sm100(context).copyWith(
           fontWeight: FontWeight.w900,
           color: color,
         ),

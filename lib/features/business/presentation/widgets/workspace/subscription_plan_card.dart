@@ -148,7 +148,7 @@ class SubscriptionPlanCard extends StatelessWidget {
             children: [
               Text(
                 sub == null ? 'Activate plan' : 'Upgrade',
-                style: AppTextStyles.bs100(context).copyWith(
+                style: AppTextStyles.sm100(context).copyWith(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.1,
@@ -157,7 +157,7 @@ class SubscriptionPlanCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Icon(
                 SolarIconsOutline.arrowRight,
-                size: 16,
+                size: 8,
                 color: colors.textSecondary,
               ),
               const SizedBox(width: AppDims.s2),
@@ -282,7 +282,7 @@ class SubscriptionPlanCard extends StatelessWidget {
 
     return Text(
       '$label ${_limitText(value)}',
-      style: AppTextStyles.bs100(context).copyWith(
+      style: AppTextStyles.sm100(context).copyWith(
         color: colors.textSecondary,
         fontWeight: FontWeight.w700,
       ),

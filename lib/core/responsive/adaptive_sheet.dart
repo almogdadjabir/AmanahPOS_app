@@ -9,6 +9,7 @@ Future<T?> showAdaptivePanel<T>(
   required WidgetBuilder builder,
   double desktopWidth = 480,
   bool isScrollControlled = true,
+  bool showDragHandle = true,
 }) {
   if (context.isDesktop) {
     return showGeneralDialog<T>(
@@ -46,7 +47,7 @@ Future<T?> showAdaptivePanel<T>(
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
-    showDragHandle: true,
+    showDragHandle: showDragHandle,
     backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),

@@ -35,7 +35,6 @@ class MainScreen extends StatelessWidget {
       statusBarBrightness: Brightness.light,
     );
 
-    // ── Desktop: rail shell replaces the mobile Scaffold ──────────────────
     if (context.isDesktop) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
@@ -43,7 +42,6 @@ class MainScreen extends StatelessWidget {
       );
     }
 
-    // ── Mobile: unchanged ─────────────────────────────────────────────────
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
       child: OfflinePreparationListener(

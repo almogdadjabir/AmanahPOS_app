@@ -216,7 +216,7 @@ class _HeaderText extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs700(context).copyWith(
+          style: AppTextStyles.bs200(context).copyWith(
             color: colors.textPrimary,
             fontWeight: FontWeight.w900,
             height: 1.05,
@@ -227,7 +227,7 @@ class _HeaderText extends StatelessWidget {
           subtitle,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs300(context).copyWith(
+          style: AppTextStyles.bs100(context).copyWith(
             color: colors.textSecondary,
             fontWeight: FontWeight.w700,
             height: 1.35,
@@ -288,7 +288,7 @@ class _MiniStat extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 20,
+                size: 18,
                 color: color,
               ),
               const SizedBox(height: 6),
@@ -297,7 +297,7 @@ class _MiniStat extends StatelessWidget {
                 child: Text(
                   value,
                   maxLines: 1,
-                  style: AppTextStyles.bs500(context).copyWith(
+                  style: AppTextStyles.bs100(context).copyWith(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w900,
                     height: 1,
@@ -310,7 +310,7 @@ class _MiniStat extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bs100(context).copyWith(
+                style: AppTextStyles.sm300(context).copyWith(
                   color: isSelected ? color : colors.textSecondary,
                   fontWeight: FontWeight.w900,
                   height: 1,

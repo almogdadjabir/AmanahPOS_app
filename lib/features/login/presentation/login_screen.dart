@@ -53,12 +53,10 @@ class _LoginScreenState extends State<LoginScreen> {
           prev.status != curr.status || prev.loginStatus != curr.loginStatus,
       listener: (context, state) => _handleLoginState(context, state),
       builder: (context, state) {
-        // ── Desktop: web-style centered card layout ──────────────────────────────
         if (context.isDesktop) {
           return const _DesktopLoginBody();
         }
 
-        // ── Mobile: existing Scaffold unchanged ──────────────────────────────────
         final isOtp = state.loginStatus == LoginStatus.otp;
 
         return Scaffold(

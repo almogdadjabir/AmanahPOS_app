@@ -244,7 +244,7 @@ class _LoginFormState extends State<LoginForm> {
 
                     Text(
                       tr.loginWelcomeTitle,
-                      style: AppTextStyles.lg200(context,
+                      style: AppTextStyles.bs400(context,
                           weight: AppTextStyles.extraBold,
                           color: colors.textPrimary),
                     )
@@ -256,7 +256,7 @@ class _LoginFormState extends State<LoginForm> {
 
                     Text(
                       tr.loginSubtitle,
-                      style: AppTextStyles.bs400(context,
+                      style: AppTextStyles.bs200(context,
                           color: colors.textSecondary),
                     )
                         .mAnimate()
@@ -267,7 +267,7 @@ class _LoginFormState extends State<LoginForm> {
 
                     Text(
                       tr.loginMobileLabel,
-                      style: AppTextStyles.bs600(context,
+                      style: AppTextStyles.bs100(context,
                           weight: AppTextStyles.semibold,
                           color: colors.textSecondary),
                     ),
@@ -341,7 +341,7 @@ class _LoginFormState extends State<LoginForm> {
 
                   Text.rich(
                     TextSpan(
-                      style: AppTextStyles.bs300(context,
+                      style: AppTextStyles.sm200(context,
                           color: colors.textHint),
                       children: [
                         TextSpan(text: tr.loginTermsPrefix),

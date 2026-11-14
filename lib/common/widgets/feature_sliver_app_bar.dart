@@ -30,7 +30,7 @@ class FeatureSliverAppBar extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       title: Text(
         title,
-        style: AppTextStyles.bs600(context).copyWith(
+        style: AppTextStyles.bs100(context).copyWith(
           fontWeight: FontWeight.w900,
           color: colors.textPrimary,
         ),
@@ -40,10 +40,10 @@ class FeatureSliverAppBar extends StatelessWidget {
           TextButton.icon(
             onPressed: onAction,
             icon: Icon(SolarIconsOutline.addCircle,
-                size: 18, color: colors.primary),
+                size: 16, color: colors.primary),
             label: Text(
               actionLabel!,
-              style: AppTextStyles.bs300(context).copyWith(
+              style: AppTextStyles.sm200(context).copyWith(
                 fontWeight: FontWeight.w800,
                 color: colors.primary,
               ),

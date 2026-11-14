@@ -33,7 +33,7 @@ class ProductsAppBar extends StatelessWidget {
                     ? SolarIconsOutline.list
                     : SolarIconsOutline.widget,
                 color: context.appColors.textPrimary,
-                size: 22,
+                size: 16,
               ),
             );
           },

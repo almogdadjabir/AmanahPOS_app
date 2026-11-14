@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="285.91dp"
+    android:height="296.44dp"
+    android:viewportWidth="285.91"
+    android:viewportHeight="296.44">
+  <path
+      android:pathData="M133.64,80.82C142.79,79.61 166.55,81.46 175.11,83.64C180.64,85.01 185.95,87.18 190.86,90.08C205.39,98.84 216.3,125.08 224.65,140.25L247.44,181.05C251.94,189.23 258.48,198.64 260.46,207.76C261.91,214.41 238.59,254.44 233.98,261.66C230.8,266.62 227.57,270.22 221.48,271.39C216.03,272.44 211.53,270.87 207.08,267.83C200.29,261.4 187.5,233.63 182.41,224.03C169.39,200.04 157.31,175.43 144.12,151.54C128.88,123.91 119.23,83.02 78.85,103.39C96.53,84.9 109.23,82.49 133.64,80.82Z"
+      android:fillColor="#0A574E"/>
+  <path
+      android:pathData="M92.81,109.8C117.26,109.34 141.12,141.59 135.8,164.4C134.38,170.49 122.18,190.73 118.65,197.29L96.39,237.99C92.03,246.07 88.04,254.28 83.46,262.25C79.74,268.72 76.5,270.26 69.45,272.09C59.82,272.14 55.25,269.43 50.43,261.01C42.01,246.34 33.27,231.78 25.7,216.64C24,213.24 24,207.65 25.4,204.08C28.4,197.18 32.27,190.54 35.89,183.94L52.46,153.69C56.46,146.35 60.74,138.43 64.45,130.95C71.03,117.66 77.47,111.07 92.81,109.8Z"
+      android:fillColor="#04413C"/>
+  <path
+      android:pathData="M138.77,25.87C149.3,24 159.36,30.96 161.33,41.46C163.3,51.97 156.45,62.1 145.96,64.17C135.33,66.27 125.03,59.3 123.03,48.65C121.04,38 128.11,27.77 138.77,25.87Z"
+      android:fillColor="#0A574E"/>
+</vector>

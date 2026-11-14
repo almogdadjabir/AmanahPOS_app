@@ -62,23 +62,11 @@ class WorkspaceActionCard extends StatelessWidget {
                     )
                   : Padding(
                       padding: const EdgeInsets.all(AppDims.s3),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _CardTextContent(
-                              title: title,
-                              subtitle: subtitle,
-                              value: value,
-                              badgeText: badgeText,
-                            ),
-                          ),
-                          const SizedBox(width: AppDims.s3),
-                          _IconBox(
-                            icon: icon,
-                            isDisabled: isDisabled,
-                            size: 54,
-                          ),
-                        ],
+                      child: _CardTextContent(
+                        title: title,
+                        subtitle: subtitle,
+                        value: value,
+                        badgeText: badgeText,
                       ),
                     ),
             ),
@@ -198,7 +186,7 @@ class _CardTextContent extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs500(context).copyWith(
+          style: AppTextStyles.bs100(context).copyWith(
             color: colors.textPrimary,
             fontWeight: FontWeight.w900,
             height: 1,
@@ -210,7 +198,7 @@ class _CardTextContent extends StatelessWidget {
             if (value != null) ...[
               Text(
                 value!,
-                style: AppTextStyles.bs300(context).copyWith(
+                style: AppTextStyles.sm200(context).copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.w900,
                   height: 1,
@@ -223,7 +211,7 @@ class _CardTextContent extends StatelessWidget {
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs100(context).copyWith(
+                style: AppTextStyles.sm200(context).copyWith(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.05,
@@ -237,7 +225,7 @@ class _CardTextContent extends StatelessWidget {
                   badgeText!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs100(context).copyWith(
+                  style: AppTextStyles.sm200(context).copyWith(
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2.4,
