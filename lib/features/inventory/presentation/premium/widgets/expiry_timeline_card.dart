@@ -4,7 +4,7 @@ import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ExpiryTimelineCard extends StatelessWidget {
   final List<ExpiryReportItem> items;
@@ -39,7 +39,7 @@ class ExpiryTimelineCard extends StatelessWidget {
         children: [
           CardHeader(
             title: context.tr.invExpiryTimelineTitle,
-            icon: SolarIconsOutline.calendar,
+            icon: PhosphorIconsRegular.calendarBlank,
             accent: Color(0xFFFCA5A5),
           ),
           const SizedBox(height: AppDims.s3),

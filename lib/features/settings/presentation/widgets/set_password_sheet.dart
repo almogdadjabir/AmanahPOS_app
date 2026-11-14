@@ -2,13 +2,14 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/settings/data/models/set_password_request_dto.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/primary_sheet_button.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/field_label.dart';
+import 'package:amana_pos/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 
 class SetPasswordSheet extends StatefulWidget {
@@ -58,7 +59,7 @@ class _SetPasswordSheetState extends State<SetPasswordSheet> {
     return AppBottomSheet(
       title: tr.setPasswordTitle,
       subtitle: tr.setPasswordSubtitle,
-      icon: Icons.lock_outline_rounded,
+      icon: PhosphorIconsRegular.lock,
       child: Form(
         key: _formKey,
         child: Column(
@@ -114,7 +115,7 @@ class _SetPasswordSheetState extends State<SetPasswordSheet> {
               buildWhen: (prev, curr) =>
               prev.passwordStatus != curr.passwordStatus,
               builder: (context, state) {
-                return PrimarySheetButton(
+                return AppButton.wide(
                   label: tr.updatePassword,
                   isLoading:
                   state.passwordStatus == SettingsSubmitStatus.loading,
@@ -175,7 +176,7 @@ class _PasswordField extends StatelessWidget {
           color: colors.textHint,
         ),
         prefixIcon: Icon(
-          Icons.lock_outline_rounded,
+          PhosphorIconsRegular.lock,
           size: 18,
           color: colors.textHint,
         ),
@@ -183,8 +184,8 @@ class _PasswordField extends StatelessWidget {
           onPressed: onToggle,
           icon: Icon(
             obscureText
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
+                ? PhosphorIconsRegular.eyeSlash
+                : PhosphorIconsRegular.eye,
             size: 18,
             color: colors.textHint,
           ),

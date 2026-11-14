@@ -45,8 +45,9 @@ class PosRemoteDataSource {
         receiptNumber: saleData['receipt_number']?.toString(),
         taxAmount: saleData['tax_amount']?.toString(),
         taxRate: saleData['tax_rate']?.toString(),
-        taxInclusive:
-            saleData['tax_inclusive'] is bool ? saleData['tax_inclusive'] as bool : null,
+        taxInclusive: saleData['tax_inclusive'] is bool
+            ? saleData['tax_inclusive'] as bool
+            : null,
         netAmount: saleData['net_amount']?.toString(),
       );
     } on DioException catch (e) {
@@ -62,18 +63,18 @@ class PosRemoteDataSource {
   }
 
   Future<List<OfflineSaleSyncResult>> syncSales(
-      List<Map<String, dynamic>> sales,
-      ) async {
-    final response =
-    await _requestHandler.handlePostRequest<OfflineSaleSyncResponseDto>(
-      'api/v1/sales/offline-sync/',
-      OfflineSaleSyncResponseDto.fromJson,
-      data: {'sales': sales},
-    );
+    List<Map<String, dynamic>> sales,
+  ) async {
+    final response = await _requestHandler
+        .handlePostRequest<OfflineSaleSyncResponseDto>(
+          'api/v1/sales/offline-sync/',
+          OfflineSaleSyncResponseDto.fromJson,
+          data: {'sales': sales},
+        );
 
     return response.match(
-          (error) => throw Exception(error ?? 'Failed to sync offline sales'),
-          (data) => data.results,
+      (error) => throw Exception(error ?? 'Failed to sync offline sales'),
+      (data) => data.results,
     );
   }
 
@@ -96,14 +97,16 @@ class PosRemoteDataSource {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         return PosSubmitException(
-          message: _extractReadableMessage(exception.response?.data) ??
+          message:
+              _extractReadableMessage(exception.response?.data) ??
               'Connection timeout. Sale saved offline.',
           type: PosSubmitFailureType.timeout,
         );
 
       case DioExceptionType.connectionError:
         return PosSubmitException(
-          message: _extractReadableMessage(exception.response?.data) ??
+          message:
+              _extractReadableMessage(exception.response?.data) ??
               'No internet connection. Sale saved offline.',
           type: PosSubmitFailureType.network,
         );
@@ -238,12 +241,7 @@ class PosRemoteDataSource {
       if (message != null && message.isNotEmpty) return message;
     }
 
-    const fields = [
-      'readable_message',
-      'detail',
-      'title',
-      'message',
-    ];
+    const fields = ['readable_message', 'detail', 'title', 'message'];
 
     for (final field in fields) {
       final value = data[field]?.toString().trim();

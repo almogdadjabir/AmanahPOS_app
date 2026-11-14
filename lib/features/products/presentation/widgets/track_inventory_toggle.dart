@@ -2,6 +2,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class TrackInventoryToggle extends StatelessWidget {
   final bool value;
@@ -26,7 +27,7 @@ class TrackInventoryToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.inventory_outlined, size: 18, color: colors.textHint),
+          Icon(PhosphorIconsRegular.package, size: 18, color: colors.textHint),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: Column(

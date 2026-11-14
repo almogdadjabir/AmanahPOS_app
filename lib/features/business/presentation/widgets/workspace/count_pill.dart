@@ -6,7 +6,12 @@ class CountPill extends StatelessWidget {
   final IconData icon;
   final int count;
   final AppThemeColors colors;
-  const CountPill({super.key, required this.icon, required this.count, required this.colors});
+  const CountPill({
+    super.key,
+    required this.icon,
+    required this.count,
+    required this.colors,
+  });
 
   @override
   Widget build(BuildContext context) {

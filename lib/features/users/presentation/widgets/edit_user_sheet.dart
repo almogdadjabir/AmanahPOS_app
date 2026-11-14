@@ -14,7 +14,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 const _kEditRoles = ['cashier', 'manager'];
 
@@ -24,7 +24,6 @@ void showEditUserSheet(BuildContext context, {required UserData user}) {
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: userBloc),
@@ -225,7 +224,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _InfoBanner(
-                icon: SolarIconsOutline.penNewSquare,
+                icon: PhosphorIconsRegular.pencilSimpleLine,
                 title: tr.editStaffAccount,
                 message: tr.editStaffAccountMessage,
                 color: context.appColors.primary,
@@ -241,7 +240,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
               AppFormField(
                 controller: _nameCtrl,
                 hint: tr.fullNameHint,
-                prefixIcon: SolarIconsOutline.user,
+                prefixIcon: PhosphorIconsRegular.user,
                 textInputAction: TextInputAction.next,
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -293,7 +292,7 @@ class _EditUserSheetState extends State<_EditUserSheet> {
 
               if (!_isCashier) ...[
                 _InfoBanner(
-                  icon: SolarIconsOutline.shieldUser,
+                  icon: PhosphorIconsRegular.userGear,
                   title: tr.managerAccess,
                   message: tr.managerAccessMessage,
                   color: const Color(0xFF0EA5E9),
@@ -359,7 +358,7 @@ class _ShopDropdown extends StatelessWidget {
               value: selectedShopId,
               isExpanded: true,
               icon: Icon(
-                SolarIconsOutline.altArrowDown,
+                PhosphorIconsRegular.caretDown,
                 color: colors.textHint,
                 size: 19,
               ),
@@ -373,7 +372,7 @@ class _ShopDropdown extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        SolarIconsOutline.shop,
+                        PhosphorIconsRegular.storefront,
                         size: 18,
                         color: colors.textHint,
                       ),
@@ -399,7 +398,7 @@ class _ShopDropdown extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(
-                          SolarIconsOutline.shop,
+                          PhosphorIconsRegular.storefront,
                           size: 18,
                           color: colors.primary,
                         ),
@@ -443,7 +442,7 @@ class _ShopAssignmentHint extends StatelessWidget {
   Widget build(BuildContext context) {
     if (selectedShopId == null) {
       return _InfoBanner(
-        icon: SolarIconsOutline.dangerTriangle,
+        icon: PhosphorIconsRegular.warning,
         title: context.tr.unassignedCashier,
         message: context.tr.unassignedCashierMessage,
         color: const Color(0xFFF59E0B),
@@ -453,7 +452,7 @@ class _ShopAssignmentHint extends StatelessWidget {
     final shopName = _findShopName(context, selectedShopId, shops);
 
     return _InfoBanner(
-      icon: SolarIconsOutline.checkCircle,
+      icon: PhosphorIconsRegular.checkCircle,
       title: context.tr.shopAssigned,
       message: context.tr.cashierAssignedToShopDetailed(shopName),
       color: const Color(0xFF16A34A),

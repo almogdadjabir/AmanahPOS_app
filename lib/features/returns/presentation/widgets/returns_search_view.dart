@@ -13,7 +13,7 @@ import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ReturnsSearchView extends StatelessWidget {
   const ReturnsSearchView({
@@ -236,7 +236,7 @@ class _ReceiptIconBadge extends StatelessWidget {
             ],
           ),
           child: const Icon(
-            SolarIconsOutline.undoLeft,
+            PhosphorIconsRegular.arrowUUpLeft,
             size: 28,
             color: AppColors.danger,
           ),
@@ -254,7 +254,7 @@ class _ReceiptIconBadge extends StatelessWidget {
               border: Border.all(color: Colors.white, width: 2),
             ),
             child: const Icon(
-              SolarIconsOutline.magnifier,
+              PhosphorIconsRegular.magnifyingGlass,
               size: 13,
               color: Colors.white,
             ),
@@ -415,7 +415,7 @@ class _ErrorState extends StatelessWidget {
                 border: Border.all(
                     color: AppColors.danger.withValues(alpha: 0.2)),
               ),
-              child: const Icon(SolarIconsOutline.dangerTriangle,
+              child: const Icon(PhosphorIconsRegular.warning,
                   size: 26, color: AppColors.danger),
             ),
             const SizedBox(height: AppDims.s3),
@@ -468,7 +468,7 @@ class _EmptyResultsState extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDims.rLg),
                 border: Border.all(color: colors.border),
               ),
-              child: Icon(SolarIconsOutline.magnifier,
+              child: Icon(PhosphorIconsRegular.magnifyingGlass,
                   size: 26, color: colors.textHint),
             ),
             const SizedBox(height: AppDims.s3),
@@ -613,8 +613,8 @@ class _SaleResultTile extends StatelessWidget {
                       ),
                       child: Icon(
                         canReturn
-                            ? SolarIconsOutline.undoLeft
-                            : SolarIconsOutline.forbiddenCircle,
+                            ? PhosphorIconsRegular.arrowUUpLeft
+                            : PhosphorIconsRegular.prohibit,
                         size: 18,
                         color: canReturn
                             ? AppColors.danger
@@ -698,7 +698,7 @@ class _SaleResultTile extends StatelessWidget {
                         if (canReturn) ...[
                           const SizedBox(height: 4),
                           DirectionalIcon(
-                            icon: SolarIconsOutline.altArrowRight,
+                            icon: PhosphorIconsRegular.caretRight,
                             size: 14,
                             color: AppColors.danger.withValues(alpha: 0.5),
                           ),

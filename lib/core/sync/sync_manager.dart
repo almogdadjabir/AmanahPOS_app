@@ -11,10 +11,10 @@ class SyncManager {
     required OfflineInboundQueue inboundQueue,
     required PosRemoteDataSource posRemoteDataSource,
     required RequestHandler requestHandler,
-  })  : _salesQueue = salesQueue,
-        _inboundQueue = inboundQueue,
-        _posRemoteDataSource = posRemoteDataSource,
-        _requestHandler = requestHandler;
+  }) : _salesQueue = salesQueue,
+       _inboundQueue = inboundQueue,
+       _posRemoteDataSource = posRemoteDataSource,
+       _requestHandler = requestHandler;
 
   final OfflineSalesQueue _salesQueue;
   final OfflineInboundQueue _inboundQueue;
@@ -124,9 +124,7 @@ class SyncManager {
 
         final response = await _requestHandler.handlePostRequest(
           'api/v1/inventory/inbound/',
-              (data) => InboundResponseDto.fromJson(
-            data as Map<String, dynamic>,
-          ),
+          (data) => InboundResponseDto.fromJson(data as Map<String, dynamic>),
           data: txn.request.toJson(),
         );
 

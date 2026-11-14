@@ -1,22 +1,28 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
-import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/devices/domain/entities/receipt_data.dart';
 import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
 import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
 import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
-import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/app_amount.dart';
+import 'package:amana_pos/widgets/app_button.dart';
+import 'package:amana_pos/widgets/app_group.dart';
+import 'package:amana_pos/widgets/app_sheet.dart';
+import 'package:amana_pos/widgets/pressable.dart';
+import 'package:amana_pos/common/motion/motion.dart';
+import 'dart:ui' show PathMetric;
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SaleReceiptSheet extends StatelessWidget {
   final String? receiptNumber;
@@ -63,9 +69,8 @@ class SaleReceiptSheet extends StatelessWidget {
     String taxRateLabel = '0',
     bool taxInclusive = false,
   }) {
-    showAdaptivePanel(
+    showAppSheet<void>(
       context,
-      desktopWidth: 360,
       builder: (_) => SaleReceiptSheet(
         receiptNumber: receiptNumber,
         clientSaleId: clientSaleId,
@@ -83,25 +88,37 @@ class SaleReceiptSheet extends StatelessWidget {
     );
   }
 
-  String get _displayRef =>
-      receiptNumber?.isNotEmpty == true
-          ? receiptNumber!
-          : 'TMP-${clientSaleId.substring(0, 8).toUpperCase()}';
+  String get _displayRef => receiptNumber?.isNotEmpty == true
+      ? receiptNumber!
+      : 'TMP-${clientSaleId.substring(0, 8).toUpperCase()}';
 
   String get _paymentLabel => switch (paymentMethod) {
-        'cash' => 'Cash',
-        'bankak' => 'Bankak',
-        'card' => 'Card',
-        'bank_transfer' => 'Bank Transfer',
-        'mobile_wallet' => 'Mobile Wallet',
-        _ => paymentMethod,
-      };
+    'cash' => 'Cash',
+    'bankak' => 'Bankak',
+    'card' => 'Card',
+    'bank_transfer' => 'Bank Transfer',
+    'mobile_wallet' => 'Mobile Wallet',
+    _ => paymentMethod,
+  };
 
   String _buildReceiptText() {
     final now = DateTime.now();
     final pad = (int n) => n.toString().padLeft(2, '0');
-    final months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final dateStr =
         '${now.day} ${months[now.month]} ${now.year} ${pad(now.hour)}:${pad(now.minute)}';
 
@@ -113,16 +130,22 @@ class SaleReceiptSheet extends StatelessWidget {
     sb.writeln('─────────────────────────');
     for (final item in items) {
       final name = (item.product.name ?? 'Item').padRight(16).substring(0, 16);
-      sb.writeln('$name x${item.quantity}  ${AppFormat.moneyWithUnit(item.lineTotal)}');
+      sb.writeln(
+        '$name x${item.quantity}  ${AppFormat.moneyWithUnit(item.lineTotal)}',
+      );
     }
     sb.writeln('─────────────────────────');
     if (taxAmount > 0 && !taxInclusive) {
       sb.writeln('Subtotal: ${AppFormat.moneyWithUnit(subtotal)}');
-      sb.writeln('Tax ($taxName $taxRateLabel%): ${AppFormat.moneyWithUnit(taxAmount)}');
+      sb.writeln(
+        'Tax ($taxName $taxRateLabel%): ${AppFormat.moneyWithUnit(taxAmount)}',
+      );
     }
     sb.writeln('TOTAL:   ${AppFormat.moneyWithUnit(total)}');
     if (taxAmount > 0 && taxInclusive) {
-      sb.writeln('Incl. $taxName $taxRateLabel%: ${AppFormat.moneyWithUnit(taxAmount)}');
+      sb.writeln(
+        'Incl. $taxName $taxRateLabel%: ${AppFormat.moneyWithUnit(taxAmount)}',
+      );
     }
     sb.writeln('Payment: $_paymentLabel');
     sb.writeln('─────────────────────────');
@@ -136,25 +159,30 @@ class SaleReceiptSheet extends StatelessWidget {
   ReceiptData _buildReceiptData() {
     final summary = <ReceiptRow>[];
     if (taxAmount > 0 && !taxInclusive) {
-      summary.add(ReceiptRow(
-        label: 'Subtotal',
-        value: AppFormat.moneyWithUnit(subtotal),
-      ));
-      summary.add(ReceiptRow(
-        label: 'Tax ($taxName $taxRateLabel%)',
-        value: AppFormat.moneyWithUnit(taxAmount),
-      ));
+      summary.add(
+        ReceiptRow(label: 'Subtotal', value: AppFormat.moneyWithUnit(subtotal)),
+      );
+      summary.add(
+        ReceiptRow(
+          label: 'Tax ($taxName $taxRateLabel%)',
+          value: AppFormat.moneyWithUnit(taxAmount),
+        ),
+      );
     }
-    summary.add(ReceiptRow(
-      label: 'TOTAL',
-      value: AppFormat.moneyWithUnit(total),
-      emphasized: true,
-    ));
+    summary.add(
+      ReceiptRow(
+        label: 'TOTAL',
+        value: AppFormat.moneyWithUnit(total),
+        emphasized: true,
+      ),
+    );
     if (taxAmount > 0 && taxInclusive) {
-      summary.add(ReceiptRow(
-        label: 'Incl. $taxName $taxRateLabel%',
-        value: AppFormat.moneyWithUnit(taxAmount),
-      ));
+      summary.add(
+        ReceiptRow(
+          label: 'Incl. $taxName $taxRateLabel%',
+          value: AppFormat.moneyWithUnit(taxAmount),
+        ),
+      );
     }
 
     return ReceiptData(
@@ -202,366 +230,118 @@ class SaleReceiptSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+    final tr = context.tr;
+    final tone = isOffline ? colors.warning : colors.success;
+    final toneBg = isOffline
+        ? colors.warningContainer
+        : colors.successContainer;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+    return AppSheet(
+      title: isOffline ? tr.savedOffline : tr.saleComplete,
+      maxHeightFactor: 0.92,
+      keyboardSafe: false,
+      footer: AppButton.wide(
+        label: tr.newSale,
+        onPressed: () => Navigator.of(context).pop(),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: AppDims.s3),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: colors.border,
-              borderRadius: BorderRadius.circular(99),
+          const SizedBox(height: AppDims.s2),
+          Center(
+            child: _SuccessMark(
+              offline: isOffline,
+              color: tone,
+              background: toneBg,
             ),
           ),
           const SizedBox(height: AppDims.s4),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                  AppDims.s4, 0, AppDims.s4, AppDims.s6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: isOffline
-                              ? AppColors.warningLight
-                              : AppColors.successLight,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          isOffline
-                              ? Icons.wifi_off_rounded
-                              : Icons.check_circle_rounded,
-                          color: isOffline ? AppColors.warning : AppColors.success,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: AppDims.s3),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isOffline ? context.tr.savedOffline : context.tr.saleComplete,
-                              style: AppTextStyles.bs500(context).copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: colors.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              isOffline
-                                  ? 'Will sync when internet is restored'
-                                  : 'Stock updated · Ready to share',
-                              style: AppTextStyles.bs100(context).copyWith(
-                                color: colors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDims.s4),
-
-                  // Offline banner
-                  if (isOffline) ...[
-                    Container(
-                      padding: const EdgeInsets.all(AppDims.s3),
-                      decoration: BoxDecoration(
-                        color: AppColors.warningLight,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                            color: AppColors.warning.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.info_outline_rounded,
-                              size: 18, color: AppColors.warning),
-                          const SizedBox(width: AppDims.s2),
-                          Expanded(
-                            child: Text(
-                              'Real receipt number will be assigned once synced. '
-                              'You can share this temporary reference now.',
-                              style: AppTextStyles.bs100(context).copyWith(
-                                color: colors.textPrimary,
-                                height: 1.45,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppDims.s4),
-                  ],
-
-                  // Receipt number card
-                  GestureDetector(
-                    onTap: () => _copy(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppDims.s4, vertical: AppDims.s4),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceSoft,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: colors.border),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            receiptNumber?.isNotEmpty == true
-                                ? 'Receipt number'
-                                : 'Temporary reference',
-                            style: AppTextStyles.sm100(context).copyWith(
-                              color: colors.textHint,
-                              letterSpacing: 1.5,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: AppDims.s2),
-                          Text(
-                            _displayRef,
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: AppDims.s2),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.copy_rounded,
-                                  size: 13, color: colors.textHint),
-                              const SizedBox(width: 4),
-                              Text(
-                                context.tr.tapToCopy,
-                                style: AppTextStyles.sm100(context)
-                                    .copyWith(color: colors.textHint),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppDims.s4),
-
-                  // Items list
-                  Container(
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: colors.border),
-                    ),
-                    child: Column(
-                      children: [
-                        for (int i = 0; i < items.length; i++) ...[
-                          if (i > 0)
-                            Divider(
-                                height: 1,
-                                color: colors.border.withValues(alpha: 0.6)),
-                          Builder(builder: (context) {
-                            final itemName = items[i].product.name ?? 'Item';
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppDims.s4,
-                                  vertical: AppDims.s3),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      itemName,
-                                      textDirection: itemName.contentDirection,
-                                      style: AppTextStyles.bs200(context),
-                                    ),
-                                  ),
-                                  Text(
-                                    '×${items[i].quantity}',
-                                    style: AppTextStyles.bs100(context).copyWith(
-                                        color: colors.textSecondary),
-                                  ),
-                                  const SizedBox(width: AppDims.s3),
-                                  Text(
-                                    AppFormat.moneyWithUnit(items[i].lineTotal),
-                                    style: AppTextStyles.bs200(context).copyWith(
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppDims.s3),
-
-                  // Tax breakdown (exclusive mode)
-                  if (taxAmount > 0 && !taxInclusive) ...[
-                    Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: AppDims.s1),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(context.tr.subtotal,
-                                  style: AppTextStyles.bs100(context).copyWith(
-                                      color: colors.textSecondary)),
-                              Text(AppFormat.moneyWithUnit(subtotal),
-                                  style: AppTextStyles.bs200(context).copyWith(
-                                      fontWeight: FontWeight.w700)),
-                            ],
-                          ),
-                          const SizedBox(height: AppDims.s2),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                  context.tr.taxWithRate(
-                                      taxName, taxRateLabel),
-                                  style: AppTextStyles.bs100(context).copyWith(
-                                      color: colors.textSecondary)),
-                              Text(AppFormat.moneyWithUnit(taxAmount),
-                                  style: AppTextStyles.bs200(context).copyWith(
-                                      fontWeight: FontWeight.w700)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppDims.s3),
-                  ],
-                  // Total row
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppDims.s1),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                taxAmount > 0 && taxInclusive
-                                    ? context.tr.totalInclTax(
-                                        taxName, taxRateLabel)
-                                    : context.tr.totalPaid,
-                                style: AppTextStyles.bs100(context).copyWith(
-                                    color: colors.textSecondary)),
-                            Text(_paymentLabel,
-                                style: AppTextStyles.sm100(context).copyWith(
-                                    color: colors.textHint)),
-                          ],
-                        ),
-                        Text(
-                          AppFormat.moneyWithUnit(total),
-                          style: AppTextStyles.bs600(context).copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Tax included note (inclusive mode)
-                  if (taxAmount > 0 && taxInclusive) ...[
-                    const SizedBox(height: AppDims.s2),
-                    Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: AppDims.s1),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                              context.tr.taxIncluded,
-                              style: AppTextStyles.sm100(context)
-                                  .copyWith(color: colors.textHint)),
-                          Text(AppFormat.moneyWithUnit(taxAmount),
-                              style: AppTextStyles.bs100(context).copyWith(
-                                  color: colors.textSecondary,
-                                  fontWeight: FontWeight.w700)),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: AppDims.s6),
-
-                  // Print on the saved Bluetooth receipt printer
-                  _PrintReceiptButton(buildReceipt: _buildReceiptData),
-                  const SizedBox(height: AppDims.s2),
-
-                  // WhatsApp share
-                  FilledButton.icon(
-                    onPressed: _shareWhatsApp,
-                    icon: const Icon(Icons.chat_rounded, size: 18),
-                    label: Text(context.tr.shareViaWhatsApp),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppDims.s2),
-
-                  // General share
-                  OutlinedButton.icon(
-                    onPressed: _shareGeneral,
-                    icon: Icon(Icons.share_rounded,
-                        size: 18, color: colors.textPrimary),
-                    label: Text(context.tr.shareVia,
-                        style: TextStyle(color: colors.textPrimary)),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: colors.border),
-                      elevation: 0,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppDims.s2),
-
-                  // Done / New sale
-                  FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.surfaceSoft,
-                      foregroundColor: colors.textPrimary,
-                      elevation: 0,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    child: Text(context.tr.newSale),
-                  ),
-                ],
+          Text(
+            taxAmount > 0 && taxInclusive
+                ? tr.totalInclTax(taxName, taxRateLabel)
+                : tr.totalPaid,
+            textAlign: TextAlign.center,
+            style: text.bodyMedium!.copyWith(color: colors.textHint),
+          ),
+          const SizedBox(height: AppDims.s1),
+          Center(
+            child: _CountUpAmount(
+              value: total,
+              style: text.displaySmall!.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 40,
               ),
             ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _paymentLabel,
+            textAlign: TextAlign.center,
+            style: text.bodySmall!.copyWith(color: colors.textHint),
+          ),
+          if (isOffline) ...[
+            const SizedBox(height: AppDims.s4),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.warningContainer,
+                borderRadius: AppDims.borderMd,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(AppDims.s3),
+                child: Text(
+                  'Real receipt number will be assigned once synced. '
+                  'You can share this temporary reference now.',
+                  style: text.bodySmall!.copyWith(
+                    color: colors.textPrimary,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: AppDims.s5),
+          _ReferenceTile(
+            label: receiptNumber?.isNotEmpty == true
+                ? 'Receipt number'
+                : 'Temporary reference',
+            reference: _displayRef,
+            hint: tr.tapToCopy,
+            onTap: () => _copy(context),
+          ),
+          const SizedBox(height: AppDims.s4),
+          _ReceiptLines(items: items),
+          const SizedBox(height: AppDims.s3),
+          if (taxAmount > 0 && !taxInclusive) ...[
+            _SummaryRow(label: tr.subtotal, value: AppFormat.money(subtotal)),
+            _SummaryRow(
+              label: tr.taxWithRate(taxName, taxRateLabel),
+              value: AppFormat.money(taxAmount),
+            ),
+          ],
+          if (taxAmount > 0 && taxInclusive)
+            _SummaryRow(
+              label: tr.taxIncluded,
+              value: AppFormat.money(taxAmount),
+            ),
+          const SizedBox(height: AppDims.s5),
+          AppGroup(
+            children: [
+              _PrintReceiptRow(buildReceipt: _buildReceiptData),
+              AppGroupRow(
+                title: tr.shareViaWhatsApp,
+                icon: PhosphorIconsRegular.chatCircle,
+                tint: AppTint.success,
+                onTap: _shareWhatsApp,
+              ),
+              AppGroupRow(
+                title: tr.shareVia,
+                icon: PhosphorIconsRegular.export,
+                tint: AppTint.neutral,
+                onTap: _shareGeneral,
+              ),
+            ],
           ),
         ],
       ),
@@ -569,13 +349,258 @@ class SaleReceiptSheet extends StatelessWidget {
   }
 }
 
-/// Prints the receipt on the saved Bluetooth printer, reflecting the live
-/// [PrinterBloc] state: set-up shortcut when no printer is saved, progress
-/// while connecting/printing, and snackbars on success/failure.
-class _PrintReceiptButton extends StatelessWidget {
+class _SuccessMark extends StatelessWidget {
+  const _SuccessMark({
+    required this.offline,
+    required this.color,
+    required this.background,
+  });
+
+  final bool offline;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+      child: SizedBox(
+        width: 88,
+        height: 88,
+        child: offline
+            ? Icon(PhosphorIconsRegular.wifiSlash, size: 40, color: color)
+            : TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: Motion.duration(const Duration(milliseconds: 520)),
+                curve: AppDims.ease,
+                builder: (context, progress, _) => CustomPaint(
+                  painter: _CheckPainter(progress: progress, color: color),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class _CheckPainter extends CustomPainter {
+  _CheckPainter({required this.progress, required this.color});
+
+  final double progress;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width * 0.29, size.height * 0.52)
+      ..lineTo(size.width * 0.44, size.height * 0.66)
+      ..lineTo(size.width * 0.71, size.height * 0.36);
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    for (final PathMetric metric in path.computeMetrics()) {
+      canvas.drawPath(metric.extractPath(0, metric.length * progress), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CheckPainter old) =>
+      old.progress != progress || old.color != color;
+}
+
+class _CountUpAmount extends StatelessWidget {
+  const _CountUpAmount({required this.value, required this.style});
+
+  final double value;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value),
+      duration: Motion.duration(AppDims.slow * 2),
+      curve: AppDims.soft,
+      builder: (context, v, _) => AppAmount(
+        value: AppFormat.money(v),
+        unit: AppFormat.currency,
+        style: style,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class _ReferenceTile extends StatelessWidget {
+  const _ReferenceTile({
+    required this.label,
+    required this.reference,
+    required this.hint,
+    required this.onTap,
+  });
+
+  final String label;
+  final String reference;
+  final String hint;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+
+    return Pressable(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surfaceSoft,
+          borderRadius: AppDims.borderMd,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDims.s4,
+            vertical: AppDims.s3,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: text.bodySmall!.copyWith(color: colors.textHint),
+                    ),
+                    const SizedBox(height: 2),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        reference,
+                        style: text.titleMedium!
+                            .copyWith(color: colors.textPrimary)
+                            .tabular,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(PhosphorIconsRegular.copy, size: 16, color: colors.textHint),
+              const SizedBox(width: 4),
+              Text(
+                hint,
+                style: text.bodySmall!.copyWith(color: colors.textHint),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptLines extends StatelessWidget {
+  const _ReceiptLines({required this.items});
+
+  final List<PosCartItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: AppDims.borderLg,
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0)
+              Divider(height: 0.5, thickness: 0.5, color: colors.border),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDims.s4,
+                vertical: AppDims.s3,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      items[i].product.name ?? 'Item',
+                      textDirection:
+                          (items[i].product.name ?? 'Item').contentDirection,
+                      style: text.bodyLarge!.copyWith(
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '×${items[i].quantity}',
+                    style: text.bodyMedium!
+                        .copyWith(color: colors.textSecondary)
+                        .tabular,
+                  ),
+                  const SizedBox(width: AppDims.s3),
+                  AppAmount(
+                    value: AppFormat.money(items[i].lineTotal),
+                    style: text.bodyLarge!.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDims.s1, vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: text.bodyMedium!.copyWith(color: colors.textSecondary),
+            ),
+          ),
+          AppAmount(
+            value: value,
+            unit: AppFormat.currency,
+            style: text.bodyMedium!.copyWith(color: colors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Print row driven by the live [PrinterBloc] state: set-up shortcut when no
+/// printer is saved, spinner while connecting/printing.
+class _PrintReceiptRow extends StatelessWidget {
   final ReceiptData Function() buildReceipt;
 
-  const _PrintReceiptButton({required this.buildReceipt});
+  const _PrintReceiptRow({required this.buildReceipt});
 
   @override
   Widget build(BuildContext context) {
@@ -603,54 +628,38 @@ class _PrintReceiptButton extends StatelessWidget {
       },
       builder: (context, state) {
         if (!state.hasSavedPrinter) {
-          return OutlinedButton.icon(
-            onPressed: () => Navigator.of(context)
-                .pushNamed(RouteStrings.printerSettingsScreen),
-            icon: Icon(Icons.print_outlined,
-                size: 18, color: colors.textPrimary),
-            label: Text(context.tr.printerSetUp,
-                style: TextStyle(color: colors.textPrimary)),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: colors.border),
-              elevation: 0,
-              minimumSize: const Size.fromHeight(52),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-            ),
+          return AppGroupRow(
+            title: context.tr.printerSetUp,
+            icon: PhosphorIconsRegular.printer,
+            tint: AppTint.neutral,
+            onTap: () => Navigator.of(
+              context,
+            ).pushNamed(RouteStrings.printerSettingsScreen),
           );
         }
 
         final isBusy = state.status.isBusy;
 
-        return FilledButton.icon(
-          onPressed: isBusy
-              ? null
-              : () => context
-                  .read<PrinterBloc>()
-                  .add(PrinterReceiptPrintRequested(buildReceipt())),
-          icon: isBusy
-              ? const SizedBox(
+        return AppGroupRow(
+          title: isBusy ? state.status.label(context) : context.tr.printReceipt,
+          icon: PhosphorIconsRegular.printer,
+          tint: AppTint.brand,
+          showChevron: !isBusy,
+          trailing: isBusy
+              ? SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: colors.primary,
                   ),
                 )
-              : const Icon(Icons.print_rounded, size: 18),
-          label: Text(
-            isBusy ? state.status.label(context) : context.tr.printReceipt,
-          ),
-          style: FilledButton.styleFrom(
-            backgroundColor: colors.primary,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            minimumSize: const Size.fromHeight(52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
+              : null,
+          onTap: isBusy
+              ? null
+              : () => context.read<PrinterBloc>().add(
+                  PrinterReceiptPrintRequested(buildReceipt()),
+                ),
         );
       },
     );

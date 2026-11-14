@@ -5,14 +5,12 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class InfoSection extends StatelessWidget {
   final BusinessData business;
 
-  const InfoSection({
-    super.key,
-    required this.business,
-  });
+  const InfoSection({super.key, required this.business});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +18,7 @@ class InfoSection extends StatelessWidget {
 
     final rows = <_InfoItem>[
       _InfoItem(
-        icon: Icons.circle,
+        icon: PhosphorIconsFill.circle,
         iconColor: isActive
             ? const Color(0xFF22C55E)
             : context.appColors.textHint,
@@ -29,32 +27,32 @@ class InfoSection extends StatelessWidget {
       ),
       if (business.address?.trim().isNotEmpty == true)
         _InfoItem(
-          icon: Icons.location_on_outlined,
+          icon: PhosphorIconsRegular.mapPin,
           label: context.tr.bizAddressLabel,
           value: business.address!.trim(),
         ),
       if (business.phone?.trim().isNotEmpty == true)
         _InfoItem(
-          icon: Icons.phone_outlined,
+          icon: PhosphorIconsRegular.phone,
           label: context.tr.bizPhoneLabel,
           value: business.phone!.trim(),
         ),
       if (business.email?.trim().isNotEmpty == true)
         _InfoItem(
-          icon: Icons.email_outlined,
+          icon: PhosphorIconsRegular.envelopeSimple,
           label: context.tr.bizEmailLabel,
           value: business.email!.trim(),
         ),
       _InfoItem(
-        icon: Icons.percent_rounded,
+        icon: PhosphorIconsRegular.percent,
         label: context.tr.taxLabel,
         value: _taxSummary(context, business),
       ),
       _InfoItem(
-        icon: Icons.store_outlined,
+        icon: PhosphorIconsRegular.storefront,
         label: context.tr.bizShopsLabel,
         value:
-        '${business.shopCount ?? 0} shop${(business.shopCount ?? 0) == 1 ? '' : 's'}',
+            '${business.shopCount ?? 0} shop${(business.shopCount ?? 0) == 1 ? '' : 's'}',
       ),
     ];
 
@@ -103,9 +101,7 @@ class _InfoItem {
 class _InfoRow extends StatelessWidget {
   final _InfoItem item;
 
-  const _InfoRow({
-    required this.item,
-  });
+  const _InfoRow({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +123,7 @@ class _InfoRow extends StatelessWidget {
             ),
             child: Icon(
               item.icon,
-              size: item.icon == Icons.circle ? 10 : 16,
+              size: item.icon == PhosphorIconsFill.circle ? 10 : 16,
               color: item.iconColor ?? colors.textSecondary,
             ),
           ),

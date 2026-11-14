@@ -16,7 +16,7 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:amana_pos/widgets/phone_number_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 const _kAddRoles = ['cashier', 'manager'];
 
@@ -26,7 +26,6 @@ void showAddUserSheet(BuildContext context) {
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: userBloc),
@@ -221,7 +220,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _InfoBanner(
-                icon: SolarIconsOutline.userPlus,
+                icon: PhosphorIconsRegular.userPlus,
                 title: tr.createStaffAccount,
                 message: tr.createStaffAccountMessage,
                 color: context.appColors.primary,
@@ -239,7 +238,7 @@ class _AddUserSheetState extends State<_AddUserSheet> {
                 focusNode: _nameFocus,
                 nextFocus: _phoneFocus,
                 hint: tr.fullNameHint,
-                prefixIcon: SolarIconsOutline.user,
+                prefixIcon: PhosphorIconsRegular.user,
                 textInputAction: TextInputAction.next,
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -366,7 +365,7 @@ class _PhoneError extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          SolarIconsOutline.dangerCircle,
+          PhosphorIconsRegular.warningCircle,
           size: 14,
           color: colors.danger,
         ),
@@ -414,7 +413,7 @@ class _AutoAssignedChip extends StatelessWidget {
         child: Row(
           children: [
             const Icon(
-              SolarIconsOutline.shop,
+              PhosphorIconsRegular.storefront,
               size: 18,
               color: color,
             ),
@@ -476,7 +475,7 @@ class _ShopDropdown extends StatelessWidget {
                 ),
               ),
               icon: Icon(
-                SolarIconsOutline.altArrowDown,
+                PhosphorIconsRegular.caretDown,
                 color: colors.textHint,
                 size: 19,
               ),
@@ -492,7 +491,7 @@ class _ShopDropdown extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        SolarIconsOutline.shop,
+                        PhosphorIconsRegular.storefront,
                         size: 18,
                         color: colors.primary,
                       ),
@@ -535,7 +534,7 @@ class _ShopAssignmentHint extends StatelessWidget {
   Widget build(BuildContext context) {
     if (selectedShopId == null) {
       return _InfoBanner(
-        icon: SolarIconsOutline.dangerTriangle,
+        icon: PhosphorIconsRegular.warning,
         title: context.tr.shopRequired,
         message: context.tr.cashierShopRequiredMessage,
         color: const Color(0xFFF59E0B),
@@ -545,7 +544,7 @@ class _ShopAssignmentHint extends StatelessWidget {
     final shopName = _findShopName(context, selectedShopId, shops);
 
     return _InfoBanner(
-      icon: SolarIconsOutline.checkCircle,
+      icon: PhosphorIconsRegular.checkCircle,
       title: context.tr.shopAssigned,
       message: context.tr.cashierAssignedToShop(shopName),
       color: const Color(0xFF16A34A),

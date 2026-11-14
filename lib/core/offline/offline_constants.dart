@@ -1,4 +1,3 @@
-
 class OfflineConstants {
   static const businessesTable = 'businesses';
   static const shopsTable = 'shops';

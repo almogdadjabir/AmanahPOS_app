@@ -7,7 +7,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/extension.dart';
 import 'package:amana_pos/widgets/back_button.dart' as app;
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class DetailAppBar extends StatelessWidget {
   final BusinessData business;
@@ -23,15 +23,21 @@ class DetailAppBar extends StatelessWidget {
       actions: [
         IconButton(
           onPressed: () => showEditBusinessSheet(context, business),
-          icon: Icon(SolarIconsOutline.pen2,
-              color: context.appColors.textPrimary, size: 20),
+          icon: Icon(
+            PhosphorIconsRegular.pencilSimple,
+            color: context.appColors.textPrimary,
+            size: 20,
+          ),
           tooltip: 'Edit name',
         ),
         if (business.isActive ?? false)
           IconButton(
             onPressed: () => showDeactivateBusinessSheet(context, business),
-            icon: Icon(SolarIconsOutline.forbiddenCircle,
-                color: context.appColors.danger, size: 20),
+            icon: Icon(
+              PhosphorIconsRegular.prohibit,
+              color: context.appColors.danger,
+              size: 20,
+            ),
             tooltip: 'Deactivate',
           ),
       ],
@@ -43,7 +49,8 @@ class DetailAppBar extends StatelessWidget {
             children: [
               const SizedBox(height: 48),
               Container(
-                width: 72, height: 72,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   color: context.appColors.primaryContainer,
                   borderRadius: BorderRadius.circular(AppDims.rMd),
@@ -51,23 +58,27 @@ class DetailAppBar extends StatelessWidget {
                 alignment: Alignment.center,
                 child: business.logo != null
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(AppDims.rMd),
-                  child: Image.network(business.logo!,
-                      width: 72, height: 72, fit: BoxFit.cover),
-                )
+                        borderRadius: BorderRadius.circular(AppDims.rMd),
+                        child: Image.network(
+                          business.logo!,
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                     : Text(
-                  business.name?.initials ?? '?',
-                  style: AppTextStyles.lg100(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                    color: context.appColors.primary,
-                  ),
-                ),
+                        business.name?.initials ?? '?',
+                        style: AppTextStyles.lg100(context).copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: context.appColors.primary,
+                        ),
+                      ),
               ),
               const SizedBox(height: AppDims.s2),
               Text(
                 business.name ?? '—',
                 style: AppTextStyles.bs500(context).copyWith(
-                fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                   color: context.appColors.textPrimary,
                 ),
               ),

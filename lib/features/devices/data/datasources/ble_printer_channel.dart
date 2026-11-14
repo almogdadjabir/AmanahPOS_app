@@ -31,11 +31,7 @@ class BlePrinterChannel {
   BluetoothCharacteristic? _writeCharacteristic;
 
   bool get isPlatformSupported =>
-      !kIsWeb &&
-      (Platform.isAndroid ||
-          Platform.isIOS ||
-          Platform.isMacOS ||
-          Platform.isWindows);
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   Future<bool> isBluetoothEnabled() async {
     if (!isPlatformSupported) return false;

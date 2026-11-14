@@ -7,7 +7,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class StickyHeader extends StatefulWidget {
   const StickyHeader({
@@ -162,7 +162,7 @@ class _SearchBar extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
           prefixIcon: Icon(
-            SolarIconsOutline.magnifier,
+            PhosphorIconsRegular.magnifyingGlass,
             size: 20,
             color: isFocused ? colors.primary : colors.textHint,
           ),
@@ -241,7 +241,7 @@ class _ClearSearchButton extends StatelessWidget {
                 width: 24,
                 height: 24,
                 child: Icon(
-                  SolarIconsOutline.closeCircle,
+                  PhosphorIconsRegular.xCircle,
                   size: 14,
                   color: colors.textSecondary,
                 ),

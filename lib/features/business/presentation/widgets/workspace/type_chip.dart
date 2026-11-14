@@ -17,10 +17,9 @@ class TypeChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTextStyles.bs100(context).copyWith(
-          color: colors.textSecondary,
-          fontWeight: FontWeight.w600,
-        ),
+        style: AppTextStyles.bs100(
+          context,
+        ).copyWith(color: colors.textSecondary, fontWeight: FontWeight.w600),
       ),
     );
   }

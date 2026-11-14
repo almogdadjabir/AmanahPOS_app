@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/back_button.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SyncAppBar extends StatelessWidget {
   final PendingSyncState state;
@@ -67,7 +67,7 @@ class SyncAppBar extends StatelessWidget {
                     color: Colors.white,
                   ),
                 )
-                    : const Icon(SolarIconsOutline.refresh, size: 16),
+                    : const Icon(PhosphorIconsRegular.arrowsClockwise, size: 16),
                 label: Text(
                   s.isSyncing ? 'Syncing…' : 'Sync All',
                   style: AppTextStyles.sm300(context).copyWith(
@@ -134,7 +134,7 @@ class SyncAppBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(SolarIconsOutline.dangerTriangle, size: 16, color: amber),
+          const Icon(PhosphorIconsRegular.warning, size: 16, color: amber),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: Text(

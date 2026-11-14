@@ -1,17 +1,15 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/add_category_sheet.dart';
 import 'package:amana_pos/features/category/presentation/widgets/categories_content.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_error_view.dart';
-import 'package:amana_pos/features/category/presentation/widgets/desktop_categories_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -26,14 +24,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialized || context.isDesktop) return;
+    if (_initialized) return;
     _initialized = true;
     context.read<CategoryBloc>().add(const OnCategoryInitial());
   }
 
   @override
   Widget build(BuildContext context) {
-    if (context.isDesktop) return const DesktopCategoriesView();
 
     final colors = context.appColors;
 
@@ -85,7 +82,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             onPressed: () => showAddCategorySheet(context),
             backgroundColor: colors.primary,
             icon: const Icon(
-              SolarIconsOutline.addCircle,
+              PhosphorIconsRegular.plusCircle,
               color: Colors.white,
             ),
             label: Text(

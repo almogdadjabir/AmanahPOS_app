@@ -9,42 +9,49 @@ abstract class PosEvent extends Equatable {
 class PosSearchChanged extends PosEvent {
   final String query;
   const PosSearchChanged(this.query);
-  @override List<Object?> get props => [query];
+  @override
+  List<Object?> get props => [query];
 }
 
 class PosCategoryChanged extends PosEvent {
   final String? categoryId;
   const PosCategoryChanged(this.categoryId);
-  @override List<Object?> get props => [categoryId];
+  @override
+  List<Object?> get props => [categoryId];
 }
 
 class PosPaymentMethodChanged extends PosEvent {
   final String paymentMethod;
   const PosPaymentMethodChanged(this.paymentMethod);
-  @override List<Object?> get props => [paymentMethod];
+  @override
+  List<Object?> get props => [paymentMethod];
 }
 
 final class PosAddProduct extends PosEvent {
   final ProductData product;
   final bool ignoreStockLimit;
 
-  const PosAddProduct(
-      this.product, {
-        this.ignoreStockLimit = false,
-      });
+  const PosAddProduct(this.product, {this.ignoreStockLimit = false});
 
   @override
   List<Object?> get props => [product, ignoreStockLimit];
+}
+
+final class PosAddCustomAmount extends PosEvent {
+  final double amount;
+  final String note;
+
+  const PosAddCustomAmount({required this.amount, required this.note});
+
+  @override
+  List<Object?> get props => [amount, note];
 }
 
 final class PosIncrementItem extends PosEvent {
   final String productId;
   final bool ignoreStockLimit;
 
-  const PosIncrementItem(
-      this.productId, {
-        this.ignoreStockLimit = false,
-      });
+  const PosIncrementItem(this.productId, {this.ignoreStockLimit = false});
 
   @override
   List<Object?> get props => [productId, ignoreStockLimit];
@@ -53,13 +60,15 @@ final class PosIncrementItem extends PosEvent {
 class PosDecrementItem extends PosEvent {
   final String productId;
   const PosDecrementItem(this.productId);
-  @override List<Object?> get props => [productId];
+  @override
+  List<Object?> get props => [productId];
 }
 
 class PosRemoveItem extends PosEvent {
   final String productId;
   const PosRemoveItem(this.productId);
-  @override List<Object?> get props => [productId];
+  @override
+  List<Object?> get props => [productId];
 }
 
 class PosClearCart extends PosEvent {
@@ -67,10 +76,11 @@ class PosClearCart extends PosEvent {
 }
 
 class PosCheckoutSubmitted extends PosEvent {
-  final String  shopId;
+  final String shopId;
   final String? customerId;
   const PosCheckoutSubmitted({required this.shopId, this.customerId});
-  @override List<Object?> get props => [shopId, customerId];
+  @override
+  List<Object?> get props => [shopId, customerId];
 }
 
 class PosAcknowledgeSubmit extends PosEvent {
@@ -80,14 +90,16 @@ class PosAcknowledgeSubmit extends PosEvent {
 class PosCartExpandedChanged extends PosEvent {
   final bool expanded;
   const PosCartExpandedChanged(this.expanded);
-  @override List<Object?> get props => [expanded];
+  @override
+  List<Object?> get props => [expanded];
 }
 
 class PosShopSelected extends PosEvent {
   final String shopId;
   final String shopName;
   const PosShopSelected({required this.shopId, required this.shopName});
-  @override List<Object?> get props => [shopId, shopName];
+  @override
+  List<Object?> get props => [shopId, shopName];
 }
 
 class PosBarcodeScanned extends PosEvent {
@@ -98,6 +110,7 @@ class PosBarcodeScanned extends PosEvent {
   @override
   List<Object?> get props => [barcode];
 }
+
 class PosSessionReset extends PosEvent {
   const PosSessionReset();
 }
@@ -105,5 +118,6 @@ class PosSessionReset extends PosEvent {
 class PosTaxConfigChanged extends PosEvent {
   final TaxConfig taxConfig;
   const PosTaxConfigChanged(this.taxConfig);
-  @override List<Object?> get props => [taxConfig];
+  @override
+  List<Object?> get props => [taxConfig];
 }

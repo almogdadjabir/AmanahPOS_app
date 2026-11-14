@@ -11,14 +11,13 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showAddCategorySheet(BuildContext context) {
   final categoryBloc = context.read<CategoryBloc>();
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: categoryBloc,
       child: const _AddCategorySheet(),
@@ -125,7 +124,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                 focusNode: _nameFocus,
                 nextFocus: _descFocus,
                 hint: tr.categoryNameHint,
-                prefixIcon: SolarIconsOutline.layersMinimalistic,
+                prefixIcon: PhosphorIconsRegular.stack,
                 validator: (value) {
                   return CategoryFormValidators.name(context, value);
                 },
@@ -139,7 +138,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                 controller: _descCtrl,
                 focusNode: _descFocus,
                 hint: tr.categoryDescriptionHint,
-                prefixIcon: SolarIconsOutline.notes,
+                prefixIcon: PhosphorIconsRegular.notepad,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) {
                   final submitStatus = context.read<CategoryBloc>().state.submitStatus;
@@ -254,7 +253,7 @@ class _IntroIcon extends StatelessWidget {
         width: 56,
         height: 56,
         child: Icon(
-          SolarIconsOutline.layersMinimalistic,
+          PhosphorIconsRegular.stack,
           color: color,
           size: 28,
         ),
@@ -284,7 +283,7 @@ class _CategoryTipsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              SolarIconsOutline.infoCircle,
+              PhosphorIconsRegular.info,
               size: 20,
               color: colors.primary,
             ),
@@ -358,7 +357,7 @@ class _AmanaCategorySubmitButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(
-                    SolarIconsOutline.addCircle,
+                    PhosphorIconsRegular.plusCircle,
                     size: 22,
                     color: Colors.white,
                   ),

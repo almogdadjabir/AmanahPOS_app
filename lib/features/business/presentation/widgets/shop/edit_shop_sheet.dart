@@ -10,15 +10,15 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showEditShopSheet(
-    BuildContext context, {
-      required String businessId,
-      required ShopData shop,
-    }) {
+  BuildContext context, {
+  required String businessId,
+  required ShopData shop,
+}) {
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<BusinessBloc>(),
       child: _EditShopSheet(businessId: businessId, shop: shop),
@@ -42,21 +42,21 @@ class _EditShopSheetState extends State<_EditShopSheet> {
   late final TextEditingController _addressCtrl;
   late final TextEditingController _phoneCtrl;
 
-  final _nameFocus    = FocusNode();
+  final _nameFocus = FocusNode();
   final _addressFocus = FocusNode();
-  final _phoneFocus   = FocusNode();
+  final _phoneFocus = FocusNode();
 
   bool get _hasChanges =>
-      _nameCtrl.text.trim()    != (widget.shop.name    ?? '') ||
-          _addressCtrl.text.trim() != (widget.shop.address ?? '') ||
-          _phoneCtrl.text.trim()   != (widget.shop.phone   ?? '');
+      _nameCtrl.text.trim() != (widget.shop.name ?? '') ||
+      _addressCtrl.text.trim() != (widget.shop.address ?? '') ||
+      _phoneCtrl.text.trim() != (widget.shop.phone ?? '');
 
   @override
   void initState() {
     super.initState();
-    _nameCtrl    = TextEditingController(text: widget.shop.name    ?? '');
+    _nameCtrl = TextEditingController(text: widget.shop.name ?? '');
     _addressCtrl = TextEditingController(text: widget.shop.address ?? '');
-    _phoneCtrl   = TextEditingController(text: widget.shop.phone   ?? '');
+    _phoneCtrl = TextEditingController(text: widget.shop.phone ?? '');
 
     for (final c in [_nameCtrl, _addressCtrl, _phoneCtrl]) {
       c.addListener(() => setState(() {}));
@@ -65,21 +65,29 @@ class _EditShopSheetState extends State<_EditShopSheet> {
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _addressCtrl.dispose(); _phoneCtrl.dispose();
-    _nameFocus.dispose(); _addressFocus.dispose(); _phoneFocus.dispose();
+    _nameCtrl.dispose();
+    _addressCtrl.dispose();
+    _phoneCtrl.dispose();
+    _nameFocus.dispose();
+    _addressFocus.dispose();
+    _phoneFocus.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     if (!_hasChanges) return;
-    context.read<BusinessBloc>().add(OnEditShop(
-      businessId: widget.businessId,
-      shopId:     widget.shop.id!,
-      name:       _nameCtrl.text.trim(),
-      address:    _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
-      phone:      _phoneCtrl.text.trim().isEmpty   ? null : _phoneCtrl.text.trim(),
-    ));
+    context.read<BusinessBloc>().add(
+      OnEditShop(
+        businessId: widget.businessId,
+        shopId: widget.shop.id!,
+        name: _nameCtrl.text.trim(),
+        address: _addressCtrl.text.trim().isEmpty
+            ? null
+            : _addressCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -101,12 +109,14 @@ class _EditShopSheetState extends State<_EditShopSheet> {
       },
       child: Padding(
         padding: EdgeInsets.only(
-            bottom: MediaQuery.viewInsetsOf(context).bottom),
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: context.appColors.surface,
             borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppDims.rXl)),
+              top: Radius.circular(AppDims.rXl),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -114,7 +124,11 @@ class _EditShopSheetState extends State<_EditShopSheet> {
               // ── Header ────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    AppDims.s4, AppDims.s4, AppDims.s4, 0),
+                  AppDims.s4,
+                  AppDims.s4,
+                  AppDims.s4,
+                  0,
+                ),
                 child: Row(
                   children: [
                     Column(
@@ -129,9 +143,9 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                         ),
                         Text(
                           widget.shop.name ?? '',
-                          style: AppTextStyles.bs300(context).copyWith(
-                            color: context.appColors.textHint,
-                          ),
+                          style: AppTextStyles.bs300(
+                            context,
+                          ).copyWith(color: context.appColors.textHint),
                         ),
                       ],
                     ),
@@ -139,14 +153,17 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
                       child: Container(
-                        width: 42, height: 42,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
                           color: context.appColors.surfaceSoft,
                           borderRadius: BorderRadius.circular(AppDims.rSm),
                         ),
-                        child: Icon(Icons.close_rounded,
-                            size: 24,
-                            color: context.appColors.textSecondary),
+                        child: Icon(
+                          PhosphorIconsRegular.x,
+                          size: 24,
+                          color: context.appColors.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -162,14 +179,17 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        FieldLabel(label: context.tr.bizFieldShopName, required: true),
+                        FieldLabel(
+                          label: context.tr.bizFieldShopName,
+                          required: true,
+                        ),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _nameCtrl,
                           focusNode: _nameFocus,
                           nextFocus: _addressFocus,
                           hint: 'Main Branch',
-                          prefixIcon: Icons.storefront_outlined,
+                          prefixIcon: PhosphorIconsRegular.storefront,
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
                               return 'Shop name is required';
@@ -189,7 +209,7 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                           focusNode: _addressFocus,
                           nextFocus: _phoneFocus,
                           hint: 'Khartoum Centre',
-                          prefixIcon: Icons.location_on_outlined,
+                          prefixIcon: PhosphorIconsRegular.mapPin,
                         ),
                         const SizedBox(height: AppDims.s3),
 
@@ -199,14 +219,15 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                           controller: _phoneCtrl,
                           focusNode: _phoneFocus,
                           hint: '+249912345678',
-                          prefixIcon: Icons.phone_outlined,
+                          prefixIcon: PhosphorIconsRegular.phone,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.done,
                           onSubmitted: (_) => _submit(),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return null;
-                            if (!RegExp(r'^\+?[0-9]{7,15}$')
-                                .hasMatch(v.trim())) {
+                            if (!RegExp(
+                              r'^\+?[0-9]{7,15}$',
+                            ).hasMatch(v.trim())) {
                               return 'Enter a valid phone number';
                             }
                             return null;
@@ -217,9 +238,10 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                         // ── Submit ──────────────────────────────────────
                         BlocBuilder<BusinessBloc, BusinessState>(
                           buildWhen: (prev, curr) =>
-                          prev.submitStatus != curr.submitStatus,
+                              prev.submitStatus != curr.submitStatus,
                           builder: (context, state) {
-                            final isLoading = state.submitStatus ==
+                            final isLoading =
+                                state.submitStatus ==
                                 BusinessSubmitStatus.loading;
                             final canSave = _hasChanges && !isLoading;
 
@@ -231,31 +253,33 @@ class _EditShopSheetState extends State<_EditShopSheet> {
                                 style: FilledButton.styleFrom(
                                   backgroundColor: context.appColors.primary,
                                   disabledBackgroundColor:
-                                  context.appColors.border,
+                                      context.appColors.border,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(AppDims.rMd),
+                                    borderRadius: BorderRadius.circular(
+                                      AppDims.rMd,
+                                    ),
                                   ),
                                 ),
                                 child: isLoading
                                     ? const SizedBox(
-                                  width: 20, height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      )
                                     : Text(
-                                  'Save Changes',
-                                  style: TextStyle(
-                                    fontFamily: 'NunitoSans',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                    color: canSave
-                                        ? Colors.white
-                                        : context.appColors.textHint,
-                                  ),
-                                ),
+                                        'Save Changes',
+                                        style: TextStyle(
+                                          fontFamily: 'NunitoSans',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: canSave
+                                              ? Colors.white
+                                              : context.appColors.textHint,
+                                        ),
+                                      ),
                               ),
                             );
                           },

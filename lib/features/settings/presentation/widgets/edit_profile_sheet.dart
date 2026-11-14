@@ -2,13 +2,13 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/settings/data/models/update_profile_request_dto.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/primary_sheet_button.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
+import 'package:amana_pos/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class EditProfileSheet extends StatefulWidget {
   final String fullName;
@@ -74,7 +74,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     return AppBottomSheet(
       title: tr.editProfileTitle,
       subtitle: tr.editProfileSubtitle,
-      icon: SolarIconsOutline.user,
+      icon: PhosphorIconsRegular.user,
       child: Form(
         key: _formKey,
         child: Column(
@@ -90,7 +90,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
               focusNode: _fullNameFocus,
               nextFocus: _emailFocus,
               hint: 'Owner full name',
-              prefixIcon: SolarIconsOutline.user,
+              prefixIcon: PhosphorIconsRegular.user,
               textInputAction: TextInputAction.next,
               validator: (value) {
                 final text = value?.trim() ?? '';
@@ -117,7 +117,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
               controller: _emailCtrl,
               focusNode: _emailFocus,
               hint: 'email@example.com',
-              prefixIcon: SolarIconsOutline.letter,
+              prefixIcon: PhosphorIconsRegular.envelopeSimple,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _submit(),
@@ -147,7 +147,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                 return prev.submitStatus != curr.submitStatus;
               },
               builder: (context, state) {
-                return PrimarySheetButton(
+                return AppButton.wide(
                   label: tr.saveProfile,
                   isLoading:
                   state.submitStatus == SettingsSubmitStatus.loading,

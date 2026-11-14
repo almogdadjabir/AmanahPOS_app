@@ -26,12 +26,11 @@ class AppProgressState extends Equatable {
   List<Object?> get props => [runningCount, value];
 }
 
-/// App-wide progress signal, rendered as the thin line beneath the main app
-/// bar (see `AppProgressLine`). Any screen, bloc, or service can switch it on
-/// or off.
+/// App-wide progress signal. Any screen, bloc, or service can switch it on or
+/// off; no widget renders it right now.
 ///
-/// Concurrent callers are reference-counted, so the line only disappears once
-/// the last task finishes. Registered as a singleton in `getIt`, so it is
+/// Concurrent callers are reference-counted, so it only goes idle once the
+/// last task finishes. Registered as a singleton in `getIt`, so it is
 /// reachable from anywhere without prop-drilling:
 ///
 /// ```dart

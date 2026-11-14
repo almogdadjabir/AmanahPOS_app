@@ -45,14 +45,8 @@ class ResponsiveSize {
     final double screenWidth = MediaQuery.sizeOf(context).width;
     final double baseWidth = _getBaseDimension(context, false);
 
-    double scaleFactor = screenWidth / baseWidth;
-
-    // On desktop screens, cap scaling so fonts stay at their intended design size.
-    // Without this, a 1440px screen would scale fonts to ~1.875x the base size.
-    if (screenWidth >= 1024) {
-      scaleFactor = scaleFactor.clamp(0.0, 1.0);
-    }
-
-    return baseFontSize * scaleFactor;
+    // Phones keep type close to design size; never blow it up on wide screens.
+    final scale = (screenWidth / baseWidth).clamp(0.92, 1.06);
+    return baseFontSize * scale;
   }
 }

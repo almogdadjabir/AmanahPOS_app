@@ -61,10 +61,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
 
     if (currentShopId != shopId) {
       context.read<PosBloc>().add(
-        PosShopSelected(
-          shopId: shopId,
-          shopName: shop?.name ?? 'Shop',
-        ),
+        PosShopSelected(shopId: shopId, shopName: shop?.name ?? 'Shop'),
       );
     }
 
@@ -80,9 +77,10 @@ class _BusinessScreenState extends State<BusinessScreen> {
   ShopData? _resolveDashboardShop(BusinessData business) {
     final selectedShopId = context.read<PosBloc>().state.selectedShopId;
 
-    final activeShops = business.shops
-        ?.where((shop) => shop.id != null && (shop.isActive ?? true))
-        .toList() ??
+    final activeShops =
+        business.shops
+            ?.where((shop) => shop.id != null && (shop.isActive ?? true))
+            .toList() ??
         [];
 
     if (activeShops.isEmpty) return null;
@@ -106,7 +104,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
             padding: context.pagePadding,
             child: BlocConsumer<BusinessBloc, BusinessState>(
               listenWhen: (prev, curr) =>
-              prev.businessStatus != curr.businessStatus ||
+                  prev.businessStatus != curr.businessStatus ||
                   prev.businessList != curr.businessList,
               listener: (context, state) {
                 final businesses = state.businessList ?? [];
@@ -117,7 +115,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
                 }
               },
               buildWhen: (prev, curr) =>
-              prev.businessStatus != curr.businessStatus ||
+                  prev.businessStatus != curr.businessStatus ||
                   prev.businessList != curr.businessList ||
                   prev.responseError != curr.responseError,
               builder: (context, state) {
@@ -130,18 +128,14 @@ class _BusinessScreenState extends State<BusinessScreen> {
                 }
 
                 if (state.businessStatus == BusinessStatus.failure) {
-                  return BusinessErrorView(
-                    message: state.responseError,
-                  );
+                  return BusinessErrorView(message: state.responseError);
                 }
 
                 if (businesses.isEmpty) {
                   return const BusinessEmptyView();
                 }
 
-                return SingleBusinessWorkspace(
-                  data: businesses.first,
-                );
+                return SingleBusinessWorkspace(data: businesses.first);
               },
             ),
           ),

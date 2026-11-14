@@ -5,13 +5,12 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showExpiryReportSheet(BuildContext context) {
   context.read<ExpiryReportBloc>().add(const OnExpiryReportStarted());
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<ExpiryReportBloc>(),
       child: const _ExpiryReportSheet(),
@@ -57,7 +56,7 @@ class _ExpiryReportSheet extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: Icon(SolarIconsOutline.closeCircle,
+                      icon: Icon(PhosphorIconsRegular.xCircle,
                           color: colors.textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),

@@ -2,6 +2,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CatSummaryChip extends StatelessWidget {
   final IconData icon;
@@ -32,7 +33,7 @@ class CatSummaryChip extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: icon == Icons.circle ? 8 : 13,
+            size: icon == PhosphorIconsFill.circle ? 8 : 13,
             color: iconColor ?? colors.textHint,
           ),
           const SizedBox(width: 5),

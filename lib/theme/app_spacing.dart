@@ -1,102 +1,10 @@
 import 'package:flutter/material.dart';
 
-abstract final class AppSpacing {
-  AppSpacing._();
-
-  static const double none = 0;
-  static const double xxs = 4;
-  static const double xs = 8;
-  static const double sm = 12;
-  static const double md = 16;
-  static const double lg = 20;
-  static const double xl = 24;
-  static const double xxl = 32;
-  static const double xxxl = 40;
-  static const double huge = 56;
-}
-
-abstract final class AppRadius {
-  AppRadius._();
-
-  static const double xs = 6;
-  static const double sm = 10;
-  static const double md = 14;
-  static const double lg = 18;
-  static const double xl = 24;
-  static const double xxl = 32;
-
-  static BorderRadius get borderXs => BorderRadius.circular(xs);
-  static BorderRadius get borderSm => BorderRadius.circular(sm);
-  static BorderRadius get borderMd => BorderRadius.circular(md);
-  static BorderRadius get borderLg => BorderRadius.circular(lg);
-  static BorderRadius get borderXl => BorderRadius.circular(xl);
-  static BorderRadius get borderXxl => BorderRadius.circular(xxl);
-}
-
-abstract final class AppPadding {
-  AppPadding._();
-
-  static EdgeInsets all(double value) => EdgeInsets.all(value);
-
-  static EdgeInsets symmetric({
-    double horizontal = 0,
-    double vertical = 0,
-  }) {
-    return EdgeInsets.symmetric(
-      horizontal: horizontal,
-      vertical: vertical,
-    );
-  }
-
-  static EdgeInsets only({
-    double left = 0,
-    double top = 0,
-    double right = 0,
-    double bottom = 0,
-  }) {
-    return EdgeInsets.only(
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
-    );
-  }
-
-  static const EdgeInsets none = EdgeInsets.zero;
-  static const EdgeInsets xs = EdgeInsets.all(AppSpacing.xs);
-  static const EdgeInsets sm = EdgeInsets.all(AppSpacing.sm);
-  static const EdgeInsets md = EdgeInsets.all(AppSpacing.md);
-  static const EdgeInsets lg = EdgeInsets.all(AppSpacing.lg);
-  static const EdgeInsets xl = EdgeInsets.all(AppSpacing.xl);
-
-  static const EdgeInsets screen = EdgeInsets.symmetric(
-    horizontal: AppSpacing.md,
-    vertical: AppSpacing.md,
-  );
-}
-
-abstract final class AppGap {
-  AppGap._();
-
-  static const SizedBox verticalXs = SizedBox(height: AppSpacing.xs);
-  static const SizedBox verticalSm = SizedBox(height: AppSpacing.sm);
-  static const SizedBox verticalMd = SizedBox(height: AppSpacing.md);
-  static const SizedBox verticalLg = SizedBox(height: AppSpacing.lg);
-  static const SizedBox verticalXl = SizedBox(height: AppSpacing.xl);
-  static const SizedBox verticalXxl = SizedBox(height: AppSpacing.xxl);
-
-  static const SizedBox horizontalXs = SizedBox(width: AppSpacing.xs);
-  static const SizedBox horizontalSm = SizedBox(width: AppSpacing.sm);
-  static const SizedBox horizontalMd = SizedBox(width: AppSpacing.md);
-  static const SizedBox horizontalLg = SizedBox(width: AppSpacing.lg);
-  static const SizedBox horizontalXl = SizedBox(width: AppSpacing.xl);
-}
-
-/// Spacing, radii and motion durations.
+/// Spacing, radii, component sizes and motion tokens.
 class AppDims {
   AppDims._();
 
-  // Spacing scale (matches Tailwind-ish steps)
+  // Spacing
   static const double s0 = 0;
   static const double s1 = 4;
   static const double s2 = 8;
@@ -106,20 +14,36 @@ class AppDims {
   static const double s6 = 24;
   static const double s8 = 32;
 
-  // Border radii
+  // Radii: 6 / 8 / 12 / 16 / 24 / pill
   static const double rXs = 6;
-  static const double rSm = 10;
-  static const double rMd = 14;
-  static const double rLg = 18;
+  static const double rSm = 8;
+  static const double rMd = 12;
+  static const double rLg = 16;
   static const double rXl = 24;
-  static const double rXxl = 32;
+  static const double rPill = 999;
+
+  static BorderRadius get borderXs => BorderRadius.circular(rXs);
+  static BorderRadius get borderSm => BorderRadius.circular(rSm);
+  static BorderRadius get borderMd => BorderRadius.circular(rMd);
+  static BorderRadius get borderLg => BorderRadius.circular(rLg);
+  static BorderRadius get borderXl => BorderRadius.circular(rXl);
+  static BorderRadius get borderPill => BorderRadius.circular(rPill);
 
   // Component sizes
   static const double appBarHeight = 56;
   static const double cartPeekHeight = 76;
+  static const double buttonHeight = 48;
+  static const double buttonHeightLarge = 56;
+  static const double buttonHeightSmall = 36;
 
-  // Motion
-  static const Duration fast = Duration(milliseconds: 200);
-  static const Duration medium = Duration(milliseconds: 320);
-  static const Duration slow = Duration(milliseconds: 360);
+  // Motion: fast 120, base 180, slow 280
+  static const Duration fast = Duration(milliseconds: 120);
+  static const Duration medium = Duration(milliseconds: 180);
+  static const Duration slow = Duration(milliseconds: 280);
+  static const Duration sheet = Duration(milliseconds: 260);
+
+  static const double pressScale = 0.97;
+  static const Curve ease = Cubic(0.2, 0, 0, 1);
+  static const Curve soft = Cubic(0.16, 1, 0.3, 1);
+  static const Curve sheetCurve = Cubic(0.32, 0.72, 0, 1);
 }

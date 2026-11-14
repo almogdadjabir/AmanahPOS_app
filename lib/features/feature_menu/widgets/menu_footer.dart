@@ -10,7 +10,7 @@ import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class MenuFooter extends StatelessWidget {
   final VoidCallback? onSignOut;
@@ -145,7 +145,7 @@ class _LogoutDialog extends StatelessWidget {
                     ),
                   ),
                   child: const Icon(
-                    SolarIconsOutline.logout,
+                    PhosphorIconsRegular.signOut,
                     size: 25,
                     color: danger,
                   ),
@@ -196,7 +196,7 @@ class _LogoutDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    SolarIconsOutline.dangerTriangle,
+                    PhosphorIconsRegular.warning,
                     size: 20,
                     color: warning,
                   ),
@@ -262,7 +262,7 @@ class _LogoutDialog extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(
-                            SolarIconsOutline.logout,
+                            PhosphorIconsRegular.signOut,
                             size: 17,
                             color: Colors.white,
                           ),
@@ -470,7 +470,7 @@ class _SignOutButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                SolarIconsOutline.logout,
+                PhosphorIconsRegular.signOut,
                 size: 16,
                 color: danger,
               ),
@@ -511,7 +511,7 @@ class _DebugRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              SolarIconsOutline.trashBinTrash,
+              PhosphorIconsRegular.trash,
               size: 15,
               color: colors.textHint,
             ),

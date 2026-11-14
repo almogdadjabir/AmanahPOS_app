@@ -10,13 +10,12 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showVendorsSheet(BuildContext context) {
   context.read<VendorsBloc>().add(const OnVendorsStarted());
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<VendorsBloc>(),
       child: const _VendorsSheet(),
@@ -30,7 +29,6 @@ class _VendorsSheet extends StatelessWidget {
   void _addVendor(BuildContext context) {
     showAdaptivePanel<void>(
       context,
-      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<VendorsBloc>(),
         child: const _VendorFormSheet(),
@@ -94,14 +92,14 @@ class _VendorsSheet extends StatelessWidget {
                       const Spacer(),
                       TextButton.icon(
                         onPressed: () => _addVendor(context),
-                        icon: const Icon(SolarIconsOutline.addCircle,
+                        icon: const Icon(PhosphorIconsRegular.plusCircle,
                             size: 18),
                         label: Text(context.tr.add),
                         style: TextButton.styleFrom(
                             foregroundColor: goldDeep),
                       ),
                       IconButton(
-                        icon: Icon(SolarIconsOutline.closeCircle,
+                        icon: Icon(PhosphorIconsRegular.xCircle,
                             color: colors.textSecondary),
                         onPressed: () => Navigator.pop(context),
                       ),
@@ -121,7 +119,7 @@ class _VendorsSheet extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(SolarIconsOutline.shop,
+                              Icon(PhosphorIconsRegular.storefront,
                                   size: 48,
                                   color: colors.textSecondary
                                       .withValues(alpha: 0.4)),
@@ -186,7 +184,6 @@ class _VendorsSheet extends StatelessWidget {
                                 if (value == 'edit') {
                                   showAdaptivePanel<void>(
                                     context,
-                                    desktopWidth: 480,
                                     builder: (_) => BlocProvider.value(
                                       value: context.read<VendorsBloc>(),
                                       child: _VendorFormSheet(

@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BankakPaymentCard extends StatefulWidget {
   final TextEditingController controller;
@@ -39,7 +40,6 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
   void _openBankakSheet() {
     showAdaptivePanel(
       context,
-      desktopWidth: 480,
       builder: (_) {
         return _BankakAccountSheet(
           initialValue: widget.controller.text,
@@ -136,8 +136,8 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
               children: [
                 Icon(
                   hasAccount
-                      ? Icons.account_balance_wallet_outlined
-                      : Icons.info_outline_rounded,
+                      ? PhosphorIconsRegular.wallet
+                      : PhosphorIconsRegular.info,
                   size: 20,
                   color: hasAccount
                       ? const Color(0xFF16A34A)
@@ -169,7 +169,7 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
             child: hasAccount
                 ? OutlinedButton.icon(
               onPressed: _openBankakSheet,
-              icon: const Icon(Icons.edit_rounded, size: 18),
+              icon: const Icon(PhosphorIconsRegular.pencilSimple, size: 18),
               label: Text(tr.bankakChangeButton),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.textPrimary,
@@ -184,7 +184,7 @@ class _BankakPaymentCardState extends State<BankakPaymentCard> {
             )
                 : FilledButton.icon(
               onPressed: _openBankakSheet,
-              icon: const Icon(Icons.add_rounded, size: 18),
+              icon: const Icon(PhosphorIconsRegular.plus, size: 18),
               label: Text(tr.bankakAddButton),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,
@@ -228,7 +228,7 @@ class _BankakLogo extends StatelessWidget {
         fit: BoxFit.contain,
         errorBuilder: (_, __, ___) {
           return Icon(
-            Icons.account_balance_wallet_outlined,
+            PhosphorIconsRegular.wallet,
             color: context.appColors.primary,
             size: 28,
           );
@@ -406,7 +406,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Icons.info_outline_rounded,
+                      PhosphorIconsRegular.info,
                       size: 18,
                       color: colors.primary,
                     ),
@@ -433,7 +433,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
               AppFormField(
                 controller: _accountCtrl,
                 hint: 'Example: 1234567890',
-                prefixIcon: Icons.numbers_rounded,
+                prefixIcon: PhosphorIconsRegular.hash,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _save(),
@@ -468,7 +468,7 @@ class _BankakAccountSheetState extends State<_BankakAccountSheet> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: _remove,
-                        icon: const Icon(Icons.delete_outline_rounded),
+                        icon: const Icon(PhosphorIconsRegular.trash),
                         label: Text(tr.bankakRemove),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFFDC2626),

@@ -5,17 +5,10 @@ import 'package:amana_pos/features/pos/data/model/offline/offline_sale_dto.dart'
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:sqflite/sqflite.dart';
 
-enum OfflineSaleStatus {
-  pending,
-  syncing,
-  synced,
-  failed,
-}
+enum OfflineSaleStatus { pending, syncing, synced, failed }
 
 class OfflineSalesQueue {
-  OfflineSalesQueue({
-    required OfflineDb db,
-  })  : _db = db;
+  OfflineSalesQueue({required OfflineDb db}) : _db = db;
 
   final OfflineDb _db;
 
@@ -23,42 +16,35 @@ class OfflineSalesQueue {
     final database = await _db.database;
 
     await database.transaction((txn) async {
-      await txn.insert(
-        'pending_sales',
-        {
-          'client_sale_id': sale.clientSaleId,
-          'server_sale_id': null,
-          'shop_id': sale.shopId,
-          'customer_id': sale.customerId,
-          'payment_method': sale.paymentMethod,
-          'discount_amount': sale.discountAmount,
-          'tax_amount': sale.taxAmount,
-          'subtotal': sale.subtotal,
-          'total': sale.total,
-          'status': OfflineSaleStatus.pending.name,
-          'error_message': null,
-          'created_at': sale.createdAt.toUtc().toIso8601String(),
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-          'synced_at': null,
-        },
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      await txn.insert('pending_sales', {
+        'client_sale_id': sale.clientSaleId,
+        'server_sale_id': null,
+        'shop_id': sale.shopId,
+        'customer_id': sale.customerId,
+        'payment_method': sale.paymentMethod,
+        'discount_amount': sale.discountAmount,
+        'tax_amount': sale.taxAmount,
+        'subtotal': sale.subtotal,
+        'total': sale.total,
+        'status': OfflineSaleStatus.pending.name,
+        'error_message': null,
+        'created_at': sale.createdAt.toUtc().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+        'synced_at': null,
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
 
       for (final item in sale.items) {
-        await txn.insert(
-          'pending_sale_items',
-          {
-            'client_sale_id': sale.clientSaleId,
-            'product_id': item.productId,
-            'product_name': item.productName,
-            'quantity': item.quantity,
-            'unit_price': item.unitPrice,
-            'line_total': item.lineTotal,
-            'product_snapshot_json': jsonEncode(
-              _productSnapshotToJson(item.productSnapshot),
-            ),
-          },
-        );
+        await txn.insert('pending_sale_items', {
+          'client_sale_id': sale.clientSaleId,
+          'product_id': item.productId,
+          'product_name': item.productName,
+          'quantity': item.quantity,
+          'unit_price': item.unitPrice,
+          'line_total': item.lineTotal,
+          'product_snapshot_json': jsonEncode(
+            _productSnapshotToJson(item.productSnapshot),
+          ),
+        });
 
         await _deductStockInsideTransaction(
           txn: txn,
@@ -76,7 +62,10 @@ class OfflineSalesQueue {
     final saleRows = await db.query(
       'pending_sales',
       where: 'status IN (?, ?)',
-      whereArgs: [OfflineSaleStatus.pending.name, OfflineSaleStatus.failed.name],
+      whereArgs: [
+        OfflineSaleStatus.pending.name,
+        OfflineSaleStatus.failed.name,
+      ],
       orderBy: 'created_at ASC',
       limit: limit,
     );
@@ -104,7 +93,9 @@ class OfflineSalesQueue {
           total: row['total'] as String,
           createdAt: DateTime.parse(row['created_at'] as String),
           items: itemRows.map((itemRow) {
-            final snapshot = jsonDecode(itemRow['product_snapshot_json'] as String);
+            final snapshot = jsonDecode(
+              itemRow['product_snapshot_json'] as String,
+            );
             return OfflineSaleItemDto(
               productId: itemRow['product_id'] as String,
               productName: itemRow['product_name']?.toString() ?? '',
@@ -180,10 +171,7 @@ class OfflineSalesQueue {
     final db = await _db.database;
     final result = await db.rawQuery(
       'SELECT COUNT(*) as count FROM pending_sales WHERE status IN (?, ?)',
-      [
-        OfflineSaleStatus.pending.name,
-        OfflineSaleStatus.syncing.name,
-      ],
+      [OfflineSaleStatus.pending.name, OfflineSaleStatus.syncing.name],
     );
     return Sqflite.firstIntValue(result) ?? 0;
   }
@@ -251,7 +239,9 @@ class OfflineSalesQueue {
           status: row['status'] as String?,
           errorMessage: row['error_message'] as String?,
           items: itemRows.map((itemRow) {
-            final snapshot = jsonDecode(itemRow['product_snapshot_json'] as String);
+            final snapshot = jsonDecode(
+              itemRow['product_snapshot_json'] as String,
+            );
             return OfflineSaleItemDto(
               productId: itemRow['product_id'] as String,
               productName: itemRow['product_name']?.toString() ?? '',
@@ -281,7 +271,10 @@ class OfflineSalesQueue {
     );
   }
 
-  Future<void> _updateStatus(String clientSaleId, OfflineSaleStatus status) async {
+  Future<void> _updateStatus(
+    String clientSaleId,
+    OfflineSaleStatus status,
+  ) async {
     final db = await _db.database;
     await db.update(
       'pending_sales',
@@ -332,8 +325,7 @@ class OfflineSalesQueue {
     );
 
     if (stockRows.isNotEmpty) {
-      final currentQty =
-          (stockRows.first['quantity'] as num?)?.toDouble() ?? 0;
+      final currentQty = (stockRows.first['quantity'] as num?)?.toDouble() ?? 0;
 
       final nextQty = currentQty - soldQuantity;
       final safeQty = nextQty < 0 ? 0 : nextQty;
@@ -347,11 +339,7 @@ class OfflineSalesQueue {
 
       await txn.update(
         'stock',
-        {
-          'quantity': safeQty,
-          'json': jsonEncode(jsonMap),
-          'updated_at': now,
-        },
+        {'quantity': safeQty, 'json': jsonEncode(jsonMap), 'updated_at': now},
         where: 'product_id = ? AND shop_id = ?',
         whereArgs: [productId, shopId],
       );

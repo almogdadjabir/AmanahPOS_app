@@ -4,11 +4,10 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class FooterStatus extends StatelessWidget {
-  const FooterStatus({super.key,
-    required this.state,
-  });
+  const FooterStatus({super.key, required this.state});
 
   final OfflineStatusState state;
 
@@ -16,7 +15,8 @@ class FooterStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    final canRetry = state.hasFailure &&
+    final canRetry =
+        state.hasFailure &&
         state.connectionStatus == OfflineConnectionStatus.online;
 
     return Column(
@@ -31,7 +31,7 @@ class FooterStatus extends StatelessWidget {
                   const OnOfflineStatusRefreshRequested(),
                 );
               },
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
               label: const Text('Try Again'),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,
@@ -39,9 +39,9 @@ class FooterStatus extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
-                textStyle: AppTextStyles.bs600(context).copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                textStyle: AppTextStyles.bs600(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w900),
               ),
             ),
           )
@@ -62,10 +62,11 @@ class FooterStatus extends StatelessWidget {
               children: [
                 Icon(
                   state.connectionStatus == OfflineConnectionStatus.online
-                      ? Icons.wifi_rounded
-                      : Icons.wifi_off_rounded,
+                      ? PhosphorIconsRegular.wifiHigh
+                      : PhosphorIconsRegular.wifiSlash,
                   size: 17,
-                  color: state.connectionStatus == OfflineConnectionStatus.online
+                  color:
+                      state.connectionStatus == OfflineConnectionStatus.online
                       ? const Color(0xFF16A34A)
                       : const Color(0xFFF59E0B),
                 ),

@@ -7,6 +7,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class DateRangeBar extends StatelessWidget {
   const DateRangeBar({super.key});
@@ -52,7 +53,7 @@ class DateRangeBar extends StatelessWidget {
             _CustomRangeButton(preset: preset),
             const SizedBox(width: AppDims.s3),
             IconButton(
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
               tooltip: context.tr.reportsRefresh,
               onPressed: () => context
                   .read<SalesReportBloc>()
@@ -160,7 +161,7 @@ class _CustomRangeButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.date_range_rounded,
+              PhosphorIconsRegular.calendarBlank,
               size: 14,
               color: isActive ? Colors.white : colors.textSecondary,
             ),

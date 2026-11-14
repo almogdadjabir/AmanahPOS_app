@@ -66,8 +66,6 @@ dependencies:
   # barcode scanner
   mobile_scanner: ^7.1.4
 
-  solar_icons: ^0.0.5
-
   share_plus: ^13.1.0
   url_launcher: ^6.3.0
   pdf: ^3.12.0
@@ -75,7 +73,6 @@ dependencies:
   printing: ^5.13.2
   print_bluetooth_thermal: ^1.2.1
   flutter_blue_plus: ^1.35.5  # pinned to 1.x: BSD-3 license (2.x requires a paid commercial license)
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -91,3 +88,34 @@ flutter:
 
   assets:
     - assets/icons/
+
+  fonts:
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Geist-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Geist-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Geist-Bold.ttf
+          weight: 700
+    - family: Phosphor
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Regular.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Fill.ttf
+    - family: PhosphorBold
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Bold.ttf
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700

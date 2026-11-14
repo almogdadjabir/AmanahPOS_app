@@ -4,7 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CategoryStats extends StatelessWidget {
   final List<CategoryData> categories;
@@ -33,7 +33,7 @@ class CategoryStats extends StatelessWidget {
       children: [
         Expanded(
           child: _StatCard(
-            icon: SolarIconsOutline.layersMinimalistic,
+            icon: PhosphorIconsRegular.stack,
             label: context.tr.catStatTotal,
             value: '${categories.length}',
             color: colors.primary,
@@ -42,7 +42,7 @@ class CategoryStats extends StatelessWidget {
         const SizedBox(width: AppDims.s2),
         Expanded(
           child: _StatCard(
-            icon: SolarIconsOutline.checkCircle,
+            icon: PhosphorIconsRegular.checkCircle,
             label: context.tr.catStatActive,
             value: '$active',
             color: const Color(0xFF16A34A),
@@ -51,7 +51,7 @@ class CategoryStats extends StatelessWidget {
         const SizedBox(width: AppDims.s2),
         Expanded(
           child: _StatCard(
-            icon: SolarIconsOutline.pauseCircle,
+            icon: PhosphorIconsRegular.pauseCircle,
             label: context.tr.catStatInactive,
             value: '$inactive',
             color: const Color(0xFF94A3B8),
@@ -60,7 +60,7 @@ class CategoryStats extends StatelessWidget {
         const SizedBox(width: AppDims.s2),
         Expanded(
           child: _StatCard(
-            icon: SolarIconsOutline.widget,
+            icon: PhosphorIconsRegular.squaresFour,
             label: context.tr.catStatSub,
             value: '$subCategories',
             color: const Color(0xFF8B5CF6),

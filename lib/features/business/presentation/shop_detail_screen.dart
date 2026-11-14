@@ -47,19 +47,14 @@ class ShopDetailScreen extends StatelessWidget {
           body: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              ShopAppBar(
-                businessId: businessId,
-                shop: currentShop,
-              ),
+              ShopAppBar(businessId: businessId, shop: currentShop),
               SliverPadding(
                 padding: const EdgeInsets.all(AppDims.s4),
                 sliver: SliverToBoxAdapter(
                   child: ShopInfoSection(shop: currentShop),
                 ),
               ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppDims.s6),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppDims.s6)),
             ],
           ),
         );

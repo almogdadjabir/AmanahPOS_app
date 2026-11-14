@@ -13,7 +13,7 @@ import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// Settings → Devices → Add Printer.
 ///
@@ -62,7 +62,7 @@ class _PrinterSettingsScreenState extends State<PrinterSettingsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: DirectionalIcon(
-            icon: SolarIconsOutline.altArrowLeft,
+            icon: PhosphorIconsRegular.caretLeft,
             color: colors.textPrimary,
             size: 22,
           ),
@@ -195,7 +195,7 @@ class _SavedPrinterCard extends StatelessWidget {
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(SolarIconsOutline.printer,
+                child: Icon(PhosphorIconsRegular.printer,
                     color: statusColor, size: 24),
               ),
               const SizedBox(width: AppDims.s3),
@@ -257,8 +257,8 @@ class _SavedPrinterCard extends StatelessWidget {
                         )
                       : Icon(
                           status.isConnected
-                              ? SolarIconsOutline.linkBroken
-                              : SolarIconsOutline.link,
+                              ? PhosphorIconsRegular.linkBreak
+                              : PhosphorIconsRegular.link,
                           size: 16,
                         ),
                   label: Text(
@@ -284,7 +284,7 @@ class _SavedPrinterCard extends StatelessWidget {
                                 ),
                               );
                         },
-                  icon: const Icon(SolarIconsOutline.documentText, size: 16),
+                  icon: const Icon(PhosphorIconsRegular.fileText, size: 16),
                   label: Text(tr.printerTestPrint),
                 ),
               ),
@@ -293,7 +293,7 @@ class _SavedPrinterCard extends StatelessWidget {
           const SizedBox(height: AppDims.s2),
           TextButton.icon(
             onPressed: isBusy ? null : () => _confirmForget(context),
-            icon: Icon(SolarIconsOutline.trashBinTrash,
+            icon: Icon(PhosphorIconsRegular.trash,
                 size: 16, color: colors.danger),
             label: Text(
               tr.printerForget,
@@ -409,7 +409,7 @@ class _ScanSection extends StatelessWidget {
                     color: colors.textHint,
                   ),
                 )
-              : const Icon(SolarIconsOutline.refresh, size: 16),
+              : const Icon(PhosphorIconsRegular.arrowsClockwise, size: 16),
           label: Text(state.isScanning ? tr.printerScanning : tr.printerScan),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
@@ -451,7 +451,7 @@ class _DeviceTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(SolarIconsOutline.printer, color: colors.primary, size: 22),
+            Icon(PhosphorIconsRegular.printer, color: colors.primary, size: 22),
             const SizedBox(width: AppDims.s3),
             Expanded(
               child: Column(
@@ -480,7 +480,7 @@ class _DeviceTile extends StatelessWidget {
               ),
             ),
             DirectionalIcon(
-              icon: SolarIconsOutline.altArrowRight,
+              icon: PhosphorIconsRegular.caretRight,
               size: 15,
               color: colors.textHint,
             ),
@@ -520,7 +520,7 @@ class _NetworkPrinterSection extends StatelessWidget {
       children: [
         OutlinedButton.icon(
           onPressed: () => _openAddDialog(context),
-          icon: const Icon(SolarIconsOutline.wifiRouter, size: 16),
+          icon: const Icon(PhosphorIconsRegular.wifiHigh, size: 16),
           label: Text(tr.printerAddNetwork),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
@@ -680,7 +680,7 @@ class _ErrorBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded, size: 18, color: colors.danger),
+          Icon(PhosphorIconsRegular.info, size: 18, color: colors.danger),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: Text(

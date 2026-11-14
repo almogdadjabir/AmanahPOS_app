@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 enum ProductQuickFilter {
   all,
@@ -115,8 +115,8 @@ class _ProductsHeaderContent extends StatelessWidget {
                     label: tr.productStatAll,
                     value: totalCount.toString(),
                     icon: isRestaurant
-                        ? SolarIconsOutline.chefHat
-                        : SolarIconsOutline.bag5,
+                        ? PhosphorIconsRegular.chefHat
+                        : PhosphorIconsRegular.shoppingBag,
                     color: colors.primary,
                     isSelected:
                     selectedQuickFilter == ProductQuickFilter.all,
@@ -130,7 +130,7 @@ class _ProductsHeaderContent extends StatelessWidget {
                   child: _MiniStat(
                     label: tr.productStatActive,
                     value: activeCount.toString(),
-                    icon: SolarIconsOutline.checkCircle,
+                    icon: PhosphorIconsRegular.checkCircle,
                     color: const Color(0xFF16A34A),
                     isSelected:
                     selectedQuickFilter == ProductQuickFilter.active,
@@ -145,7 +145,7 @@ class _ProductsHeaderContent extends StatelessWidget {
                     child: _MiniStat(
                       label: tr.productStatOutOfStock,
                       value: outOfStockCount.toString(),
-                      icon: SolarIconsOutline.bagCross,
+                      icon: PhosphorIconsRegular.shoppingBagOpen,
                       color: const Color(0xFFDC2626),
                       isSelected: selectedQuickFilter ==
                           ProductQuickFilter.outOfStock,
@@ -188,7 +188,7 @@ class _HeaderIcon extends StatelessWidget {
         ),
       ),
       child: Icon(
-        isRestaurant ? SolarIconsOutline.chefHat : SolarIconsOutline.bag5,
+        isRestaurant ? PhosphorIconsRegular.chefHat : PhosphorIconsRegular.shoppingBag,
         color: colors.primary,
         size: 30,
       ),

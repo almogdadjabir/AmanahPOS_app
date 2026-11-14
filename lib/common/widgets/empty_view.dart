@@ -1,8 +1,9 @@
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 
+/// The one empty state: soft icon tile, calm copy, one action.
 class AppEmptyView extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -24,74 +25,44 @@ class AppEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
 
     return Center(
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsetsDirectional.all(AppDims.s6),
-        child: RepaintBoundary(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DecoratedBox(
+              Container(
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.10),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.18),
-                  ),
+                  color: colors.surfaceSoft,
+                  borderRadius: AppDims.borderXl,
                 ),
-                child: SizedBox(
-                  width: 86,
-                  height: 86,
-                  child: Icon(icon, size: 38, color: colors.primary),
-                ),
+                child: Icon(icon, size: 32, color: colors.textSecondary),
               ),
-              const SizedBox(height: AppDims.s4),
+              const SizedBox(height: AppDims.s5),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bs700(context).copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: colors.textPrimary,
-                  height: 1.1,
-                ),
+                style: text.titleLarge!.copyWith(color: colors.textPrimary),
               ),
               const SizedBox(height: AppDims.s2),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bs300(context).copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colors.textSecondary,
-                  height: 1.4,
-                ),
+                style: text.bodyMedium!.copyWith(color: colors.textSecondary),
               ),
               if (ctaLabel != null && onCta != null) ...[
-                const SizedBox(height: AppDims.s5),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton.icon(
-                    onPressed: onCta,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDims.rMd),
-                      ),
-                    ),
-                    icon: ctaIcon != null
-                        ? Icon(ctaIcon, size: 19, color: Colors.white)
-                        : const SizedBox.shrink(),
-                    label: Text(
-                      ctaLabel!,
-                      style: AppTextStyles.bs500(context).copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: AppDims.s6),
+                AppButton.wide(
+                  label: ctaLabel!,
+                  onPressed: onCta,
+                  prefixIcon: ctaIcon != null ? Icon(ctaIcon) : null,
                 ),
               ],
             ],

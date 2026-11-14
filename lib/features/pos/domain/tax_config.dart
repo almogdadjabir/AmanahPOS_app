@@ -25,10 +25,10 @@ class TaxConfig extends Equatable {
   });
 
   const TaxConfig.disabled()
-      : enabled = false,
-        name = 'VAT',
-        rate = 0,
-        inclusive = false;
+    : enabled = false,
+      name = 'VAT',
+      rate = 0,
+      inclusive = false;
 
   factory TaxConfig.fromBusiness(BusinessData? business) {
     if (business == null) return const TaxConfig.disabled();

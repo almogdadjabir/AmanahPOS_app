@@ -5,7 +5,7 @@ import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class VendorBoardCard extends StatelessWidget {
   final VendorSummaryData? vendorSummary;
@@ -32,7 +32,7 @@ class VendorBoardCard extends StatelessWidget {
         children: [
           CardHeader(
             title: context.tr.invVendorBoardTitle,
-            icon: SolarIconsOutline.shop,
+            icon: PhosphorIconsRegular.storefront,
             accent: goldDeep,
           ),
           const SizedBox(height: AppDims.s3),

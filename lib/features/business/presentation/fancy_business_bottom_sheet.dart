@@ -8,6 +8,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class FancyBusinessBottomSheet {
   static bool isShowing = false;
@@ -54,9 +55,7 @@ class FancyBusinessBottomSheet {
 class _CreateBusinessRequiredScreen extends StatelessWidget {
   final BuildContext parentContext;
 
-  const _CreateBusinessRequiredScreen({
-    required this.parentContext,
-  });
+  const _CreateBusinessRequiredScreen({required this.parentContext});
 
   @override
   Widget build(BuildContext context) {
@@ -78,14 +77,14 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                 const SizedBox(height: AppDims.s6),
 
                 Text(
-                  'Welcome to AmanaPOS',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.lg200(context).copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                  ),
-                )
+                      'Welcome to AmanaPOS',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.lg200(context).copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    )
                     .mAnimate()
                     .fadeIn(duration: 420.ms)
                     .slideY(begin: 0.16, end: 0, curve: Curves.easeOutCubic),
@@ -93,14 +92,14 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                 const SizedBox(height: AppDims.s2),
 
                 Text(
-                  'Create your first business to unlock your workspace and start running smarter sales operations.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bs400(context).copyWith(
-                    color: colors.textSecondary,
-                    height: 1.45,
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
+                      'Create your first business to unlock your workspace and start running smarter sales operations.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bs400(context).copyWith(
+                        color: colors.textSecondary,
+                        height: 1.45,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
                     .mAnimate()
                     .fadeIn(delay: 90.ms, duration: 420.ms)
                     .slideY(begin: 0.16, end: 0, curve: Curves.easeOutCubic),
@@ -115,29 +114,29 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                 const Spacer(),
 
                 SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      Future.delayed(const Duration(milliseconds: 180), () {
-                        if (!parentContext.mounted) return;
-                        showAddBusinessSheet(parentContext);
-                      });
-                    },
-                    icon: const Icon(Icons.add_business_rounded),
-                    label: Text(context.tr.bizCreateMyBusiness),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDims.rMd),
+                      width: double.infinity,
+                      height: 54,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Future.delayed(const Duration(milliseconds: 180), () {
+                            if (!parentContext.mounted) return;
+                            showAddBusinessSheet(parentContext);
+                          });
+                        },
+                        icon: const Icon(PhosphorIconsRegular.storefront),
+                        label: Text(context.tr.bizCreateMyBusiness),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppDims.rMd),
+                          ),
+                          textStyle: AppTextStyles.bs600(
+                            context,
+                          ).copyWith(fontWeight: FontWeight.w900),
+                        ),
                       ),
-                      textStyle: AppTextStyles.bs600(context).copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                )
+                    )
                     .mAnimate()
                     .fadeIn(delay: 260.ms, duration: 420.ms)
                     .slideY(begin: 0.22, end: 0, curve: Curves.easeOutCubic),
@@ -151,9 +150,7 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
                     color: colors.textHint,
                     fontWeight: FontWeight.w700,
                   ),
-                )
-                    .mAnimate()
-                    .fadeIn(delay: 330.ms, duration: 420.ms),
+                ).mAnimate().fadeIn(delay: 330.ms, duration: 420.ms),
 
                 const SizedBox(height: AppDims.s2),
               ],
@@ -164,5 +161,3 @@ class _CreateBusinessRequiredScreen extends StatelessWidget {
     );
   }
 }
-
-

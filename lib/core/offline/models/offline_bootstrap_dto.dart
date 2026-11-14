@@ -59,6 +59,8 @@ class OfflineBootstrapDto {
   }
 
   bool get hasUsableData {
-    return businesses.isNotEmpty || products.isNotEmpty || categories.isNotEmpty;
+    return businesses.isNotEmpty ||
+        products.isNotEmpty ||
+        categories.isNotEmpty;
   }
 }

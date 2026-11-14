@@ -14,16 +14,15 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showAddBusinessSheet(BuildContext context) {
   final bloc = context.read<BusinessBloc>();
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
-    builder: (_) => BlocProvider.value(value: bloc,
-      child: const _AddBusinessSheet(),
-    ),
+    builder: (_) =>
+        BlocProvider.value(value: bloc, child: const _AddBusinessSheet()),
   );
 }
 
@@ -49,21 +48,29 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _addressCtrl.dispose();
-    _phoneCtrl.dispose(); _emailCtrl.dispose();
-    _nameFocus.dispose(); _addressFocus.dispose();
-    _phoneFocus.dispose(); _emailFocus.dispose();
+    _nameCtrl.dispose();
+    _addressCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    _nameFocus.dispose();
+    _addressFocus.dispose();
+    _phoneFocus.dispose();
+    _emailFocus.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<BusinessBloc>().add(OnAddBusiness(
-      name: _nameCtrl.text.trim(),
-      address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-      email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
-    ));
+    context.read<BusinessBloc>().add(
+      OnAddBusiness(
+        name: _nameCtrl.text.trim(),
+        address: _addressCtrl.text.trim().isEmpty
+            ? null
+            : _addressCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -76,43 +83,51 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
           Navigator.of(context).pop();
           GlobalSnackBar.show(
             message: 'Business added successfully',
-            isInfo: true,);
-          getIt<NavigationBloc>().add(NavigationFeatureSelected(AppFeature.business));
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            RouteStrings.mainScreen,
-                (route) => false,
+            isInfo: true,
           );
+          getIt<NavigationBloc>().add(
+            NavigationFeatureSelected(AppFeature.business),
+          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(RouteStrings.mainScreen, (route) => false);
         }
 
         if (state.submitStatus == BusinessSubmitStatus.failure) {
           GlobalSnackBar.show(
             message: state.submitError ?? 'Something went wrong',
             isError: true,
-            isAutoDismiss: false
+            isAutoDismiss: false,
           );
         }
       },
       child: Padding(
         padding: EdgeInsets.only(
-            bottom: MediaQuery.viewInsetsOf(context).bottom),
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: context.appColors.surface,
             borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppDims.rXl)),
+              top: Radius.circular(AppDims.rXl),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    AppDims.s4, AppDims.s4, AppDims.s4, 0),
+                  AppDims.s4,
+                  AppDims.s4,
+                  AppDims.s4,
+                  0,
+                ),
                 child: Row(
                   children: [
                     Text(
                       'New Business',
                       style: AppTextStyles.bs600(context).copyWith(
-                      fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w800,
                         color: context.appColors.textPrimary,
                       ),
                     ),
@@ -120,13 +135,17 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
                       child: Container(
-                        width: 42, height: 42,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
                           color: context.appColors.surfaceSoft,
                           borderRadius: BorderRadius.circular(AppDims.rSm),
                         ),
-                        child: Icon(Icons.close_rounded,
-                            size: 24, color: context.appColors.textSecondary),
+                        child: Icon(
+                          PhosphorIconsRegular.x,
+                          size: 24,
+                          color: context.appColors.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -141,15 +160,17 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
-                        FieldLabel(label: context.tr.bizFieldBusinessName, required: true),
+                        FieldLabel(
+                          label: context.tr.bizFieldBusinessName,
+                          required: true,
+                        ),
                         const SizedBox(height: AppDims.s1),
                         AppFormField(
                           controller: _nameCtrl,
                           focusNode: _nameFocus,
                           nextFocus: _addressFocus,
                           hint: 'Amana Store',
-                          prefixIcon: Icons.store_outlined,
+                          prefixIcon: PhosphorIconsRegular.storefront,
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
                               return 'Business name is required';
@@ -169,7 +190,7 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                           focusNode: _addressFocus,
                           nextFocus: _phoneFocus,
                           hint: 'Khartoum, Sudan',
-                          prefixIcon: Icons.location_on_outlined,
+                          prefixIcon: PhosphorIconsRegular.mapPin,
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
                               return 'Address is required';
@@ -184,19 +205,25 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
 
                         Row(
                           children: [
-                            Expanded(child: Divider(color: context.appColors.border)),
+                            Expanded(
+                              child: Divider(color: context.appColors.border),
+                            ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: AppDims.s2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppDims.s2,
+                              ),
                               child: Text(
                                 'OPTIONAL',
                                 style: AppTextStyles.bs300(context).copyWith(
-                                fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w800,
                                   color: context.appColors.textHint,
                                   letterSpacing: 1.2,
                                 ),
                               ),
                             ),
-                            Expanded(child: Divider(color: context.appColors.border)),
+                            Expanded(
+                              child: Divider(color: context.appColors.border),
+                            ),
                           ],
                         ),
                         const SizedBox(height: AppDims.s4),
@@ -208,11 +235,13 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                           focusNode: _phoneFocus,
                           nextFocus: _emailFocus,
                           hint: '+249912345678',
-                          prefixIcon: Icons.phone_outlined,
+                          prefixIcon: PhosphorIconsRegular.phone,
                           keyboardType: TextInputType.phone,
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return null;
-                            if (!RegExp(r'^\+?[0-9]{7,15}$').hasMatch(v.trim())) {
+                            if (!RegExp(
+                              r'^\+?[0-9]{7,15}$',
+                            ).hasMatch(v.trim())) {
                               return 'Enter a valid phone number';
                             }
                             return null;
@@ -226,13 +255,15 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                           controller: _emailCtrl,
                           focusNode: _emailFocus,
                           hint: 'store@example.com',
-                          prefixIcon: Icons.email_outlined,
+                          prefixIcon: PhosphorIconsRegular.envelopeSimple,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.done,
                           onSubmitted: (_) => _submit(),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return null;
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
+                            if (!RegExp(
+                              r'^[^@]+@[^@]+\.[^@]+',
+                            ).hasMatch(v.trim())) {
                               return 'Enter a valid email';
                             }
                             return null;
@@ -243,9 +274,10 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                         // ── Submit ─────────────────────────────────────
                         BlocBuilder<BusinessBloc, BusinessState>(
                           buildWhen: (prev, curr) =>
-                          prev.submitStatus != curr.submitStatus,
+                              prev.submitStatus != curr.submitStatus,
                           builder: (context, state) {
-                            final isLoading = state.submitStatus ==
+                            final isLoading =
+                                state.submitStatus ==
                                 BusinessSubmitStatus.loading;
                             return SizedBox(
                               width: double.infinity,
@@ -255,27 +287,30 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
                                 style: FilledButton.styleFrom(
                                   backgroundColor: context.appColors.primary,
                                   disabledBackgroundColor:
-                                  context.appColors.border,
+                                      context.appColors.border,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(AppDims.rMd),
+                                    borderRadius: BorderRadius.circular(
+                                      AppDims.rMd,
+                                    ),
                                   ),
                                 ),
                                 child: isLoading
                                     ? const SizedBox(
-                                  width: 20, height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      )
                                     : Text(
-                                  'Create Business',
-                                  style: AppTextStyles.bs600(context).copyWith(
-                                  fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                        'Create Business',
+                                        style: AppTextStyles.bs600(context)
+                                            .copyWith(
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                            ),
+                                      ),
                               ),
                             );
                           },
@@ -292,5 +327,3 @@ class _AddBusinessSheetState extends State<_AddBusinessSheet> {
     );
   }
 }
-
-

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class LanguagePickerSheet extends StatelessWidget {
   const LanguagePickerSheet({super.key});
@@ -19,7 +19,7 @@ class LanguagePickerSheet extends StatelessWidget {
     return AppBottomSheet(
       title: tr.languagePickerTitle,
       subtitle: tr.languagePickerSubtitle,
-      icon: SolarIconsOutline.global,
+      icon: PhosphorIconsRegular.globe,
       child: BlocBuilder<LocaleBloc, LocaleState>(
         builder: (context, state) {
           final current = state.locale.languageCode;
@@ -136,7 +136,7 @@ class _PickerOptionRow extends StatelessWidget {
                 ),
               ),
               child: isSelected
-                  ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                  ? const Icon(PhosphorIconsRegular.check, size: 13, color: Colors.white)
                   : null,
             ),
           ],

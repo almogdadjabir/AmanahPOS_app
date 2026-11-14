@@ -10,130 +10,83 @@ class TotalsSection extends StatelessWidget {
   const TotalsSection({
     super.key,
     required this.state,
+    this.padding = const EdgeInsetsDirectional.fromSTEB(
+      AppDims.s4,
+      AppDims.s3,
+      AppDims.s4,
+      0,
+    ),
   });
 
   final PosState state;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final taxed = state.taxConfig.isActive && state.taxAmount > 0;
 
     return RepaintBoundary(
-      child: Container(
-        margin: const EdgeInsetsDirectional.fromSTEB(
-          AppDims.s4,
-          AppDims.s3,
-          AppDims.s4,
-          0,
-        ),
-        padding: const EdgeInsetsDirectional.all(AppDims.s4),
-        decoration: BoxDecoration(
-          color: colors.surfaceSoft.withValues(alpha: 0.78),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: colors.border.withValues(alpha: 0.78),
+      child: Padding(
+        padding: padding,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: colors.border)),
           ),
-        ),
-        child: Column(
-          children: [
-            if (state.taxConfig.isActive && state.taxAmount > 0 &&
-                !state.taxConfig.inclusive) ...[
-              // Exclusive: Subtotal → Tax (VAT 15%) → Total
-              TotalRow(
-                label: context.tr.subtotal,
-                value: money(state.subtotal),
-              ),
-              const SizedBox(height: AppDims.s3),
-              TotalRow(
-                label: context.tr.taxWithRate(
-                  state.taxConfig.name,
-                  state.taxConfig.rateLabel,
-                ),
-                value: money(state.taxAmount),
-              ),
-              const SizedBox(height: AppDims.s3),
-              _DashedDivider(color: colors.border),
-              const SizedBox(height: AppDims.s3),
-              TotalRow(
-                label: context.tr.total,
-                value: money(state.total),
-                isTotal: true,
-              ),
-            ] else if (state.taxConfig.isActive && state.taxAmount > 0) ...[
-              // Inclusive: Total (incl. VAT 15%) → Tax included
-              TotalRow(
-                label: context.tr.totalInclTax(
-                  state.taxConfig.name,
-                  state.taxConfig.rateLabel,
-                ),
-                value: money(state.total),
-                isTotal: true,
-              ),
-              const SizedBox(height: AppDims.s3),
-              _DashedDivider(color: colors.border),
-              const SizedBox(height: AppDims.s3),
-              TotalRow(
-                label: context.tr.taxIncluded,
-                value: money(state.taxAmount),
-              ),
-            ] else ...[
-              // Tax disabled — unchanged layout
-              TotalRow(
-                label: context.tr.subtotal,
-                value: money(state.subtotal),
-              ),
-              const SizedBox(height: AppDims.s3),
-              _DashedDivider(color: colors.border),
-              const SizedBox(height: AppDims.s3),
-              TotalRow(
-                label: context.tr.total,
-                value: money(state.total),
-                isTotal: true,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DashedDivider extends StatelessWidget {
-  const _DashedDivider({
-    required this.color,
-  });
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (_, constraints) {
-        const dashWidth = 7.0;
-        const dashGap = 6.0;
-        final dashCount =
-        (constraints.maxWidth / (dashWidth + dashGap)).floor();
-
-        if (dashCount <= 0) {
-          return const SizedBox(height: 1);
-        }
-
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(
-            dashCount,
-                (_) => SizedBox(
-              width: dashWidth,
-              height: 1,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.8),
-                ),
-              ),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(top: AppDims.s3),
+            child: Column(
+              children: [
+                if (taxed && !state.taxConfig.inclusive) ...[
+                  TotalRow(
+                    label: context.tr.subtotal,
+                    value: money(state.subtotal),
+                  ),
+                  const SizedBox(height: AppDims.s1),
+                  TotalRow(
+                    label: context.tr.taxWithRate(
+                      state.taxConfig.name,
+                      state.taxConfig.rateLabel,
+                    ),
+                    value: money(state.taxAmount),
+                  ),
+                  const SizedBox(height: AppDims.s2),
+                  TotalRow(
+                    label: context.tr.total,
+                    value: money(state.total),
+                    isTotal: true,
+                  ),
+                ] else if (taxed) ...[
+                  TotalRow(
+                    label: context.tr.totalInclTax(
+                      state.taxConfig.name,
+                      state.taxConfig.rateLabel,
+                    ),
+                    value: money(state.total),
+                    isTotal: true,
+                  ),
+                  const SizedBox(height: AppDims.s2),
+                  TotalRow(
+                    label: context.tr.taxIncluded,
+                    value: money(state.taxAmount),
+                  ),
+                ] else ...[
+                  TotalRow(
+                    label: context.tr.subtotal,
+                    value: money(state.subtotal),
+                  ),
+                  const SizedBox(height: AppDims.s2),
+                  TotalRow(
+                    label: context.tr.total,
+                    value: money(state.total),
+                    isTotal: true,
+                  ),
+                ],
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

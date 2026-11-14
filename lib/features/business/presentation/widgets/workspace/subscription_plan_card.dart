@@ -5,14 +5,12 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
   final BusinessData data;
 
-  const SubscriptionPlanCard({super.key,
-    required this.data,
-  });
+  const SubscriptionPlanCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +20,8 @@ class SubscriptionPlanCard extends StatelessWidget {
     final isFree = sub?.isFree ?? true;
     final daysLeft = sub?.daysRemaining ?? 0;
     final isExpired = sub != null && !isFree && daysLeft <= 0;
-    final isExpiringSoon = sub != null && !isFree && daysLeft > 0 && daysLeft <= 7;
+    final isExpiringSoon =
+        sub != null && !isFree && daysLeft > 0 && daysLeft <= 7;
 
     final accentColor = _resolveAccentColor(
       subExists: sub != null,
@@ -53,170 +52,174 @@ class SubscriptionPlanCard extends StatelessWidget {
     );
 
     return Container(
-      clipBehavior: Clip.none,
-      padding: const EdgeInsets.all(AppDims.s4),
-      decoration: BoxDecoration(
-        color: colors.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(AppDims.rXl),
-        border: Border.all(
-          color: colors.border.withValues(alpha: 0.75),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
+          clipBehavior: Clip.none,
+          padding: const EdgeInsets.all(AppDims.s4),
+          decoration: BoxDecoration(
+            color: colors.surface.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(AppDims.rXl),
+            border: Border.all(color: colors.border.withValues(alpha: 0.75)),
+          ),
+          child: Column(
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppDims.rLg),
-                  border: Border.all(
-                    color: accentColor.withValues(alpha: 0.30),
+              Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppDims.rLg),
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.30),
+                      ),
+                    ),
+                    child: Icon(
+                      isFree
+                          ? PhosphorIconsRegular.gift
+                          : PhosphorIconsRegular.medal,
+                      color: accentColor,
+                      size: 24,
+                    ),
                   ),
-                ),
-                child: Icon(
-                  isFree ? SolarIconsOutline.gift : SolarIconsOutline.medalRibbon,
-                  color: accentColor,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: AppDims.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs500(context).copyWith(
-                        color: colors.textPrimary,
+                  const SizedBox(width: AppDims.s3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bs500(context).copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          priceText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bs100(context).copyWith(
+                            color: colors.textSecondary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppDims.s3),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDims.s3,
+                      vertical: AppDims.s1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppDims.rSm),
+                    ),
+                    child: Text(
+                      expiryLabel,
+                      style: AppTextStyles.bs100(context).copyWith(
+                        color: accentColor,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      priceText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs100(context).copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w700,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: AppDims.s4),
+
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 7,
+                  backgroundColor: colors.border.withValues(alpha: 0.35),
+                  valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                ),
+              ),
+
+              const SizedBox(height: AppDims.s3),
+
+              Row(
+                children: [
+                  Text(
+                    sub == null ? 'Activate plan' : 'Upgrade',
+                    style: AppTextStyles.sm100(context).copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(width: AppDims.s2),
+                  Icon(
+                    PhosphorIconsRegular.arrowRight,
+                    size: 8,
+                    color: colors.textSecondary,
+                  ),
+                  const SizedBox(width: AppDims.s2),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          planLimitText(
+                            context: context,
+                            label: 'Shops',
+                            value: sub?.maxShops,
+                          ),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: AppDims.s2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.textSecondary.withValues(
+                                alpha: 0.45,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          planLimitText(
+                            context: context,
+                            label: 'Products',
+                            value: sub?.maxProducts,
+                          ),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: AppDims.s2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.textSecondary.withValues(
+                                alpha: 0.45,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          planLimitText(
+                            context: context,
+                            label: 'Users',
+                            value: sub?.maxUsers,
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppDims.s3),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDims.s3,
-                  vertical: AppDims.s1,
-                ),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppDims.rSm),
-                ),
-                child: Text(
-                  expiryLabel,
-                  style: AppTextStyles.bs100(context).copyWith(
-                    color: accentColor,
-                    fontWeight: FontWeight.w900,
                   ),
-                ),
+                ],
               ),
             ],
           ),
-
-          const SizedBox(height: AppDims.s4),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 7,
-              backgroundColor: colors.border.withValues(alpha: 0.35),
-              valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-            ),
-          ),
-
-          const SizedBox(height: AppDims.s3),
-
-          Row(
-            children: [
-              Text(
-                sub == null ? 'Activate plan' : 'Upgrade',
-                style: AppTextStyles.sm100(context).copyWith(
-                  color: colors.textSecondary,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.1,
-                ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Icon(
-                SolarIconsOutline.arrowRight,
-                size: 8,
-                color: colors.textSecondary,
-              ),
-              const SizedBox(width: AppDims.s2),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      planLimitText(
-                        context: context,
-                        label: 'Shops',
-                        value: sub?.maxShops,
-                      ),
-                      Container(
-                        width: 3,
-                        height: 3,
-                        margin: const EdgeInsets.symmetric(horizontal: AppDims.s2),
-                        decoration: BoxDecoration(
-                          color: colors.textSecondary.withValues(alpha: 0.45),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      planLimitText(
-                        context: context,
-                        label: 'Products',
-                        value: sub?.maxProducts,
-                      ),
-                      Container(
-                        width: 3,
-                        height: 3,
-                        margin: const EdgeInsets.symmetric(horizontal: AppDims.s2),
-                        decoration: BoxDecoration(
-                          color: colors.textSecondary.withValues(alpha: 0.45),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      planLimitText(
-                        context: context,
-                        label: 'Users',
-                        value: sub?.maxUsers,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    )
+        )
         .mAnimate()
         .fadeIn(duration: 350.ms, delay: 120.ms)
-        .slideY(
-      begin: 0.08,
-      end: 0,
-      curve: Curves.easeOutCubic,
-    );
+        .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
   }
 
   Color _resolveAccentColor({
@@ -277,15 +280,14 @@ class SubscriptionPlanCard extends StatelessWidget {
     required BuildContext context,
     required String label,
     required int? value,
-}){
+  }) {
     final colors = context.appColors;
 
     return Text(
       '$label ${_limitText(value)}',
-      style: AppTextStyles.sm100(context).copyWith(
-        color: colors.textSecondary,
-        fontWeight: FontWeight.w700,
-      ),
+      style: AppTextStyles.sm100(
+        context,
+      ).copyWith(color: colors.textSecondary, fontWeight: FontWeight.w700),
     );
   }
 

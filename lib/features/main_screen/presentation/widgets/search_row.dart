@@ -2,6 +2,7 @@ import 'package:amana_pos/common/widgets/app_search_field.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// Search input + barcode-scanner button.
 class SearchRow extends StatelessWidget {
@@ -41,7 +42,7 @@ class SearchRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppDims.rMd),
               child: SizedBox(
                 width: 44, height: 44,
-                child: Icon(Icons.qr_code_scanner_rounded, size: 20, color: context.appColors.textPrimary),
+                child: Icon(PhosphorIconsRegular.qrCode, size: 20, color: context.appColors.textPrimary),
               ),
             ),
           ),

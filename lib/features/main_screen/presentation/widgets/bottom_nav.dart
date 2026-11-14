@@ -6,7 +6,7 @@ import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc
 import 'package:amana_pos/features/main_screen/presentation/widgets/nav_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BottomNav extends StatelessWidget {
   const BottomNav({super.key});
@@ -38,8 +38,8 @@ class BottomNav extends StatelessWidget {
       if (perms.canAccessBusiness) {
         tabs.add(NavTab(
           feature: AppFeature.business,
-          icon: SolarIconsBold.shop,
-          activeIcon: SolarIconsBold.shop,
+          icon: PhosphorIconsRegular.house,
+          activeIcon: PhosphorIconsFill.house,
           label: tr.navHome,
         ));
       }
@@ -47,40 +47,40 @@ class BottomNav extends StatelessWidget {
       if (perms.canAccessProducts) {
         tabs.add(NavTab(
           feature: AppFeature.products,
-          icon: SolarIconsOutline.bag5,
-          activeIcon: SolarIconsOutline.bag5,
+          icon: PhosphorIconsRegular.shoppingBag,
+          activeIcon: PhosphorIconsFill.shoppingBag,
           label: tr.navProducts,
         ));
       }
 
       tabs.add(NavTab(
         feature: AppFeature.pos,
-        icon: SolarIconsOutline.cartLarge_4,
-        activeIcon: SolarIconsOutline.cartLarge,
+        icon: PhosphorIconsRegular.shoppingCart,
+        activeIcon: PhosphorIconsFill.shoppingCart,
         label: tr.navSell,
       ));
 
       if (perms.canAccessInventory) {
         tabs.add(NavTab(
           feature: AppFeature.inventory,
-          icon: SolarIconsOutline.boxMinimalistic,
-          activeIcon: SolarIconsBold.boxMinimalistic,
+          icon: PhosphorIconsRegular.package,
+          activeIcon: PhosphorIconsFill.package,
           label: tr.navInventory,
           showPremiumIndicator: isPremium,
         ));
       } else {
         tabs.add(NavTab(
           feature: AppFeature.users,
-          icon: SolarIconsOutline.userPlus,
-          activeIcon: SolarIconsOutline.userPlus,
+          icon: PhosphorIconsRegular.userPlus,
+          activeIcon: PhosphorIconsFill.userPlus,
           label: tr.navCashiers,
         ));
       }
 
       tabs.add(NavTab(
         feature: null,
-        icon: SolarIconsOutline.menuDots,
-        activeIcon: SolarIconsBold.menuDots,
+        icon: PhosphorIconsRegular.dotsThree,
+        activeIcon: PhosphorIconsRegular.dotsThree,
         label: tr.navMore,
         isMore: true,
       ));
@@ -88,8 +88,8 @@ class BottomNav extends StatelessWidget {
       if (perms.canAccessProducts) {
         tabs.add(NavTab(
           feature: AppFeature.products,
-          icon: SolarIconsOutline.bag5,
-          activeIcon: SolarIconsBold.bag5,
+          icon: PhosphorIconsRegular.shoppingBag,
+          activeIcon: PhosphorIconsFill.shoppingBag,
           label: tr.navProducts,
         ));
       }
@@ -97,8 +97,8 @@ class BottomNav extends StatelessWidget {
       if (perms.canAccessInventory) {
         tabs.add(NavTab(
           feature: AppFeature.inventory,
-          icon: SolarIconsOutline.boxMinimalistic,
-          activeIcon: SolarIconsBold.boxMinimalistic,
+          icon: PhosphorIconsRegular.package,
+          activeIcon: PhosphorIconsFill.package,
           label: tr.navInventory,
           showPremiumIndicator: isPremium,
         ));
@@ -106,8 +106,8 @@ class BottomNav extends StatelessWidget {
 
       tabs.add(NavTab(
         feature: AppFeature.pos,
-        icon: SolarIconsOutline.cartLarge_4,
-        activeIcon: SolarIconsOutline.cartLarge,
+        icon: PhosphorIconsRegular.shoppingCart,
+        activeIcon: PhosphorIconsFill.shoppingCart,
         label: tr.navSell,
       ));
 
@@ -123,8 +123,8 @@ class BottomNav extends StatelessWidget {
       if (hasMore) {
         tabs.add(NavTab(
           feature: null,
-          icon: SolarIconsOutline.menuDots,
-          activeIcon: SolarIconsBold.menuDots,
+          icon: PhosphorIconsRegular.dotsThree,
+          activeIcon: PhosphorIconsRegular.dotsThree,
           label: tr.navMore,
           isMore: true,
         ));

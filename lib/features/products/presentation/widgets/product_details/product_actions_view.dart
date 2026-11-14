@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductActionsView extends StatelessWidget {
   final ProductData product;
@@ -27,7 +27,7 @@ class ProductActionsView extends StatelessWidget {
       children: [
         Expanded(
           child: _ActionButton(
-            icon: SolarIconsOutline.penNewSquare,
+            icon: PhosphorIconsRegular.pencilSimpleLine,
             label: tr.edit,
             color: colors.primary,
             onTap: () {
@@ -38,7 +38,7 @@ class ProductActionsView extends StatelessWidget {
         const SizedBox(width: AppDims.s2),
         Expanded(
           child: _ActionButton(
-            icon: SolarIconsOutline.trashBinTrash,
+            icon: PhosphorIconsRegular.trash,
             label: tr.delete,
             color: const Color(0xFFDC2626),
             isDanger: true,

@@ -3,7 +3,7 @@ import 'package:amana_pos/l10n/app_localizations.dart';
 import 'package:amana_pos/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void main() {
   Widget wrap(Widget child) => MaterialApp(
@@ -20,7 +20,7 @@ void main() {
       background: Color(0xFFCCFBF1),
       valueColor: Color(0xFF115E59),
       labelColor: Color(0xFF0F766E),
-      icon: SolarIconsOutline.billList,
+      icon: PhosphorIconsRegular.receipt,
     )));
 
     expect(find.text('SALES'), findsOneWidget);
@@ -34,7 +34,7 @@ void main() {
       background: Color(0xFFCCFBF1),
       valueColor: Color(0xFF115E59),
       labelColor: Color(0xFF0F766E),
-      icon: SolarIconsOutline.walletMoney,
+      icon: PhosphorIconsRegular.wallet,
       forceValueLtr: true,
     )));
 

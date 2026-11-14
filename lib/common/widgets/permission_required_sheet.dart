@@ -4,15 +4,15 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 Future<void> showPermissionRequiredSheet(
-    BuildContext context, {
-      required String title,
-      required String message,
-    }) async {
+  BuildContext context, {
+  required String title,
+  required String message,
+}) async {
   await showAdaptivePanel(
     context,
-    desktopWidth: 360,
     builder: (_) {
       final colors = context.appColors;
 
@@ -40,7 +40,7 @@ Future<void> showPermissionRequiredSheet(
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.lock_outline_rounded,
+                PhosphorIconsRegular.lock,
                 color: colors.primary,
                 size: 32,
               ),
@@ -73,7 +73,7 @@ Future<void> showPermissionRequiredSheet(
                   Navigator.of(context).pop();
                   await openAppSettings();
                 },
-                icon: const Icon(Icons.settings_rounded),
+                icon: const Icon(PhosphorIconsRegular.gear),
                 label: const Text('Open Settings'),
                 style: FilledButton.styleFrom(
                   backgroundColor: colors.primary,
@@ -92,9 +92,9 @@ Future<void> showPermissionRequiredSheet(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
                   'Not Now',
-                  style: AppTextStyles.bs300(context).copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: AppTextStyles.bs300(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w800),
                 ),
               ),
             ),

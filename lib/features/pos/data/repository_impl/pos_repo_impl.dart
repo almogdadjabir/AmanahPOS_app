@@ -16,9 +16,9 @@ class PosRepoImpl extends PosRepository {
     required NetworkMonitor networkMonitor,
     required OfflineSalesQueue offlineSalesQueue,
     required PosRemoteDataSource remoteDataSource,
-  })  : _networkMonitor = networkMonitor,
-        _offlineSalesQueue = offlineSalesQueue,
-        _remoteDataSource = remoteDataSource;
+  }) : _networkMonitor = networkMonitor,
+       _offlineSalesQueue = offlineSalesQueue,
+       _remoteDataSource = remoteDataSource;
 
   final NetworkMonitor _networkMonitor;
   final OfflineSalesQueue _offlineSalesQueue;
@@ -168,9 +168,17 @@ class PosRepoImpl extends PosRepository {
           productId: item.product.id!.trim(),
           quantity: item.quantity.toString(),
           unitPrice: item.price.toStringAsFixed(2),
+          custom: item.isCustom,
+          note: item.isCustom ? _clampNote(item.product.name) : null,
         );
       }).toList(),
     );
+  }
+
+  static String? _clampNote(String? name) {
+    final value = name?.trim() ?? '';
+    if (value.isEmpty) return null;
+    return value.length > 120 ? value.substring(0, 120) : value;
   }
 
   OfflineSaleDto _buildOfflineSaleDto({
@@ -182,10 +190,7 @@ class PosRepoImpl extends PosRepository {
     required String discountAmount,
     required TaxConfig taxConfig,
   }) {
-    final subtotal = items.fold<double>(
-      0,
-          (sum, item) => sum + item.lineTotal,
-    );
+    final subtotal = items.fold<double>(0, (sum, item) => sum + item.lineTotal);
 
     final discount = double.tryParse(discountAmount) ?? 0;
     // Local preview of what the server will compute at sync time. In

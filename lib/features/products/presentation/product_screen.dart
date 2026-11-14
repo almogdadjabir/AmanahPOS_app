@@ -1,12 +1,10 @@
 import 'dart:async';
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/products/presentation/widgets/add_product_sheet.dart';
 import 'package:amana_pos/features/products/presentation/widgets/category_filter.dart';
-import 'package:amana_pos/features/products/presentation/widgets/desktop_products_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_empty_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_error_view.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_loading_view.dart';
@@ -20,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductsScreen extends StatefulWidget {
   final bool isWithAppbar;
@@ -58,7 +56,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialized || context.isDesktop) return;
+    if (_initialized) return;
     _initialized = true;
     context.read<ProductBloc>().add(const OnProductInitial());
     _scrollCtrl.addListener(_onScroll);
@@ -116,7 +114,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (context.isDesktop) return const DesktopProductsView();
 
     return BlocBuilder<ProductBloc, ProductState>(
       buildWhen: (prev, curr) =>
@@ -139,7 +136,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             leading: IconButton(
               onPressed: () => Navigator.of(context).pop(),
               icon: Icon(
-                Icons.arrow_back_rounded,
+                PhosphorIconsRegular.arrowLeft,
                 color: context.appColors.textPrimary,
               ),
             ),
@@ -168,8 +165,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       },
                       icon: Icon(
                         state.isGrid
-                            ? SolarIconsOutline.list
-                            : SolarIconsOutline.widget,
+                            ? PhosphorIconsRegular.list
+                            : PhosphorIconsRegular.squaresFour,
                         color: colors.textPrimary,
                         size: 22,
                       ),
@@ -210,7 +207,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ? FloatingActionButton.extended(
             onPressed: () => showAddProductSheet(context),
             backgroundColor: context.appColors.primary,
-            icon: const Icon(Icons.add_rounded, color: Colors.white),
+            icon: const Icon(PhosphorIconsRegular.plus, color: Colors.white),
             label: Text(
               tr.addProduct,
               style: AppTextStyles.bs300(context).copyWith(

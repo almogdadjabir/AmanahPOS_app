@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SaleAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SaleAppBar({super.key});
@@ -32,7 +32,7 @@ class SaleAppBar extends StatelessWidget implements PreferredSizeWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
-                SolarIconsOutline.bill, size: 18, color: Colors.white),
+                PhosphorIconsRegular.receipt, size: 18, color: Colors.white),
           ),
           const SizedBox(width: 10),
           Column(
@@ -54,7 +54,7 @@ class SaleAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(SolarIconsOutline.refresh),
+          icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
           color: colors.textSecondary,
           tooltip: 'Refresh',
           onPressed: () => context

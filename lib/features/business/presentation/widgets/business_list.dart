@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/extension.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BusinessList extends StatelessWidget {
   final List<BusinessData> items;
@@ -14,7 +15,11 @@ class BusinessList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(
-          AppDims.s4, AppDims.s4, AppDims.s4, 100),
+        AppDims.s4,
+        AppDims.s4,
+        AppDims.s4,
+        100,
+      ),
       itemCount: items.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppDims.s3),
       itemBuilder: (_, i) => _BusinessCard(data: items[i]),
@@ -44,7 +49,8 @@ class _BusinessCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 56, height: 56,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: context.appColors.primaryContainer,
                   borderRadius: BorderRadius.circular(AppDims.rSm),
@@ -52,17 +58,21 @@ class _BusinessCard extends StatelessWidget {
                 alignment: Alignment.center,
                 child: data.logo != null
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(AppDims.rSm),
-                  child: Image.network(data.logo!,
-                      width: 56, height: 56, fit: BoxFit.cover),
-                )
+                        borderRadius: BorderRadius.circular(AppDims.rSm),
+                        child: Image.network(
+                          data.logo!,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                     : Text(
-                  data.name?.initials ?? '?',
-                  style: AppTextStyles.bs600(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                    color: context.appColors.primary,
-                  ),
-                ),
+                        data.name?.initials ?? '?',
+                        style: AppTextStyles.bs600(context).copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: context.appColors.primary,
+                        ),
+                      ),
               ),
               const SizedBox(width: AppDims.s3),
 
@@ -78,7 +88,7 @@ class _BusinessCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bs400(context).copyWith(
-                            fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w800,
                               color: context.appColors.textPrimary,
                             ),
                           ),
@@ -87,12 +97,16 @@ class _BusinessCard extends StatelessWidget {
                         _StatusBadge(active: isActive),
                       ],
                     ),
-                    if (data.address != null && data.address?.isNotEmpty == true) ...[
+                    if (data.address != null &&
+                        data.address?.isNotEmpty == true) ...[
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          Icon(Icons.location_on_outlined,
-                              size: 12, color: context.appColors.textHint),
+                          Icon(
+                            PhosphorIconsRegular.mapPin,
+                            size: 12,
+                            color: context.appColors.textHint,
+                          ),
                           const SizedBox(width: 3),
                           Flexible(
                             child: Text(
@@ -100,7 +114,7 @@ class _BusinessCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.bs200(context).copyWith(
-                              fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w600,
                                 color: context.appColors.textSecondary,
                               ),
                             ),
@@ -111,13 +125,16 @@ class _BusinessCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.store_outlined,
-                            size: 12, color: context.appColors.textHint),
+                        Icon(
+                          PhosphorIconsRegular.storefront,
+                          size: 12,
+                          color: context.appColors.textHint,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           '${data.shopCount ?? 0} shop${(data.shopCount ?? 0) == 1 ? '' : 's'}',
                           style: AppTextStyles.bs200(context).copyWith(
-                          fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w600,
                             color: context.appColors.textHint,
                           ),
                         ),
@@ -127,8 +144,10 @@ class _BusinessCard extends StatelessWidget {
                 ),
               ),
 
-              Icon(Icons.chevron_right_rounded,
-                  color: context.appColors.textHint),
+              Icon(
+                PhosphorIconsRegular.caretRight,
+                color: context.appColors.textHint,
+              ),
             ],
           ),
         ),
@@ -154,10 +173,8 @@ class _StatusBadge extends StatelessWidget {
       child: Text(
         active ? 'Active' : 'Inactive',
         style: AppTextStyles.bs300(context).copyWith(
-        fontWeight: FontWeight.w800,
-          color: active
-              ? const Color(0xFF16A34A)
-              : context.appColors.textHint,
+          fontWeight: FontWeight.w800,
+          color: active ? const Color(0xFF16A34A) : context.appColors.textHint,
         ),
       ),
     );

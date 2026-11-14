@@ -13,7 +13,6 @@ void showCashierPinSheet(BuildContext context, {required String userId}) {
   final userBloc = context.read<UserBloc>();
   showAdaptivePanel(
     context,
-    desktopWidth: 420,
     builder: (_) => BlocProvider.value(
       value: userBloc,
       child: _CashierPinSheet(userId: userId),

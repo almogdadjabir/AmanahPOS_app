@@ -6,13 +6,12 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showStockLevelsSheet(BuildContext context) {
   context.read<StockLevelsBloc>().add(const OnStockLevelsStarted());
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<StockLevelsBloc>(),
       child: const _StockLevelsSheet(),
@@ -55,7 +54,7 @@ class _StockLevelsSheet extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: Icon(SolarIconsOutline.closeCircle,
+                      icon: Icon(PhosphorIconsRegular.xCircle,
                           color: colors.textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -189,7 +188,7 @@ class _SearchField extends StatelessWidget {
     return TextField(
       decoration: InputDecoration(
         hintText: 'Search products...',
-        prefixIcon: Icon(SolarIconsOutline.magnifier,
+        prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass,
             color: colors.textSecondary, size: 20),
         filled: true,
         fillColor: colors.textSecondary.withValues(alpha: 0.06),

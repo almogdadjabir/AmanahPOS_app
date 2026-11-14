@@ -9,7 +9,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/extension.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CashierCard extends StatelessWidget {
   const CashierCard({
@@ -153,7 +153,7 @@ class _CashierTrailing extends StatelessWidget {
             width: 30,
             height: 30,
             child: DirectionalIcon(
-              icon: SolarIconsOutline.altArrowRight,
+              icon: PhosphorIconsRegular.caretRight,
               color: colors.textHint,
               size: 17,
             ),
@@ -216,7 +216,7 @@ class _AccessHint extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          SolarIconsOutline.shieldCheck,
+          PhosphorIconsRegular.shieldCheck,
           size: 14,
           color: colors.textHint,
         ),
@@ -290,7 +290,7 @@ class _PhoneBadge extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                SolarIconsOutline.phone,
+                PhosphorIconsRegular.phone,
                 size: 12,
                 color: colors.textHint,
               ),

@@ -504,6 +504,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'You are not assigned to a shop. Contact your manager.';
 
   @override
+  String get posCharge => 'Charge';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String itemRemovedUndo(String name) {
+    return '$name removed';
+  }
+
+  @override
   String get posNoShopFound => 'No shop found. Please refresh and try again.';
 
   @override
@@ -1256,19 +1267,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsTitle => 'Notifications';
 
   @override
-  String get posStatusOffline => 'OFFLINE';
+  String get posStatusOffline => 'Offline';
 
   @override
-  String get posStatusSyncIssue => 'SYNC ISSUE';
+  String get posStatusSyncIssue => 'Sync issue';
 
   @override
-  String get posStatusPending => 'PENDING';
+  String get posStatusPending => 'Pending';
 
   @override
-  String get posStatusSyncing => 'SYNCING';
+  String get posStatusSyncing => 'Syncing';
 
   @override
-  String get posStatusSynced => 'SYNCED';
+  String get posStatusSynced => 'Synced';
 
   @override
   String get clearLocalDataTitle => 'Clear local data?';
@@ -2255,4 +2266,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pricesExcludeTax => 'Prices exclude tax';
+
+  @override
+  String posRowInStock(String count) {
+    return '$count in stock';
+  }
+
+  @override
+  String posRowLowStock(String count) {
+    return 'Low stock · $count';
+  }
+
+  @override
+  String get posRowOutOfStock => 'Out of stock';
+
+  @override
+  String get cashReceived => 'Cash received';
+
+  @override
+  String get exactAmount => 'Exact';
+
+  @override
+  String get changeDue => 'Change due';
+
+  @override
+  String get posKeypad => 'Keypad';
+
+  @override
+  String get posItems => 'Items';
+
+  @override
+  String get posCustomAmount => 'Custom amount';
+
+  @override
+  String get posEnterAmount => 'Enter an amount';
+
+  @override
+  String get posAddToTicket => 'Add to ticket';
+
+  @override
+  String get posAddedToTicket => 'Added to ticket';
+
+  @override
+  String get posAddNote => 'Add a note';
+
+  @override
+  String get posNoteHint => 'What is it for?';
 }

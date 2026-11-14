@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ReturnSuccessSheet extends StatelessWidget {
   final RefundResponseDto result;
@@ -32,7 +32,6 @@ class ReturnSuccessSheet extends StatelessWidget {
       }) {
     showAdaptivePanel(
       context,
-      desktopWidth: 360,
       builder: (_) => ReturnSuccessSheet(
         result: result,
         businessName: businessName,
@@ -176,7 +175,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(
-                          SolarIconsOutline.checkCircle,
+                          PhosphorIconsRegular.checkCircle,
                           color: AppColors.success,
                           size: 24,
                         ),
@@ -242,7 +241,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                SolarIconsOutline.copy,
+                                PhosphorIconsRegular.copy,
                                 size: 13,
                                 color: colors.textHint,
                               ),
@@ -326,7 +325,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                   // Share buttons
                   FilledButton.icon(
                     onPressed:()=> _shareWhatsApp(context),
-                    icon: Icon(SolarIconsOutline.chatRound),
+                    icon: Icon(PhosphorIconsRegular.chatCircle),
                     label: Text(context.tr.shareReturnWhatsApp),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF25D366),
@@ -341,7 +340,7 @@ class ReturnSuccessSheet extends StatelessWidget {
                   const SizedBox(height: AppDims.s2),
                   OutlinedButton.icon(
                     onPressed: ()=> _shareGeneral,
-                    icon: Icon(SolarIconsOutline.share, color: colors.textPrimary),
+                    icon: Icon(PhosphorIconsRegular.export, color: colors.textPrimary),
                     label: Text(
                       context.tr.shareVia,
                       style: AppTextStyles.bs200(context)

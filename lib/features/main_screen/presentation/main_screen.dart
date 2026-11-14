@@ -1,7 +1,5 @@
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/offline_preparation_listener.dart';
-import 'package:amana_pos/features/main_screen/presentation/widgets/desktop_shell.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/main_bottom_area.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/pos_app_bar.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -12,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
-  static const double _appBarHeight = 74;
+  static const double _appBarHeight = 44;
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +32,6 @@ class MainScreen extends StatelessWidget {
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     );
-
-    if (context.isDesktop) {
-      return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: overlayStyle,
-        child: OfflinePreparationListener(child: const DesktopShell()),
-      );
-    }
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,

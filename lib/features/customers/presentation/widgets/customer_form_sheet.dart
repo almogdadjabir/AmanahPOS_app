@@ -12,11 +12,11 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showCustomerFormSheet(BuildContext context, {CustomerData? customer}) {
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<CustomersBloc>(),
       child: _CustomerFormSheet(customer: customer),
@@ -144,8 +144,8 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                       ),
                       child: Icon(
                         _isEdit
-                            ? Icons.edit_outlined
-                            : Icons.person_add_alt_rounded,
+                            ? PhosphorIconsRegular.pencilSimple
+                            : PhosphorIconsRegular.userPlus,
                         color: colors.primary,
                       ),
                     ),
@@ -176,7 +176,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close_rounded,
+                      icon: Icon(PhosphorIconsRegular.x,
                           color: colors.textPrimary),
                     ),
                   ],
@@ -199,7 +199,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         AppFormField(
                           controller: _nameCtrl,   focusNode: _nameFocus,
                           nextFocus:  _phoneFocus, hint: 'Sara Ali',
-                          prefixIcon: Icons.person_outline_rounded,
+                          prefixIcon: PhosphorIconsRegular.user,
                           validator:  CustomerFormValidators.name,
                         ),
                         const SizedBox(height: AppDims.s3),
@@ -209,7 +209,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         AppFormField(
                           controller:  _phoneCtrl,   focusNode: _phoneFocus,
                           nextFocus:   _emailFocus,  hint: '+249922222222',
-                          prefixIcon:  Icons.phone_outlined,
+                          prefixIcon:  PhosphorIconsRegular.phone,
                           keyboardType: TextInputType.phone,
                           validator:   CustomerFormValidators.phone,
                         ),
@@ -220,7 +220,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         AppFormField(
                           controller:  _emailCtrl,    focusNode: _emailFocus,
                           nextFocus:   _addressFocus, hint: 'sara@example.com',
-                          prefixIcon:  Icons.email_outlined,
+                          prefixIcon:  PhosphorIconsRegular.envelopeSimple,
                           keyboardType: TextInputType.emailAddress,
                           validator:   CustomerFormValidators.email,
                         ),
@@ -231,7 +231,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         AppFormField(
                           controller: _addressCtrl, focusNode: _addressFocus,
                           nextFocus:  _notesFocus,  hint: tr.hintCustomerAddress,
-                          prefixIcon: Icons.location_on_outlined,
+                          prefixIcon: PhosphorIconsRegular.mapPin,
                         ),
                         const SizedBox(height: AppDims.s3),
 
@@ -240,7 +240,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                         AppFormField(
                           controller: _notesCtrl,  focusNode: _notesFocus,
                           nextFocus:  _pointsFocus, hint: tr.hintCustomerNotes,
-                          prefixIcon: Icons.notes_rounded,
+                          prefixIcon: PhosphorIconsRegular.notepad,
                           maxLines:   3,
                         ),
                         const SizedBox(height: AppDims.s3),
@@ -251,7 +251,7 @@ class _CustomerFormSheetState extends State<_CustomerFormSheet> {
                           controller:      _pointsCtrl,
                           focusNode:       _pointsFocus,
                           hint:            '0',
-                          prefixIcon:      Icons.stars_rounded,
+                          prefixIcon:      PhosphorIconsRegular.star,
                           keyboardType:    TextInputType.number,
                           textInputAction: TextInputAction.done,
                           onSubmitted:     (_) => _submit(),

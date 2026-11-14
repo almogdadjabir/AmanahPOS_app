@@ -4,6 +4,7 @@ import 'package:amana_pos/features/main_screen/data/section.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 List<Section> buildMenuSections(
   BuildContext context,
@@ -23,7 +24,7 @@ List<Section> buildMenuSections(
           'pos',
           'POS / Sales',
           'Create sales and checkout',
-          Icons.point_of_sale_rounded,
+          PhosphorIconsRegular.cashRegister,
           const Color(0xFF0D9488),
           active: current == AppFeature.pos,
           onTap: () => _go(context, AppFeature.pos),
@@ -35,7 +36,7 @@ List<Section> buildMenuSections(
           'sales_history',
           'Sales history',
           'Browse and search all transactions',
-          Icons.receipt_long_rounded,
+          PhosphorIconsRegular.receipt,
           const Color(0xFF0D9488),
           onTap: () => Navigator.of(context)
               .pushNamed(RouteStrings.salesHistoryScreen),
@@ -47,7 +48,7 @@ List<Section> buildMenuSections(
           'returns',
           'Returns',
           'Process customer item returns',
-          Icons.keyboard_return_rounded,
+          PhosphorIconsRegular.arrowUUpLeft,
           const Color(0xFFDC2626),
           onTap: () =>
               Navigator.of(context).pushNamed(RouteStrings.returnsScreen),
@@ -59,7 +60,7 @@ List<Section> buildMenuSections(
           'inventory',
           'Stock',
           'Manage quantity and movements',
-          Icons.inventory_2_rounded,
+          PhosphorIconsFill.package,
           const Color(0xFFEC4899),
           active: current == AppFeature.inventory,
           onTap: () => _go(context, AppFeature.inventory),
@@ -75,7 +76,7 @@ List<Section> buildMenuSections(
           'customers',
           'Customers',
           'Profiles and loyalty',
-          Icons.people_alt_rounded,
+          PhosphorIconsRegular.users,
           const Color(0xFFEC4899),
           active: current == AppFeature.customers,
           onTap: () => _go(context, AppFeature.customers),
@@ -87,7 +88,7 @@ List<Section> buildMenuSections(
           'reports',
           'Reports',
           'Sales and performance',
-          Icons.show_chart_rounded,
+          PhosphorIconsRegular.chartLine,
           const Color(0xFF22C55E),
         ),
         perms.canAccessReports,
@@ -101,7 +102,7 @@ List<Section> buildMenuSections(
           'prod',
           'Products',
           'Items, prices and variants',
-          Icons.local_offer_rounded,
+          PhosphorIconsRegular.tag,
           const Color(0xFF0EA5E9),
           active: current == AppFeature.products,
           onTap: () => _go(context, AppFeature.products),
@@ -113,7 +114,7 @@ List<Section> buildMenuSections(
           'cat',
           'Categories',
           'Organize your products',
-          Icons.layers_rounded,
+          PhosphorIconsRegular.stack,
           const Color(0xFF8B5CF6),
           active: current == AppFeature.categories,
           onTap: () => _go(context, AppFeature.categories),
@@ -125,7 +126,7 @@ List<Section> buildMenuSections(
           'business',
           'Business & Shops',
           'Profile and shop locations',
-          Icons.store_mall_directory_rounded,
+          PhosphorIconsRegular.storefront,
           const Color(0xFF475569),
           active: current == AppFeature.business,
           onTap: () => _go(context, AppFeature.business),
@@ -137,7 +138,7 @@ List<Section> buildMenuSections(
           'cashiers',
           'Cashiers',
           'Staff access and cashier accounts',
-          Icons.badge_rounded,
+          PhosphorIconsRegular.identificationBadge,
           const Color(0xFFDB2777),
           active: current == AppFeature.users,
           onTap: () => _go(context, AppFeature.users),

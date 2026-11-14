@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductEmptyView extends StatelessWidget {
   final String title;
@@ -133,7 +133,7 @@ class _CatalogGrid extends StatelessWidget {
             Expanded(
               child: _FilledCard(
                 accentColor: colors.warning,
-                icon: SolarIconsOutline.box,
+                icon: PhosphorIconsRegular.package,
               )
                   .mAnimate(delay: 40.ms)
                   .fadeIn(duration: 280.ms)
@@ -148,7 +148,7 @@ class _CatalogGrid extends StatelessWidget {
             Expanded(
               child: _FilledCard(
                 accentColor: colors.success,
-                icon: SolarIconsOutline.tag,
+                icon: PhosphorIconsRegular.tag,
               )
                   .mAnimate(delay: 100.ms)
                   .fadeIn(duration: 280.ms)
@@ -167,7 +167,7 @@ class _CatalogGrid extends StatelessWidget {
             Expanded(
               child: _FilledCard(
                 accentColor: colors.info,
-                icon: SolarIconsOutline.layersMinimalistic,
+                icon: PhosphorIconsRegular.stack,
               )
                   .mAnimate(delay: 160.ms)
                   .fadeIn(duration: 280.ms)
@@ -325,7 +325,7 @@ class _EmptySlot extends StatelessWidget {
                       ],
                     ),
                     child: const Icon(
-                      SolarIconsOutline.addCircle,
+                      PhosphorIconsRegular.plusCircle,
                       size: 22,
                       color: Colors.white,
                     ),
@@ -385,7 +385,7 @@ class _AddProductButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              SolarIconsOutline.addCircle,
+              PhosphorIconsRegular.plusCircle,
               size: 22,
               color: Colors.white,
             ),

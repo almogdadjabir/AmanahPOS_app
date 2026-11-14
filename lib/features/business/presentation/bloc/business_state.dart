@@ -1,7 +1,8 @@
 part of 'business_bloc.dart';
 
 enum BusinessSubmitStatus { idle, loading, success, failure }
-enum BusinessStatus { initial, loading, success, failure}
+
+enum BusinessStatus { initial, loading, success, failure }
 
 class BusinessState extends Equatable {
   final bool isLoading;
@@ -45,15 +46,17 @@ class BusinessState extends Equatable {
       businessStatus: businessStatus ?? this.businessStatus,
       businessList: businessList ?? this.businessList,
       submitStatus: submitStatus ?? this.submitStatus,
-      submitError: clearSubmitError
-          ? null
-          : submitError ?? this.submitError,
+      submitError: clearSubmitError ? null : submitError ?? this.submitError,
     );
   }
 
   @override
   List<Object?> get props => [
-    isLoading, responseError, businessStatus,
-    businessList, submitStatus, submitError,
+    isLoading,
+    responseError,
+    businessStatus,
+    businessList,
+    submitStatus,
+    submitError,
   ];
 }

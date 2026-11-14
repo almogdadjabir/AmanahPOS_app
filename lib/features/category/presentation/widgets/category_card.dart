@@ -9,7 +9,7 @@ import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/common/motion/motion_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CategoryCard extends StatelessWidget {
   final CategoryData category;
@@ -123,7 +123,7 @@ class _CategoryIcon extends StatelessWidget {
         width: 52,
         height: 52,
         child: Icon(
-          SolarIconsOutline.layersMinimalistic,
+          PhosphorIconsRegular.stack,
           size: 25,
           color: iconColor,
         ),
@@ -210,7 +210,7 @@ class _InactiveDot extends StatelessWidget {
           width: 22,
           height: 22,
           child: Icon(
-            SolarIconsOutline.pauseCircle,
+            PhosphorIconsRegular.pauseCircle,
             size: 14,
             color: colors.textHint,
           ),
@@ -235,7 +235,7 @@ class _ChevronButton extends StatelessWidget {
         height: 32,
         child: Center(
           child: DirectionalIcon(
-            icon: SolarIconsOutline.altArrowRight,
+            icon: PhosphorIconsRegular.caretRight,
             color: colors.textHint,
             size: 17,
           ),

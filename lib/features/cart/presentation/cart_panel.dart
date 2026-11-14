@@ -1,18 +1,14 @@
 import 'dart:math' as math;
 
-import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/cart/presentation/cart_peek.dart';
 import 'package:amana_pos/features/cart/presentation/expanded_cart.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
+import 'package:amana_pos/widgets/app_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartPanel extends StatelessWidget {
-  const CartPanel({
-    super.key,
-    required this.state,
-    required this.onCheckout,
-  });
+  const CartPanel({super.key, required this.state, required this.onCheckout});
 
   final PosState state;
   final VoidCallback onCheckout;
@@ -23,9 +19,8 @@ class CartPanel extends StatelessWidget {
   void _openCart(BuildContext context) {
     final posBloc = context.read<PosBloc>();
 
-    showAdaptivePanel<void>(
+    showAppSheet<void>(
       context,
-      desktopWidth: 392,
       builder: (sheetCtx) {
         final size = MediaQuery.sizeOf(sheetCtx);
         final safeBottom = MediaQuery.viewPaddingOf(sheetCtx).bottom;
@@ -33,8 +28,8 @@ class CartPanel extends StatelessWidget {
           _minSheetHeight,
           size.height - _bottomReserve - safeBottom,
         );
-        return SizedBox(
-          height: sheetHeight,
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: sheetHeight),
           child: BlocProvider.value(
             value: posBloc,
             child: ExpandedCart(
@@ -49,9 +44,6 @@ class CartPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CartPeek(
-      state: state,
-      onTap: () => _openCart(context),
-    );
+    return CartPeek(state: state, onTap: () => _openCart(context));
   }
 }

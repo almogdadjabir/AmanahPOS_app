@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductInventoryAlertsSection extends StatelessWidget {
   final TextEditingController minStockCtrl;
@@ -45,7 +46,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    Icons.notifications_active_outlined,
+                    PhosphorIconsRegular.bellRinging,
                     size: 18,
                     color: colors.primary,
                   ),
@@ -82,7 +83,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
                 focusNode: minStockFocus,
                 nextFocus: expiryAlertFocus,
                 hint: 'e.g. 5',
-                prefixIcon: Icons.warning_amber_rounded,
+                prefixIcon: PhosphorIconsRegular.warning,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -103,7 +104,7 @@ class ProductInventoryAlertsSection extends StatelessWidget {
                 controller: expiryAlertCtrl,
                 focusNode: expiryAlertFocus,
                 hint: 'e.g. 7',
-                prefixIcon: Icons.event_busy_outlined,
+                prefixIcon: PhosphorIconsRegular.calendarX,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
                 validator: (v) {

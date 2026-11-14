@@ -11,7 +11,7 @@ import 'package:amana_pos/utilities/content_direction.dart';
 import 'package:amana_pos/widgets/directional_icon.dart'; // update path if needed
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductListCard extends StatelessWidget {
   final ProductData product;
@@ -142,7 +142,7 @@ class _ProductListCardContent extends StatelessWidget {
                       const SizedBox(height: AppDims.s3),
 
                       DirectionalIcon(
-                        icon: SolarIconsOutline.altArrowRight,
+                        icon: PhosphorIconsRegular.caretRight,
                         color: colors.textHint,
                         size: 20,
                       ),

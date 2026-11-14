@@ -1,6 +1,7 @@
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// The numeric pad. Keys are quiet — borderless, transparent — so the only
 /// colour on the screen is the emerald that fills the dots above. Emerald
@@ -71,7 +72,7 @@ class PinKeypad extends StatelessWidget {
           child: Center(
             child: isBackspace
                 ? Icon(
-                    Icons.backspace_outlined,
+                    PhosphorIconsRegular.backspace,
                     size: 26,
                     color: enabled ? colors.textSecondary : colors.disabled,
                   )

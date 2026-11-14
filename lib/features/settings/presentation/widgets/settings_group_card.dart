@@ -1,4 +1,3 @@
-import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';

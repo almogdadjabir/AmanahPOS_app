@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SubscriptionExpiredScreen extends StatelessWidget {
   const SubscriptionExpiredScreen({super.key});
@@ -19,10 +20,8 @@ class SubscriptionExpiredScreen extends StatelessWidget {
         opaque: false,
         barrierColor: Colors.black.withValues(alpha: 0.6),
         pageBuilder: (_, __, ___) => const SubscriptionExpiredScreen(),
-        transitionsBuilder: (_, animation, __, child) => FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }
@@ -68,7 +67,7 @@ class SubscriptionExpiredScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.lock_clock_rounded,
+                      PhosphorIconsRegular.lockKey,
                       size: 40,
                       color: Color(0xFFEF4444),
                     ),
@@ -89,10 +88,9 @@ class SubscriptionExpiredScreen extends StatelessWidget {
 
                   Text(
                     'Your plan has expired. Please renew your subscription to continue using the app.',
-                    style: AppTextStyles.bs200(context).copyWith(
-                      color: colors.textSecondary,
-                      height: 1.5,
-                    ),
+                    style: AppTextStyles.bs200(
+                      context,
+                    ).copyWith(color: colors.textSecondary, height: 1.5),
                     textAlign: TextAlign.center,
                   ),
 
@@ -114,7 +112,7 @@ class SubscriptionExpiredScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppDims.rMd),
                         ),
                       ),
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
                       label: Text(
                         'Renew Subscription',
                         style: AppTextStyles.bs300(context).copyWith(
@@ -135,9 +133,9 @@ class SubscriptionExpiredScreen extends StatelessWidget {
                     },
                     child: Text(
                       'Sign out',
-                      style: AppTextStyles.bs200(context).copyWith(
-                        color: colors.textSecondary,
-                      ),
+                      style: AppTextStyles.bs200(
+                        context,
+                      ).copyWith(color: colors.textSecondary),
                     ),
                   ),
                 ],

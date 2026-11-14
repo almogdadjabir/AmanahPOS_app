@@ -4,7 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NotificationDetailsSheet  (drop-in, same constructor API)
@@ -145,7 +145,7 @@ class NotificationDetailsSheet extends StatelessWidget {
                           ),
                         ),
                         child: Icon(
-                          SolarIconsOutline.closeCircle,
+                          PhosphorIconsRegular.xCircle,
                           size: 16,
                           color: colors.textHint,
                         ),

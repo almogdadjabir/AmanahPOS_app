@@ -15,7 +15,7 @@ import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SaleDetailSheet extends StatefulWidget {
   const SaleDetailSheet({
@@ -28,17 +28,13 @@ class SaleDetailSheet extends StatefulWidget {
   final VoidCallback? onReturnTap;
 
   static void show(
-      BuildContext context, {
-        required SaleHistoryItem item,
-        VoidCallback? onReturnTap,
-      }) {
+    BuildContext context, {
+    required SaleHistoryItem item,
+    VoidCallback? onReturnTap,
+  }) {
     showAdaptivePanel<void>(
       context,
-      desktopWidth: 480,
-      builder: (_) => SaleDetailSheet(
-        item: item,
-        onReturnTap: onReturnTap,
-      ),
+      builder: (_) => SaleDetailSheet(item: item, onReturnTap: onReturnTap),
     );
   }
 
@@ -52,9 +48,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
   SaleHistoryItem get item => widget.item;
 
   Future<void> _copyRef() async {
-    await Clipboard.setData(
-      ClipboardData(text: item.displayRef),
-    );
+    await Clipboard.setData(ClipboardData(text: item.displayRef));
 
     if (!mounted) return;
 
@@ -117,10 +111,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ReceiptReferenceCard(
-                    item: item,
-                    onTap: _copyRef,
-                  ),
+                  _ReceiptReferenceCard(item: item, onTap: _copyRef),
                   const SizedBox(height: AppDims.s3),
                   _MetaChips(item: item),
                   const SizedBox(height: AppDims.s4),
@@ -128,7 +119,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
                   const SizedBox(height: AppDims.s4),
                   if (item.isOfflinePending) ...[
                     _AlertBanner(
-                      icon: SolarIconsOutline.wifiRouterRound,
+                      icon: PhosphorIconsRegular.wifiHigh,
                       message: context.tr.salePendingSyncDescription,
                       color: AppColors.warning,
                       background: AppColors.warningLight,
@@ -138,7 +129,7 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
                   if (item.status == SaleHistoryStatus.refunded ||
                       item.status == SaleHistoryStatus.partialRefund) ...[
                     _AlertBanner(
-                      icon: SolarIconsOutline.infoCircle,
+                      icon: PhosphorIconsRegular.info,
                       message: context.tr.saleAlreadyRefunded,
                       color: AppColors.danger,
                       background: AppColors.dangerLight,
@@ -173,30 +164,8 @@ class _SaleDetailSheetState extends State<SaleDetailSheet> {
   }
 }
 
-class _BottomSheetHandle extends StatelessWidget {
-  const _BottomSheetHandle({
-    required this.color,
-  });
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: const SizedBox(width: 36, height: 4),
-    );
-  }
-}
-
 class _ReceiptReferenceCard extends StatelessWidget {
-  const _ReceiptReferenceCard({
-    required this.item,
-    required this.onTap,
-  });
+  const _ReceiptReferenceCard({required this.item, required this.onTap});
 
   final SaleHistoryItem item;
   final VoidCallback onTap;
@@ -226,8 +195,8 @@ class _ReceiptReferenceCard extends StatelessWidget {
                   children: [
                     Icon(
                       hasReceiptNumber
-                          ? SolarIconsOutline.billList
-                          : SolarIconsOutline.hourglass,
+                          ? PhosphorIconsRegular.receipt
+                          : PhosphorIconsRegular.hourglass,
                       size: 12,
                       color: colors.textHint,
                     ),
@@ -267,7 +236,7 @@ class _ReceiptReferenceCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      SolarIconsOutline.copy,
+                      PhosphorIconsRegular.copy,
                       size: 12,
                       color: colors.textHint,
                     ),
@@ -292,9 +261,7 @@ class _ReceiptReferenceCard extends StatelessWidget {
 }
 
 class _MetaChips extends StatelessWidget {
-  const _MetaChips({
-    required this.item,
-  });
+  const _MetaChips({required this.item});
 
   final SaleHistoryItem item;
 
@@ -314,27 +281,22 @@ class _MetaChips extends StatelessWidget {
         _Chip(
           _paymentLabel(context, item.paymentLabel),
           color: _paymentColor(item.paymentLabel),
-          icon: SolarIconsOutline.walletMoney,
+          icon: PhosphorIconsRegular.wallet,
         ),
         _Chip(
           _formatDate(context, item.createdAt),
-          icon: SolarIconsOutline.clockCircle,
+          icon: PhosphorIconsRegular.clock,
           forceLtr: true,
         ),
         if (shopName != null && shopName.isNotEmpty)
-          _Chip(
-            shopName,
-            icon: SolarIconsOutline.shop,
-          ),
+          _Chip(shopName, icon: PhosphorIconsRegular.storefront),
       ],
     );
   }
 }
 
 class _ItemsCard extends StatelessWidget {
-  const _ItemsCard({
-    required this.item,
-  });
+  const _ItemsCard({required this.item});
 
   final SaleHistoryItem item;
 
@@ -353,45 +315,42 @@ class _ItemsCard extends StatelessWidget {
         child: item.items.isEmpty
             ? _EmptyItems()
             : Column(
-          children: [
-            for (int i = 0; i < item.items.length; i++) ...[
-              if (i > 0)
-                Divider(
-                  height: 1,
-                  color: colors.border.withValues(alpha: 0.6),
-                ),
-              _ItemRow(
-                name: item.items[i].productName,
-                quantity: item.items[i].quantity,
-                subtotal: item.items[i].subtotal,
+                children: [
+                  for (int i = 0; i < item.items.length; i++) ...[
+                    if (i > 0)
+                      Divider(
+                        height: 1,
+                        color: colors.border.withValues(alpha: 0.6),
+                      ),
+                    _ItemRow(
+                      name: item.items[i].productName,
+                      quantity: item.items[i].quantity,
+                      subtotal: item.items[i].subtotal,
+                    ),
+                  ],
+                  Divider(height: 1, color: colors.border),
+                  if (item.taxAmount > 0) ...[
+                    if (!item.taxInclusive) ...[
+                      _SubtotalRow(
+                        subtotal: item.items.fold<double>(
+                          0,
+                          (sum, i) => sum + i.subtotal,
+                        ),
+                      ),
+                      Divider(
+                        height: 1,
+                        color: colors.border.withValues(alpha: 0.6),
+                      ),
+                    ],
+                    _TaxLineRow(item: item),
+                    Divider(
+                      height: 1,
+                      color: colors.border.withValues(alpha: 0.6),
+                    ),
+                  ],
+                  _TotalRow(total: item.total),
+                ],
               ),
-            ],
-            Divider(
-              height: 1,
-              color: colors.border,
-            ),
-            if (item.taxAmount > 0) ...[
-              if (!item.taxInclusive) ...[
-                _SubtotalRow(
-                  subtotal: item.items.fold<double>(
-                    0,
-                    (sum, i) => sum + i.subtotal,
-                  ),
-                ),
-                Divider(
-                  height: 1,
-                  color: colors.border.withValues(alpha: 0.6),
-                ),
-              ],
-              _TaxLineRow(item: item),
-              Divider(
-                height: 1,
-                color: colors.border.withValues(alpha: 0.6),
-              ),
-            ],
-            _TotalRow(total: item.total),
-          ],
-        ),
       ),
     );
   }
@@ -406,10 +365,9 @@ class _EmptyItems extends StatelessWidget {
       padding: const EdgeInsetsDirectional.all(AppDims.s4),
       child: Text(
         context.tr.noItemDetailsAvailable,
-        style: AppTextStyles.bs100(context).copyWith(
-          color: colors.textHint,
-          fontWeight: FontWeight.w700,
-        ),
+        style: AppTextStyles.bs100(
+          context,
+        ).copyWith(color: colors.textHint, fontWeight: FontWeight.w700),
         textAlign: TextAlign.center,
       ),
     );
@@ -477,9 +435,7 @@ class _ItemRow extends StatelessWidget {
 }
 
 class _QuantityPill extends StatelessWidget {
-  const _QuantityPill({
-    required this.quantity,
-  });
+  const _QuantityPill({required this.quantity});
 
   final double quantity;
 
@@ -491,9 +447,7 @@ class _QuantityPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: colors.border.withValues(alpha: 0.8),
-        ),
+        border: Border.all(color: colors.border.withValues(alpha: 0.8)),
       ),
       child: Padding(
         padding: const EdgeInsetsDirectional.symmetric(
@@ -515,9 +469,7 @@ class _QuantityPill extends StatelessWidget {
 }
 
 class _TotalRow extends StatelessWidget {
-  const _TotalRow({
-    required this.total,
-  });
+  const _TotalRow({required this.total});
 
   final double total;
 
@@ -526,9 +478,7 @@ class _TotalRow extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(17),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(17)),
       ),
       child: Padding(
         padding: const EdgeInsetsDirectional.symmetric(
@@ -582,8 +532,8 @@ class _TaxLineRow extends StatelessWidget {
     final label = item.taxInclusive
         ? context.tr.taxIncluded
         : item.taxRate > 0
-            ? context.tr.taxWithRatePercent(formatTaxRate(item.taxRate))
-            : context.tr.taxLabel;
+        ? context.tr.taxWithRatePercent(formatTaxRate(item.taxRate))
+        : context.tr.taxLabel;
 
     return Padding(
       padding: const EdgeInsetsDirectional.symmetric(
@@ -605,10 +555,9 @@ class _TaxLineRow extends StatelessWidget {
           Text(
             AppFormat.moneyWithUnit(item.taxAmount),
             textDirection: ui.TextDirection.ltr,
-            style: AppTextStyles.bs200(context).copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
+            style: AppTextStyles.bs200(
+              context,
+            ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -645,10 +594,9 @@ class _SubtotalRow extends StatelessWidget {
           Text(
             AppFormat.moneyWithUnit(subtotal),
             textDirection: ui.TextDirection.ltr,
-            style: AppTextStyles.bs200(context).copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
+            style: AppTextStyles.bs200(
+              context,
+            ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -675,20 +623,14 @@ class _AlertBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: color.withValues(alpha: 0.20),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.20)),
       ),
       child: Padding(
         padding: const EdgeInsetsDirectional.all(AppDims.s3),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              size: 17,
-              color: color,
-            ),
+            Icon(icon, size: 17, color: color),
             const SizedBox(width: AppDims.s2),
             Expanded(
               child: Text(
@@ -708,9 +650,7 @@ class _AlertBanner extends StatelessWidget {
 }
 
 class _ReturnItemsButton extends StatelessWidget {
-  const _ReturnItemsButton({
-    required this.onPressed,
-  });
+  const _ReturnItemsButton({required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -718,29 +658,21 @@ class _ReturnItemsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton.icon(
       onPressed: onPressed,
-      icon: const Icon(
-        SolarIconsOutline.undoLeft,
-        size: 18,
-      ),
+      icon: const Icon(PhosphorIconsRegular.arrowUUpLeft, size: 18),
       label: Text(context.tr.returnItemsAction),
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.dangerLight,
         foregroundColor: AppColors.danger,
         elevation: 0,
         minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     );
   }
 }
 
 class _ShareReceiptButton extends StatelessWidget {
-  const _ShareReceiptButton({
-    required this.isLoading,
-    required this.onPressed,
-  });
+  const _ShareReceiptButton({required this.isLoading, required this.onPressed});
 
   final bool isLoading;
   final VoidCallback onPressed;
@@ -753,19 +685,19 @@ class _ShareReceiptButton extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         child: isLoading
             ? const SizedBox(
-          key: ValueKey('loading'),
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white,
-          ),
-        )
+                key: ValueKey('loading'),
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
             : const Icon(
-          SolarIconsOutline.documentText,
-          key: ValueKey('icon'),
-          size: 18,
-        ),
+                PhosphorIconsRegular.fileText,
+                key: ValueKey('icon'),
+                size: 18,
+              ),
       ),
       label: Text(
         isLoading ? context.tr.preparingReceipt : context.tr.shareReceiptPdf,
@@ -777,21 +709,14 @@ class _ShareReceiptButton extends StatelessWidget {
         disabledForegroundColor: Colors.white,
         elevation: 0,
         minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     );
   }
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip(
-      this.label, {
-        this.color,
-        this.icon,
-        this.forceLtr = false,
-      });
+  const _Chip(this.label, {this.color, this.icon, this.forceLtr = false});
 
   final String label;
   final Color? color;
@@ -820,17 +745,14 @@ class _Chip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(
-                icon,
-                size: 12,
-                color: fg,
-              ),
+              Icon(icon, size: 12, color: fg),
               const SizedBox(width: 4),
             ],
             Text(
               label,
-              textDirection:
-              forceLtr ? ui.TextDirection.ltr : Directionality.of(context),
+              textDirection: forceLtr
+                  ? ui.TextDirection.ltr
+                  : Directionality.of(context),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.sm100(context).copyWith(
@@ -848,19 +770,17 @@ class _Chip extends StatelessWidget {
 }
 
 void _showSnackBar(
-    BuildContext context, {
-      required String message,
-      required Color backgroundColor,
-    }) {
+  BuildContext context, {
+  required String message,
+  required Color backgroundColor,
+}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
       duration: const Duration(seconds: 2),
       behavior: SnackBarBehavior.floating,
       backgroundColor: backgroundColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ),
   );
 }
@@ -920,12 +840,12 @@ Color _statusColor(SaleHistoryStatus status) {
 
 IconData _statusIcon(SaleHistoryStatus status) {
   return switch (status) {
-    SaleHistoryStatus.completed => SolarIconsOutline.checkCircle,
-    SaleHistoryStatus.refunded => SolarIconsOutline.undoLeft,
-    SaleHistoryStatus.partialRefund => SolarIconsOutline.undoLeft,
-    SaleHistoryStatus.cancelled => SolarIconsOutline.closeCircle,
-    SaleHistoryStatus.failed => SolarIconsOutline.dangerTriangle,
-    SaleHistoryStatus.pending => SolarIconsOutline.clockCircle,
-    _ => SolarIconsOutline.clockCircle,
+    SaleHistoryStatus.completed => PhosphorIconsRegular.checkCircle,
+    SaleHistoryStatus.refunded => PhosphorIconsRegular.arrowUUpLeft,
+    SaleHistoryStatus.partialRefund => PhosphorIconsRegular.arrowUUpLeft,
+    SaleHistoryStatus.cancelled => PhosphorIconsRegular.xCircle,
+    SaleHistoryStatus.failed => PhosphorIconsRegular.warning,
+    SaleHistoryStatus.pending => PhosphorIconsRegular.clock,
+    _ => PhosphorIconsRegular.clock,
   };
 }

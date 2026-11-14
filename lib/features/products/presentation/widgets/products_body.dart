@@ -7,6 +7,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductsBody extends StatelessWidget {
   final List<ProductData> products;
@@ -203,7 +204,7 @@ class _FilteredProductsEmptyBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.inventory_2_outlined,
+                  PhosphorIconsRegular.package,
                   size: 42,
                   color: Theme.of(context).colorScheme.outline,
                 ),

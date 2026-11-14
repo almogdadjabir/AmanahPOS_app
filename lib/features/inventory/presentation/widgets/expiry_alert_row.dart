@@ -3,7 +3,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ExpiryAlertRow extends StatelessWidget {
   const ExpiryAlertRow({super.key});
@@ -33,7 +33,7 @@ class ExpiryAlertRow extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.dangerTriangle,
+                PhosphorIconsRegular.warning,
                 color: colors.danger,
                 size: 16,
               ),
@@ -48,7 +48,7 @@ class ExpiryAlertRow extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
+                PhosphorIconsRegular.caretRight,
                 color: colors.danger,
                 size: 16,
               ),

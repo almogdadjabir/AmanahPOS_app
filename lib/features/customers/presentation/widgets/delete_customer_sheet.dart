@@ -6,7 +6,7 @@ import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/app_deactivate_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showDeleteCustomerSheet(BuildContext context, {required CustomerData customer}) {
   AppDeactivateBottomSheet.show(
@@ -49,7 +49,7 @@ class _DeleteCustomerSheet extends StatelessWidget {
         builder: (context, isLoading) => AppDeactivateBottomSheet(
           title: tr.deleteCustomerTitle,
           description: tr.deleteCustomerConfirm(customer.name ?? tr.customers),
-          icon: SolarIconsOutline.trashBinTrash,
+          icon: PhosphorIconsRegular.trash,
           confirmText: tr.delete,
           confirmColor: colors.danger,
           isLoading: isLoading,

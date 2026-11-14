@@ -7,7 +7,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SaleStatsRow extends StatelessWidget {
   const SaleStatsRow({
@@ -47,7 +47,7 @@ class SaleStatsRow extends StatelessWidget {
                   background: AppColors.primaryLight,
                   valueColor: AppColors.primaryDark,
                   labelColor: AppColors.primary,
-                  icon: SolarIconsOutline.billList,
+                  icon: PhosphorIconsRegular.receipt,
                 ),
               ),
               const SizedBox(width: AppDims.s2),
@@ -59,7 +59,7 @@ class SaleStatsRow extends StatelessWidget {
                   background: AppColors.secondaryLight,
                   valueColor: AppColors.secondaryDark,
                   labelColor: AppColors.secondaryDark,
-                  icon: SolarIconsOutline.walletMoney,
+                  icon: PhosphorIconsRegular.wallet,
                 ),
               ),
             ],

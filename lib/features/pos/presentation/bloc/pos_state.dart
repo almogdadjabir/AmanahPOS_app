@@ -63,15 +63,17 @@ class PosState extends Equatable {
   double get subtotal => items.fold(0, (sum, i) => sum + i.lineTotal);
 
   /// Local tax preview (docs/TAX_SUPPORT.md §2) — server stays authoritative.
-  double get taxAmount =>
-      TaxCalculator.compute(taxableAmount: subtotal, config: taxConfig)
-          .taxAmount;
+  double get taxAmount => TaxCalculator.compute(
+    taxableAmount: subtotal,
+    config: taxConfig,
+  ).taxAmount;
 
   /// Net payable total: subtotal + tax when exclusive, subtotal when
   /// inclusive or tax disabled.
-  double get total =>
-      TaxCalculator.compute(taxableAmount: subtotal, config: taxConfig)
-          .netAmount;
+  double get total => TaxCalculator.compute(
+    taxableAmount: subtotal,
+    config: taxConfig,
+  ).netAmount;
 
   int quantityOf(String? productId) {
     if (productId == null) return 0;
@@ -81,7 +83,8 @@ class PosState extends Equatable {
 
   Map<String, int> get currentSoldQuantities => {
     for (final item in items)
-      if (item.product.id != null) item.product.id!: item.quantity,
+      if (item.product.id != null && !item.isCustom)
+        item.product.id!: item.quantity,
   };
 
   PosState copyWith({
@@ -122,8 +125,12 @@ class PosState extends Equatable {
       submitError: submitError,
       cartExpanded: cartExpanded ?? this.cartExpanded,
       lastSoldQuantities: lastSoldQuantities ?? this.lastSoldQuantities,
-      selectedShopId: clearShop ? null : (selectedShopId ?? this.selectedShopId),
-      selectedShopName: clearShop ? null : (selectedShopName ?? this.selectedShopName),
+      selectedShopId: clearShop
+          ? null
+          : (selectedShopId ?? this.selectedShopId),
+      selectedShopName: clearShop
+          ? null
+          : (selectedShopName ?? this.selectedShopName),
       taxConfig: taxConfig ?? this.taxConfig,
       lastReceiptNumber: lastReceiptNumber ?? this.lastReceiptNumber,
       lastSaleId: lastSaleId ?? this.lastSaleId,
@@ -142,12 +149,28 @@ class PosState extends Equatable {
 
   @override
   List<Object?> get props => [
-    items, searchQuery, selectedCategoryId, paymentMethod,
-    submitStatus, submitError, cartExpanded, lastSoldQuantities,
-    selectedShopId, selectedShopName,
-    lastReceiptNumber, lastSaleId, lastClientSaleId,
-    lastCartSnapshot, lastTotal, lastPaymentMethod, lastSaleWasOffline,
-    taxConfig, lastSubtotal, lastTaxAmount, lastTaxName, lastTaxRate,
+    items,
+    searchQuery,
+    selectedCategoryId,
+    paymentMethod,
+    submitStatus,
+    submitError,
+    cartExpanded,
+    lastSoldQuantities,
+    selectedShopId,
+    selectedShopName,
+    lastReceiptNumber,
+    lastSaleId,
+    lastClientSaleId,
+    lastCartSnapshot,
+    lastTotal,
+    lastPaymentMethod,
+    lastSaleWasOffline,
+    taxConfig,
+    lastSubtotal,
+    lastTaxAmount,
+    lastTaxName,
+    lastTaxRate,
     lastTaxInclusive,
   ];
 }

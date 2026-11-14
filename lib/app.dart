@@ -9,7 +9,6 @@ import 'package:amana_pos/config/router/route_observer.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/l10n/app_localizations.dart';
 import 'package:amana_pos/theme/app_theme.dart';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -54,18 +53,16 @@ class App extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
-                // Merge desktop text-scaling lock and animation-disable flag
-                // into a single MediaQuery so all descendants (including on
-                // macOS/Windows) see both fields from the same ancestor.
                 builder: (context, child) {
                   return ValueListenableBuilder<bool>(
                     valueListenable: Motion.animationsEnabled,
                     builder: (context, enabled, _) {
-                      var data = MediaQuery.of(context)
-                          .copyWith(disableAnimations: !enabled);
-                      if (Platform.isMacOS || Platform.isWindows) {
-                        data = data.copyWith(textScaler: TextScaler.noScaling);
-                      }
+                      final data = MediaQuery.of(context)
+                          .copyWith(
+                        disableAnimations: !enabled,
+                        textScaler: MediaQuery.textScalerOf(context)
+                            .clamp(minScaleFactor: 0.9, maxScaleFactor: 1.15),
+                      );
                       return MediaQuery(
                         data: data,
                         child: AppLockObserver(child: child!),

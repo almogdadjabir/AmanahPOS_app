@@ -3,7 +3,7 @@ import 'package:amana_pos/l10n/app_localizations.dart';
 import 'package:amana_pos/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void main() {
   group('ReportsPlaceholderView', () {
@@ -26,7 +26,7 @@ void main() {
     testWidgets('renders chart icon', (WidgetTester tester) async {
       await tester.pumpWidget(wrap(const ReportsPlaceholderView()));
 
-      expect(find.byIcon(SolarIconsOutline.chartSquare), findsOneWidget);
+      expect(find.byIcon(PhosphorIconsRegular.chartBar), findsOneWidget);
     });
   });
 }

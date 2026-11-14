@@ -9,7 +9,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ReturnItemTile extends StatelessWidget {
   final SaleHistoryLineItem item;
@@ -95,7 +95,7 @@ class ReturnItemTile extends StatelessWidget {
                     ),
                     child: isSelected
                         ? Icon(
-                            SolarIconsOutline.checkSquare,
+                            PhosphorIconsRegular.checkSquare,
                             color: Colors.white,
                             size: compact ? 11 : 14,
                           )
@@ -159,7 +159,7 @@ class ReturnItemTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         StepBtn(
-          icon: Icons.remove_rounded,
+          icon: PhosphorIconsRegular.minus,
           enabled: value > 1,
           onTap: () {
             HapticFeedback.selectionClick();
@@ -182,7 +182,7 @@ class ReturnItemTile extends StatelessWidget {
           ),
         ),
         StepBtn(
-          icon: Icons.add_rounded,
+          icon: PhosphorIconsRegular.plus,
           enabled: value < max,
           onTap: () {
             HapticFeedback.selectionClick();

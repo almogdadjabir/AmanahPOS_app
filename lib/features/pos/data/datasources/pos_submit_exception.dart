@@ -11,10 +11,7 @@ class PosSubmitException implements Exception {
   final String message;
   final PosSubmitFailureType type;
 
-  const PosSubmitException({
-    required this.message,
-    required this.type,
-  });
+  const PosSubmitException({required this.message, required this.type});
 
   bool get canQueueOffline {
     return type == PosSubmitFailureType.network ||

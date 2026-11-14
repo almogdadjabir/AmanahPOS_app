@@ -6,17 +6,14 @@ import 'package:amana_pos/widgets/app_deactivate_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void showDeactivateBusinessSheet(
-    BuildContext context,
-    BusinessData business,
-    ) {
+void showDeactivateBusinessSheet(BuildContext context, BusinessData business) {
   AppDeactivateBottomSheet.show(
     context: context,
     child: BlocProvider.value(
       value: context.read<BusinessBloc>(),
       child: BlocConsumer<BusinessBloc, BusinessState>(
         listenWhen: (previous, current) =>
-        previous.submitStatus != current.submitStatus,
+            previous.submitStatus != current.submitStatus,
         listener: (context, state) {
           if (state.submitStatus == BusinessSubmitStatus.success) {
             Navigator.of(context)
@@ -40,14 +37,14 @@ void showDeactivateBusinessSheet(
           }
         },
         buildWhen: (previous, current) =>
-        previous.submitStatus != current.submitStatus,
+            previous.submitStatus != current.submitStatus,
         builder: (context, state) {
-          final isLoading =
-              state.submitStatus == BusinessSubmitStatus.loading;
+          final isLoading = state.submitStatus == BusinessSubmitStatus.loading;
 
           return AppDeactivateBottomSheet(
             title: context.tr.bizDeactivateTitle,
-            description: '"${business.name}" will be deactivated. '
+            description:
+                '"${business.name}" will be deactivated. '
                 'All associated shops will stop operating. '
                 'You can reactivate it later.',
             isLoading: isLoading,

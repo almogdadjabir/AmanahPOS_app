@@ -45,26 +45,27 @@ class BusinessData {
   String? createdAt;
   String? updatedAt;
 
-  BusinessData(
-      {this.id,
-        this.name,
-        this.slug,
-        this.businessType,
-        this.owner,
-        this.logo,
-        this.address,
-        this.phone,
-        this.email,
-        this.taxEnabled,
-        this.taxName,
-        this.taxRate,
-        this.taxInclusive,
-        this.activeSubscription,
-        this.isActive,
-        this.shopCount,
-        this.shops,
-        this.createdAt,
-        this.updatedAt});
+  BusinessData({
+    this.id,
+    this.name,
+    this.slug,
+    this.businessType,
+    this.owner,
+    this.logo,
+    this.address,
+    this.phone,
+    this.email,
+    this.taxEnabled,
+    this.taxName,
+    this.taxRate,
+    this.taxInclusive,
+    this.activeSubscription,
+    this.isActive,
+    this.shopCount,
+    this.shops,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   BusinessData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -137,16 +138,17 @@ class Owner {
   String? createdAt;
   String? lastLoginAt;
 
-  Owner(
-      {this.id,
-        this.phone,
-        this.email,
-        this.fullName,
-        this.role,
-        this.isVerified,
-        this.hasPassword,
-        this.createdAt,
-        this.lastLoginAt});
+  Owner({
+    this.id,
+    this.phone,
+    this.email,
+    this.fullName,
+    this.role,
+    this.isVerified,
+    this.hasPassword,
+    this.createdAt,
+    this.lastLoginAt,
+  });
 
   Owner.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -185,15 +187,16 @@ class ShopData {
   String? createdAt;
   String? updatedAt;
 
-  ShopData(
-      {this.id,
-        this.business,
-        this.name,
-        this.address,
-        this.phone,
-        this.isActive,
-        this.createdAt,
-        this.updatedAt});
+  ShopData({
+    this.id,
+    this.business,
+    this.name,
+    this.address,
+    this.phone,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   ShopData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -233,18 +236,19 @@ class ActiveSubscription {
   String? endDate;
   int? daysRemaining;
 
-  ActiveSubscription(
-      {this.id,
-        this.name,
-        this.maxShops,
-        this.maxProducts,
-        this.maxUsers,
-        this.features,
-        this.isFree,
-        this.price,
-        this.currency,
-        this.endDate,
-        this.daysRemaining});
+  ActiveSubscription({
+    this.id,
+    this.name,
+    this.maxShops,
+    this.maxProducts,
+    this.maxUsers,
+    this.features,
+    this.isFree,
+    this.price,
+    this.currency,
+    this.endDate,
+    this.daysRemaining,
+  });
 
   ActiveSubscription.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -289,13 +293,14 @@ class Features {
   bool? apiAccess;
   bool? staffManagement;
 
-  Features(
-      {this.pos,
-        this.reports,
-        this.customers,
-        this.inventory,
-        this.apiAccess,
-        this.staffManagement});
+  Features({
+    this.pos,
+    this.reports,
+    this.customers,
+    this.inventory,
+    this.apiAccess,
+    this.staffManagement,
+  });
 
   Features.fromJson(Map<String, dynamic> json) {
     pos = json['pos'];

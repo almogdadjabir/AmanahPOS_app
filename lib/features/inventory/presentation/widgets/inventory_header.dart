@@ -4,7 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class InventoryHeader extends StatelessWidget {
   final List<StockData> stockList;
@@ -70,7 +70,7 @@ class InventoryHeader extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  SolarIconsOutline.box,
+                  PhosphorIconsRegular.package,
                   color: colors.primary,
                   size: 30,
                 ),
@@ -113,7 +113,7 @@ class InventoryHeader extends StatelessWidget {
                 child: _InventoryMiniStat(
                   label: 'Total',
                   value: '$total',
-                  icon: SolarIconsOutline.boxMinimalistic,
+                  icon: PhosphorIconsRegular.package,
                   color: colors.primary,
                   isSelected: selectedFilter == StockFilter.all,
                   onTap: () => onFilterChanged(StockFilter.all),
@@ -124,7 +124,7 @@ class InventoryHeader extends StatelessWidget {
                 child: _InventoryMiniStat(
                   label: 'Healthy',
                   value: '$healthy',
-                  icon: SolarIconsOutline.checkCircle,
+                  icon: PhosphorIconsRegular.checkCircle,
                   color: const Color(0xFF16A34A),
                   isSelected: selectedFilter == StockFilter.healthy,
                   onTap: () => onFilterChanged(StockFilter.healthy),
@@ -135,7 +135,7 @@ class InventoryHeader extends StatelessWidget {
                 child: _InventoryMiniStat(
                   label: 'Low',
                   value: '$low',
-                  icon: SolarIconsOutline.dangerTriangle,
+                  icon: PhosphorIconsRegular.warning,
                   color: const Color(0xFFEA580C),
                   isSelected: selectedFilter == StockFilter.lowStock,
                   onTap: () => onFilterChanged(StockFilter.lowStock),
@@ -146,7 +146,7 @@ class InventoryHeader extends StatelessWidget {
                 child: _InventoryMiniStat(
                   label: 'Out',
                   value: '$out',
-                  icon: SolarIconsOutline.bagCross,
+                  icon: PhosphorIconsRegular.shoppingBagOpen,
                   color: const Color(0xFFDC2626),
                   isSelected: selectedFilter == StockFilter.outOfStock,
                   onTap: () => onFilterChanged(StockFilter.outOfStock),

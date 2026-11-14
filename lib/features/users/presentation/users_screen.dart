@@ -1,9 +1,7 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/add_user_sheet.dart';
-import 'package:amana_pos/features/users/presentation/widgets/desktop_users_view.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_card_skeleton.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_empty_view.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_error_view.dart';
@@ -16,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 enum UserQuickFilter {
   all,
@@ -43,15 +41,13 @@ class _UsersScreenState extends State<UsersScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialized || context.isDesktop) return;
+    if (_initialized) return;
     _initialized = true;
     context.read<UserBloc>().add(OnUserInitial());
   }
 
   @override
   Widget build(BuildContext context) {
-    if (context.isDesktop) return const DesktopUsersView();
-
     final colors = context.appColors;
 
     return Scaffold(
@@ -65,7 +61,7 @@ class _UsersScreenState extends State<UsersScreen> {
           tooltip: context.tr.back,
           onPressed: () => Navigator.of(context).pop(),
           icon: DirectionalIcon(
-            icon: SolarIconsOutline.altArrowLeft,
+            icon: PhosphorIconsRegular.caretLeft,
             color: colors.textPrimary,
           ),
         ),
@@ -83,7 +79,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               icon: const Icon(
-                SolarIconsOutline.userPlus,
+                PhosphorIconsRegular.userPlus,
                 size: 18,
               ),
               label: Text(
@@ -254,7 +250,7 @@ class _CashierManagementContentState extends State<_CashierManagementContent> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       icon: const Icon(
-                        SolarIconsOutline.userPlus,
+                        PhosphorIconsRegular.userPlus,
                         size: 18,
                       ),
                       label: Text(
@@ -370,7 +366,7 @@ class _UsersHeaderContent extends StatelessWidget {
                   child: _UserMiniStat(
                     label: tr.userStatTotal,
                     value: stats.total.toString(),
-                    icon: SolarIconsOutline.usersGroupRounded,
+                    icon: PhosphorIconsRegular.users,
                     color: colors.primary,
                     isSelected: selectedFilter == UserQuickFilter.all,
                     onTap: () => onFilterChanged(UserQuickFilter.all),
@@ -381,7 +377,7 @@ class _UsersHeaderContent extends StatelessWidget {
                   child: _UserMiniStat(
                     label: tr.userStatActive,
                     value: stats.active.toString(),
-                    icon: SolarIconsOutline.checkCircle,
+                    icon: PhosphorIconsRegular.checkCircle,
                     color: const Color(0xFF16A34A),
                     isSelected: selectedFilter == UserQuickFilter.active,
                     onTap: () => onFilterChanged(UserQuickFilter.active),
@@ -392,7 +388,7 @@ class _UsersHeaderContent extends StatelessWidget {
                   child: _UserMiniStat(
                     label: tr.userStatCashiers,
                     value: stats.cashiers.toString(),
-                    icon: SolarIconsOutline.userSpeakRounded,
+                    icon: PhosphorIconsRegular.user,
                     color: const Color(0xFF0EA5E9),
                     isSelected: selectedFilter == UserQuickFilter.cashiers,
                     onTap: () => onFilterChanged(UserQuickFilter.cashiers),
@@ -403,7 +399,7 @@ class _UsersHeaderContent extends StatelessWidget {
                   child: _UserMiniStat(
                     label: tr.userStatManagers,
                     value: stats.managers.toString(),
-                    icon: SolarIconsOutline.shieldUser,
+                    icon: PhosphorIconsRegular.userGear,
                     color: const Color(0xFF8B5CF6),
                     isSelected: selectedFilter == UserQuickFilter.managers,
                     onTap: () => onFilterChanged(UserQuickFilter.managers),
@@ -439,7 +435,7 @@ class _HeaderIcon extends StatelessWidget {
         width: 60,
         height: 60,
         child: Icon(
-          SolarIconsOutline.usersGroupRounded,
+          PhosphorIconsRegular.users,
           color: color,
           size: 30,
         ),
@@ -678,28 +674,28 @@ class _UserEmptyContent {
         return _UserEmptyContent(
           title: tr.noUsersYet,
           message: tr.noUsersYetMessage,
-          icon: SolarIconsOutline.usersGroupRounded,
+          icon: PhosphorIconsRegular.users,
         );
 
       case UserQuickFilter.active:
         return _UserEmptyContent(
           title: tr.noActiveUsers,
           message: tr.noActiveUsersMessage,
-          icon: SolarIconsOutline.checkCircle,
+          icon: PhosphorIconsRegular.checkCircle,
         );
 
       case UserQuickFilter.cashiers:
         return _UserEmptyContent(
           title: tr.noCashiersFound,
           message: tr.noCashiersFoundMessage,
-          icon: SolarIconsOutline.userSpeakRounded,
+          icon: PhosphorIconsRegular.user,
         );
 
       case UserQuickFilter.managers:
         return _UserEmptyContent(
           title: tr.noManagersFound,
           message: tr.noManagersFoundMessage,
-          icon: SolarIconsOutline.shieldUser,
+          icon: PhosphorIconsRegular.userGear,
         );
     }
   }

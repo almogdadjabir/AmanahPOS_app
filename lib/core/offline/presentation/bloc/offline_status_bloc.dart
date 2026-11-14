@@ -34,9 +34,9 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   }
 
   Future<void> _onStarted(
-      OnOfflineStatusStarted event,
-      Emitter<OfflineStatusState> emit,
-      ) async {
+    OnOfflineStatusStarted event,
+    Emitter<OfflineStatusState> emit,
+  ) async {
     final hasCache = await localCache.hasBootstrapCache();
     final isOnline = await networkMonitor.isOnline;
     final pendingSalesCount = await syncManager.pendingSalesCount();
@@ -53,11 +53,11 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
       ),
     );
 
-    _connectionSubscription ??= networkMonitor.onStatusChanged.listen(
-          (isOnline) {
-        add(OnOfflineConnectionChanged(isOnline: isOnline));
-      },
-    );
+    _connectionSubscription ??= networkMonitor.onStatusChanged.listen((
+      isOnline,
+    ) {
+      add(OnOfflineConnectionChanged(isOnline: isOnline));
+    });
 
     networkMonitor.start();
 
@@ -66,7 +66,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
         state.copyWith(
           bootstrapStatus: OfflineBootstrapStatus.failure,
           errorMessage:
-          'Internet is required only for the first setup. Please connect once to prepare offline mode.',
+              'Internet is required only for the first setup. Please connect once to prepare offline mode.',
         ),
       );
       return;
@@ -83,23 +83,23 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   }
 
   Future<void> _onRefreshRequested(
-      OnOfflineStatusRefreshRequested event,
-      Emitter<OfflineStatusState> emit,
-      ) async {
+    OnOfflineStatusRefreshRequested event,
+    Emitter<OfflineStatusState> emit,
+  ) async {
     await _refreshAll(emit);
   }
 
   Future<void> _onSyncSalesRequested(
-      OnOfflineStatusSyncSalesRequested event,
-      Emitter<OfflineStatusState> emit,
-      ) async {
+    OnOfflineStatusSyncSalesRequested event,
+    Emitter<OfflineStatusState> emit,
+  ) async {
     await _syncSales(emit);
   }
 
   Future<void> _onConnectionChanged(
-      OnOfflineConnectionChanged event,
-      Emitter<OfflineStatusState> emit,
-      ) async {
+    OnOfflineConnectionChanged event,
+    Emitter<OfflineStatusState> emit,
+  ) async {
     emit(
       state.copyWith(
         connectionStatus: event.isOnline
@@ -116,9 +116,9 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   }
 
   void _onPendingSalesCountChanged(
-      OnOfflinePendingSalesCountChanged event,
-      Emitter<OfflineStatusState> emit,
-      ) {
+    OnOfflinePendingSalesCountChanged event,
+    Emitter<OfflineStatusState> emit,
+  ) {
     emit(state.copyWith(pendingSalesCount: event.count));
   }
 
@@ -279,11 +279,10 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
     }
   }
 
-
   Future<void> _onResetRequested(
-      OnOfflineStatusResetRequested event,
-      Emitter<OfflineStatusState> emit,
-      ) async {
+    OnOfflineStatusResetRequested event,
+    Emitter<OfflineStatusState> emit,
+  ) async {
     _logoutVersion++;
 
     await _connectionSubscription?.cancel();

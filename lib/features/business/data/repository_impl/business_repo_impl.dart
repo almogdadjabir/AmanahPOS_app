@@ -1,4 +1,3 @@
-
 import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/features/business/data/models/requests/add_business_request_dto.dart';
 import 'package:amana_pos/features/business/data/models/requests/add_shop_request_dto.dart';
@@ -14,20 +13,21 @@ class BusinessRepoImpl extends BusinessRepository {
   final RequestHandler requestHandler;
   BusinessRepoImpl(this.requestHandler);
 
-
   @override
   Future<Either<String?, BusinessResponseDTO>> getBusinessList() {
     return requestHandler.handleGetRequest(
       'api/v1/tenants/businesses/',
-        (data) => BusinessResponseDTO.fromJson(data as Map<String, dynamic>),
+      (data) => BusinessResponseDTO.fromJson(data as Map<String, dynamic>),
     );
   }
 
   @override
-  Future<Either<String?, AddBusinessResponseDto>> addBusiness(AddBusinessRequestDto request) {
+  Future<Either<String?, AddBusinessResponseDto>> addBusiness(
+    AddBusinessRequestDto request,
+  ) {
     return requestHandler.handlePostRequest(
       'api/v1/tenants/businesses/',
-          (data) => AddBusinessResponseDto.fromJson(data as Map<String, dynamic>),
+      (data) => AddBusinessResponseDto.fromJson(data as Map<String, dynamic>),
       data: request.toJson(),
     );
   }
@@ -36,35 +36,44 @@ class BusinessRepoImpl extends BusinessRepository {
   Future<Either<String?, bool>> deactivateBusiness(String businessId) {
     return requestHandler.handleDeleteRequest(
       'api/v1/tenants/businesses/$businessId/',
-          (_) => true,
+      (_) => true,
     );
   }
 
   @override
-  Future<Either<String?, bool>> editBusiness(String businessId, EditBusinessRequestDto request) {
+  Future<Either<String?, bool>> editBusiness(
+    String businessId,
+    EditBusinessRequestDto request,
+  ) {
     return requestHandler.handlePatchRequest(
       'api/v1/tenants/businesses/$businessId/',
-          (_) => true,
+      (_) => true,
       data: request.toJson(),
     );
   }
 
   @override
-  Future<Either<String?, AddShopResponseDto>> addShop(String businessId, AddShopRequestDto request) {
+  Future<Either<String?, AddShopResponseDto>> addShop(
+    String businessId,
+    AddShopRequestDto request,
+  ) {
     return requestHandler.handlePostRequest(
       'api/v1/tenants/businesses/$businessId/shops/',
-          (data) => AddShopResponseDto.fromJson(data as Map<String, dynamic>),
+      (data) => AddShopResponseDto.fromJson(data as Map<String, dynamic>),
       data: request.toJson(),
     );
   }
 
   @override
-  Future<Either<String?, bool>> editShop(String businessId, String shopId, EditShopRequestDto request){
+  Future<Either<String?, bool>> editShop(
+    String businessId,
+    String shopId,
+    EditShopRequestDto request,
+  ) {
     return requestHandler.handlePatchRequest(
       'api/v1/tenants/businesses/$businessId/shops/$shopId/',
-          (_) => true,
+      (_) => true,
       data: request.toJson(),
     );
   }
-
 }

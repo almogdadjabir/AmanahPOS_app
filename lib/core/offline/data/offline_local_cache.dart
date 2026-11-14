@@ -120,7 +120,8 @@ class OfflineLocalCache {
 
         // Same behavior as your old post-stock update logic:
         // stock table quantity overrides product.stockLevel.
-        final resolvedStockLevel = stockByProductId[id] ?? product.stockLevel ?? 0.0;
+        final resolvedStockLevel =
+            stockByProductId[id] ?? product.stockLevel ?? 0.0;
 
         final productJson = _productToJson(product);
         productJson['stock_level'] = resolvedStockLevel;
@@ -162,26 +163,18 @@ class OfflineLocalCache {
         );
       }
 
-      batch.insert(
-        'sync_metadata',
-        {
-          'key': 'bootstrap_last_synced_at',
-          'value': now,
-          'updated_at': now,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      batch.insert('sync_metadata', {
+        'key': 'bootstrap_last_synced_at',
+        'value': now,
+        'updated_at': now,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       if (dto.serverTime != null) {
-        batch.insert(
-          'sync_metadata',
-          {
-            'key': 'bootstrap_server_time',
-            'value': dto.serverTime,
-            'updated_at': now,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        batch.insert('sync_metadata', {
+          'key': 'bootstrap_server_time',
+          'value': dto.serverTime,
+          'updated_at': now,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
 
       await batch.commit(noResult: true);
@@ -193,30 +186,22 @@ class OfflineLocalCache {
 
     await db.transaction((txn) async {
       for (final asset in dto.assets.where((e) => e.isValid)) {
-        await txn.insert(
-          'offline_assets',
-          {
-            'id': asset.id,
-            'type': asset.type,
-            'url': asset.url,
-            'hash': asset.hash,
-            'updated_at': asset.updatedAt,
-            'local_path': null,
-            'downloaded_at': null,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert('offline_assets', {
+          'id': asset.id,
+          'type': asset.type,
+          'url': asset.url,
+          'hash': asset.hash,
+          'updated_at': asset.updatedAt,
+          'local_path': null,
+          'downloaded_at': null,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
 
-      await txn.insert(
-        'sync_metadata',
-        {
-          'key': 'asset_manifest_version',
-          'value': dto.version ?? '',
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert('sync_metadata', {
+        'key': 'asset_manifest_version',
+        'value': dto.version ?? '',
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
@@ -232,7 +217,10 @@ class OfflineLocalCache {
 
   Future<List<CategoryData>> getCategories() async {
     final db = await _db.database;
-    final rows = await db.query(OfflineConstants.categoriesTable, orderBy: 'name COLLATE NOCASE ASC');
+    final rows = await db.query(
+      OfflineConstants.categoriesTable,
+      orderBy: 'name COLLATE NOCASE ASC',
+    );
     return rows
         .map((row) => CategoryData.fromJson(jsonDecode(row['json'] as String)))
         .toList();
@@ -438,8 +426,8 @@ class OfflineLocalCache {
   }
 
   Future<void> saveAssetManifestPreservingDownloads(
-      OfflineAssetManifestDto dto,
-      ) async {
+    OfflineAssetManifestDto dto,
+  ) async {
     final db = await _db.database;
 
     await db.transaction((txn) async {
@@ -470,30 +458,22 @@ class OfflineLocalCache {
           }
         }
 
-        await txn.insert(
-          'offline_assets',
-          {
-            'id': asset.id,
-            'type': asset.type,
-            'url': asset.url,
-            'hash': asset.hash,
-            'updated_at': asset.updatedAt,
-            'local_path': localPath,
-            'downloaded_at': downloadedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert('offline_assets', {
+          'id': asset.id,
+          'type': asset.type,
+          'url': asset.url,
+          'hash': asset.hash,
+          'updated_at': asset.updatedAt,
+          'local_path': localPath,
+          'downloaded_at': downloadedAt,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
 
-      await txn.insert(
-        'sync_metadata',
-        {
-          'key': 'asset_manifest_version',
-          'value': dto.version ?? '',
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert('sync_metadata', {
+        'key': 'asset_manifest_version',
+        'value': dto.version ?? '',
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
@@ -841,18 +821,14 @@ class OfflineLocalCache {
         'updated_at': updatedAt,
       };
 
-      await txn.insert(
-        OfflineConstants.stockTable,
-        {
-          'id': '$productId-$shopId',
-          'product_id': productId,
-          'shop_id': shopId,
-          'quantity': quantity,
-          'json': jsonEncode(stockJson),
-          'updated_at': updatedAt,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert(OfflineConstants.stockTable, {
+        'id': '$productId-$shopId',
+        'product_id': productId,
+        'shop_id': shopId,
+        'quantity': quantity,
+        'json': jsonEncode(stockJson),
+        'updated_at': updatedAt,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       return;
     }
@@ -1057,7 +1033,10 @@ class OfflineLocalCache {
     );
   }
 
-  Future<void> savePremiumSummary(PremiumSummaryData data, {String? shopId}) async {
+  Future<void> savePremiumSummary(
+    PremiumSummaryData data, {
+    String? shopId,
+  }) async {
     final db = await _db.database;
     final key = shopId ?? 'default';
     await db.insert(
@@ -1071,7 +1050,9 @@ class OfflineLocalCache {
     );
   }
 
-  Future<List<InboundTransactionData>> getInboundTransactions({int limit = 50}) async {
+  Future<List<InboundTransactionData>> getInboundTransactions({
+    int limit = 50,
+  }) async {
     final db = await _db.database;
     final rows = await db.query(
       OfflineConstants.inboundTransactionsTable,
@@ -1079,13 +1060,17 @@ class OfflineLocalCache {
       limit: limit,
     );
     return rows
-        .map((row) => InboundTransactionData.fromJson(
-              jsonDecode(row['json'] as String) as Map<String, dynamic>,
-            ))
+        .map(
+          (row) => InboundTransactionData.fromJson(
+            jsonDecode(row['json'] as String) as Map<String, dynamic>,
+          ),
+        )
         .toList();
   }
 
-  Future<void> saveInboundTransactions(List<InboundTransactionData> transactions) async {
+  Future<void> saveInboundTransactions(
+    List<InboundTransactionData> transactions,
+  ) async {
     final db = await _db.database;
     await db.transaction((txn) async {
       await txn.delete(OfflineConstants.inboundTransactionsTable);
@@ -1139,5 +1124,4 @@ class OfflineLocalCache {
       );
     });
   }
-
 }

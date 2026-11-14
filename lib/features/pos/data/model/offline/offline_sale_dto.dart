@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 
 class OfflineSaleItemDto {
@@ -60,6 +61,16 @@ class OfflineSaleDto {
       'discount_amount': discountAmount,
       'created_at': createdAt.toUtc().toIso8601String(),
       'items': items.map((item) {
+        if (PosCartItem.isCustomId(item.productId)) {
+          final note = item.productName.trim();
+          return {
+            'custom': true,
+            'quantity': item.quantity.toString(),
+            'unit_price': item.unitPrice,
+            if (note.isNotEmpty)
+              'note': note.length > 120 ? note.substring(0, 120) : note,
+          };
+        }
         return {
           'product_id': item.productId,
           'quantity': item.quantity.toString(),

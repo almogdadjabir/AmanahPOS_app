@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartSheet extends StatelessWidget {
-  const CartSheet({
-    super.key,
-    required this.onCheckout,
-  });
+  const CartSheet({super.key, required this.onCheckout});
 
   final VoidCallback onCheckout;
 
@@ -17,7 +14,7 @@ class CartSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PosBloc, PosState>(
       buildWhen: (prev, curr) =>
-      prev.items != curr.items ||
+          prev.items != curr.items ||
           prev.submitStatus != curr.submitStatus ||
           prev.paymentMethod != curr.paymentMethod,
       builder: (context, state) {
@@ -31,10 +28,7 @@ class CartSheet extends StatelessWidget {
           start: 0,
           end: 0,
           bottom: _bottomBarHeight + safeBottom,
-          child: CartPanel(
-            state: state,
-            onCheckout: onCheckout,
-          ),
+          child: CartPanel(state: state, onCheckout: onCheckout),
         );
       },
     );

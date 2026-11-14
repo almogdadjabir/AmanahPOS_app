@@ -6,6 +6,7 @@ import 'package:amana_pos/features/pin/presentation/widgets/pin_scaffold.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PinSetupScreen extends StatelessWidget {
   const PinSetupScreen({super.key});
@@ -65,7 +66,7 @@ class _SetupMark extends StatelessWidget {
         shape: BoxShape.circle,
         color: colors.primaryContainer.withValues(alpha: 0.5),
       ),
-      child: Icon(Icons.lock_outline_rounded, size: 32, color: colors.primary),
+      child: Icon(PhosphorIconsRegular.lock, size: 32, color: colors.primary),
     );
   }
 }

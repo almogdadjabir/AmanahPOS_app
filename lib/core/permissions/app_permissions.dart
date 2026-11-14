@@ -3,8 +3,7 @@ enum AppBusinessType { restaurant, shop, unknown }
 enum AppUserRole { owner, manager, cashier, unknown }
 
 class AppPermissions {
-  static const inventoryInboundReceivingFeature =
-      'inventory_inbound_receiving';
+  static const inventoryInboundReceivingFeature = 'inventory_inbound_receiving';
 
   final AppBusinessType businessType;
   final AppUserRole role;
@@ -39,14 +38,18 @@ class AppPermissions {
     final featureEnabled =
         enabledFeatures[inventoryInboundReceivingFeature] == true;
 
-    final allowedRole = role == AppUserRole.owner || role == AppUserRole.manager;
+    final allowedRole =
+        role == AppUserRole.owner || role == AppUserRole.manager;
 
     return canAccessInventory && featureEnabled && allowedRole;
   }
 
   bool get canSeeInboundPremiumCard {
-    final allowedRole = role == AppUserRole.owner || role == AppUserRole.manager;
-    return canAccessInventory && allowedRole && !canUseInventoryInboundReceiving;
+    final allowedRole =
+        role == AppUserRole.owner || role == AppUserRole.manager;
+    return canAccessInventory &&
+        allowedRole &&
+        !canUseInventoryInboundReceiving;
   }
 
   bool get canAccessCustomers {
@@ -112,16 +115,18 @@ class AppPermissions {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is AppPermissions &&
-              businessType == other.businessType &&
-              role == other.role &&
-              _mapEquals(enabledFeatures, other.enabledFeatures);
+      other is AppPermissions &&
+          businessType == other.businessType &&
+          role == other.role &&
+          _mapEquals(enabledFeatures, other.enabledFeatures);
 
   @override
   int get hashCode => Object.hash(
     businessType,
     role,
-    Object.hashAll(enabledFeatures.entries.map((e) => Object.hash(e.key, e.value))),
+    Object.hashAll(
+      enabledFeatures.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
   );
 
   static bool _mapEquals(Map<String, bool> a, Map<String, bool> b) {

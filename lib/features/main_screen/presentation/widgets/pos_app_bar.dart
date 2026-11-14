@@ -1,5 +1,4 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
-import 'package:amana_pos/common/widgets/app_progress_line.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/location_chip.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/notification_button.dart';
@@ -16,59 +15,49 @@ class PosAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDims.s4).copyWith(
-        top: AppDims.s2,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: AppDims.s4),
+      child: Row(
+        spacing: AppDims.s2,
         children: [
-          Row(
-            spacing: AppDims.s2,
-            children: [
-              BlocSelector<AuthBloc, AuthState, bool>(
-                selector: (s) => s.permissions.isOwner,
-                builder: (context, isOwner) {
-                  if (!isOwner) return const SizedBox.shrink();
-                  return const NotificationButton();
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: BlocBuilder<AuthBloc, AuthState>(
+                buildWhen: (p, c) =>
+                    p.defaultBusiness != c.defaultBusiness ||
+                    p.businessStatus != c.businessStatus,
+                builder: (context, authState) {
+                  return BlocBuilder<PosBloc, PosState>(
+                    buildWhen: (p, c) =>
+                        p.selectedShopId != c.selectedShopId ||
+                        p.selectedShopName != c.selectedShopName,
+                    builder: (context, posState) {
+                      return LocationChip(
+                        business: authState.defaultBusiness,
+                        selectedShopId: posState.selectedShopId,
+                      );
+                    },
+                  );
                 },
               ),
-
-              Expanded(
-                child: BlocBuilder<AuthBloc, AuthState>(
-                  buildWhen: (p, c) =>
-                  p.defaultBusiness != c.defaultBusiness ||
-                      p.businessStatus != c.businessStatus,
-                  builder: (context, authState) {
-                    return BlocBuilder<PosBloc, PosState>(
-                      buildWhen: (p, c) =>
-                      p.selectedShopId != c.selectedShopId ||
-                          p.selectedShopName != c.selectedShopName,
-                      builder: (context, posState) {
-                        return LocationChip(
-                          business: authState.defaultBusiness,
-                          selectedShopId: posState.selectedShopId,
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
-                bloc: getIt<OfflineStatusBloc>(),
-                buildWhen: (p, c) =>
-                p.connectionStatus != c.connectionStatus ||
-                    p.bootstrapStatus != c.bootstrapStatus ||
-                    p.salesSyncStatus != c.salesSyncStatus ||
-                    p.pendingSalesCount != c.pendingSalesCount,
-                builder: (context, state) => SyncPill(state: state),
-              ),
-            ],
+            ),
           ),
-
-          const SizedBox(height: AppDims.s4),
-
-          const AppProgressLine(),
+          BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
+            bloc: getIt<OfflineStatusBloc>(),
+            buildWhen: (p, c) =>
+                p.connectionStatus != c.connectionStatus ||
+                p.bootstrapStatus != c.bootstrapStatus ||
+                p.salesSyncStatus != c.salesSyncStatus ||
+                p.pendingSalesCount != c.pendingSalesCount,
+            builder: (context, state) => SyncPill(state: state),
+          ),
+          BlocSelector<AuthBloc, AuthState, bool>(
+            selector: (s) => s.permissions.isOwner,
+            builder: (context, isOwner) {
+              if (!isOwner) return const SizedBox.shrink();
+              return const NotificationButton();
+            },
+          ),
         ],
       ),
     );

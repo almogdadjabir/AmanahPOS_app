@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class OfflineCachedImage extends StatefulWidget {
   final String? imageUrl;
@@ -72,7 +73,9 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
 
     return FutureBuilder<String?>(
       key: ValueKey(url),
-      future: getIt<OfflineLocalCache>().getLocalAssetPathByUrl(_stripQuery(url)),
+      future: getIt<OfflineLocalCache>().getLocalAssetPathByUrl(
+        _stripQuery(url),
+      ),
       builder: (context, snapshot) {
         final localPath = snapshot.data;
 
@@ -159,7 +162,7 @@ class _DefaultImageFallback extends StatelessWidget {
       color: const Color(0xFFF3F4F6),
       alignment: Alignment.center,
       child: const Icon(
-        Icons.image_not_supported_outlined,
+        PhosphorIconsRegular.imageBroken,
         size: 22,
         color: Color(0xFF9CA3AF),
       ),

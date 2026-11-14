@@ -8,7 +8,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductDetailAppBarView extends StatelessWidget {
   final ProductData product;
@@ -93,7 +93,7 @@ class _BackButtonArea extends StatelessWidget {
         child: Row(
           children: [
             _HeroIconButton(
-              icon: SolarIconsOutline.altArrowLeft,
+              icon: PhosphorIconsRegular.caretLeft,
               onTap: () => Navigator.of(context).pop(),
             ),
           ],
@@ -207,7 +207,7 @@ class _HeroIconButton extends StatelessWidget {
             height: 46,
             child: Center(
               child: DirectionalIcon(
-                icon: SolarIconsOutline.altArrowLeft,
+                icon: PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 23,
               ),
@@ -241,7 +241,7 @@ class _CategoryPill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              SolarIconsOutline.tag,
+              PhosphorIconsRegular.tag,
               color: Colors.white.withValues(alpha: 0.92),
               size: 14,
             ),

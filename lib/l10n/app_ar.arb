@@ -179,6 +179,9 @@
   "posSearchHint": "بحث · الرمز التعريفي · الباركود",
   "posBankakNotSetup": "لم يُعدَّ حساب بنكك. اذهب إلى الإعدادات وأضف رقم حسابك أولاً.",
   "posCashierNotAssigned": "لم تُعيَّن لمتجر. تواصل مع مديرك.",
+  "posCharge": "تحصيل",
+  "undo": "تراجع",
+  "itemRemovedUndo": "{name} تم حذفه",
   "posNoShopFound": "لم يتم العثور على متجر. حدّث الصفحة وحاول مجدداً.",
   "posSaleCompleted": "تمت البيعة بنجاح",
   "posFailedSale": "فشل إتمام البيعة",
@@ -910,6 +913,33 @@
   "taxCollected": "الضرائب المحصلة",
   "taxDisabled": "الضريبة غير مفعلة",
   "pricesIncludeTax": "الأسعار شاملة الضريبة",
-  "pricesExcludeTax": "الأسعار غير شاملة الضريبة"
-
+  "pricesExcludeTax": "الأسعار غير شاملة الضريبة",
+  "posRowInStock": "{count} متوفر",
+  "@posRowInStock": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "posRowLowStock": "مخزون منخفض · {count}",
+  "@posRowLowStock": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "posRowOutOfStock": "نفد المخزون",
+  "cashReceived": "المبلغ المستلم",
+  "exactAmount": "المبلغ بالضبط",
+  "changeDue": "الباقي للعميل",
+  "posKeypad": "لوحة الأرقام",
+  "posItems": "العناصر",
+  "posCustomAmount": "مبلغ مخصص",
+  "posEnterAmount": "أدخل مبلغاً",
+  "posAddToTicket": "إضافة إلى الفاتورة",
+  "posAddedToTicket": "تمت الإضافة إلى الفاتورة",
+  "posAddNote": "أضف ملاحظة",
+  "posNoteHint": "ما سبب هذا المبلغ؟"
 }

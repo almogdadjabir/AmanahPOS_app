@@ -10,7 +10,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showEditCategorySheet(
     BuildContext context, {
@@ -20,7 +20,6 @@ void showEditCategorySheet(
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: categoryBloc,
       child: _EditCategorySheet(category: category),
@@ -152,7 +151,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                 focusNode: _nameFocus,
                 nextFocus: _descFocus,
                 hint: tr.categoryNameHint,
-                prefixIcon: SolarIconsOutline.layersMinimalistic,
+                prefixIcon: PhosphorIconsRegular.stack,
                 validator: (value) {
                   return CategoryFormValidators.name(context, value);
                 },
@@ -166,7 +165,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                 controller: _descCtrl,
                 focusNode: _descFocus,
                 hint: tr.categoryDescriptionShortHint,
-                prefixIcon: SolarIconsOutline.notes,
+                prefixIcon: PhosphorIconsRegular.notepad,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _submit(),
               ),

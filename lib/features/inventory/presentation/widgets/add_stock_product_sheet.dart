@@ -14,7 +14,7 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showAddStockProductSheet(
     BuildContext context, {
@@ -27,7 +27,6 @@ void showAddStockProductSheet(
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: inventoryBloc),
@@ -311,7 +310,7 @@ class _SheetHeader extends StatelessWidget {
               ),
             ),
             child: Icon(
-              SolarIconsOutline.box,
+              PhosphorIconsRegular.package,
               color: colors.primary,
               size: 24,
             ),
@@ -353,7 +352,7 @@ class _SheetHeader extends StatelessWidget {
                 width: 40,
                 height: 40,
                 child: Icon(
-                  SolarIconsOutline.closeCircle,
+                  PhosphorIconsRegular.xCircle,
                   size: 21,
                   color: colors.textSecondary,
                 ),
@@ -381,7 +380,7 @@ class _SelectedProductBanner extends StatelessWidget {
 
     if (product == null) {
       return _InfoBanner(
-        icon: SolarIconsOutline.handStars,
+        icon: PhosphorIconsRegular.handHeart,
         title: 'Choose product first',
         message: 'Pick a product, then add its opening stock quantity.',
         color: colors.primary,
@@ -408,7 +407,7 @@ class _SelectedProductBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppDims.rMd),
             ),
             child: Icon(
-              SolarIconsOutline.bag5,
+              PhosphorIconsRegular.shoppingBag,
               color: colors.primary,
               size: 22,
             ),
@@ -515,7 +514,7 @@ class _ProductPickerState extends State<_ProductPicker> {
 
         if (state.productStatus == ProductStatus.failure) {
           return _ProductPickerEmpty(
-            icon: SolarIconsOutline.dangerTriangle,
+            icon: PhosphorIconsRegular.warning,
             title: 'Failed to load products',
             message: state.responseError ?? 'Please try again.',
             onRetry: () {
@@ -526,7 +525,7 @@ class _ProductPickerState extends State<_ProductPicker> {
 
         if (products.isEmpty) {
           return _ProductPickerEmpty(
-            icon: SolarIconsOutline.bag5,
+            icon: PhosphorIconsRegular.shoppingBag,
             title: 'No products found',
             message: query.isEmpty
                 ? 'Create products first, then you can add stock for them.'
@@ -548,7 +547,7 @@ class _ProductPickerState extends State<_ProductPicker> {
             AppFormField(
               controller: widget.searchCtrl,
               hint: 'Search products',
-              prefixIcon: SolarIconsOutline.magnifier,
+              prefixIcon: PhosphorIconsRegular.magnifyingGlass,
               textInputAction: TextInputAction.search,
             ),
             const SizedBox(height: AppDims.s3),
@@ -636,7 +635,7 @@ class _ProductPickTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
                 child: Icon(
-                  SolarIconsOutline.bag5,
+                  PhosphorIconsRegular.shoppingBag,
                   color: colors.primary,
                   size: 23,
                 ),
@@ -672,7 +671,7 @@ class _ProductPickTile extends StatelessWidget {
               ),
               const SizedBox(width: AppDims.s2),
               DirectionalIcon(
-                icon: SolarIconsOutline.altArrowRight,
+                icon: PhosphorIconsRegular.caretRight,
                 color: colors.textHint,
                 size: 18,
               ),
@@ -740,7 +739,7 @@ class _ProductPickerEmpty extends StatelessWidget {
           const SizedBox(height: AppDims.s3),
           OutlinedButton.icon(
             onPressed: onRetry,
-            icon: const Icon(SolarIconsOutline.refresh, size: 16),
+            icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 16),
             label: const Text('Retry'),
           ),
         ],
@@ -794,7 +793,7 @@ class _StockForm extends StatelessWidget {
 
     if (shops.isEmpty) {
       return _InfoEmptyCard(
-        icon: SolarIconsOutline.shop,
+        icon: PhosphorIconsRegular.storefront,
         title: 'No shops available',
         message: 'Create a shop first before adding product stock.',
       );
@@ -870,7 +869,7 @@ class _StockForm extends StatelessWidget {
                   focusNode: qtyFocus,
                   nextFocus: refFocus,
                   hint: '50',
-                  prefixIcon: SolarIconsOutline.addCircle,
+                  prefixIcon: PhosphorIconsRegular.plusCircle,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -902,7 +901,7 @@ class _StockForm extends StatelessWidget {
                   controller: refCtrl,
                   focusNode: refFocus,
                   hint: 'Opening stock / purchase ref',
-                  prefixIcon: SolarIconsOutline.tag,
+                  prefixIcon: PhosphorIconsRegular.tag,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => onSubmit(),
                 ),
@@ -1002,7 +1001,7 @@ class _SelectableShopTile extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.shop,
+                PhosphorIconsRegular.storefront,
                 size: 20,
                 color: selected ? colors.primary : colors.textHint,
               ),
@@ -1020,7 +1019,7 @@ class _SelectableShopTile extends StatelessWidget {
               ),
               if (selected)
                 Icon(
-                  SolarIconsOutline.checkCircle,
+                  PhosphorIconsRegular.checkCircle,
                   size: 19,
                   color: colors.primary,
                 ),
@@ -1056,7 +1055,7 @@ class _LockedShopTile extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            SolarIconsOutline.lock,
+            PhosphorIconsRegular.lock,
             size: 19,
             color: colors.textHint,
           ),
@@ -1190,7 +1189,7 @@ class _ExpiryDatePicker extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.calendar,
+                PhosphorIconsRegular.calendarBlank,
                 size: 19,
                 color: hasDate ? colors.primary : colors.textHint,
               ),
@@ -1211,7 +1210,7 @@ class _ExpiryDatePicker extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(4),
                     child: Icon(
-                      SolarIconsOutline.closeCircle,
+                      PhosphorIconsRegular.xCircle,
                       size: 18,
                       color: colors.textHint,
                     ),

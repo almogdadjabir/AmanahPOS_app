@@ -48,9 +48,9 @@ class AppFormField extends StatelessWidget {
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: AppTextStyles.bs100(context).copyWith(
-          color: context.appColors.textHint,
-        ),
+        hintStyle: AppTextStyles.bs100(
+          context,
+        ).copyWith(color: context.appColors.textHint),
         prefixIcon: Icon(
           prefixIcon,
           size: 18,
@@ -74,24 +74,15 @@ class AppFormField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDims.rMd),
-          borderSide: BorderSide(
-            color: context.appColors.primary,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: context.appColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDims.rMd),
-          borderSide: BorderSide(
-            color: context.appColors.danger,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: context.appColors.danger, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDims.rMd),
-          borderSide: BorderSide(
-            color: context.appColors.danger,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: context.appColors.danger, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDims.s3,

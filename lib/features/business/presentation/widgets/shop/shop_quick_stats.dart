@@ -4,15 +4,12 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ShopQuickStats extends StatelessWidget {
   final List<ShopData> shops;
 
-  const ShopQuickStats({
-    super.key,
-    required this.shops,
-  });
+  const ShopQuickStats({super.key, required this.shops});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +21,7 @@ class ShopQuickStats extends StatelessWidget {
         Expanded(
           child: statCard(
             context: context,
-            icon: SolarIconsOutline.shop,
+            icon: PhosphorIconsRegular.storefront,
             label: context.tr.shopStatTotalShops,
             value: '${shops.length}',
           ),
@@ -33,7 +30,7 @@ class ShopQuickStats extends StatelessWidget {
         Expanded(
           child: statCard(
             context: context,
-            icon: SolarIconsOutline.checkCircle,
+            icon: PhosphorIconsRegular.checkCircle,
             label: context.tr.shopStatActive,
             value: '$activeCount',
           ),
@@ -42,7 +39,7 @@ class ShopQuickStats extends StatelessWidget {
         Expanded(
           child: statCard(
             context: context,
-            icon: SolarIconsOutline.pauseCircle,
+            icon: PhosphorIconsRegular.pauseCircle,
             label: context.tr.shopStatInactive,
             value: '$inactiveCount',
           ),
@@ -68,18 +65,13 @@ class ShopQuickStats extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 22,
-            color: colors.primary,
-          ),
+          Icon(icon, size: 22, color: colors.primary),
           const SizedBox(height: AppDims.s1),
           Text(
             value,
-            style: AppTextStyles.bs200(context).copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
+            style: AppTextStyles.bs200(
+              context,
+            ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 2),
           Text(
@@ -87,10 +79,9 @@ class ShopQuickStats extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: AppTextStyles.sm200(context).copyWith(
-              color: colors.textHint,
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTextStyles.sm200(
+              context,
+            ).copyWith(color: colors.textHint, fontWeight: FontWeight.w700),
           ),
         ],
       ),

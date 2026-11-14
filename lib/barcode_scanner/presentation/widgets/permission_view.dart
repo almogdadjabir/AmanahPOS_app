@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PermissionView extends StatelessWidget {
   final String title;
@@ -36,7 +37,7 @@ class PermissionView extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.camera_alt_outlined,
+                      PhosphorIconsRegular.camera,
                       size: 54,
                       color: Colors.black87,
                     ),

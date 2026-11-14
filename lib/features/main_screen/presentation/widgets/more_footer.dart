@@ -9,6 +9,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class MoreFooter extends StatelessWidget {
   const MoreFooter({super.key});
@@ -88,7 +89,7 @@ class MoreFooter extends StatelessWidget {
                               Navigator.of(context).pushNamed(
                                   RouteStrings.pendingSyncScreen);
                             },
-                            icon: const Icon(Icons.receipt_long_rounded,
+                            icon: const Icon(PhosphorIconsRegular.receipt,
                                 size: 15),
                             label: Text(
                               context.tr.viewPendingCount(state.pendingSalesCount),
@@ -138,7 +139,7 @@ class MoreFooter extends StatelessWidget {
                               color: colors.primary,
                             ),
                           )
-                              : const Icon(Icons.sync_rounded, size: 18),
+                              : const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
                         ),
                       ],
                     ),
@@ -152,7 +153,7 @@ class MoreFooter extends StatelessWidget {
 
           OutlinedButton.icon(
             onPressed: () => _confirmLogout(context),
-            icon: const Icon(Icons.logout_rounded, size: 18, color: _red),
+            icon: const Icon(PhosphorIconsRegular.signOut, size: 18, color: _red),
             label: Text(
               'Sign out',
               style: AppTextStyles.bs200(context).copyWith(
@@ -220,7 +221,7 @@ class _DebugRow extends StatelessWidget {
       onTap: () => _confirmClear(context),
       child: Row(
         children: [
-          Icon(Icons.cleaning_services_rounded,
+          Icon(PhosphorIconsRegular.broom,
               size: 14, color: colors.textHint),
           const SizedBox(width: 7),
           Expanded(
@@ -327,7 +328,7 @@ class _LogoutDialog extends StatelessWidget {
                 color: red.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(AppDims.rLg),
               ),
-              child: const Icon(Icons.logout_rounded, size: 26, color: red),
+              child: const Icon(PhosphorIconsRegular.signOut, size: 26, color: red),
             ),
             const SizedBox(height: AppDims.s4),
             Text(

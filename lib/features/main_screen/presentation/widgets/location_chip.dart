@@ -1,16 +1,18 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/location_switcher_sheet.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
+import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
+import 'package:amana_pos/widgets/app_sheet.dart';
+import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
 
 class LocationChip extends StatelessWidget {
-  const LocationChip({super.key,
+  const LocationChip({
+    super.key,
     required this.business,
     required this.selectedShopId,
   });
@@ -32,115 +34,63 @@ class LocationChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
     final hasMultiple = (business?.shopCount ?? 0) > 1;
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-
-    final bizName = business?.name?.trim().isNotEmpty == true
-        ? business!.name!.trim()
-        : 'Workspace';
 
     final shop = _selectedShop();
     final branchName = shop?.name?.trim().isNotEmpty == true
         ? shop!.name!.trim()
         : context.tr.selectBranch;
 
-    final address = business?.address?.trim().isNotEmpty == true
-        ? business!.address!.trim()
-        : context.tr.businessWorkspace;
-
-    return GestureDetector(
+    return Pressable(
       onTap: hasMultiple
-          ? () => showAdaptivePanel(
-        context,
-        desktopWidth: 360,
-        builder: (_) => BlocProvider.value(
-          value: context.read<PosBloc>(),
-          child: LocationSwitcherSheet(
-            business: business!,
-            selectedShopId: selectedShopId,
-          ),
-        ),
-      )
+          ? () => showAppSheet(
+              context,
+              builder: (_) => BlocProvider.value(
+                value: context.read<PosBloc>(),
+                child: LocationSwitcherSheet(
+                  business: business!,
+                  selectedShopId: selectedShopId,
+                ),
+              ),
+            )
           : null,
-      behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 46,
-        clipBehavior: Clip.hardEdge,
-        padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+        height: 34,
+        constraints: const BoxConstraints(maxWidth: 180),
+        padding: const EdgeInsetsDirectional.only(
+          start: AppDims.s3,
+          end: AppDims.s3 - 2,
+        ),
         decoration: BoxDecoration(
-          color: colors.surfaceSoft.withValues(alpha: 0.66),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: colors.border.withValues(alpha: 0.78),
-            width: 1.1,
-          ),
+          color: colors.surfaceSoft,
+          borderRadius: AppDims.borderPill,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (hasMultiple) ...[
-              Icon(
-                SolarIconsOutline.altArrowDown,
-                size: 14,
-                color: colors.textHint,
-              ),
-              const SizedBox(width: 6),
-            ],
-
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: AlignmentDirectional.centerStart,
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-                    text: TextSpan(children: [
-                      TextSpan(
-                        text: bizName,
-                        style: AppTextStyles.bs200(context).copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w900,
-                          height: 1,
-                        ),
-                      ),
-                      TextSpan(
-                        text: '  ·  ',
-                        style: AppTextStyles.sm300(context).copyWith(
-                          color: colors.textHint,
-                        ),
-                      ),
-                      TextSpan(
-                        text: branchName,
-                        style: AppTextStyles.bs200(context).copyWith(
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w700,
-                          height: 1,
-                        ),
-                      ),
-                    ]),
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  Text(
-                    address,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.start,
-                    style: AppTextStyles.bs300(context).copyWith(
-                      color: colors.textHint,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ],
-              ),
+            Icon(
+              PhosphorIconsRegular.storefront,
+              size: 17,
+              color: colors.textSecondary,
+            ),
+            const SizedBox(width: AppDims.s2 - 1),
+            Flexible(
+              child: Text(
+                branchName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: text.labelLarge!.copyWith(color: colors.textPrimary),
               ),
             ),
+            if (hasMultiple) ...[
+              const SizedBox(width: AppDims.s1 + 2),
+              Icon(
+                PhosphorIconsRegular.caretDown,
+                size: 12,
+                color: colors.textHint,
+              ),
+            ],
           ],
         ),
       ),

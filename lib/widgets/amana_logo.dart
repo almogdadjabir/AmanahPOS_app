@@ -49,21 +49,26 @@ class AmanaPosLogo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // AmanaPosLogoMark(size: markSize),
-        SvgPicture.asset(AppAssets.amanaMark, width: markSize, height: markSize),
+        SvgPicture.asset(
+          AppAssets.amanaMark,
+          width: markSize,
+          height: markSize,
+        ),
         if (showArabicName) ...[
           SizedBox(width: gap),
           Text(
             'أمانة',
             textDirection: TextDirection.rtl,
-            style: AppTextStyles.lg100(
-              context,
-              weight: AppTextStyles.semibold,
-              color: colors.textPrimary,
-            ).copyWith(
-              fontSize: markSize * 22 / 36,
-              letterSpacing: markSize * 22 / 36 * -0.01,
-              height: 1,
-            ),
+            style:
+                AppTextStyles.lg100(
+                  context,
+                  weight: AppTextStyles.semibold,
+                  color: colors.textPrimary,
+                ).copyWith(
+                  fontSize: markSize * 22 / 36,
+                  letterSpacing: markSize * 22 / 36 * -0.01,
+                  height: 1,
+                ),
           ),
         ],
         if (showSeparator) ...[
@@ -71,24 +76,20 @@ class AmanaPosLogo extends StatelessWidget {
           SizedBox(
             width: 1,
             height: markSize * 0.72,
-            child: ColoredBox(
-              color: colors.border,
-            ),
+            child: ColoredBox(color: colors.border),
           ),
         ],
         if (showLatinName) ...[
           SizedBox(width: gap),
           Text(
             'AmanaPOS',
-            style: AppTextStyles.sm200(
-              context,
-              color: colors.textHint,
-            ).copyWith(
-              fontSize: markSize * 10 / 36,
-              fontWeight: FontWeight.w700,
-              letterSpacing: markSize * 10 / 36 * 0.20,
-              height: 1,
-            ),
+            style: AppTextStyles.sm200(context, color: colors.textHint)
+                .copyWith(
+                  fontSize: markSize * 10 / 36,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: markSize * 10 / 36 * 0.20,
+                  height: 1,
+                ),
           ),
         ],
       ],
@@ -97,11 +98,7 @@ class AmanaPosLogo extends StatelessWidget {
 }
 
 class AmanaPosLogoMarkOnly extends StatelessWidget {
-  const AmanaPosLogoMarkOnly({
-    super.key,
-    this.size = 36,
-    this.color,
-  });
+  const AmanaPosLogoMarkOnly({super.key, this.size = 36, this.color});
 
   final double size;
   final Color? color;
@@ -164,19 +161,13 @@ class _AmanaPosLogoMarkPainter extends CustomPainter {
 
   void _drawAppIconBackground(Canvas canvas) {
     final bgRect = const Rect.fromLTWH(0, 0, 256, 256);
-    final bgRRect = RRect.fromRectAndRadius(
-      bgRect,
-      const Radius.circular(56),
-    );
+    final bgRRect = RRect.fromRectAndRadius(bgRect, const Radius.circular(56));
 
     final bgPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          emeraldLight,
-          emeraldDark,
-        ],
+        colors: [emeraldLight, emeraldDark],
       ).createShader(bgRect);
 
     canvas.drawRRect(bgRRect, bgPaint);
@@ -265,11 +256,7 @@ class _AmanaPosLogoMarkPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(
-      const Offset(128, 58),
-      18,
-      paint,
-    );
+    canvas.drawCircle(const Offset(128, 58), 18, paint);
   }
 
   void _drawDashedRRect({

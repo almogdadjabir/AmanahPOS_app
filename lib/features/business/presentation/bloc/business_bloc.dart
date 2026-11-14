@@ -14,15 +14,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'business_event.dart';
 part 'business_state.dart';
 
-
 class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   final BusinessUseCase useCase;
   final OfflineLocalCache offlineLocalCache;
 
-  BusinessBloc({
-    required this.useCase,
-    required this.offlineLocalCache,
-  }) : super(BusinessState.initial()) {
+  BusinessBloc({required this.useCase, required this.offlineLocalCache})
+    : super(BusinessState.initial()) {
     on<OnBusinessInitial>(_init);
     on<OnEditBusiness>(_editBusiness);
     on<OnAddBusiness>(_addBusiness);
@@ -33,12 +30,11 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   }
 
   Future<void> _init(
-      OnBusinessInitial event,
-      Emitter<BusinessState> emit,
-      ) async {
+    OnBusinessInitial event,
+    Emitter<BusinessState> emit,
+  ) async {
     await _loadBusiness(emit);
   }
-
 
   Future<void> _loadBusiness(Emitter<BusinessState> emit) async {
     if (state.businessStatus == BusinessStatus.loading) return;
@@ -79,8 +75,9 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         ),
       );
 
-      final response =
-      await getIt<AppProgressCubit>().run(() => useCase.getBusinessList());
+      final response = await getIt<AppProgressCubit>().run(
+        () => useCase.getBusinessList(),
+      );
 
       if (emit.isDone) return;
 
@@ -130,17 +127,19 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   }
 
   Future<void> _addBusiness(
-      OnAddBusiness event,
-      Emitter<BusinessState> emit,
-      ) async {
-    if(state.submitStatus == BusinessSubmitStatus.loading){
+    OnAddBusiness event,
+    Emitter<BusinessState> emit,
+  ) async {
+    if (state.submitStatus == BusinessSubmitStatus.loading) {
       return;
     }
 
-    emit(state.copyWith(
-      submitStatus: BusinessSubmitStatus.loading,
-      submitError: null,
-    ));
+    emit(
+      state.copyWith(
+        submitStatus: BusinessSubmitStatus.loading,
+        submitError: null,
+      ),
+    );
 
     try {
       final payload = AddBusinessRequestDto(
@@ -152,75 +151,95 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       final response = await useCase.addBusiness(payload);
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.failure,
-          submitError: error,
-        )),
-            (newBusiness) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.success,
-          businessList: [
-            ...?state.businessList,
-            newBusiness.data!,
-          ],
-        )),
+        (error) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
+        (newBusiness) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.success,
+            businessList: [...?state.businessList, newBusiness.data!],
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: BusinessSubmitStatus.failure,
-        submitError: friendlyError(e),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: friendlyError(e),
+        ),
+      );
     }
   }
 
   Future<void> _deactivateBusiness(
-      OnDeactivateBusiness event,
-      Emitter<BusinessState> emit,
-      ) async {
-    emit(state.copyWith(
-      submitStatus: BusinessSubmitStatus.loading,
-      submitError: null,
-    ));
+    OnDeactivateBusiness event,
+    Emitter<BusinessState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        submitStatus: BusinessSubmitStatus.loading,
+        submitError: null,
+      ),
+    );
 
     try {
       final response = await useCase.deactivateBusiness(event.businessId);
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.failure,
-          submitError: error,
-        )),
-            (_) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.success,
-          businessList: state.businessList?.map((b) {
-            return b.id == event.businessId
-                ? BusinessData(
-              id: b.id, name: b.name, slug: b.slug,
-              owner: b.owner, logo: b.logo, address: b.address,
-              phone: b.phone, email: b.email,
-              isActive: false,
-              shopCount: b.shopCount, shops: b.shops,
-              createdAt: b.createdAt, updatedAt: b.updatedAt,
-            )
-                : b;
-          }).toList(),
-        )),
+        (error) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
+        (_) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.success,
+            businessList: state.businessList?.map((b) {
+              return b.id == event.businessId
+                  ? BusinessData(
+                      id: b.id,
+                      name: b.name,
+                      slug: b.slug,
+                      owner: b.owner,
+                      logo: b.logo,
+                      address: b.address,
+                      phone: b.phone,
+                      email: b.email,
+                      isActive: false,
+                      shopCount: b.shopCount,
+                      shops: b.shops,
+                      createdAt: b.createdAt,
+                      updatedAt: b.updatedAt,
+                    )
+                  : b;
+            }).toList(),
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: BusinessSubmitStatus.failure,
-        submitError: friendlyError(e),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: friendlyError(e),
+        ),
+      );
     }
   }
 
   Future<void> _editBusiness(
-      OnEditBusiness event,
-      Emitter<BusinessState> emit,
-      ) async {
-    emit(state.copyWith(
-      submitStatus: BusinessSubmitStatus.loading,
-      submitError: null,
-    ));
+    OnEditBusiness event,
+    Emitter<BusinessState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        submitStatus: BusinessSubmitStatus.loading,
+        submitError: null,
+      ),
+    );
 
     try {
       final response = await useCase.editBusiness(
@@ -234,49 +253,54 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       );
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.failure,
-          submitError: error,
-        )),
-            (_) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.success,
-          businessList: state.businessList?.map((b) {
-            return b.id == event.businessId
-                ? BusinessData(
-              id: b.id,
-              name: event.name,
-              address: event.address,
-              phone: event.phone,
-              email: event.email,
-              slug: b.slug,
-              owner: b.owner,
-              logo: b.logo,
-              isActive: b.isActive,
-              shopCount: b.shopCount,
-              shops: b.shops,
-              createdAt: b.createdAt,
-              updatedAt: b.updatedAt,
-            )
-                : b;
-          }).toList(),
-        )),
+        (error) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
+        (_) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.success,
+            businessList: state.businessList?.map((b) {
+              return b.id == event.businessId
+                  ? BusinessData(
+                      id: b.id,
+                      name: event.name,
+                      address: event.address,
+                      phone: event.phone,
+                      email: event.email,
+                      slug: b.slug,
+                      owner: b.owner,
+                      logo: b.logo,
+                      isActive: b.isActive,
+                      shopCount: b.shopCount,
+                      shops: b.shops,
+                      createdAt: b.createdAt,
+                      updatedAt: b.updatedAt,
+                    )
+                  : b;
+            }).toList(),
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: BusinessSubmitStatus.failure,
-        submitError: friendlyError(e),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: friendlyError(e),
+        ),
+      );
     }
   }
 
-  Future<void> _addShop(
-      OnAddShop event,
-      Emitter<BusinessState> emit,
-      ) async {
-    emit(state.copyWith(
-      submitStatus: BusinessSubmitStatus.loading,
-      submitError: null,
-    ));
+  Future<void> _addShop(OnAddShop event, Emitter<BusinessState> emit) async {
+    emit(
+      state.copyWith(
+        submitStatus: BusinessSubmitStatus.loading,
+        submitError: null,
+      ),
+    );
 
     try {
       final response = await useCase.addShop(
@@ -289,57 +313,61 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       );
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.failure,
-          submitError: error,
-        )),
-            (newShop) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.success,
-          businessList: state.businessList?.map((b) {
-            if (b.id != event.businessId) return b;
-            return BusinessData(
-              id: b.id,
-              name: b.name,
-              slug: b.slug,
-              owner: b.owner,
-              logo: b.logo,
-              address: b.address,
-              phone: b.phone,
-              email: b.email,
-              isActive: b.isActive,
-              shopCount: (b.shopCount ?? 0) + 1,
-              shops: [...?b.shops, newShop.data!],
-              createdAt: b.createdAt,
-              updatedAt: b.updatedAt,
-            );
-          }).toList(),
-        )),
+        (error) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
+        (newShop) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.success,
+            businessList: state.businessList?.map((b) {
+              if (b.id != event.businessId) return b;
+              return BusinessData(
+                id: b.id,
+                name: b.name,
+                slug: b.slug,
+                owner: b.owner,
+                logo: b.logo,
+                address: b.address,
+                phone: b.phone,
+                email: b.email,
+                isActive: b.isActive,
+                shopCount: (b.shopCount ?? 0) + 1,
+                shops: [...?b.shops, newShop.data!],
+                createdAt: b.createdAt,
+                updatedAt: b.updatedAt,
+              );
+            }).toList(),
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: BusinessSubmitStatus.failure,
-        submitError: friendlyError(e),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: friendlyError(e),
+        ),
+      );
     }
   }
 
-
   Future<void> _reset(
-      OnBusinessReset event,
-      Emitter<BusinessState> emit,
-      ) async {
+    OnBusinessReset event,
+    Emitter<BusinessState> emit,
+  ) async {
     emit(BusinessState.initial());
     add(const OnBusinessInitial());
   }
 
-  Future<void> _editShop(
-      OnEditShop event,
-      Emitter<BusinessState> emit,
-      ) async {
-    emit(state.copyWith(
-      submitStatus: BusinessSubmitStatus.loading,
-      submitError: null,
-    ));
+  Future<void> _editShop(OnEditShop event, Emitter<BusinessState> emit) async {
+    emit(
+      state.copyWith(
+        submitStatus: BusinessSubmitStatus.loading,
+        submitError: null,
+      ),
+    );
 
     try {
       final response = await useCase.editShop(
@@ -353,44 +381,55 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       );
 
       response.fold(
-            (error) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.failure,
-          submitError: error,
-        )),
-            (_) => emit(state.copyWith(
-          submitStatus: BusinessSubmitStatus.success,
-          businessList: state.businessList?.map((b) {
-            if (b.id != event.businessId) return b;
-            return BusinessData(
-              id: b.id, name: b.name, slug: b.slug, owner: b.owner,
-              logo: b.logo, address: b.address, phone: b.phone,
-              email: b.email, isActive: b.isActive,
-              shopCount: b.shopCount, createdAt: b.createdAt,
-              updatedAt: b.updatedAt,
-              shops: b.shops?.map((s) {
-                if (s.id != event.shopId) return s;
-                return ShopData(
-                  id: s.id,
-                  business:  s.business,
-                  name: event.name,
-                  address: event.address,
-                  phone: event.phone,
-                  isActive:  s.isActive,
-                  createdAt: s.createdAt,
-                  updatedAt: s.updatedAt,
-                );
-              }).toList(),
-            );
-          }).toList(),
-        )),
+        (error) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.failure,
+            submitError: error,
+          ),
+        ),
+        (_) => emit(
+          state.copyWith(
+            submitStatus: BusinessSubmitStatus.success,
+            businessList: state.businessList?.map((b) {
+              if (b.id != event.businessId) return b;
+              return BusinessData(
+                id: b.id,
+                name: b.name,
+                slug: b.slug,
+                owner: b.owner,
+                logo: b.logo,
+                address: b.address,
+                phone: b.phone,
+                email: b.email,
+                isActive: b.isActive,
+                shopCount: b.shopCount,
+                createdAt: b.createdAt,
+                updatedAt: b.updatedAt,
+                shops: b.shops?.map((s) {
+                  if (s.id != event.shopId) return s;
+                  return ShopData(
+                    id: s.id,
+                    business: s.business,
+                    name: event.name,
+                    address: event.address,
+                    phone: event.phone,
+                    isActive: s.isActive,
+                    createdAt: s.createdAt,
+                    updatedAt: s.updatedAt,
+                  );
+                }).toList(),
+              );
+            }).toList(),
+          ),
+        ),
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: BusinessSubmitStatus.failure,
-        submitError: friendlyError(e),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: BusinessSubmitStatus.failure,
+          submitError: friendlyError(e),
+        ),
+      );
     }
   }
-
-
 }

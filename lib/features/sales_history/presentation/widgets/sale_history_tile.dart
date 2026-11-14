@@ -10,7 +10,7 @@ import 'package:amana_pos/utilities/format.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SaleHistoryTile extends StatelessWidget {
   const SaleHistoryTile({
@@ -66,7 +66,7 @@ class SaleHistoryTile extends StatelessWidget {
                   _SaleAmountInfo(item: item),
                   const SizedBox(width: AppDims.s2),
                   DirectionalIcon(
-                    icon: SolarIconsOutline.altArrowRight,
+                    icon: PhosphorIconsRegular.caretRight,
                     size: 18,
                     color: colors.textHint,
                   ),
@@ -318,7 +318,7 @@ class _OfflinePill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              SolarIconsOutline.wifiRouterRound,
+              PhosphorIconsRegular.wifiHigh,
               size: 10,
               color: AppColors.warning,
             ),
@@ -401,16 +401,16 @@ Color _iconBg(AppThemeColors colors, SaleHistoryItem item) {
 }
 
 IconData _iconData(SaleHistoryItem item) {
-  if (item.isOfflinePending) return SolarIconsOutline.wifiRouterRound;
+  if (item.isOfflinePending) return PhosphorIconsRegular.wifiHigh;
 
   return switch (item.status) {
-    SaleHistoryStatus.completed => SolarIconsOutline.checkCircle,
-    SaleHistoryStatus.refunded => SolarIconsOutline.undoLeft,
-    SaleHistoryStatus.partialRefund => SolarIconsOutline.undoLeft,
-    SaleHistoryStatus.cancelled => SolarIconsOutline.closeCircle,
-    SaleHistoryStatus.failed => SolarIconsOutline.dangerTriangle,
-    SaleHistoryStatus.pending => SolarIconsOutline.clockCircle,
-    _ => SolarIconsOutline.billList,
+    SaleHistoryStatus.completed => PhosphorIconsRegular.checkCircle,
+    SaleHistoryStatus.refunded => PhosphorIconsRegular.arrowUUpLeft,
+    SaleHistoryStatus.partialRefund => PhosphorIconsRegular.arrowUUpLeft,
+    SaleHistoryStatus.cancelled => PhosphorIconsRegular.xCircle,
+    SaleHistoryStatus.failed => PhosphorIconsRegular.warning,
+    SaleHistoryStatus.pending => PhosphorIconsRegular.clock,
+    _ => PhosphorIconsRegular.receipt,
   };
 }
 

@@ -15,20 +15,12 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Firebase Core is configured for all platforms via FlutterFire CLI.
 // kIsWeb is checked first to avoid dart:io Platform calls on web.
-// Windows: Firebase Core initializes but firebase_messaging has no Windows
-// plugin, so FCM messaging is excluded there.
 bool get _isFirebaseSupported =>
-    kIsWeb ||
-    Platform.isAndroid ||
-    Platform.isIOS ||
-    Platform.isMacOS ||
-    Platform.isWindows;
+    kIsWeb || Platform.isAndroid || Platform.isIOS;
 
-// Platforms where firebase_messaging + FCM listeners are available.
 bool get _isMessagingSupported =>
-    kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+    kIsWeb || Platform.isAndroid || Platform.isIOS;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -123,8 +115,8 @@ Future<void> _initializeFirebaseMessaging() async {
 
 Future<void> _requestNotificationPermission() async {
   try {
-    // iOS, macOS, and web use FirebaseMessaging's permission request (APNs / browser).
-    if (kIsWeb || Platform.isIOS || Platform.isMacOS) {
+    // iOS and web use FirebaseMessaging's permission request (APNs / browser).
+    if (kIsWeb || Platform.isIOS) {
       final settings = await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,

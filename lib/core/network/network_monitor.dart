@@ -25,11 +25,13 @@ class NetworkMonitor {
   }
 
   bool _hasConnection(List<ConnectivityResult> result) {
-    return result.any((e) =>
-    e == ConnectivityResult.mobile ||
-        e == ConnectivityResult.wifi ||
-        e == ConnectivityResult.ethernet ||
-        e == ConnectivityResult.vpn);
+    return result.any(
+      (e) =>
+          e == ConnectivityResult.mobile ||
+          e == ConnectivityResult.wifi ||
+          e == ConnectivityResult.ethernet ||
+          e == ConnectivityResult.vpn,
+    );
   }
 
   Future<void> dispose() async {

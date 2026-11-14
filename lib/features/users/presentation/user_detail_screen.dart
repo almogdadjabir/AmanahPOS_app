@@ -13,8 +13,8 @@ import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:solar_icons/solar_icons.dart';
 import 'dart:ui' as ui;
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class UserDetailScreen extends StatelessWidget {
   const UserDetailScreen({
@@ -119,21 +119,21 @@ class _UserAppBar extends StatelessWidget {
         child: Row(
           children: [
             _AppBarIconButton(
-              icon: SolarIconsOutline.altArrowLeft,
+              icon: PhosphorIconsRegular.caretLeft,
               semanticLabel: context.tr.back,
               flipInRtl: true,
               onTap: () => Navigator.of(context).pop(),
             ),
             const Spacer(),
             _AppBarIconButton(
-              icon: SolarIconsOutline.penNewSquare,
+              icon: PhosphorIconsRegular.pencilSimpleLine,
               semanticLabel: context.tr.edit,
               onTap: () => showEditUserSheet(context, user: user),
             ),
             if (isActive) ...[
               const SizedBox(width: AppDims.s2),
               _AppBarIconButton(
-                icon: SolarIconsOutline.forbiddenCircle,
+                icon: PhosphorIconsRegular.prohibit,
                 semanticLabel: context.tr.deactivateUser,
                 color: const Color(0xFFDC2626),
                 backgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.08),
@@ -261,27 +261,27 @@ class _InfoSection extends StatelessWidget {
     return _Card(
       children: [
         _InfoRow(
-          icon: SolarIconsOutline.phone,
+          icon: PhosphorIconsRegular.phone,
           label: context.tr.userDetailPhone,
           value: _safeText(user.phone, '—'),
           forceValueLtr: true,
         ),
         _InfoRow(
-          icon: SolarIconsOutline.userId,
+          icon: PhosphorIconsRegular.identificationCard,
           label: context.tr.userDetailRole,
           value: _localizedRole(context, user.role),
         ),
         _InfoRow(
           icon: verified
-              ? SolarIconsOutline.verifiedCheck
-              : SolarIconsOutline.closeCircle,
+              ? PhosphorIconsRegular.sealCheck
+              : PhosphorIconsRegular.xCircle,
           label: context.tr.userDetailVerified,
           value: verified ? context.tr.yes : context.tr.no,
           valueColor: verified ? const Color(0xFF16A34A) : null,
           iconColor: verified ? const Color(0xFF16A34A) : null,
         ),
         _InfoRow(
-          icon: SolarIconsOutline.recordCircle,
+          icon: PhosphorIconsRegular.record,
           iconColor: active ? const Color(0xFF16A34A) : null,
           label: context.tr.userDetailStatus,
           value: active ? context.tr.active : context.tr.inactive,
@@ -308,13 +308,13 @@ class _ActivitySection extends StatelessWidget {
     return _Card(
       children: [
         _InfoRow(
-          icon: SolarIconsOutline.login,
+          icon: PhosphorIconsRegular.signIn,
           label: context.tr.userDetailLastLogin,
           value: lastLogin ?? context.tr.never,
           valueColor: lastLogin == null ? context.appColors.textHint : null,
         ),
         _InfoRow(
-          icon: SolarIconsOutline.calendar,
+          icon: PhosphorIconsRegular.calendarBlank,
           label: context.tr.userDetailJoined,
           value: joined ?? '—',
           isLast: true,
@@ -375,14 +375,14 @@ class _SecuritySection extends StatelessWidget {
     return _Card(
       children: [
         _ActionRow(
-          icon: SolarIconsOutline.lockKeyhole,
+          icon: PhosphorIconsRegular.lockKey,
           label: 'Change PIN',
           onTap: userId.isEmpty
               ? null
               : () => showCashierPinSheet(context, userId: userId),
         ),
         _ActionRow(
-          icon: SolarIconsOutline.forbiddenCircle,
+          icon: PhosphorIconsRegular.prohibit,
           label: 'Disable PIN',
           iconColor: colors.danger,
           isLast: true,
@@ -458,7 +458,7 @@ class _ActionRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                Icon(SolarIconsOutline.altArrowRight,
+                Icon(PhosphorIconsRegular.caretRight,
                     size: 18, color: colors.textHint),
               ],
             ),

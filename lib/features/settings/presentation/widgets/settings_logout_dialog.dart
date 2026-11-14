@@ -3,6 +3,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SettingsLogoutDialog extends StatelessWidget {
   const SettingsLogoutDialog({super.key});
@@ -45,7 +46,7 @@ class SettingsLogoutDialog extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  Icons.logout_rounded,
+                  PhosphorIconsRegular.signOut,
                   size: 28,
                   color: dangerColor,
                 ),
@@ -104,7 +105,7 @@ class SettingsLogoutDialog extends StatelessWidget {
                         minimumSize: const Size(0, 48),
                       ),
                       icon: const Icon(
-                        Icons.logout_rounded,
+                        PhosphorIconsRegular.signOut,
                         size: 18,
                         color: Colors.white,
                       ),

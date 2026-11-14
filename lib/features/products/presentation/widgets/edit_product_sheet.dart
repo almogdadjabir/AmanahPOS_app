@@ -21,7 +21,7 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:amana_pos/widgets/optional_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showEditProductSheet(
     BuildContext context, {
@@ -32,7 +32,6 @@ void showEditProductSheet(
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: productBloc,
       child: _EditProductSheet(
@@ -252,7 +251,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                 focusNode: _nameFocus,
                 nextFocus: _priceFocus,
                 hint: tr.productNameHint,
-                prefixIcon: SolarIconsOutline.box,
+                prefixIcon: PhosphorIconsRegular.package,
                 validator: (value) {
                   return ProductFormValidators.name(context, value);
                 },
@@ -306,7 +305,7 @@ class _EditProductSheetState extends State<_EditProductSheet> {
                 focusNode: _descFocus,
                 nextFocus: _barcodeFocus,
                 hint: tr.productDescriptionHint,
-                prefixIcon: SolarIconsOutline.notes,
+                prefixIcon: PhosphorIconsRegular.notepad,
                 maxLines: 3,
               ),
 
@@ -379,7 +378,7 @@ class _LockedCategoryField extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.lockKeyhole,
+                PhosphorIconsRegular.lockKey,
                 size: 18,
                 color: colors.textHint,
               ),

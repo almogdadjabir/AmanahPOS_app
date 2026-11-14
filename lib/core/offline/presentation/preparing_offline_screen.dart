@@ -91,48 +91,48 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                         .mAnimate()
                         .fadeIn(duration: 420.ms)
                         .scale(
-                      begin: const Offset(0.92, 0.92),
-                      end: const Offset(1, 1),
-                      curve: Curves.easeOutCubic,
-                    ),
+                          begin: const Offset(0.92, 0.92),
+                          end: const Offset(1, 1),
+                          curve: Curves.easeOutCubic,
+                        ),
 
                     const SizedBox(height: AppDims.s6),
 
                     Text(
-                      'Preparing Offline Mode',
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.lg200(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                      ),
-                    )
+                          'Preparing Offline Mode',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.lg200(context).copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                          ),
+                        )
                         .mAnimate()
                         .fadeIn(duration: 420.ms)
                         .slideY(
-                      begin: 0.16,
-                      end: 0,
-                      curve: Curves.easeOutCubic,
-                    ),
+                          begin: 0.16,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                        ),
 
                     const SizedBox(height: AppDims.s2),
 
                     Text(
-                      _description(state),
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bs400(context).copyWith(
-                        color: colors.textSecondary,
-                        height: 1.45,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
+                          _description(state),
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bs400(context).copyWith(
+                            color: colors.textSecondary,
+                            height: 1.45,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
                         .mAnimate()
                         .fadeIn(delay: 90.ms, duration: 420.ms)
                         .slideY(
-                      begin: 0.16,
-                      end: 0,
-                      curve: Curves.easeOutCubic,
-                    ),
+                          begin: 0.16,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                        ),
 
                     const SizedBox(height: AppDims.s6),
 
@@ -140,10 +140,10 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                         .mAnimate()
                         .fadeIn(delay: 180.ms, duration: 420.ms)
                         .slideY(
-                      begin: 0.12,
-                      end: 0,
-                      curve: Curves.easeOutCubic,
-                    ),
+                          begin: 0.12,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                        ),
 
                     const Spacer(),
 
@@ -151,10 +151,10 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
                         .mAnimate()
                         .fadeIn(delay: 260.ms, duration: 420.ms)
                         .slideY(
-                      begin: 0.22,
-                      end: 0,
-                      curve: Curves.easeOutCubic,
-                    ),
+                          begin: 0.22,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                        ),
 
                     const SizedBox(height: AppDims.s2),
                   ],
@@ -181,7 +181,8 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
     }
 
     if (state.hasFailure) {
-      return state.errorMessage ?? 'Something went wrong while preparing offline mode.';
+      return state.errorMessage ??
+          'Something went wrong while preparing offline mode.';
     }
 
     return 'Almost done. AmanaPOS is getting your workspace ready for poor internet and offline sales.';

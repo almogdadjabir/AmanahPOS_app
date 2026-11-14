@@ -15,7 +15,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -253,7 +253,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(SolarIconsOutline.checkCircle, size: 18, color: colors.success),
+            Icon(PhosphorIconsRegular.checkCircle, size: 18, color: colors.success),
             const SizedBox(width: 6),
             Text(
               'Mark read',
@@ -308,7 +308,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: DirectionalIcon(
-                    icon: SolarIconsOutline.altArrowLeft,
+                    icon: PhosphorIconsRegular.caretLeft,
                     size: 18,
                     color: colors.textPrimary,
                   ),
@@ -381,7 +381,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        SolarIconsOutline.checkCircle,
+                        PhosphorIconsRegular.checkCircle,
                         size: 16,
                         color: colors.primary,
                       ),

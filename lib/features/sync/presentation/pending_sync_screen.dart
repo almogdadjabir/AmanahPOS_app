@@ -9,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PendingSyncScreen extends StatefulWidget {
   const PendingSyncScreen({super.key});
@@ -145,8 +146,8 @@ class _SaleCardState extends State<_SaleCard> {
                                 const SizedBox(width: AppDims.s2),
                                 Icon(
                                   _expanded
-                                      ? Icons.keyboard_arrow_up_rounded
-                                      : Icons.keyboard_arrow_down_rounded,
+                                      ? PhosphorIconsRegular.caretUp
+                                      : PhosphorIconsRegular.caretDown,
                                   size: 18,
                                   color: colors.textHint,
                                 ),
@@ -228,7 +229,7 @@ class _SaleCardState extends State<_SaleCard> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(top: 1),
-                                child: Icon(Icons.error_outline_rounded,
+                                child: Icon(PhosphorIconsRegular.warningCircle,
                                     size: 14, color: colors.danger),
                               ),
                               const SizedBox(width: AppDims.s2),
@@ -257,7 +258,7 @@ class _SaleCardState extends State<_SaleCard> {
                                       borderRadius:
                                           BorderRadius.circular(AppDims.rSm),
                                     ),
-                                    child: Icon(Icons.delete_outline_rounded,
+                                    child: Icon(PhosphorIconsRegular.trash,
                                         size: 16, color: colors.danger),
                                   ),
                                 ),
@@ -389,19 +390,19 @@ class _SaleCardState extends State<_SaleCard> {
         return _StatusInfo(
           label: 'Failed',
           color: const Color(0xFFEF4444),
-          icon: Icons.error_outline_rounded,
+          icon: PhosphorIconsRegular.warningCircle,
         );
       case 'syncing':
         return _StatusInfo(
           label: 'Syncing',
           color: const Color(0xFF2563EB),
-          icon: Icons.sync_rounded,
+          icon: PhosphorIconsRegular.arrowsClockwise,
         );
       default:
         return _StatusInfo(
           label: 'Pending',
           color: const Color(0xFFF59E0B),
-          icon: Icons.schedule_rounded,
+          icon: PhosphorIconsRegular.clock,
         );
     }
   }
@@ -563,8 +564,8 @@ class _PaymentChip extends StatelessWidget {
     final colors = context.appColors;
     final label = method.toLowerCase() == 'cash' ? 'Cash' : 'Card';
     final icon = method.toLowerCase() == 'cash'
-        ? Icons.payments_outlined
-        : Icons.credit_card_rounded;
+        ? PhosphorIconsRegular.money
+        : PhosphorIconsRegular.creditCard;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -610,7 +611,7 @@ class _EmptyView extends StatelessWidget {
               color: colors.successContainer,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.check_circle_outline_rounded,
+            child: Icon(PhosphorIconsRegular.checkCircle,
                 size: 36, color: colors.success),
           ),
           const SizedBox(height: AppDims.s4),
@@ -681,7 +682,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: colors.textHint),
+            Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.textHint),
             const SizedBox(height: AppDims.s4),
             Text(
               message,
@@ -694,7 +695,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: AppDims.s4),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
+              icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
               label: const Text('Try again'),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,

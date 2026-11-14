@@ -5,7 +5,7 @@ import 'package:amana_pos/features/products/presentation/widgets/add_product_she
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductsAppBar extends StatelessWidget {
   const ProductsAppBar({super.key});
@@ -30,8 +30,8 @@ class ProductsAppBar extends StatelessWidget {
               },
               icon: Icon(
                 state.isGrid
-                    ? SolarIconsOutline.list
-                    : SolarIconsOutline.widget,
+                    ? PhosphorIconsRegular.list
+                    : PhosphorIconsRegular.squaresFour,
                 color: context.appColors.textPrimary,
                 size: 16,
               ),

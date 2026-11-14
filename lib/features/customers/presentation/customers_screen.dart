@@ -1,17 +1,15 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:amana_pos/features/customers/presentation/widgets/customer_form_sheet.dart';
 import 'package:amana_pos/features/customers/presentation/widgets/delete_customer_sheet.dart';
-import 'package:amana_pos/features/customers/presentation/widgets/desktop_customers_view.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 enum CustomerQuickFilter {
   all,
@@ -40,7 +38,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialized || context.isDesktop) return;
+    if (_initialized) return;
     _initialized = true;
     context.read<CustomersBloc>().add(const OnCustomersInitial());
     _scrollCtrl.addListener(_onScroll);
@@ -136,7 +134,6 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (context.isDesktop) return const DesktopCustomersView();
 
     return BlocListener<CustomersBloc, CustomersState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
@@ -266,7 +263,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           onPressed: () => showCustomerFormSheet(context),
           backgroundColor: context.appColors.primary,
           icon: const Icon(
-            SolarIconsOutline.userPlus,
+            PhosphorIconsRegular.userPlus,
             color: Colors.white,
           ),
           label: Text(
@@ -307,7 +304,7 @@ class _CustomersAppBar extends StatelessWidget {
             context.read<CustomersBloc>().add(const OnCustomersInitial());
           },
           icon: Icon(
-            SolarIconsOutline.refresh,
+            PhosphorIconsRegular.arrowsClockwise,
             color: context.appColors.textPrimary,
           ),
         ),
@@ -378,7 +375,7 @@ class _CustomersHeader extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  SolarIconsOutline.usersGroupRounded,
+                  PhosphorIconsRegular.users,
                   color: colors.primary,
                   size: 30,
                 ),
@@ -421,7 +418,7 @@ class _CustomersHeader extends StatelessWidget {
                 child: _CustomerMiniStat(
                   label: tr.customerStatTotal,
                   value: '${customers.length}',
-                  icon: SolarIconsOutline.usersGroupRounded,
+                  icon: PhosphorIconsRegular.users,
                   color: colors.primary,
                   isSelected: selectedFilter == CustomerQuickFilter.all,
                   onTap: () => onFilterChanged(CustomerQuickFilter.all),
@@ -432,7 +429,7 @@ class _CustomersHeader extends StatelessWidget {
                 child: _CustomerMiniStat(
                   label: tr.customerStatActive,
                   value: '$active',
-                  icon: SolarIconsOutline.checkCircle,
+                  icon: PhosphorIconsRegular.checkCircle,
                   color: const Color(0xFF16A34A),
                   isSelected: selectedFilter == CustomerQuickFilter.active,
                   onTap: () => onFilterChanged(CustomerQuickFilter.active),
@@ -443,7 +440,7 @@ class _CustomersHeader extends StatelessWidget {
                 child: _CustomerMiniStat(
                   label: tr.customerStatInactive,
                   value: '$inactive',
-                  icon: SolarIconsOutline.pauseCircle,
+                  icon: PhosphorIconsRegular.pauseCircle,
                   color: const Color(0xFF94A3B8),
                   isSelected: selectedFilter == CustomerQuickFilter.inactive,
                   onTap: () => onFilterChanged(CustomerQuickFilter.inactive),
@@ -454,7 +451,7 @@ class _CustomersHeader extends StatelessWidget {
                 child: _CustomerMiniStat(
                   label: tr.customerStatCredit,
                   value: '$credit',
-                  icon: SolarIconsOutline.walletMoney,
+                  icon: PhosphorIconsRegular.wallet,
                   color: const Color(0xFFEA580C),
                   isSelected: selectedFilter == CustomerQuickFilter.credit,
                   onTap: () => onFilterChanged(CustomerQuickFilter.credit),
@@ -465,7 +462,7 @@ class _CustomersHeader extends StatelessWidget {
                 child: _CustomerMiniStat(
                   label: tr.customerStatPhone,
                   value: '$withPhone',
-                  icon: SolarIconsOutline.phoneRounded,
+                  icon: PhosphorIconsRegular.phone,
                   color: const Color(0xFF0EA5E9),
                   isSelected: selectedFilter == CustomerQuickFilter.withPhone,
                   onTap: () => onFilterChanged(CustomerQuickFilter.withPhone),
@@ -597,7 +594,7 @@ class _CustomersSearchField extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
           prefixIcon: Icon(
-            SolarIconsOutline.magnifier,
+            PhosphorIconsRegular.magnifyingGlass,
             color: colors.textHint,
             size: 20,
           ),
@@ -792,7 +789,7 @@ class _CustomerCard extends StatelessWidget {
                   ),
                 ],
                 icon: Icon(
-                  SolarIconsOutline.menuDots,
+                  PhosphorIconsRegular.dotsThree,
                   color: colors.textHint,
                 ),
               ),
@@ -873,13 +870,13 @@ class _CustomersEmpty extends StatelessWidget {
     };
 
     final icon = hasQuery
-        ? SolarIconsOutline.magnifier
+        ? PhosphorIconsRegular.magnifyingGlass
         : switch (filter) {
-      CustomerQuickFilter.all => SolarIconsOutline.usersGroupRounded,
-      CustomerQuickFilter.active => SolarIconsOutline.checkCircle,
-      CustomerQuickFilter.inactive => SolarIconsOutline.pauseCircle,
-      CustomerQuickFilter.credit => SolarIconsOutline.walletMoney,
-      CustomerQuickFilter.withPhone => SolarIconsOutline.phoneRounded,
+      CustomerQuickFilter.all => PhosphorIconsRegular.users,
+      CustomerQuickFilter.active => PhosphorIconsRegular.checkCircle,
+      CustomerQuickFilter.inactive => PhosphorIconsRegular.pauseCircle,
+      CustomerQuickFilter.credit => PhosphorIconsRegular.wallet,
+      CustomerQuickFilter.withPhone => PhosphorIconsRegular.phone,
     };
 
     return Center(
@@ -925,7 +922,7 @@ class _CustomersEmpty extends StatelessWidget {
               const SizedBox(height: AppDims.s4),
               FilledButton.icon(
                 onPressed: onAdd,
-                icon: const Icon(SolarIconsOutline.userPlus),
+                icon: const Icon(PhosphorIconsRegular.userPlus),
                 label: Text(tr.addCustomer),
               ),
             ],
@@ -980,7 +977,7 @@ class _CustomersError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              SolarIconsOutline.cloudCross,
+              PhosphorIconsRegular.cloudX,
               size: 46,
               color: context.appColors.textHint,
             ),
@@ -1006,7 +1003,7 @@ class _CustomersError extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(
-                SolarIconsOutline.refresh,
+                PhosphorIconsRegular.arrowsClockwise,
                 size: 16,
               ),
               label: Text(tr.retry),

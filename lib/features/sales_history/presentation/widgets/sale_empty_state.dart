@@ -2,7 +2,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/widgets/empty_view.dart';
 import 'package:amana_pos/features/sales_history/utility/sale_utility.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SaleEmptyState extends StatelessWidget {
   const SaleEmptyState({
@@ -23,16 +23,16 @@ class SaleEmptyState extends StatelessWidget {
     final String subtitle;
 
     if (hasSearch) {
-      icon = SolarIconsOutline.magnifierZoomOut;
+      icon = PhosphorIconsRegular.magnifyingGlassMinus;
       title = tr.noMatchingSales;
       subtitle = tr.tryDifferentSearchTerm;
     } else {
       icon = switch (filter) {
-        SaleFilter.today => SolarIconsOutline.calendarDate,
-        SaleFilter.pending => SolarIconsOutline.clockCircle,
-        SaleFilter.completed => SolarIconsOutline.checkCircle,
-        SaleFilter.refunded => SolarIconsOutline.undoLeft,
-        SaleFilter.all => SolarIconsOutline.list,
+        SaleFilter.today => PhosphorIconsRegular.calendarDots,
+        SaleFilter.pending => PhosphorIconsRegular.clock,
+        SaleFilter.completed => PhosphorIconsRegular.checkCircle,
+        SaleFilter.refunded => PhosphorIconsRegular.arrowUUpLeft,
+        SaleFilter.all => PhosphorIconsRegular.list,
       };
       title = switch (filter) {
         SaleFilter.today => tr.noSalesToday,

@@ -3,11 +3,10 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PreparationSteps extends StatelessWidget {
-  const PreparationSteps({super.key,
-    required this.state,
-  });
+  const PreparationSteps({super.key, required this.state});
 
   final OfflineStatusState state;
 
@@ -71,7 +70,8 @@ class PreparationSteps extends StatelessWidget {
 
   _StepStatus _assetStepStatus() {
     if (state.isAssetsLoading) return _StepStatus.loading;
-    if (state.assetStatus == OfflineAssetStatus.success) return _StepStatus.done;
+    if (state.assetStatus == OfflineAssetStatus.success)
+      return _StepStatus.done;
     if (state.assetStatus == OfflineAssetStatus.failure) {
       return _StepStatus.warning;
     }
@@ -79,13 +79,7 @@ class PreparationSteps extends StatelessWidget {
   }
 }
 
-enum _StepStatus {
-  waiting,
-  loading,
-  done,
-  warning,
-  error,
-}
+enum _StepStatus { waiting, loading, done, warning, error }
 
 class _PreparationStepTile extends StatelessWidget {
   const _PreparationStepTile({
@@ -123,18 +117,14 @@ class _PreparationStepTile extends StatelessWidget {
             child: Center(
               child: status == _StepStatus.loading
                   ? SizedBox(
-                width: 17,
-                height: 17,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: statusColor,
-                ),
-              )
-                  : Icon(
-                icon,
-                size: 19,
-                color: statusColor,
-              ),
+                      width: 17,
+                      height: 17,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: statusColor,
+                      ),
+                    )
+                  : Icon(icon, size: 19, color: statusColor),
             ),
           ),
           const SizedBox(width: AppDims.s3),
@@ -171,15 +161,15 @@ class _PreparationStepTile extends StatelessWidget {
   IconData _icon() {
     switch (status) {
       case _StepStatus.done:
-        return Icons.check_rounded;
+        return PhosphorIconsRegular.check;
       case _StepStatus.warning:
-        return Icons.sync_problem_rounded;
+        return PhosphorIconsRegular.cloudWarning;
       case _StepStatus.error:
-        return Icons.error_outline_rounded;
+        return PhosphorIconsRegular.warningCircle;
       case _StepStatus.waiting:
-        return Icons.more_horiz_rounded;
+        return PhosphorIconsRegular.dotsThree;
       case _StepStatus.loading:
-        return Icons.sync_rounded;
+        return PhosphorIconsRegular.arrowsClockwise;
     }
   }
 

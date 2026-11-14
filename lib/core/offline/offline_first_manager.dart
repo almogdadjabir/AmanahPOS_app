@@ -42,11 +42,11 @@ class OfflineFirstManager {
     required OfflineRemoteDataSource remoteDataSource,
     required SyncManager syncManager,
     required OfflineAssetDownloader assetDownloader,
-  })  : _networkMonitor = networkMonitor,
-        _localCache = localCache,
-        _remoteDataSource = remoteDataSource,
-        _syncManager = syncManager,
-        _assetDownloader = assetDownloader;
+  }) : _networkMonitor = networkMonitor,
+       _localCache = localCache,
+       _remoteDataSource = remoteDataSource,
+       _syncManager = syncManager,
+       _assetDownloader = assetDownloader;
 
   final NetworkMonitor _networkMonitor;
   final OfflineLocalCache _localCache;
@@ -72,7 +72,8 @@ class OfflineFirstManager {
         hasCache: false,
         refreshedBootstrap: false,
         refreshedAssetManifest: false,
-        message: 'Internet is required only for the first setup. Please connect once to prepare offline mode.',
+        message:
+            'Internet is required only for the first setup. Please connect once to prepare offline mode.',
       );
     }
 

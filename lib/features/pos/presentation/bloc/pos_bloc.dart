@@ -7,6 +7,7 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 part 'pos_event.dart';
 part 'pos_state.dart';
@@ -19,6 +20,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosCategoryChanged>(_onCategoryChanged);
     on<PosPaymentMethodChanged>(_onPaymentMethodChanged);
     on<PosAddProduct>(_onAddProduct);
+    on<PosAddCustomAmount>(_onAddCustomAmount);
     on<PosIncrementItem>(_onIncrementItem);
     on<PosDecrementItem>(_onDecrementItem);
     on<PosRemoveItem>(_onRemoveItem);
@@ -33,10 +35,12 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   }
 
   void _onShopSelected(PosShopSelected event, Emitter<PosState> emit) {
-    emit(state.copyWith(
-      selectedShopId: event.shopId,
-      selectedShopName: event.shopName,
-    ));
+    emit(
+      state.copyWith(
+        selectedShopId: event.shopId,
+        selectedShopName: event.shopName,
+      ),
+    );
   }
 
   void _onTaxConfigChanged(PosTaxConfigChanged event, Emitter<PosState> emit) {
@@ -50,14 +54,18 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   }
 
   void _onCategoryChanged(PosCategoryChanged event, Emitter<PosState> emit) {
-    emit(state.copyWith(
-      selectedCategoryId: event.categoryId,
-      clearSelectedCategory: event.categoryId == null,
-    ));
+    emit(
+      state.copyWith(
+        selectedCategoryId: event.categoryId,
+        clearSelectedCategory: event.categoryId == null,
+      ),
+    );
   }
 
   void _onPaymentMethodChanged(
-      PosPaymentMethodChanged event, Emitter<PosState> emit) {
+    PosPaymentMethodChanged event,
+    Emitter<PosState> emit,
+  ) {
     emit(state.copyWith(paymentMethod: event.paymentMethod));
   }
 
@@ -65,9 +73,12 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     final productId = event.product.id;
     if (productId == null) return;
 
-    final existingIndex =
-    state.items.indexWhere((item) => item.product.id == productId);
-    final currentQty = existingIndex == -1 ? 0 : state.items[existingIndex].quantity;
+    final existingIndex = state.items.indexWhere(
+      (item) => item.product.id == productId,
+    );
+    final currentQty = existingIndex == -1
+        ? 0
+        : state.items[existingIndex].quantity;
     final nextQty = currentQty + 1;
 
     if (!_canUseQuantity(
@@ -88,6 +99,16 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     }
 
     emit(state.copyWith(items: updated, submitError: null));
+  }
+
+  void _onAddCustomAmount(PosAddCustomAmount event, Emitter<PosState> emit) {
+    if (event.amount <= 0) return;
+    final item = PosCartItem.custom(
+      id: const Uuid().v4(),
+      name: event.note.trim(),
+      price: event.amount,
+    );
+    emit(state.copyWith(items: [...state.items, item], submitError: null));
   }
 
   void _onIncrementItem(PosIncrementItem event, Emitter<PosState> emit) {
@@ -125,9 +146,13 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   }
 
   void _onRemoveItem(PosRemoveItem event, Emitter<PosState> emit) {
-    emit(state.copyWith(
-      items: state.items.where((i) => i.product.id != event.productId).toList(),
-    ));
+    emit(
+      state.copyWith(
+        items: state.items
+            .where((i) => i.product.id != event.productId)
+            .toList(),
+      ),
+    );
   }
 
   void _onClearCart(PosClearCart event, Emitter<PosState> emit) {
@@ -135,9 +160,9 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   }
 
   Future<void> _onCheckoutSubmitted(
-      PosCheckoutSubmitted event,
-      Emitter<PosState> emit,
-      ) async {
+    PosCheckoutSubmitted event,
+    Emitter<PosState> emit,
+  ) async {
     if (state.items.isEmpty) return;
 
     // Snapshot BEFORE clearing
@@ -149,14 +174,13 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     final salePaymentMethod = state.paymentMethod;
     final soldQuantities = state.currentSoldQuantities;
 
-    emit(state.copyWith(
-      submitStatus: PosSubmitStatus.loading,
-      submitError: null,
-    ));
+    emit(
+      state.copyWith(submitStatus: PosSubmitStatus.loading, submitError: null),
+    );
 
     try {
       final response = await getIt<AppProgressCubit>().run(
-            () => useCase.submitSale(
+        () => useCase.submitSale(
           shopId: event.shopId,
           customerId: event.customerId,
           paymentMethod: state.paymentMethod,
@@ -167,13 +191,15 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       );
 
       response.fold(
-            (error) {
-          emit(state.copyWith(
-            submitStatus: PosSubmitStatus.failure,
-            submitError: error ?? 'Failed to submit sale',
-          ));
+        (error) {
+          emit(
+            state.copyWith(
+              submitStatus: PosSubmitStatus.failure,
+              submitError: error ?? 'Failed to submit sale',
+            ),
+          );
         },
-            (result) {
+        (result) {
           final serverTax = double.tryParse(result.taxAmount ?? '');
           final serverNet = double.tryParse(result.netAmount ?? '');
           final resolvedTaxAmount = serverTax ?? salePreviewTax;
@@ -185,65 +211,72 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           // subtotal can drift ±0.01 from the server's Decimal math).
           final resolvedSubtotal =
               (serverNet != null && serverTax != null && !resolvedInclusive)
-                  ? serverNet - serverTax
-                  : saleSubtotal;
+              ? serverNet - serverTax
+              : saleSubtotal;
 
-          emit(state.copyWith(
-            items: [],
-            lastSoldQuantities: soldQuantities,
-            cartExpanded: false,
-            submitStatus: PosSubmitStatus.success,
-            clearShop: true,
-            // Receipt snapshot
-            lastReceiptNumber: result.receiptNumber,
-            lastSaleId: result.saleId,
-            lastClientSaleId: result.clientSaleId,
-            lastCartSnapshot: cartSnapshot,
-            lastSubtotal: resolvedSubtotal,
-            // Online sales: server values are authoritative; offline-queued
-            // sales fall back to the local preview.
-            lastTaxAmount: resolvedTaxAmount,
-            lastTotal: resolvedTotal,
-            lastTaxName: saleTaxConfig.name,
-            lastTaxRate:
-                double.tryParse(result.taxRate ?? '') ?? saleTaxConfig.rate,
-            lastTaxInclusive: resolvedInclusive,
-            lastPaymentMethod: salePaymentMethod,
-            lastSaleWasOffline: result.queued,
-            submitError: result.queued
-                ? 'Sale saved offline. Will sync when internet is restored.'
-                : null,
-          ));
+          emit(
+            state.copyWith(
+              items: [],
+              lastSoldQuantities: soldQuantities,
+              cartExpanded: false,
+              submitStatus: PosSubmitStatus.success,
+              clearShop: true,
+              // Receipt snapshot
+              lastReceiptNumber: result.receiptNumber,
+              lastSaleId: result.saleId,
+              lastClientSaleId: result.clientSaleId,
+              lastCartSnapshot: cartSnapshot,
+              lastSubtotal: resolvedSubtotal,
+              // Online sales: server values are authoritative; offline-queued
+              // sales fall back to the local preview.
+              lastTaxAmount: resolvedTaxAmount,
+              lastTotal: resolvedTotal,
+              lastTaxName: saleTaxConfig.name,
+              lastTaxRate:
+                  double.tryParse(result.taxRate ?? '') ?? saleTaxConfig.rate,
+              lastTaxInclusive: resolvedInclusive,
+              lastPaymentMethod: salePaymentMethod,
+              lastSaleWasOffline: result.queued,
+              submitError: result.queued
+                  ? 'Sale saved offline. Will sync when internet is restored.'
+                  : null,
+            ),
+          );
         },
       );
     } catch (e) {
-      emit(state.copyWith(
-        submitStatus: PosSubmitStatus.failure,
-        submitError: friendlyError(e),
-      ));
+      emit(
+        state.copyWith(
+          submitStatus: PosSubmitStatus.failure,
+          submitError: friendlyError(e),
+        ),
+      );
     }
   }
 
   void _onAcknowledgeSubmit(
-      PosAcknowledgeSubmit event, Emitter<PosState> emit) {
-    emit(state.copyWith(
-      submitStatus: PosSubmitStatus.idle,
-      submitError: null,
-    ));
+    PosAcknowledgeSubmit event,
+    Emitter<PosState> emit,
+  ) {
+    emit(state.copyWith(submitStatus: PosSubmitStatus.idle, submitError: null));
   }
 
   void _onCartExpandedChanged(
-      PosCartExpandedChanged event, Emitter<PosState> emit) {
+    PosCartExpandedChanged event,
+    Emitter<PosState> emit,
+  ) {
     emit(state.copyWith(cartExpanded: event.expanded));
   }
 
   void _onSessionReset(PosSessionReset event, Emitter<PosState> emit) {
     // Keep shop selection, wipe everything else
-    emit(PosState(
-      selectedShopId: state.selectedShopId,
-      selectedShopName: state.selectedShopName,
-      taxConfig: state.taxConfig,
-    ));
+    emit(
+      PosState(
+        selectedShopId: state.selectedShopId,
+        selectedShopName: state.selectedShopName,
+        taxConfig: state.taxConfig,
+      ),
+    );
   }
 
   bool _canUseQuantity({
@@ -261,8 +294,9 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   String _stockLimitMessage(ProductData product) {
     final stock = product.stockLevel ?? 0;
     final name = product.name ?? 'Product';
-    final formattedStock =
-    stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(1);
+    final formattedStock = stock % 1 == 0
+        ? stock.toInt().toString()
+        : stock.toStringAsFixed(1);
     return 'Only $formattedStock item(s) available for $name.';
   }
 }

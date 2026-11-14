@@ -4,7 +4,7 @@ import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class RestockQueueCard extends StatelessWidget {
   final List<StockData> lowStockItems;
@@ -33,7 +33,7 @@ class RestockQueueCard extends StatelessWidget {
               Expanded(
                 child: CardHeader(
                   title: context.tr.invRestockQueueTitle,
-                  icon: SolarIconsOutline.boxMinimalistic,
+                  icon: PhosphorIconsRegular.package,
                   accent: Color(0xFFFCD34D),
                 ),
               ),

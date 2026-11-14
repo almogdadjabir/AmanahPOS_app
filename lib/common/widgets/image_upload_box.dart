@@ -7,6 +7,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ImageUploadBox extends StatelessWidget {
   final PickedAppImage? pickedImage;
@@ -48,24 +49,16 @@ class ImageUploadBox extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               if (hasLocalImage)
-                Image.file(
-                  File(pickedImage!.path),
-                  fit: BoxFit.cover,
-                )
+                Image.file(File(pickedImage!.path), fit: BoxFit.cover)
               else if (hasRemoteImage)
                 Image.network(
                   imageUrl!.trim(),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _PlaceholderContent(
-                    title: title,
-                    subtitle: subtitle,
-                  ),
+                  errorBuilder: (_, __, ___) =>
+                      _PlaceholderContent(title: title, subtitle: subtitle),
                 )
               else
-                _PlaceholderContent(
-                  title: title,
-                  subtitle: subtitle,
-                ),
+                _PlaceholderContent(title: title, subtitle: subtitle),
 
               if (hasLocalImage || hasRemoteImage)
                 Positioned.fill(
@@ -92,7 +85,9 @@ class ImageUploadBox extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          hasLocalImage ? 'New image selected' : 'Current image',
+                          hasLocalImage
+                              ? 'New image selected'
+                              : 'Current image',
                           style: AppTextStyles.sm300(context).copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
@@ -134,7 +129,7 @@ class ImageUploadBox extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.close_rounded,
+                        PhosphorIconsRegular.x,
                         color: Colors.white,
                         size: 19,
                       ),
@@ -151,7 +146,6 @@ class ImageUploadBox extends StatelessWidget {
   void _showPickerActions(BuildContext context) {
     showAdaptivePanel(
       context,
-      desktopWidth: 360,
       builder: (_) {
         return Container(
           padding: const EdgeInsets.fromLTRB(
@@ -170,7 +164,7 @@ class ImageUploadBox extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               _ImageActionTile(
-                icon: Icons.photo_library_outlined,
+                icon: PhosphorIconsRegular.images,
                 title: 'Choose from gallery',
                 onTap: () async {
                   Navigator.of(context).pop();
@@ -193,7 +187,7 @@ class ImageUploadBox extends StatelessWidget {
               ),
               const SizedBox(height: AppDims.s2),
               _ImageActionTile(
-                icon: Icons.photo_camera_outlined,
+                icon: PhosphorIconsRegular.camera,
                 title: 'Take photo',
                 onTap: () async {
                   Navigator.of(context).pop();
@@ -226,10 +220,7 @@ class _PlaceholderContent extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _PlaceholderContent({
-    required this.title,
-    required this.subtitle,
-  });
+  const _PlaceholderContent({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +240,7 @@ class _PlaceholderContent extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.add_photo_alternate_outlined,
+              PhosphorIconsRegular.image,
               color: colors.primary,
               size: 28,
             ),
@@ -257,10 +248,9 @@ class _PlaceholderContent extends StatelessWidget {
           const SizedBox(height: AppDims.s3),
           Text(
             title,
-            style: AppTextStyles.bs100(context).copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
+            style: AppTextStyles.bs100(
+              context,
+            ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 3),
           Text(
@@ -313,27 +303,22 @@ class _ImageActionTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: colors.textHint,
-              ),
+              Icon(PhosphorIconsRegular.caretRight, color: colors.textHint),
             ],
           ),
         ),
       ),
     );
   }
-
-
 }
 
 enum _ImageSourceType { gallery, camera }
 
 Future<void> _handlePickFailure(
-    BuildContext context,
-    ImagePickFailureReason? reason, {
-      required _ImageSourceType source,
-    }) async {
+  BuildContext context,
+  ImagePickFailureReason? reason, {
+  required _ImageSourceType source,
+}) async {
   if (reason == null || reason == ImagePickFailureReason.cancelled) {
     return;
   }

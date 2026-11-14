@@ -4,11 +4,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 
 class WorkspaceSectionHeader extends StatelessWidget {
-  const WorkspaceSectionHeader({
-    super.key,
-    required this.title,
-    this.color,
-  });
+  const WorkspaceSectionHeader({super.key, required this.title, this.color});
 
   final String title;
   final Color? color;
@@ -38,18 +34,14 @@ class WorkspaceSectionHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppDims.s3),
-        Expanded(
-          child: _SectionLine(color: colors.border),
-        ),
+        Expanded(child: _SectionLine(color: colors.border)),
       ],
     );
   }
 }
 
 class _SectionLine extends StatelessWidget {
-  const _SectionLine({
-    required this.color,
-  });
+  const _SectionLine({required this.color});
 
   final Color color;
 

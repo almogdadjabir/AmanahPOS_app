@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class InboundVelocityCard extends StatelessWidget {
   final List<InboundTransactionData> recentInbound;
@@ -50,7 +50,7 @@ class InboundVelocityCard extends StatelessWidget {
         children: [
           CardHeader(
             title: context.tr.invInboundVelocityTitle,
-            icon: SolarIconsOutline.chart,
+            icon: PhosphorIconsRegular.chartLine,
             accent: Color(0xFF93C5FD),
           ),
           const Spacer(),

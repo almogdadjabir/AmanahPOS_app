@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CategoriesContent extends StatefulWidget {
   final List<CategoryData> categories;
@@ -127,7 +127,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     icon: const Icon(
-                      SolarIconsOutline.addCircle,
+                      PhosphorIconsRegular.plusCircle,
                       size: 18,
                     ),
                     label: Text(
@@ -257,21 +257,21 @@ class _CategoryEmptyContent {
         return _CategoryEmptyContent(
           title: tr.noCategoriesYet,
           message: tr.noCategoriesYetMessage,
-          icon: SolarIconsOutline.layersMinimalistic,
+          icon: PhosphorIconsRegular.stack,
         );
 
       case CategoryQuickFilter.active:
         return _CategoryEmptyContent(
           title: tr.noActiveCategories,
           message: tr.noActiveCategoriesMessage,
-          icon: SolarIconsOutline.checkCircle,
+          icon: PhosphorIconsRegular.checkCircle,
         );
 
       case CategoryQuickFilter.inactive:
         return _CategoryEmptyContent(
           title: tr.noInactiveCategories,
           message: tr.noInactiveCategoriesMessage,
-          icon: SolarIconsOutline.pauseCircle,
+          icon: PhosphorIconsRegular.pauseCircle,
         );
     }
   }

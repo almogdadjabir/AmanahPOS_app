@@ -1,4 +1,3 @@
-import 'package:amana_pos/features/login/presentation/widgets/desktop_login_brand_panel.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-/// Shared layout for both PIN screens. Phone = a single centred column with the
-/// keypad in thumb reach; desktop (>= 900) = the emerald brand panel beside a
-/// centred card. Physical-keyboard digits and backspace are wired here so both
-/// layouts accept typing on desktop.
+/// Shared layout for the PIN screens: a single centred column with the keypad
+/// in thumb reach. Hardware-keyboard digits and backspace are wired here too.
 class PinScaffold extends StatefulWidget {
   const PinScaffold({
     super.key,
@@ -72,28 +69,7 @@ class _PinScaffoldState extends State<PinScaffold> {
         focusNode: _focusNode,
         autofocus: true,
         onKeyEvent: _onKey,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth >= 900;
-            if (!isDesktop) {
-              return SafeArea(child: _content(context));
-            }
-            return Row(
-              children: [
-                const Expanded(flex: 5, child: DesktopLoginBrandPanel()),
-                Expanded(
-                  flex: 6,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 460),
-                      child: _content(context),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+        child: SafeArea(child: _content(context)),
       ),
     );
   }
@@ -109,7 +85,9 @@ class _PinScaffoldState extends State<PinScaffold> {
             child: IntrinsicHeight(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 28, vertical: 24),
+                  horizontal: 28,
+                  vertical: 24,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -118,16 +96,19 @@ class _PinScaffoldState extends State<PinScaffold> {
                     Text(
                       widget.title,
                       textAlign: TextAlign.center,
-                      style:
-                          AppTextStyles.bs700(context, color: colors.textPrimary)
-                              .copyWith(fontWeight: FontWeight.w700),
+                      style: AppTextStyles.bs700(
+                        context,
+                        color: colors.textPrimary,
+                      ).copyWith(fontWeight: FontWeight.w700),
                     ).mAnimate(delay: 80.ms).fadeIn(duration: 320.ms),
                     const SizedBox(height: 8),
                     Text(
                       widget.subtitle,
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.sm300(context,
-                          color: colors.textSecondary),
+                      style: AppTextStyles.sm300(
+                        context,
+                        color: colors.textSecondary,
+                      ),
                     ).mAnimate(delay: 140.ms).fadeIn(duration: 320.ms),
                     const SizedBox(height: 36),
                     widget.dots,
@@ -140,8 +121,10 @@ class _PinScaffoldState extends State<PinScaffold> {
                         child: Text(
                           widget.errorText ?? '',
                           textAlign: TextAlign.center,
-                          style: AppTextStyles.sm200(context,
-                              color: colors.danger),
+                          style: AppTextStyles.sm200(
+                            context,
+                            color: colors.danger,
+                          ),
                         ),
                       ),
                     ),

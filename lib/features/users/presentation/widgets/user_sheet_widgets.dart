@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class RolePicker extends StatelessWidget {
   const RolePicker({
@@ -50,9 +50,9 @@ class RolePicker extends StatelessWidget {
 
   static IconData _iconFor(String role) {
     return switch (role) {
-      'manager' => SolarIconsOutline.shieldUser,
-      'cashier' => SolarIconsOutline.userSpeakRounded,
-      _ => SolarIconsOutline.user,
+      'manager' => PhosphorIconsRegular.userGear,
+      'cashier' => PhosphorIconsRegular.user,
+      _ => PhosphorIconsRegular.user,
     };
   }
 
@@ -255,7 +255,7 @@ class _SelectedMark extends StatelessWidget {
         width: 22,
         height: 22,
         child: Icon(
-          SolarIconsOutline.checkCircle,
+          PhosphorIconsRegular.checkCircle,
           size: 14,
           color: Colors.white,
         ),
@@ -270,7 +270,7 @@ class UserSubmitButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.enabled = true,
-    this.icon = SolarIconsOutline.userPlus,
+    this.icon = PhosphorIconsRegular.userPlus,
   });
 
   final String label;

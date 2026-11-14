@@ -20,10 +20,13 @@ class FieldLabel extends StatelessWidget {
         ),
         if (required) ...[
           const SizedBox(width: 3),
-          Text('*',
-              style: AppTextStyles.bs100(context).copyWith(
-                  color: context.appColors.danger,
-                  fontWeight: FontWeight.w800)),
+          Text(
+            '*',
+            style: AppTextStyles.bs100(context).copyWith(
+              color: context.appColors.danger,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ],
       ],
     );

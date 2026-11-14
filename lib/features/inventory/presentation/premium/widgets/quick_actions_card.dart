@@ -3,7 +3,7 @@ import 'package:amana_pos/features/inventory/presentation/premium/premium_colors
 import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_shared.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class QuickActionsCard extends StatelessWidget {
   final VoidCallback? onReceive;
@@ -28,7 +28,7 @@ class QuickActionsCard extends StatelessWidget {
         children: [
           CardHeader(
             title: tr.invQuickActionsTitle,
-            icon: SolarIconsOutline.widget,
+            icon: PhosphorIconsRegular.squaresFour,
             accent: gold,
           ),
           const SizedBox(height: AppDims.s3),
@@ -36,7 +36,7 @@ class QuickActionsCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _ActionButton(
-                  icon: SolarIconsOutline.box,
+                  icon: PhosphorIconsRegular.package,
                   label: tr.invReceive,
                   color: goldDeep,
                   onTap: onReceive,
@@ -45,7 +45,7 @@ class QuickActionsCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _ActionButton(
-                  icon: SolarIconsOutline.layersMinimalistic,
+                  icon: PhosphorIconsRegular.stack,
                   label: tr.invStockAction,
                   color: const Color(0xFF93C5FD),
                   onTap: onStockLevels,
@@ -54,7 +54,7 @@ class QuickActionsCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _ActionButton(
-                  icon: SolarIconsOutline.shop,
+                  icon: PhosphorIconsRegular.storefront,
                   label: tr.invVendors,
                   color: const Color(0xFF5EEAD4),
                   onTap: onVendors,
@@ -63,7 +63,7 @@ class QuickActionsCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               Expanded(
                 child: _ActionButton(
-                  icon: SolarIconsOutline.calendarMark,
+                  icon: PhosphorIconsRegular.calendarCheck,
                   label: tr.invExpiry,
                   color: const Color(0xFFFCA5A5),
                   onTap: onExpiry,

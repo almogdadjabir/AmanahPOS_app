@@ -179,6 +179,16 @@
   "posSearchHint": "Search · SKU · Barcode",
   "posBankakNotSetup": "Bankak account is not set up. Go to Settings and add your account number first.",
   "posCashierNotAssigned": "You are not assigned to a shop. Contact your manager.",
+  "posCharge": "Charge",
+  "undo": "Undo",
+  "itemRemovedUndo": "{name} removed",
+  "@itemRemovedUndo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "posNoShopFound": "No shop found. Please refresh and try again.",
   "posSaleCompleted": "Sale completed successfully",
   "posFailedSale": "Failed to complete sale",
@@ -505,11 +515,11 @@
   "amanaPosLabel": "AMANAPOS",
 
   "notificationsTitle": "Notifications",
-  "posStatusOffline": "OFFLINE",
-  "posStatusSyncIssue": "SYNC ISSUE",
-  "posStatusPending": "PENDING",
-  "posStatusSyncing": "SYNCING",
-  "posStatusSynced": "SYNCED",
+  "posStatusOffline": "Offline",
+  "posStatusSyncIssue": "Sync issue",
+  "posStatusPending": "Pending",
+  "posStatusSyncing": "Syncing",
+  "posStatusSynced": "Synced",
   "clearLocalDataTitle": "Clear local data?",
   "localDataCleared": "Local data cleared.",
   "salesChipLabel": "SALES",
@@ -944,6 +954,33 @@
   "taxCollected": "Tax Collected",
   "taxDisabled": "Tax disabled",
   "pricesIncludeTax": "Prices include tax",
-  "pricesExcludeTax": "Prices exclude tax"
-
+  "pricesExcludeTax": "Prices exclude tax",
+  "posRowInStock": "{count} in stock",
+  "@posRowInStock": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "posRowLowStock": "Low stock · {count}",
+  "@posRowLowStock": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "posRowOutOfStock": "Out of stock",
+  "cashReceived": "Cash received",
+  "exactAmount": "Exact",
+  "changeDue": "Change due",
+  "posKeypad": "Keypad",
+  "posItems": "Items",
+  "posCustomAmount": "Custom amount",
+  "posEnterAmount": "Enter an amount",
+  "posAddToTicket": "Add to ticket",
+  "posAddedToTicket": "Added to ticket",
+  "posAddNote": "Add a note",
+  "posNoteHint": "What is it for?"
 }

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/widgets/app_button.dart';
 import 'package:amana_pos/features/login/presentation/widgets/otp_input_square.dart';
@@ -12,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class LoginOtp extends StatelessWidget {
   const LoginOtp({super.key});
@@ -31,204 +31,34 @@ class LoginOtp extends StatelessWidget {
         final colors = context.appColors;
         final filled = (state.otp ?? '').length == 6;
 
-        // ── Desktop: card-content layout matching web reference ──────────────────
-        if (context.isDesktop) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => context
-                    .read<LoginBloc>()
-                    .add(const OnResetEvent(isPhoneChange: true)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.arrow_back, size: 16, color: colors.textHint),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Back',
-                      style: TextStyle(
-                        fontFamily: AppTextStyles.fontFamily,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textHint,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                tr.otpTitle,
-                style: TextStyle(
-                  fontFamily: AppTextStyles.fontFamily,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'We sent a verification code via WhatsApp.',
-                style: TextStyle(
-                  fontFamily: AppTextStyles.fontFamily,
-                  fontSize: 15,
-                  color: colors.textSecondary,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 22),
-              _OtpPhoneChip(
-                phone: '+249 ${state.phoneNumber ?? ''}',
-                onChange: () => context
-                    .read<LoginBloc>()
-                    .add(const OnResetEvent(isPhoneChange: true)),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: OTPInputSquare(
-                  state: state.otp ?? '',
-                  is6Digit: true,
-                  hasError: state.otpError != null,
-                  isLoading: state.isLoading,
-                  isOTPMatched: state.isPinMatched,
-                  onChanged: (code) => context
-                      .read<LoginBloc>()
-                      .add(OnChangeOtpEvent(otpCode: code)),
-                  onCompleted: () =>
-                      context.read<LoginBloc>().add(OnSubmitOtpEvent()),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-
-              Center(
-                child: state.otpError != null
-                    ? _StatusBanner(
-                  message: state.otpError ?? 'OTP does not match. Please try again.',
-                  isError: true,
-                ).mAnimate().fadeIn(duration: 200.ms)
-                    : state.isPinMatched
-                    ? _StatusBanner(
-                  message: tr.otpVerifiedSigningIn,
-                  isError: false,
-                )
-                    .mAnimate()
-                    .fadeIn(duration: 300.ms)
-                    .slideY(begin: 0.2, end: 0)
-                    : const SizedBox.shrink(),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: state.otpResendSeconds > 0
-                    ? Text.rich(
-                        TextSpan(
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 13.5,
-                            color: colors.textHint,
-                          ),
-                          children: [
-                            const TextSpan(text: "Didn't get it?  "),
-                            TextSpan(
-                              text: 'Resend in ${state.otpResendSeconds}s',
-                              style: TextStyle(
-                                fontFamily: AppTextStyles.fontFamily,
-                                fontWeight: FontWeight.w700,
-                                color: colors.textHint,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : GestureDetector(
-                        onTap: state.isLoading
-                            ? null
-                            : () => context
-                                .read<LoginBloc>()
-                                .add(const OnResendOtpEvent()),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "Didn't get it?  ",
-                              style: TextStyle(
-                                fontFamily: AppTextStyles.fontFamily,
-                                fontSize: 13.5,
-                                color: colors.textHint,
-                              ),
-                            ),
-                            Text(
-                              tr.otpResendButton,
-                              style: TextStyle(
-                                fontFamily: AppTextStyles.fontFamily,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                                color: colors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 20),
-              AppButton.wide(
-                label: state.isPinMatched
-                    ? tr.otpVerifiedButton
-                    : tr.otpVerifyButton,
-                onPressed:
-                    (filled && !state.isLoading && !state.isPinMatched)
-                        ? () => context
-                            .read<LoginBloc>()
-                            .add(OnSubmitOtpEvent())
-                        : null,
-                isLoading: state.isLoading,
-                suffixIcon: state.isPinMatched
-                    ? const Icon(
-                        Icons.check_rounded,
-                        size: 20,
-                        color: Colors.white,
-                      )
-                    : const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-              ),
-            ],
-          );
-        }
-
-        // ── Mobile: existing layout unchanged ────────────────────────────────────
-
         return Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl,
-                  AppSpacing.md,
-                  AppSpacing.xl,
-                  AppSpacing.md,
+                  AppDims.s6,
+                  AppDims.s4,
+                  AppDims.s6,
+                  AppDims.s4,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppDims.s5),
 
                     Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: colors.primaryContainer,
-                        borderRadius: AppRadius.borderLg,
-                      ),
-                      child: Icon(
-                        Icons.shield_outlined,
-                        color: colors.primary,
-                        size: 26,
-                      ),
-                    )
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: colors.primaryContainer,
+                            borderRadius: AppDims.borderLg,
+                          ),
+                          child: Icon(
+                            PhosphorIconsRegular.shield,
+                            color: colors.primary,
+                            size: 26,
+                          ),
+                        )
                         .mAnimate()
                         .fadeIn(delay: 100.ms, duration: 500.ms)
                         .scale(
@@ -236,21 +66,21 @@ class LoginOtp extends StatelessWidget {
                           end: const Offset(1, 1),
                         ),
 
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppDims.s5),
 
                     Text(
-                      tr.otpTitle,
-                      style: AppTextStyles.lg200(
-                        context,
-                        weight: AppTextStyles.extraBold,
-                        color: colors.textPrimary,
-                      ),
-                    )
+                          tr.otpTitle,
+                          style: AppTextStyles.lg200(
+                            context,
+                            weight: AppTextStyles.extraBold,
+                            color: colors.textPrimary,
+                          ),
+                        )
                         .mAnimate()
                         .fadeIn(delay: 150.ms, duration: 500.ms)
                         .slideY(begin: 0.2, end: 0),
 
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppDims.s2),
 
                     Text.rich(
                       TextSpan(
@@ -271,9 +101,9 @@ class LoginOtp extends StatelessWidget {
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
                             child: GestureDetector(
-                              onTap: () => context
-                                  .read<LoginBloc>()
-                                  .add(const OnResetEvent(isPhoneChange: true)),
+                              onTap: () => context.read<LoginBloc>().add(
+                                const OnResetEvent(isPhoneChange: true),
+                              ),
                               child: Text(
                                 tr.otpChange,
                                 style: AppTextStyles.bs400(
@@ -288,7 +118,7 @@ class LoginOtp extends StatelessWidget {
                       ),
                     ).mAnimate().fadeIn(delay: 200.ms, duration: 500.ms),
 
-                    const SizedBox(height: AppSpacing.xxl),
+                    const SizedBox(height: AppDims.s8),
 
                     OTPInputSquare(
                       state: state.otp ?? '',
@@ -296,12 +126,11 @@ class LoginOtp extends StatelessWidget {
                       hasError: state.otpError != null,
                       isLoading: state.isLoading,
                       isOTPMatched: state.isPinMatched,
-                      onChanged: (code) => context
-                          .read<LoginBloc>()
-                          .add(OnChangeOtpEvent(otpCode: code)),
-                      onCompleted: () => context
-                          .read<LoginBloc>()
-                          .add(OnSubmitOtpEvent()),
+                      onChanged: (code) => context.read<LoginBloc>().add(
+                        OnChangeOtpEvent(otpCode: code),
+                      ),
+                      onCompleted: () =>
+                          context.read<LoginBloc>().add(OnSubmitOtpEvent()),
                     ),
 
                     SizedBox(
@@ -312,17 +141,17 @@ class LoginOtp extends StatelessWidget {
                               isError: true,
                             ).mAnimate().fadeIn(duration: 200.ms)
                           : state.isPinMatched
-                              ? _StatusBanner(
+                          ? _StatusBanner(
                                   message: tr.otpVerifiedSigningIn,
                                   isError: false,
                                 )
-                                  .mAnimate()
-                                  .fadeIn(duration: 300.ms)
-                                  .slideY(begin: 0.2, end: 0)
-                              : const SizedBox.shrink(),
+                                .mAnimate()
+                                .fadeIn(duration: 300.ms)
+                                .slideY(begin: 0.2, end: 0)
+                          : const SizedBox.shrink(),
                     ),
 
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppDims.s6),
 
                     Center(
                       child: state.otpResendSeconds > 0
@@ -349,11 +178,11 @@ class LoginOtp extends StatelessWidget {
                           : TextButton.icon(
                               onPressed: state.isLoading
                                   ? null
-                                  : () => context
-                                      .read<LoginBloc>()
-                                      .add(const OnResendOtpEvent()),
+                                  : () => context.read<LoginBloc>().add(
+                                      const OnResendOtpEvent(),
+                                    ),
                               icon: Icon(
-                                Icons.refresh,
+                                PhosphorIconsRegular.arrowsClockwise,
                                 size: 16,
                                 color: colors.primary,
                               ),
@@ -374,26 +203,27 @@ class LoginOtp extends StatelessWidget {
 
             Padding(
               padding: EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.sm,
-                AppSpacing.xl,
-                MediaQuery.paddingOf(context).bottom + AppSpacing.sm,
+                AppDims.s6,
+                AppDims.s3,
+                AppDims.s6,
+                MediaQuery.paddingOf(context).bottom + AppDims.s3,
               ),
               child: AppButton.wide(
-                label:
-                    state.isPinMatched ? tr.otpVerifiedButton : tr.otpVerifyButton,
+                label: state.isPinMatched
+                    ? tr.otpVerifiedButton
+                    : tr.otpVerifyButton,
                 onPressed: (filled && !state.isLoading && !state.isPinMatched)
                     ? () => context.read<LoginBloc>().add(OnSubmitOtpEvent())
                     : null,
                 isLoading: state.isLoading,
                 suffixIcon: state.isPinMatched
                     ? const Icon(
-                        Icons.check_rounded,
+                        PhosphorIconsRegular.check,
                         size: 20,
                         color: Colors.white,
                       )
                     : const Icon(
-                        Icons.arrow_forward_rounded,
+                        PhosphorIconsRegular.arrowRight,
                         size: 18,
                         color: Colors.white,
                       ),
@@ -406,96 +236,11 @@ class LoginOtp extends StatelessWidget {
   }
 }
 
-// ── Phone chip (desktop OTP step) ─────────────────────────────────────────────
-
-class _OtpPhoneChip extends StatelessWidget {
-  const _OtpPhoneChip({required this.phone, required this.onChange});
-
-  final String phone;
-  final VoidCallback onChange;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.30)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(11),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.18),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Icon(Icons.phone_outlined, color: colors.primary, size: 19),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Code sent via WhatsApp',
-                  style: TextStyle(
-                    fontFamily: AppTextStyles.fontFamily,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: colors.primary,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  phone,
-                  style: TextStyle(
-                    fontFamily: AppTextStyles.fontFamily,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: colors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: onChange,
-            child: Text(
-              'Change',
-              style: TextStyle(
-                fontFamily: AppTextStyles.fontFamily,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: colors.primary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatusBanner extends StatelessWidget {
   final String message;
   final bool isError;
 
-  const _StatusBanner({
-    required this.message,
-    required this.isError,
-  });
+  const _StatusBanner({required this.message, required this.isError});
 
   @override
   Widget build(BuildContext context) {
@@ -523,12 +268,12 @@ class _StatusBanner extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isError ? Icons.priority_high_rounded : Icons.check_rounded,
+              isError ? PhosphorIconsRegular.exclamationMark : PhosphorIconsRegular.check,
               size: 13,
               color: accent,
             ),
           ),
-          const SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: AppDims.s2),
           Flexible(
             child: Text(
               message,
@@ -541,7 +286,7 @@ class _StatusBanner extends StatelessWidget {
           ),
           // Live spinner for the "verified, signing in…" success state.
           if (!isError) ...[
-            const SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppDims.s2),
             SizedBox(
               width: 13,
               height: 13,
@@ -582,4 +327,3 @@ class _ShakeOnce extends StatelessWidget {
     );
   }
 }
-

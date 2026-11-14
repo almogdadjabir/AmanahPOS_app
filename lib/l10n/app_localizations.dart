@@ -1052,6 +1052,24 @@ abstract class AppLocalizations {
   /// **'You are not assigned to a shop. Contact your manager.'**
   String get posCashierNotAssigned;
 
+  /// No description provided for @posCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge'**
+  String get posCharge;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @itemRemovedUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed'**
+  String itemRemovedUndo(String name);
+
   /// No description provided for @posNoShopFound.
   ///
   /// In en, this message translates to:
@@ -2459,31 +2477,31 @@ abstract class AppLocalizations {
   /// No description provided for @posStatusOffline.
   ///
   /// In en, this message translates to:
-  /// **'OFFLINE'**
+  /// **'Offline'**
   String get posStatusOffline;
 
   /// No description provided for @posStatusSyncIssue.
   ///
   /// In en, this message translates to:
-  /// **'SYNC ISSUE'**
+  /// **'Sync issue'**
   String get posStatusSyncIssue;
 
   /// No description provided for @posStatusPending.
   ///
   /// In en, this message translates to:
-  /// **'PENDING'**
+  /// **'Pending'**
   String get posStatusPending;
 
   /// No description provided for @posStatusSyncing.
   ///
   /// In en, this message translates to:
-  /// **'SYNCING'**
+  /// **'Syncing'**
   String get posStatusSyncing;
 
   /// No description provided for @posStatusSynced.
   ///
   /// In en, this message translates to:
-  /// **'SYNCED'**
+  /// **'Synced'**
   String get posStatusSynced;
 
   /// No description provided for @clearLocalDataTitle.
@@ -4303,6 +4321,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Prices exclude tax'**
   String get pricesExcludeTax;
+
+  /// No description provided for @posRowInStock.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in stock'**
+  String posRowInStock(String count);
+
+  /// No description provided for @posRowLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock · {count}'**
+  String posRowLowStock(String count);
+
+  /// No description provided for @posRowOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get posRowOutOfStock;
+
+  /// No description provided for @cashReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash received'**
+  String get cashReceived;
+
+  /// No description provided for @exactAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get exactAmount;
+
+  /// No description provided for @changeDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Change due'**
+  String get changeDue;
+
+  /// No description provided for @posKeypad.
+  ///
+  /// In en, this message translates to:
+  /// **'Keypad'**
+  String get posKeypad;
+
+  /// No description provided for @posItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get posItems;
+
+  /// No description provided for @posCustomAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom amount'**
+  String get posCustomAmount;
+
+  /// No description provided for @posEnterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount'**
+  String get posEnterAmount;
+
+  /// No description provided for @posAddToTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to ticket'**
+  String get posAddToTicket;
+
+  /// No description provided for @posAddedToTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to ticket'**
+  String get posAddedToTicket;
+
+  /// No description provided for @posAddNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get posAddNote;
+
+  /// No description provided for @posNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it for?'**
+  String get posNoteHint;
 }
 
 class _AppLocalizationsDelegate

@@ -13,12 +13,25 @@ class BusinessUseCase {
 
   BusinessUseCase({required this.repository});
 
-  Future<Either<String?, BusinessResponseDTO>> getBusinessList() => repository.getBusinessList();
-  Future<Either<String?, AddBusinessResponseDto>> addBusiness(AddBusinessRequestDto request) => repository.addBusiness(request);
-  Future<Either<String?, bool>> deactivateBusiness(String businessId) => repository.deactivateBusiness(businessId);
-  Future<Either<String?, bool>> editBusiness(String businessId, EditBusinessRequestDto request) => repository.editBusiness(businessId, request);
+  Future<Either<String?, BusinessResponseDTO>> getBusinessList() =>
+      repository.getBusinessList();
+  Future<Either<String?, AddBusinessResponseDto>> addBusiness(
+    AddBusinessRequestDto request,
+  ) => repository.addBusiness(request);
+  Future<Either<String?, bool>> deactivateBusiness(String businessId) =>
+      repository.deactivateBusiness(businessId);
+  Future<Either<String?, bool>> editBusiness(
+    String businessId,
+    EditBusinessRequestDto request,
+  ) => repository.editBusiness(businessId, request);
 
-  Future<Either<String?, AddShopResponseDto>> addShop(String businessId, AddShopRequestDto request) => repository.addShop(businessId, request);
-  Future<Either<String?, bool>> editShop(String businessId, String shopId, EditShopRequestDto request) => repository.editShop(businessId, shopId, request);
-
+  Future<Either<String?, AddShopResponseDto>> addShop(
+    String businessId,
+    AddShopRequestDto request,
+  ) => repository.addShop(businessId, request);
+  Future<Either<String?, bool>> editShop(
+    String businessId,
+    String shopId,
+    EditShopRequestDto request,
+  ) => repository.editShop(businessId, shopId, request);
 }

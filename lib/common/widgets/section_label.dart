@@ -11,11 +11,7 @@ class SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 20,
-        top: AppDims.s4,
-        bottom: 4,
-      ),
+      padding: const EdgeInsets.only(left: 20, top: AppDims.s4, bottom: 4),
       child: Text(
         label.toUpperCase(),
         style: AppTextStyles.bs100(context).copyWith(

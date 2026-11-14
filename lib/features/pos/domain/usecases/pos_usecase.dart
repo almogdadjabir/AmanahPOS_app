@@ -7,9 +7,7 @@ import 'package:fpdart/fpdart.dart';
 class PosUseCase {
   final PosRepository repository;
 
-  PosUseCase({
-    required this.repository,
-  });
+  PosUseCase({required this.repository});
 
   Future<Either<String?, PosSubmitResult>> submitSale({
     required String shopId,

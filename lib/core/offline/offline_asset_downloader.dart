@@ -26,8 +26,8 @@ class OfflineAssetDownloader {
   OfflineAssetDownloader({
     required Dio dio,
     required OfflineLocalCache localCache,
-  })  : _dio = dio,
-        _localCache = localCache;
+  }) : _dio = dio,
+       _localCache = localCache;
 
   final Dio _dio;
   final OfflineLocalCache _localCache;

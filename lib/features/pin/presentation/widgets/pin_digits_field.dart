@@ -2,7 +2,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// A compact 4-digit obscured PIN input for form sheets (distinct from the
 /// full-screen keypad). Digits only, max length 4.
@@ -52,7 +52,7 @@ class PinDigitsField extends StatelessWidget {
                 counterText: '',
                 border: InputBorder.none,
                 hintText: '••••',
-                prefixIcon: Icon(SolarIconsOutline.lockKeyhole,
+                prefixIcon: Icon(PhosphorIconsRegular.lockKey,
                     size: 18, color: colors.textHint),
               ),
             ),

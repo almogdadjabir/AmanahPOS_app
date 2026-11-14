@@ -5,12 +5,16 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ShopsSection extends StatelessWidget {
   final List<ShopData> shops;
   final String? businessId;
-  const ShopsSection({super.key, required this.shops, required this.businessId});
+  const ShopsSection({
+    super.key,
+    required this.shops,
+    required this.businessId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +26,7 @@ class ShopsSection extends StatelessWidget {
             Text(
               'SHOPS',
               style: AppTextStyles.bs200(context).copyWith(
-              fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w800,
                 color: context.appColors.textHint,
                 letterSpacing: 1.2,
               ),
@@ -35,12 +39,12 @@ class ShopsSection extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(0, 32),
               ),
-              icon: const Icon(Icons.add_rounded, size: 16),
+              icon: const Icon(PhosphorIconsRegular.plus, size: 16),
               label: Text(
                 'Add Shop',
-                style: AppTextStyles.bs400(context).copyWith(
-                fontWeight: FontWeight.w800,
-                ),
+                style: AppTextStyles.bs400(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -59,11 +63,13 @@ class ShopsSection extends StatelessWidget {
               children: [
                 for (var i = 0; i < shops.length; i++) ...[
                   _ShopTile(shop: shops[i], businessId: businessId!),
-                  if (i < shops.length - 1) Divider(
-                    height: 1, thickness: 1,
-                    indent: AppDims.s4,
-                    color: context.appColors.border,
-                  ),
+                  if (i < shops.length - 1)
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: AppDims.s4,
+                      color: context.appColors.border,
+                    ),
                 ],
               ],
             ),
@@ -83,24 +89,30 @@ class _ShopTile extends StatelessWidget {
     final isActive = shop.isActive ?? false;
 
     return InkWell(
-      onTap: ()=> Navigator.of(context).pushNamed(
+      onTap: () => Navigator.of(context).pushNamed(
         RouteStrings.shopDetailScreen,
         arguments: {'businessId': businessId, 'shop': shop},
       ),
       borderRadius: BorderRadius.circular(AppDims.rMd),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppDims.s4, vertical: AppDims.s3),
+          horizontal: AppDims.s4,
+          vertical: AppDims.s3,
+        ),
         child: Row(
           children: [
             Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: context.appColors.surfaceSoft,
                 borderRadius: BorderRadius.circular(AppDims.rSm),
               ),
-              child: Icon(Icons.storefront_outlined,
-                  size: 20, color: context.appColors.textSecondary),
+              child: Icon(
+                PhosphorIconsRegular.storefront,
+                size: 20,
+                color: context.appColors.textSecondary,
+              ),
             ),
             const SizedBox(width: AppDims.s3),
             Expanded(
@@ -110,7 +122,7 @@ class _ShopTile extends StatelessWidget {
                   Text(
                     shop.name ?? '—',
                     style: AppTextStyles.bs400(context).copyWith(
-                    fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w800,
                       color: context.appColors.textPrimary,
                     ),
                   ),
@@ -121,7 +133,7 @@ class _ShopTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bs300(context).copyWith(
-                      fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w600,
                         color: context.appColors.textSecondary,
                       ),
                     ),
@@ -141,7 +153,7 @@ class _ShopTile extends StatelessWidget {
               child: Text(
                 isActive ? 'Active' : 'Inactive',
                 style: AppTextStyles.bs300(context).copyWith(
-                fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                   color: isActive
                       ? const Color(0xFF16A34A)
                       : context.appColors.textHint,
@@ -149,8 +161,11 @@ class _ShopTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppDims.s2),
-            Icon(Icons.chevron_right_rounded,
-                color: context.appColors.textHint, size: 18),
+            Icon(
+              PhosphorIconsRegular.caretRight,
+              color: context.appColors.textHint,
+              size: 18,
+            ),
           ],
         ),
       ),
@@ -170,13 +185,16 @@ class _EmptyShops extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.storefront_outlined,
-              size: 32, color: context.appColors.textHint),
+          Icon(
+            PhosphorIconsRegular.storefront,
+            size: 32,
+            color: context.appColors.textHint,
+          ),
           const SizedBox(height: AppDims.s2),
           Text(
             'No shops yet',
             style: AppTextStyles.bs400(context).copyWith(
-            fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w700,
               color: context.appColors.textSecondary,
             ),
           ),

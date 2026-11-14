@@ -3,14 +3,10 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PosProductsError extends StatelessWidget {
-  const PosProductsError({
-    super.key,
-    this.message,
-    required this.onRetry,
-  });
+  const PosProductsError({super.key, this.message, required this.onRetry});
 
   final String? message;
   final VoidCallback onRetry;
@@ -27,19 +23,14 @@ class PosProductsError extends StatelessWidget {
       padding: const EdgeInsetsDirectional.all(AppDims.s5),
       children: [
         const SizedBox(height: 120),
-        Icon(
-          SolarIconsOutline.cloudCross,
-          size: 48,
-          color: colors.textHint,
-        ),
+        Icon(PhosphorIconsRegular.cloudX, size: 48, color: colors.textHint),
         const SizedBox(height: AppDims.s3),
         Text(
           context.tr.failedToLoadProducts,
           textAlign: TextAlign.center,
-          style: AppTextStyles.bs500(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-          ),
+          style: AppTextStyles.bs500(
+            context,
+          ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
         ),
         if (errorMessage != null && errorMessage.isNotEmpty) ...[
           const SizedBox(height: AppDims.s1),
@@ -57,10 +48,7 @@ class PosProductsError extends StatelessWidget {
         Center(
           child: OutlinedButton.icon(
             onPressed: onRetry,
-            icon: const Icon(
-              SolarIconsOutline.restart,
-              size: 16,
-            ),
+            icon: const Icon(PhosphorIconsRegular.arrowClockwise, size: 16),
             label: Text(context.tr.retry),
           ),
         ),

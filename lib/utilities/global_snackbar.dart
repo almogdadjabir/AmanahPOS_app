@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:amana_pos/config/constants.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 enum SnackBarType {
   success,
@@ -316,8 +316,8 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
     return Positioned(
       top: widget.isTop ? topPosition : null,
       bottom: widget.isTop ? null : bottomPosition,
-      left: context.isDesktop ? MediaQuery.sizeOf(context).width * 0.3 : AppSpacing.md,
-      right: context.isDesktop ? MediaQuery.sizeOf(context).width * 0.3 : AppSpacing.md,
+      left: AppDims.s4,
+      right: AppDims.s4,
       child: SafeArea(
         top: false,
         bottom: false,
@@ -337,12 +337,12 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
                       minHeight: 58,
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
+                      horizontal: AppDims.s4,
+                      vertical: AppDims.s3,
                     ),
                     decoration: BoxDecoration(
                       color: config.backgroundColor,
-                      borderRadius: AppRadius.borderLg,
+                      borderRadius: AppDims.borderLg,
                       border: Border.all(
                         color: config.borderColor,
                         width: 1,
@@ -359,7 +359,7 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
                       children: [
                         if (widget.showIcon) ...[
                           _SnackBarIcon(config: config),
-                          AppGap.horizontalSm,
+                          const SizedBox(width: AppDims.s3),
                         ],
                         Expanded(
                           child: Text(
@@ -376,14 +376,14 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
                           ),
                         ),
                         if (!widget.isAutoDismiss) ...[
-                          AppGap.horizontalSm,
+                          const SizedBox(width: AppDims.s3),
                           InkWell(
                             onTap: _dismiss,
-                            borderRadius: AppRadius.borderXxl,
+                            borderRadius: AppDims.borderPill,
                             child: Padding(
                               padding: const EdgeInsets.all(4),
                               child: Icon(
-                                Icons.close_rounded,
+                                PhosphorIconsRegular.x,
                                 color: config.textColor,
                                 size: 20,
                               ),
@@ -464,7 +464,7 @@ class _SnackBarStyleConfig {
           textColor: colors.success,
           iconBackgroundColor: colors.success.withValues(alpha: 0.14),
           iconColor: colors.success,
-          icon: Icons.check_circle_rounded,
+          icon: PhosphorIconsFill.checkCircle,
         );
 
       case SnackBarType.error:
@@ -474,7 +474,7 @@ class _SnackBarStyleConfig {
           textColor: colors.danger,
           iconBackgroundColor: colors.danger.withValues(alpha: 0.14),
           iconColor: colors.danger,
-          icon: Icons.error_rounded,
+          icon: PhosphorIconsFill.warningCircle,
         );
 
       case SnackBarType.warning:
@@ -484,7 +484,7 @@ class _SnackBarStyleConfig {
           textColor: colors.warning,
           iconBackgroundColor: colors.warning.withValues(alpha: 0.16),
           iconColor: colors.warning,
-          icon: Icons.warning_amber_rounded,
+          icon: PhosphorIconsRegular.warning,
         );
 
       case SnackBarType.info:
@@ -494,7 +494,7 @@ class _SnackBarStyleConfig {
           textColor: colors.info,
           iconBackgroundColor: colors.info.withValues(alpha: 0.14),
           iconColor: colors.info,
-          icon: Icons.info_rounded,
+          icon: PhosphorIconsFill.info,
         );
     }
   }

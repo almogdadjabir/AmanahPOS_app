@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ExpiryAlertsScreen extends StatefulWidget {
   const ExpiryAlertsScreen({super.key});
@@ -40,7 +40,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(Icons.arrow_back_rounded, color: colors.textPrimary),
+          icon: Icon(PhosphorIconsRegular.arrowLeft, color: colors.textPrimary),
         ),
         title: Text(
           'Expiry Alerts',
@@ -92,7 +92,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                     label: context.tr.invExpiryExpired,
                     count: state.expired.length,
                     color: const Color(0xFFDC2626),
-                    icon: Icons.error_outline_rounded,
+                    icon: PhosphorIconsRegular.warningCircle,
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
@@ -124,7 +124,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                     label: context.tr.invExpiryExpiringSoon,
                     count: state.expiringSoon.length,
                     color: const Color(0xFFEA580C),
-                    icon: SolarIconsOutline.shieldWarning,
+                    icon: PhosphorIconsRegular.shieldWarning,
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
@@ -270,7 +270,7 @@ class _EmptyView extends StatelessWidget {
                     color: colors.primaryContainer,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.verified_rounded,
+                  child: Icon(PhosphorIconsRegular.sealCheck,
                       size: 34, color: colors.primary),
                 ),
                 const SizedBox(height: AppDims.s4),
@@ -317,7 +317,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.wifi_off_rounded, size: 44, color: colors.textHint),
+            Icon(PhosphorIconsRegular.wifiSlash, size: 44, color: colors.textHint),
             const SizedBox(height: AppDims.s4),
             Text(
               message,
@@ -329,7 +329,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: AppDims.s4),
             OutlinedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 16),
+              icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 16),
               label: Text(context.tr.retry),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.primary,

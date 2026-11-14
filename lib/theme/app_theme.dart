@@ -8,15 +8,11 @@ import 'app_theme_colors.dart';
 abstract final class AppTheme {
   AppTheme._();
 
-  static ThemeData get light => _buildTheme(
-    brightness: Brightness.light,
-    colors: _lightColors,
-  );
+  static ThemeData get light =>
+      _buildTheme(brightness: Brightness.light, colors: _lightColors);
 
-  static ThemeData get dark => _buildTheme(
-    brightness: Brightness.dark,
-    colors: _darkColors,
-  );
+  static ThemeData get dark =>
+      _buildTheme(brightness: Brightness.dark, colors: _darkColors);
 
   static const AppThemeColors _lightColors = AppThemeColors(
     background: AppColors.lightBackground,
@@ -30,9 +26,9 @@ abstract final class AppTheme {
     primary: AppColors.primary,
     primaryContainer: AppColors.primaryLight,
     onPrimary: AppColors.white,
-    secondary: AppColors.secondary,
-    secondaryContainer: AppColors.secondaryLight,
-    onSecondary: AppColors.slate900,
+    secondary: AppColors.cash,
+    secondaryContainer: AppColors.lightCashTint,
+    onSecondary: AppColors.lightCashInk,
     success: AppColors.success,
     successContainer: AppColors.successLight,
     danger: AppColors.danger,
@@ -48,6 +44,18 @@ abstract final class AppTheme {
     stockLow: AppColors.stockLow,
     profit: AppColors.profit,
     shadow: AppColors.lightShadow,
+    surfaceRaised: AppColors.lightSurfaceRaised,
+    borderStrong: AppColors.lightBorderStrong,
+    primaryStrong: AppColors.lightPrimaryStrong,
+    digitalTint: AppColors.lightDigitalTint,
+    digitalInk: AppColors.lightDigitalInk,
+    cashTint: AppColors.lightCashTint,
+    cashInk: AppColors.lightCashInk,
+    premium: AppColors.lightPremium,
+    premiumTint: AppColors.lightPremiumTint,
+    chartTrack: AppColors.lightChartTrack,
+    heroInk: AppColors.white,
+    heroGradient: AppColors.lightHeroGradient,
   );
 
   static const AppThemeColors _darkColors = AppThemeColors(
@@ -59,27 +67,39 @@ abstract final class AppTheme {
     textSecondary: AppColors.darkTextSecondary,
     textHint: AppColors.darkTextHint,
     disabled: AppColors.darkDisabled,
-    primary: Color(0xFF2DD4BF),
-    primaryContainer: Color(0xFF134E4A),
-    onPrimary: AppColors.slate950,
-    secondary: Color(0xFFFBBF24),
-    secondaryContainer: Color(0xFF78350F),
-    onSecondary: AppColors.slate950,
-    success: Color(0xFF4ADE80),
-    successContainer: Color(0xFF14532D),
-    danger: Color(0xFFF87171),
-    dangerContainer: Color(0xFF7F1D1D),
-    warning: Color(0xFFFBBF24),
-    warningContainer: Color(0xFF78350F),
-    info: Color(0xFF60A5FA),
-    infoContainer: Color(0xFF1E3A8A),
-    sale: Color(0xFF2DD4BF),
-    refund: Color(0xFFF87171),
-    cash: Color(0xFFFBBF24),
-    card: Color(0xFF60A5FA),
-    stockLow: Color(0xFFFB923C),
-    profit: Color(0xFF4ADE80),
+    primary: AppColors.darkPrimary,
+    primaryContainer: AppColors.darkPrimaryContainer,
+    onPrimary: AppColors.darkOnPrimary,
+    secondary: AppColors.darkCash,
+    secondaryContainer: AppColors.darkCashTint,
+    onSecondary: AppColors.darkCashInk,
+    success: AppColors.darkSuccess,
+    successContainer: AppColors.darkSuccessContainer,
+    danger: AppColors.darkDanger,
+    dangerContainer: AppColors.darkDangerContainer,
+    warning: AppColors.darkWarning,
+    warningContainer: AppColors.darkWarningContainer,
+    info: AppColors.darkInfo,
+    infoContainer: AppColors.darkInfoContainer,
+    sale: AppColors.darkPrimary,
+    refund: AppColors.darkDanger,
+    cash: AppColors.darkCash,
+    card: AppColors.darkDigital,
+    stockLow: AppColors.darkWarning,
+    profit: AppColors.darkSuccess,
     shadow: AppColors.darkShadow,
+    surfaceRaised: AppColors.darkSurfaceRaised,
+    borderStrong: AppColors.darkBorderStrong,
+    primaryStrong: AppColors.darkPrimaryStrong,
+    digitalTint: AppColors.darkDigitalTint,
+    digitalInk: AppColors.darkDigitalInk,
+    cashTint: AppColors.darkCashTint,
+    cashInk: AppColors.darkCashInk,
+    premium: AppColors.darkPremium,
+    premiumTint: AppColors.darkPremiumTint,
+    chartTrack: AppColors.darkChartTrack,
+    heroInk: AppColors.darkTextPrimary,
+    heroGradient: AppColors.darkHeroGradient,
   );
 
   static ThemeData _buildTheme({
@@ -93,24 +113,24 @@ abstract final class AppTheme {
       primary: colors.primary,
       onPrimary: colors.onPrimary,
       primaryContainer: colors.primaryContainer,
-      onPrimaryContainer: isDark ? AppColors.slate50 : AppColors.slate900,
+      onPrimaryContainer: colors.textPrimary,
       secondary: colors.secondary,
       onSecondary: colors.onSecondary,
       secondaryContainer: colors.secondaryContainer,
-      onSecondaryContainer: isDark ? AppColors.slate50 : AppColors.slate900,
+      onSecondaryContainer: colors.textPrimary,
       error: colors.danger,
-      onError: AppColors.white,
+      onError: isDark ? AppColors.darkOnPrimary : AppColors.white,
       errorContainer: colors.dangerContainer,
-      onErrorContainer: isDark ? AppColors.slate50 : AppColors.slate900,
+      onErrorContainer: colors.textPrimary,
       surface: colors.surface,
       onSurface: colors.textPrimary,
       outline: colors.border,
       outlineVariant: colors.border,
       shadow: colors.shadow,
       scrim: AppColors.black,
-      inverseSurface: isDark ? AppColors.slate100 : AppColors.slate900,
-      onInverseSurface: isDark ? AppColors.slate900 : AppColors.slate50,
-      inversePrimary: isDark ? AppColors.primary : const Color(0xFF5EEAD4),
+      inverseSurface: colors.textPrimary,
+      onInverseSurface: colors.background,
+      inversePrimary: colors.primaryStrong,
       surfaceTint: Colors.transparent,
     );
 
@@ -118,15 +138,17 @@ abstract final class AppTheme {
       useMaterial3: true,
       brightness: brightness,
       fontFamily: AppTextStyles.fontFamily,
+      fontFamilyFallback: AppTextStyles.fontFallback,
       colorScheme: colorScheme,
+      splashColor: colors.primary.withValues(alpha: 0.06),
+      highlightColor: Colors.transparent,
+      hoverColor: colors.primary.withValues(alpha: 0.04),
       scaffoldBackgroundColor: colors.background,
       canvasColor: colors.background,
       dividerColor: colors.border,
       disabledColor: colors.disabled,
       textTheme: AppTextStyles.buildTextTheme(colors.textPrimary),
-      extensions: <ThemeExtension<dynamic>>[
-        colors,
-      ],
+      extensions: <ThemeExtension<dynamic>>[colors],
 
       appBarTheme: _appBarTheme(colors),
       cardTheme: _cardTheme(colors),
@@ -163,17 +185,11 @@ abstract final class AppTheme {
       titleTextStyle: TextStyle(
         fontFamily: AppTextStyles.fontFamily,
         fontSize: 20,
-        fontWeight: AppTextStyles.bold,
+        fontWeight: AppTextStyles.semibold,
         color: colors.textPrimary,
       ),
-      iconTheme: IconThemeData(
-        color: colors.textPrimary,
-        size: 24,
-      ),
-      actionsIconTheme: IconThemeData(
-        color: colors.textPrimary,
-        size: 24,
-      ),
+      iconTheme: IconThemeData(color: colors.textPrimary, size: 24),
+      actionsIconTheme: IconThemeData(color: colors.textPrimary, size: 24),
     );
   }
 
@@ -185,11 +201,8 @@ abstract final class AppTheme {
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderLg,
-        side: BorderSide(
-          color: colors.border,
-          width: 1,
-        ),
+        borderRadius: AppDims.borderLg,
+        side: BorderSide(color: colors.border, width: 1),
       ),
     );
   }
@@ -211,19 +224,16 @@ abstract final class AppTheme {
           }
           return colors.onPrimary;
         }),
-        overlayColor: WidgetStatePropertyAll(
-          colors.onPrimary.withValues(alpha: 0.08),
-        ),
+        splashFactory: NoSplash.splashFactory,
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
         shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: AppRadius.borderMd,
-          ),
+          RoundedRectangleBorder(borderRadius: AppDims.borderMd),
         ),
         textStyle: const WidgetStatePropertyAll(
           TextStyle(
             fontFamily: AppTextStyles.fontFamily,
             fontSize: 15,
-            fontWeight: AppTextStyles.bold,
+            fontWeight: AppTextStyles.semibold,
           ),
         ),
       ),
@@ -245,15 +255,13 @@ abstract final class AppTheme {
           return BorderSide(color: colors.border);
         }),
         shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: AppRadius.borderMd,
-          ),
+          RoundedRectangleBorder(borderRadius: AppDims.borderMd),
         ),
         textStyle: const WidgetStatePropertyAll(
           TextStyle(
             fontFamily: AppTextStyles.fontFamily,
             fontSize: 15,
-            fontWeight: AppTextStyles.bold,
+            fontWeight: AppTextStyles.semibold,
           ),
         ),
       ),
@@ -271,7 +279,7 @@ abstract final class AppTheme {
           TextStyle(
             fontFamily: AppTextStyles.fontFamily,
             fontSize: 15,
-            fontWeight: AppTextStyles.bold,
+            fontWeight: AppTextStyles.semibold,
           ),
         ),
       ),
@@ -281,7 +289,7 @@ abstract final class AppTheme {
   static InputDecorationTheme _inputDecorationTheme(AppThemeColors colors) {
     OutlineInputBorder border(Color color) {
       return OutlineInputBorder(
-        borderRadius: AppRadius.borderMd,
+        borderRadius: AppDims.borderMd,
         borderSide: BorderSide(color: color, width: 1),
       );
     }
@@ -290,8 +298,8 @@ abstract final class AppTheme {
       filled: true,
       fillColor: colors.surface,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
+        horizontal: AppDims.s4,
+        vertical: AppDims.s4,
       ),
       hintStyle: TextStyle(
         color: colors.textHint,
@@ -318,8 +326,8 @@ abstract final class AppTheme {
   }
 
   static BottomNavigationBarThemeData _bottomNavigationBarTheme(
-      AppThemeColors colors,
-      ) {
+    AppThemeColors colors,
+  ) {
     return BottomNavigationBarThemeData(
       backgroundColor: colors.surface,
       selectedItemColor: colors.primary,
@@ -367,18 +375,16 @@ abstract final class AppTheme {
   }
 
   static FloatingActionButtonThemeData _floatingActionButtonTheme(
-      AppThemeColors colors,
-      ) {
+    AppThemeColors colors,
+  ) {
     return FloatingActionButtonThemeData(
-      backgroundColor: colors.secondary,
-      foregroundColor: colors.onSecondary,
+      backgroundColor: colors.primary,
+      foregroundColor: colors.onPrimary,
       elevation: 0,
       focusElevation: 0,
       hoverElevation: 0,
       highlightElevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderLg,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppDims.borderLg),
     );
   }
 
@@ -393,14 +399,9 @@ abstract final class AppTheme {
       side: WidgetStateBorderSide.resolveWith((states) {
         if (states.contains(WidgetState.selected)) return BorderSide.none;
 
-        return BorderSide(
-          color: colors.border,
-          width: 1.4,
-        );
+        return BorderSide(color: colors.border, width: 1.4);
       }),
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderXs,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppDims.borderXs),
     );
   }
 
@@ -434,9 +435,7 @@ abstract final class AppTheme {
       dragHandleColor: colors.border,
       dragHandleSize: const Size(48, 5),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppRadius.xl),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDims.rXl)),
       ),
     );
   }
@@ -446,11 +445,8 @@ abstract final class AppTheme {
       backgroundColor: colors.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderXl,
-        side: BorderSide(
-          color: colors.border,
-          width: 1,
-        ),
+        borderRadius: AppDims.borderXl,
+        side: BorderSide(color: colors.border, width: 1),
       ),
       titleTextStyle: TextStyle(
         fontFamily: AppTextStyles.fontFamily,
@@ -478,9 +474,7 @@ abstract final class AppTheme {
       ),
       behavior: SnackBarBehavior.floating,
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderMd,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppDims.borderMd),
     );
   }
 
@@ -502,9 +496,7 @@ abstract final class AppTheme {
         fontSize: 13,
         fontWeight: AppTextStyles.bold,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderXxl,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppDims.borderPill),
     );
   }
 
@@ -515,7 +507,7 @@ abstract final class AppTheme {
       elevation: 4,
       shadowColor: colors.shadow,
       shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.borderMd,
+        borderRadius: AppDims.borderMd,
         side: BorderSide(color: colors.border),
       ),
       textStyle: TextStyle(

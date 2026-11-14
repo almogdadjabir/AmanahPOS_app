@@ -5,6 +5,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// Full-width barcode input with an adjacent scan-button.
 ///
@@ -51,7 +52,7 @@ class ProductBarcodeField extends StatelessWidget {
                 focusNode: focusNode,
                 nextFocus: nextFocus,
                 hint: '123456789',
-                prefixIcon: Icons.barcode_reader,
+                prefixIcon: PhosphorIconsRegular.barcode,
                 keyboardType: TextInputType.number,
                 textInputAction:
                     nextFocus == null ? TextInputAction.done : TextInputAction.next,
@@ -72,7 +73,7 @@ class ProductBarcodeField extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  Icons.qr_code_scanner_rounded,
+                  PhosphorIconsRegular.qrCode,
                   size: 24,
                   color: colors.primary,
                 ),

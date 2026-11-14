@@ -20,7 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductData product;
@@ -283,8 +283,8 @@ class _ExpiryBanner extends StatelessWidget {
               children: [
                 Icon(
                   hasExpired
-                      ? SolarIconsOutline.dangerCircle
-                      : SolarIconsOutline.dangerTriangle,
+                      ? PhosphorIconsRegular.warningCircle
+                      : PhosphorIconsRegular.warning,
                   color: color,
                   size: 20,
                 ),
@@ -304,7 +304,7 @@ class _ExpiryBanner extends StatelessWidget {
                 ),
 
                 DirectionalIcon(
-                  icon: SolarIconsOutline.altArrowRight,
+                  icon: PhosphorIconsRegular.caretRight,
                   color: color,
                   size: 18,
                 ),

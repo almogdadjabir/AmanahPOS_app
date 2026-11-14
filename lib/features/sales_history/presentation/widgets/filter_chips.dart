@@ -5,7 +5,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class FilterChips extends StatelessWidget {
   final SaleFilter active;
@@ -21,12 +21,12 @@ class FilterChips extends StatelessWidget {
   });
 
   static IconData _iconFor(SaleFilter f) => switch (f) {
-    SaleFilter.all => SolarIconsOutline.widget,
-    SaleFilter.today => SolarIconsOutline.calendarDate,
-    SaleFilter.completed => SolarIconsOutline.checkCircle,
-    SaleFilter.refunded  => SolarIconsOutline.undoLeft,
-    SaleFilter.pending => SolarIconsOutline.clockCircle,
-    _ => SolarIconsOutline.tuning,
+    SaleFilter.all => PhosphorIconsRegular.squaresFour,
+    SaleFilter.today => PhosphorIconsRegular.calendarDots,
+    SaleFilter.completed => PhosphorIconsRegular.checkCircle,
+    SaleFilter.refunded  => PhosphorIconsRegular.arrowUUpLeft,
+    SaleFilter.pending => PhosphorIconsRegular.clock,
+    _ => PhosphorIconsRegular.sliders,
   };
 
   @override

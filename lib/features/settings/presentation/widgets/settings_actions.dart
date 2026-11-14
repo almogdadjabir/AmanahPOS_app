@@ -15,8 +15,7 @@ import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Shared profile/account helpers used by both the mobile and desktop
-/// settings layouts so the two surfaces stay behaviourally identical.
+/// Shared profile/account helpers for the settings screen.
 
 bool hasBankakAccount(User profile) {
   return profile.bankakAccount?.accountNumber?.trim().isNotEmpty == true;
@@ -50,7 +49,6 @@ String profileSubtitle(BuildContext context, User profile) {
 void openProfileSheet(BuildContext context, User profile) {
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<SettingsBloc>(),
       child: EditProfileSheet(
@@ -65,7 +63,6 @@ void openProfileSheet(BuildContext context, User profile) {
 void openBankakSheet(BuildContext context, User profile) {
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<SettingsBloc>(),
       child: EditBankakSheet(
@@ -80,7 +77,6 @@ void openBankakSheet(BuildContext context, User profile) {
 void openPasswordSheet(BuildContext context) {
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<SettingsBloc>(),
       child: const SetPasswordSheet(),
@@ -91,7 +87,6 @@ void openPasswordSheet(BuildContext context) {
 void openLanguageSheet(BuildContext context) {
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<LocaleBloc>(),
       child: const LanguagePickerSheet(),

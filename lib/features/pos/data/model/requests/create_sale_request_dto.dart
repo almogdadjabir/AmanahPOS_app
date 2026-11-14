@@ -32,13 +32,27 @@ class CreateSaleItemDto {
   final String quantity;
   final String? unitPrice;
 
+  /// Free-form amount line (no product). [note] is its label.
+  final bool custom;
+  final String? note;
+
   const CreateSaleItemDto({
     required this.productId,
     required this.quantity,
     this.unitPrice,
+    this.custom = false,
+    this.note,
   });
 
   Map<String, dynamic> toJson() {
+    if (custom) {
+      return {
+        'custom': true,
+        'quantity': quantity,
+        'unit_price': unitPrice,
+        if (note != null && note!.trim().isNotEmpty) 'note': note!.trim(),
+      };
+    }
     return {
       'product_id': productId,
       'quantity': quantity,

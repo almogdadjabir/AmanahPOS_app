@@ -2,6 +2,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BentoCard extends StatelessWidget {
   final Widget child;
@@ -161,7 +162,7 @@ class CompactCardScrollArea extends StatelessWidget {
                     ),
                   ),
                   child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
+                    PhosphorIconsRegular.caretDown,
                     size: 14,
                     color: colors.textSecondary,
                   ),

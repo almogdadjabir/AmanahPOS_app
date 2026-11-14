@@ -5,7 +5,7 @@ import 'package:amana_pos/features/inventory/presentation/premium/premium_colors
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PremiumHeroHeader extends StatelessWidget {
   final PremiumSummaryData? summary;
@@ -121,7 +121,7 @@ class _PremiumBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(SolarIconsOutline.handStars, size: 10, color: Colors.white),
+          Icon(PhosphorIconsRegular.handHeart, size: 10, color: Colors.white),
           SizedBox(width: 3),
           Text(
             'PREMIUM',
@@ -251,7 +251,7 @@ class _ActionRow extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(SolarIconsOutline.box, color: Colors.white, size: 16),
+                Icon(PhosphorIconsRegular.package, color: Colors.white, size: 16),
                 SizedBox(width: 6),
                 Text(
                   'Receive Stock',
@@ -266,12 +266,12 @@ class _ActionRow extends StatelessWidget {
         ),
         const SizedBox(width: AppDims.s2),
         _GhostButton(
-          icon: SolarIconsOutline.export,
+          icon: PhosphorIconsRegular.export,
           label: context.tr.invHeroExport,
         ),
         const SizedBox(width: AppDims.s2),
         _GhostButton(
-          icon: SolarIconsOutline.qrCode,
+          icon: PhosphorIconsRegular.qrCode,
           label: context.tr.invHeroScan,
         ),
       ],

@@ -4,7 +4,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ExpiryAlertCard extends StatelessWidget {
   final ExpiryAlertData item;
@@ -26,8 +26,8 @@ class ExpiryAlertCard extends StatelessWidget {
     final statusLabel = expired ? 'Expired' : 'Expiring Soon';
 
     final statusIcon = expired
-        ? SolarIconsOutline.dangerCircle
-        : SolarIconsOutline.dangerTriangle;
+        ? PhosphorIconsRegular.warningCircle
+        : PhosphorIconsRegular.warning;
 
     return Container(
       padding: const EdgeInsets.all(AppDims.s4),
@@ -77,7 +77,7 @@ class ExpiryAlertCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        SolarIconsOutline.shop,
+                        PhosphorIconsRegular.storefront,
                         size: 15,
                         color: colors.textHint,
                       ),

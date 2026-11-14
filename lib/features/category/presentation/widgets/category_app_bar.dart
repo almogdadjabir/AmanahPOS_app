@@ -7,7 +7,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CategoryAppBar extends StatelessWidget {
   final CategoryData category;
@@ -55,7 +55,7 @@ class CategoryAppBar extends StatelessWidget {
         child: Row(
           children: [
             _ToolbarIconButton(
-              icon: SolarIconsOutline.altArrowLeft,
+              icon: PhosphorIconsRegular.caretLeft,
               tooltip: tr.back,
               flipInRtl: true,
               onTap: () => Navigator.of(context).pop(),
@@ -74,7 +74,7 @@ class CategoryAppBar extends StatelessWidget {
             const SizedBox(width: AppDims.s2),
 
             _ToolbarIconButton(
-              icon: isGrid ? SolarIconsOutline.list : SolarIconsOutline.widget,
+              icon: isGrid ? PhosphorIconsRegular.list : PhosphorIconsRegular.squaresFour,
               tooltip: isGrid ? tr.showList : tr.showGrid,
               onTap: onToggleLayout,
             ),
@@ -82,7 +82,7 @@ class CategoryAppBar extends StatelessWidget {
             const SizedBox(width: AppDims.s1),
 
             _ToolbarIconButton(
-              icon: SolarIconsOutline.addCircle,
+              icon: PhosphorIconsRegular.plusCircle,
               tooltip: tr.addProduct,
               color: colors.primary,
               backgroundColor: colors.primary.withValues(alpha: 0.08),
@@ -142,7 +142,7 @@ class _CategoryTitleBlock extends StatelessWidget {
         Row(
           children: [
             Icon(
-              SolarIconsOutline.bag5,
+              PhosphorIconsRegular.shoppingBag,
               size: 13,
               color: colors.textHint,
             ),
@@ -264,7 +264,7 @@ class _MoreActionsButton extends StatelessWidget {
           PopupMenuItem(
             value: _CategoryAction.edit,
             child: _PopupActionRow(
-              icon: SolarIconsOutline.penNewSquare,
+              icon: PhosphorIconsRegular.pencilSimpleLine,
               label: tr.editCategory,
               color: colors.textPrimary,
             ),
@@ -272,7 +272,7 @@ class _MoreActionsButton extends StatelessWidget {
           PopupMenuItem(
             value: _CategoryAction.delete,
             child: _PopupActionRow(
-              icon: SolarIconsOutline.trashBinTrash,
+              icon: PhosphorIconsRegular.trash,
               label: tr.delete,
               color: const Color(0xFFDC2626),
             ),
@@ -289,7 +289,7 @@ class _MoreActionsButton extends StatelessWidget {
           width: 40,
           height: 40,
           child: Icon(
-            SolarIconsOutline.menuDots,
+            PhosphorIconsRegular.dotsThree,
             size: 20,
             color: colors.textPrimary,
           ),

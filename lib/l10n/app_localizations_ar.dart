@@ -500,6 +500,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posCashierNotAssigned => 'لم تُعيَّن لمتجر. تواصل مع مديرك.';
 
   @override
+  String get posCharge => 'تحصيل';
+
+  @override
+  String get undo => 'تراجع';
+
+  @override
+  String itemRemovedUndo(String name) {
+    return '$name تم حذفه';
+  }
+
+  @override
   String get posNoShopFound =>
       'لم يتم العثور على متجر. حدّث الصفحة وحاول مجدداً.';
 
@@ -2237,4 +2248,50 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pricesExcludeTax => 'الأسعار غير شاملة الضريبة';
+
+  @override
+  String posRowInStock(String count) {
+    return '$count متوفر';
+  }
+
+  @override
+  String posRowLowStock(String count) {
+    return 'مخزون منخفض · $count';
+  }
+
+  @override
+  String get posRowOutOfStock => 'نفد المخزون';
+
+  @override
+  String get cashReceived => 'المبلغ المستلم';
+
+  @override
+  String get exactAmount => 'المبلغ بالضبط';
+
+  @override
+  String get changeDue => 'الباقي للعميل';
+
+  @override
+  String get posKeypad => 'لوحة الأرقام';
+
+  @override
+  String get posItems => 'العناصر';
+
+  @override
+  String get posCustomAmount => 'مبلغ مخصص';
+
+  @override
+  String get posEnterAmount => 'أدخل مبلغاً';
+
+  @override
+  String get posAddToTicket => 'إضافة إلى الفاتورة';
+
+  @override
+  String get posAddedToTicket => 'تمت الإضافة إلى الفاتورة';
+
+  @override
+  String get posAddNote => 'أضف ملاحظة';
+
+  @override
+  String get posNoteHint => 'ما سبب هذا المبلغ؟';
 }

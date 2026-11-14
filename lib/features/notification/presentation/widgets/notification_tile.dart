@@ -5,7 +5,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NotificationTile  (drop-in, same constructor API)
@@ -228,7 +228,6 @@ void showNotificationDetailsSheet(
     }) {
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 360,
     builder: (_) => NotificationDetailsSheet(item: item),
   );
 }
@@ -250,23 +249,23 @@ class TypeConfig {
 TypeConfig typeConfig(AppThemeColors colors, String type) {
   switch (type) {
     case 'success':
-      return TypeConfig(SolarIconsOutline.checkCircle, colors.success, 'Success');
+      return TypeConfig(PhosphorIconsRegular.checkCircle, colors.success, 'Success');
     case 'warning':
-      return TypeConfig(SolarIconsOutline.dangerTriangle, colors.warning, 'Warning');
+      return TypeConfig(PhosphorIconsRegular.warning, colors.warning, 'Warning');
     case 'error':
-      return TypeConfig(SolarIconsOutline.dangerCircle, colors.danger, 'Error');
+      return TypeConfig(PhosphorIconsRegular.warningCircle, colors.danger, 'Error');
     case 'sale':
-      return TypeConfig(SolarIconsOutline.billList, colors.sale, 'Sale');
+      return TypeConfig(PhosphorIconsRegular.receipt, colors.sale, 'Sale');
     case 'stock':
-      return TypeConfig(SolarIconsOutline.box, colors.warning, 'Stock');
+      return TypeConfig(PhosphorIconsRegular.package, colors.warning, 'Stock');
     case 'subscription':
-      return TypeConfig(SolarIconsOutline.card, colors.primary, 'Plan');
+      return TypeConfig(PhosphorIconsRegular.creditCard, colors.primary, 'Plan');
     case 'security':
-      return TypeConfig(SolarIconsOutline.shieldCheck, colors.warning, 'Security');
+      return TypeConfig(PhosphorIconsRegular.shieldCheck, colors.warning, 'Security');
     case 'system':
-      return TypeConfig(SolarIconsOutline.settings, colors.textSecondary, 'System');
+      return TypeConfig(PhosphorIconsRegular.gear, colors.textSecondary, 'System');
     case 'info':
     default:
-      return TypeConfig(SolarIconsOutline.infoCircle, colors.info, 'Info');
+      return TypeConfig(PhosphorIconsRegular.info, colors.info, 'Info');
   }
 }

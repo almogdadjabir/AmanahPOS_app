@@ -2,6 +2,7 @@ import 'package:amana_pos/features/sales_history/data/models/sale_history_item.d
 import 'package:amana_pos/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 extension SaleHistoryStatusX on SaleHistoryStatus {
   Color get color => switch (this) {
@@ -35,13 +36,13 @@ extension SaleHistoryStatusX on SaleHistoryStatus {
   };
 
   IconData get icon => switch (this) {
-    SaleHistoryStatus.completed => Icons.check_circle_rounded,
-    SaleHistoryStatus.refunded => Icons.keyboard_return_rounded,
-    SaleHistoryStatus.partialRefund => Icons.keyboard_return_rounded,
-    SaleHistoryStatus.cancelled => Icons.cancel_rounded,
-    SaleHistoryStatus.failed => Icons.error_rounded,
-    SaleHistoryStatus.pending => Icons.pending_rounded,
-    SaleHistoryStatus.unknown => Icons.receipt_long_rounded,
+    SaleHistoryStatus.completed => PhosphorIconsFill.checkCircle,
+    SaleHistoryStatus.refunded => PhosphorIconsRegular.arrowUUpLeft,
+    SaleHistoryStatus.partialRefund => PhosphorIconsRegular.arrowUUpLeft,
+    SaleHistoryStatus.cancelled => PhosphorIconsRegular.xCircle,
+    SaleHistoryStatus.failed => PhosphorIconsFill.warningCircle,
+    SaleHistoryStatus.pending => PhosphorIconsRegular.dotsThreeCircle,
+    SaleHistoryStatus.unknown => PhosphorIconsRegular.receipt,
   };
 }
 
@@ -53,7 +54,7 @@ extension SaleHistoryItemX on SaleHistoryItem {
   Color    get displayStatusColor => isOfflinePending ? AppColors.warning         : status.color;
   Color    get displayStatusBg    => isOfflinePending ? AppColors.warningLight    : status.bg;
   Color    get displayStatusFg    => isOfflinePending ? AppColors.warning         : status.fgDark;
-  IconData get displayStatusIcon  => isOfflinePending ? Icons.wifi_off_rounded    : status.icon;
+  IconData get displayStatusIcon  => isOfflinePending ? PhosphorIconsRegular.wifiSlash    : status.icon;
 
   // ── Payment colour ───────────────────────────────────────────────────────
 

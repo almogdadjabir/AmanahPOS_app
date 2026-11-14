@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showInboundSheet(BuildContext context) {
   final inboundBloc = context.read<InboundBloc>();
@@ -28,7 +28,6 @@ void showInboundSheet(BuildContext context) {
 
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: inboundBloc),
@@ -48,7 +47,6 @@ void showInboundHistorySheet(BuildContext context) {
 
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: inboundBloc,
       child: const _InboundHistorySheet(),
@@ -87,7 +85,7 @@ class _InboundHistorySheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
-                      SolarIconsOutline.documentText,
+                      PhosphorIconsRegular.fileText,
                       color: goldDeep,
                       size: 20,
                     ),
@@ -118,7 +116,7 @@ class _InboundHistorySheet extends StatelessWidget {
                   ),
                   IconButton(
                     icon: Icon(
-                      SolarIconsOutline.refresh,
+                      PhosphorIconsRegular.arrowsClockwise,
                       color: colors.textSecondary,
                     ),
                     onPressed: () {
@@ -129,7 +127,7 @@ class _InboundHistorySheet extends StatelessWidget {
                   ),
                   IconButton(
                     icon: Icon(
-                      SolarIconsOutline.closeCircle,
+                      PhosphorIconsRegular.xCircle,
                       color: colors.textSecondary,
                     ),
                     onPressed: () => Navigator.pop(context),
@@ -235,7 +233,7 @@ class _InboundSheetState extends State<_InboundSheet>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
-                            SolarIconsOutline.box,
+                            PhosphorIconsRegular.package,
                             color: goldDeep,
                             size: 20,
                           ),
@@ -268,7 +266,7 @@ class _InboundSheetState extends State<_InboundSheet>
                         ),
                         IconButton(
                           icon: Icon(
-                            SolarIconsOutline.closeCircle,
+                            PhosphorIconsRegular.xCircle,
                             color: colors.textSecondary,
                           ),
                           onPressed: () => Navigator.pop(context),
@@ -438,7 +436,6 @@ class _ReceiveFormState extends State<_ReceiveForm> {
     }
     final picked = await showAdaptivePanel<ProductData>(
       context,
-      desktopWidth: 480,
       builder: (_) => BlocProvider.value(
         value: context.read<ProductBloc>(),
         child: _ProductPickerSheet(products: products),
@@ -482,7 +479,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                             decoration: const InputDecoration(
                               labelText: 'Vendor *',
                               hintText: 'No vendors available',
-                              prefixIcon: Icon(SolarIconsOutline.buildings),
+                              prefixIcon: Icon(PhosphorIconsRegular.buildings),
                             ),
                             validator: (_) => 'Vendor is required',
                           );
@@ -493,7 +490,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                           isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Vendor *',
-                            prefixIcon: Icon(SolarIconsOutline.buildings),
+                            prefixIcon: Icon(PhosphorIconsRegular.buildings),
                           ),
                           hint: Text(context.tr.invSelectVendor),
                           items: vs.vendors.map((v) {
@@ -526,7 +523,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                       decoration: const InputDecoration(
                         labelText: 'Reference *',
                         hintText: 'Invoice or PO number',
-                        prefixIcon: Icon(SolarIconsOutline.documentText),
+                        prefixIcon: Icon(PhosphorIconsRegular.fileText),
                       ),
                       validator: (v) {
                         return (v == null || v.trim().isEmpty)
@@ -541,7 +538,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                       textInputAction: TextInputAction.newline,
                       decoration: const InputDecoration(
                         labelText: 'Notes (optional)',
-                        prefixIcon: Icon(SolarIconsOutline.notes),
+                        prefixIcon: Icon(PhosphorIconsRegular.notepad),
                       ),
                       minLines: 1,
                       maxLines: 2,
@@ -564,7 +561,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                             setState(() => _items.add(_LineItem()));
                           },
                           icon: const Icon(
-                            SolarIconsOutline.addCircle,
+                            PhosphorIconsRegular.plusCircle,
                             size: 16,
                           ),
                           label: Text(context.tr.invAddRow),
@@ -644,7 +641,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                         color: Colors.white,
                       ),
                     )
-                        : const Icon(SolarIconsOutline.box),
+                        : const Icon(PhosphorIconsRegular.package),
                     label: Text(
                       isLoading ? 'Submitting...' : 'Receive Stock',
                       style: const TextStyle(
@@ -717,7 +714,7 @@ class _LineItemCard extends StatelessWidget {
               if (canRemove)
                 GestureDetector(
                   onTap: onRemove,
-                  child: Icon(SolarIconsOutline.trashBinMinimalistic,
+                  child: Icon(PhosphorIconsRegular.trash,
                       size: 18, color: colors.textSecondary),
                 ),
             ],
@@ -738,7 +735,7 @@ class _LineItemCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(SolarIconsOutline.bag5,
+                  Icon(PhosphorIconsRegular.shoppingBag,
                       size: 18, color: colors.textSecondary),
                   const SizedBox(width: 8),
                   Expanded(
@@ -752,7 +749,7 @@ class _LineItemCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Icon(SolarIconsOutline.altArrowDown,
+                  Icon(PhosphorIconsRegular.caretDown,
                       size: 16, color: colors.textSecondary),
                 ],
               ),
@@ -808,7 +805,7 @@ class _LineItemCard extends StatelessWidget {
                         hintText: 'YYYY-MM-DD',
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        suffixIcon: Icon(SolarIconsOutline.calendar,
+                        suffixIcon: Icon(PhosphorIconsRegular.calendarBlank,
                             size: 18),
                       ),
                     ),
@@ -935,7 +932,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(
-                          SolarIconsOutline.closeCircle,
+                          PhosphorIconsRegular.xCircle,
                           color: colors.textSecondary,
                         ),
                       ),
@@ -952,7 +949,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     decoration: InputDecoration(
                       hintText: 'Search by name, SKU, or barcode',
                       prefixIcon: Icon(
-                        SolarIconsOutline.magnifier,
+                        PhosphorIconsRegular.magnifyingGlass,
                         color: colors.textSecondary,
                         size: 20,
                       ),
@@ -964,7 +961,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           _onSearchChanged('');
                         },
                         icon: Icon(
-                          SolarIconsOutline.closeCircle,
+                          PhosphorIconsRegular.xCircle,
                           color: colors.textSecondary,
                           size: 20,
                         ),
@@ -1061,7 +1058,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
-                                    SolarIconsOutline.bag5,
+                                    PhosphorIconsRegular.shoppingBag,
                                     color: goldDeep,
                                     size: 19,
                                   ),
@@ -1102,7 +1099,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                                 ),
                                 const SizedBox(width: 8),
                                 DirectionalIcon(
-                                  icon: SolarIconsOutline.altArrowRight,
+                                  icon: PhosphorIconsRegular.caretRight,
                                   size: 18,
                                   color: colors.textSecondary,
                                 ),
@@ -1153,7 +1150,7 @@ class _HistoryTabState extends State<_HistoryTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(SolarIconsOutline.boxMinimalistic,
+                Icon(PhosphorIconsRegular.package,
                     size: 48,
                     color: colors.textSecondary.withValues(alpha: 0.4)),
                 const SizedBox(height: 12),

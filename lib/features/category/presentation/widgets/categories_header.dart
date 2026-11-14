@@ -4,7 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 enum CategoryQuickFilter {
   all,
@@ -90,7 +90,7 @@ class _CategoriesHeaderContent extends StatelessWidget {
                   child: _CategoryMiniStat(
                     label: tr.catStatTotal,
                     value: stats.total.toString(),
-                    icon: SolarIconsOutline.layersMinimalistic,
+                    icon: PhosphorIconsRegular.stack,
                     color: colors.primary,
                     isSelected: selectedFilter == CategoryQuickFilter.all,
                     onTap: () => onFilterChanged(CategoryQuickFilter.all),
@@ -101,7 +101,7 @@ class _CategoriesHeaderContent extends StatelessWidget {
                   child: _CategoryMiniStat(
                     label: tr.catStatActive,
                     value: stats.active.toString(),
-                    icon: SolarIconsOutline.checkCircle,
+                    icon: PhosphorIconsRegular.checkCircle,
                     color: const Color(0xFF16A34A),
                     isSelected: selectedFilter == CategoryQuickFilter.active,
                     onTap: () => onFilterChanged(CategoryQuickFilter.active),
@@ -112,7 +112,7 @@ class _CategoriesHeaderContent extends StatelessWidget {
                   child: _CategoryMiniStat(
                     label: tr.catStatInactive,
                     value: stats.inactive.toString(),
-                    icon: SolarIconsOutline.pauseCircle,
+                    icon: PhosphorIconsRegular.pauseCircle,
                     color: const Color(0xFF94A3B8),
                     isSelected: selectedFilter == CategoryQuickFilter.inactive,
                     onTap: () => onFilterChanged(CategoryQuickFilter.inactive),
@@ -148,7 +148,7 @@ class _HeaderIcon extends StatelessWidget {
         width: 60,
         height: 60,
         child: Icon(
-          SolarIconsOutline.layersMinimalistic,
+          PhosphorIconsRegular.stack,
           color: color,
           size: 30,
         ),

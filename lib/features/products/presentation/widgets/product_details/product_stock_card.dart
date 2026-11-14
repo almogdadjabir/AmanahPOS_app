@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductStockCard extends StatelessWidget {
   final StockData stock;
@@ -47,7 +48,7 @@ class ProductStockCard extends StatelessWidget {
               color: color.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(AppDims.rMd),
             ),
-            child: Icon(Icons.storefront_outlined, color: color, size: 24),
+            child: Icon(PhosphorIconsRegular.storefront, color: color, size: 24),
           ),
           const SizedBox(width: AppDims.s3),
           Expanded(

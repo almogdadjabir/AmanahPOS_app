@@ -6,13 +6,12 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showLowStockSheet(BuildContext context, {VoidCallback? onReceive}) {
   context.read<StockLevelsBloc>().add(const OnStockLevelsStarted(lowStockOnly: true));
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: context.read<StockLevelsBloc>(),
       child: _LowStockSheet(onReceive: onReceive),
@@ -53,7 +52,7 @@ class _LowStockSheet extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
-                        Icons.inventory_2_rounded,
+                        PhosphorIconsFill.package,
                         color: Color(0xFFFCD34D),
                         size: 20,
                       ),
@@ -68,7 +67,7 @@ class _LowStockSheet extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: Icon(SolarIconsOutline.closeCircle,
+                      icon: Icon(PhosphorIconsRegular.xCircle,
                           color: colors.textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -92,7 +91,7 @@ class _LowStockSheet extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.check_circle_outline_rounded,
+                            const Icon(PhosphorIconsRegular.checkCircle,
                                 size: 48, color: Color(0xFF5EEAD4)),
                             const SizedBox(height: 12),
                             Text(

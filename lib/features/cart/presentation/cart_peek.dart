@@ -1,370 +1,135 @@
 import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/pos_screen.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/format.dart';
+import 'package:amana_pos/widgets/app_amount.dart';
+import 'package:amana_pos/widgets/app_button.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
-class CartPeek extends StatefulWidget {
-  const CartPeek({
-    super.key,
-    required this.state,
-    required this.onTap,
-  });
+/// Floating charge dock: glass capsule with item count, running total and
+/// the button that opens the ticket.
+class CartPeek extends StatelessWidget {
+  const CartPeek({super.key, required this.state, required this.onTap});
 
   final PosState state;
   final VoidCallback onTap;
 
-  @override
-  State<CartPeek> createState() => _CartPeekState();
-}
-
-class _CartPeekState extends State<CartPeek> {
-  static const double _height = 78;
-
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    setState(() => _pressed = value);
-  }
+  static const double _radius = 20;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isLoading = widget.state.submitStatus == PosSubmitStatus.loading;
+    final isLoading = state.submitStatus == PosSubmitStatus.loading;
 
     return Padding(
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: AppDims.s4),
-      child: Semantics(
-        button: true,
-        enabled: !isLoading,
-        label: context.tr.reviewCart,
-        child: GestureDetector(
-          onTap: isLoading ? null : widget.onTap,
-          onTapDown: isLoading ? null : (_) => _setPressed(true),
-          onTapCancel: isLoading ? null : () => _setPressed(false),
-          onTapUp: isLoading ? null : (_) => _setPressed(false),
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedScale(
-            duration: const Duration(milliseconds: 130),
-            curve: Curves.easeOut,
-            scale: _pressed ? 0.985 : 1,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              height: _height,
-              decoration: BoxDecoration(
-                color: colors.secondary,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: colors.onSecondary.withValues(
-                    alpha: isDark ? 0.08 : 0.12,
-                  ),
-                  width: 1,
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: AlignmentDirectional.centerStart,
-                          end: AlignmentDirectional.centerEnd,
-                          colors: [
-                            colors.secondary,
-                            colors.secondary.withValues(alpha: 0.94),
-                          ],
-                        ),
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            AppDims.s3,
+            0,
+            AppDims.s3,
+            AppDims.s2,
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(_radius),
+              boxShadow: isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: colors.shadow,
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
                       ),
-                    ),
+                    ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_radius),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: 0.78),
+                    borderRadius: BorderRadius.circular(_radius),
+                    border: Border.all(color: colors.border),
                   ),
-                  PositionedDirectional(
-                    end: -22,
-                    top: -34,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colors.onSecondary.withValues(alpha: 0.07),
-                      ),
-                      child: const SizedBox(width: 128, height: 128),
-                    ),
-                  ),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-
-                      final centerGap = width < 350
-                          ? 72.0
-                          : width < 390
-                          ? 86.0
-                          : width < 430
-                          ? 102.0
-                          : 118.0;
-
-                      return Row(
-                        children: [
-                          const SizedBox(width: AppDims.s3),
-                          Flexible(
-                            flex: 0,
-                            child: _ReviewButton(isLoading: isLoading),
-                          ),
-                          const SizedBox(width: AppDims.s2),
-                          const Expanded(child: SizedBox()),
-                          SizedBox(width: centerGap),
-                          Expanded(
-                            flex: 3,
-                            child: Align(
-                              alignment: AlignmentDirectional.centerEnd,
-                              child: _CartSummary(
-                                itemCount: widget.state.itemCount,
-                                total: widget.state.total,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.all(AppDims.s2),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Pressable(
+                            onTap: isLoading ? null : onTap,
+                            semanticLabel: context.tr.reviewCart,
+                            child: Padding(
+                              padding: const EdgeInsetsDirectional.symmetric(
+                                horizontal: AppDims.s3 - 2,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    context.tr.itemCount(state.itemCount),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: text.bodySmall!.copyWith(
+                                      color: colors.textHint,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: AppAmount(
+                                      value: money(state.total),
+                                      unit: AppFormat.currency,
+                                      textAlign: TextAlign.start,
+                                      style: const TextStyle(
+                                        fontSize: 21,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.1,
+                                      ).copyWith(color: colors.textPrimary),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          const SizedBox(width: AppDims.s2),
-                          Flexible(
-                            flex: 0,
-                            child: _CartIconBadge(
-                              quantity: widget.state.itemCount,
-                            ),
+                        ),
+                        const SizedBox(width: AppDims.s2),
+                        AppButton(
+                          label: context.tr.posCharge,
+                          isLoading: isLoading,
+                          onPressed: isLoading ? null : onTap,
+                          suffixIcon: const DirectionalIcon(
+                            icon: PhosphorIconsRegular.caretRight,
+                            size: 20,
                           ),
-                          const SizedBox(width: AppDims.s2),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReviewButton extends StatelessWidget {
-  const _ReviewButton({
-    required this.isLoading,
-  });
-
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.18),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
-        child: SizedBox(
-          height: 46,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isLoading)
-                SizedBox(
-                  width: 15,
-                  height: 15,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colors.secondary,
-                  ),
-                )
-              else
-                Icon(
-                  SolarIconsOutline.altArrowUp,
-                  size: 20,
-                  color: colors.secondary,
-                ),
-              const SizedBox(width: 7),
-              Text(
-                context.tr.review,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs200(context).copyWith(
-                  color: colors.secondary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.15,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CartSummary extends StatelessWidget {
-  const _CartSummary({
-    required this.itemCount,
-    required this.total,
-  });
-
-  final int itemCount;
-  final double total;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(
-        minWidth: 74,
-        maxWidth: 118,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            context.tr.cart,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-            style: AppTextStyles.sm100(context).copyWith(
-              color: colors.onSecondary.withValues(alpha: 0.68),
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.1,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Directionality(
-            textDirection: ui.TextDirection.ltr,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: AlignmentDirectional.centerEnd,
-              child: Text(
-                money(total),
-                maxLines: 1,
-                softWrap: false,
-                textAlign: TextAlign.end,
-                style: AppTextStyles.bs600(context).copyWith(
-                  color: colors.onSecondary,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.tr.itemCount(itemCount),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-            style: AppTextStyles.sm100(context).copyWith(
-              color: colors.onSecondary.withValues(alpha: 0.65),
-              fontWeight: FontWeight.w800,
-              height: 1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CartIconBadge extends StatelessWidget {
-  const _CartIconBadge({
-    required this.quantity,
-  });
-
-  final int quantity;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return SizedBox(
-      width: 52,
-      height: 56,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          PositionedDirectional(
-            start: 0,
-            end: 0,
-            bottom: 0,
-            top: 4,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.onSecondary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                SolarIconsOutline.cartLarge,
-                size: 28,
-                color: colors.onSecondary,
-              ),
-            ),
-          ),
-          PositionedDirectional(
-            top: -4,
-            start: -7,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.background,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: colors.secondary.withValues(alpha: 0.34),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.shadow.withValues(alpha: 0.18),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: 27,
-                  minHeight: 27,
-                ),
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(
-                    horizontal: 7,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$quantity',
-                      style: AppTextStyles.sm200(context).copyWith(
-                        color: colors.secondary,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
-    );
+        )
+        .mAnimate()
+        .fadeIn(duration: AppDims.medium, curve: AppDims.soft)
+        .slideY(
+          begin: 0.5,
+          end: 0,
+          duration: AppDims.slow,
+          curve: AppDims.sheetCurve,
+        );
   }
 }

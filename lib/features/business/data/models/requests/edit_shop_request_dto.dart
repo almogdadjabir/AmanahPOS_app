@@ -3,11 +3,7 @@ class EditShopRequestDto {
   final String? address;
   final String? phone;
 
-  const EditShopRequestDto({
-    required this.name,
-    this.address,
-    this.phone,
-  });
+  const EditShopRequestDto({required this.name, this.address, this.phone});
 
   Map<String, dynamic> toJson() => {
     'name': name,

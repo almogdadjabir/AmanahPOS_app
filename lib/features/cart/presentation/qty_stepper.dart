@@ -3,7 +3,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class QtyStepper extends StatelessWidget {
   const QtyStepper({
@@ -24,36 +24,25 @@ class QtyStepper extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
-        borderRadius: BorderRadius.circular(AppDims.rSm),
-        border: Border.all(
-          color: colors.border.withValues(alpha: 0.7),
-        ),
+        borderRadius: AppDims.borderPill,
       ),
       child: SizedBox(
-        height: 34,
+        height: 32,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            QtyButton(
-              icon: SolarIconsOutline.minusCircle,
-              onTap: onMinus,
-            ),
+            QtyButton(icon: PhosphorIconsRegular.minus, onTap: onMinus),
             SizedBox(
-              width: 30,
+              width: 22,
               child: Text(
                 '$qty',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bs300(context).copyWith(
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                ),
+                style: Theme.of(context).textTheme.titleSmall!
+                    .copyWith(color: colors.textPrimary)
+                    .tabular,
               ),
             ),
-            QtyButton(
-              icon: SolarIconsOutline.addCircle,
-              onTap: onPlus,
-            ),
+            QtyButton(icon: PhosphorIconsRegular.plus, onTap: onPlus),
           ],
         ),
       ),

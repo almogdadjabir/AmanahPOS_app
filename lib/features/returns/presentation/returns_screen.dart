@@ -2,7 +2,6 @@ import 'dart:ui' as ui;
 
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/features/returns/presentation/bloc/returns_bloc.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/item_selector_view.dart';
 import 'package:amana_pos/features/returns/presentation/widgets/return_success_sheet.dart';
@@ -18,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ReturnsScreen extends StatefulWidget {
   const ReturnsScreen({
@@ -55,11 +54,6 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
   }
 
   void _onBackPressed(ReturnsState state) {
-    // On desktop, search is always visible — back always navigates out.
-    if (context.isDesktop) {
-      Navigator.of(context).pop();
-      return;
-    }
     if (state.selectedSale != null) {
       context.read<ReturnsBloc>().add(const ReturnsReset());
       return;
@@ -150,125 +144,14 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
                   ),
               ],
             ),
-            body: context.isDesktop
-                ? _DesktopBody(
+            body: hasSale
+                ? ItemSelectorView(state: state)
+                : ReturnsSearchView(
+                    controller: _searchCtrl,
                     state: state,
-                    searchCtrl: _searchCtrl,
-                    colors: colors,
-                  )
-                : (hasSale
-                    ? ItemSelectorView(state: state)
-                    : ReturnsSearchView(
-                        controller: _searchCtrl,
-                        state: state,
-                      )),
+                  ),
           );
         },
-      ),
-    );
-  }
-}
-
-// ── Desktop two-panel body ───────────────────────────────────────────────────
-
-class _DesktopBody extends StatelessWidget {
-  const _DesktopBody({
-    required this.state,
-    required this.searchCtrl,
-    required this.colors,
-  });
-
-  final ReturnsState state;
-  final TextEditingController searchCtrl;
-  final AppThemeColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasSale = state.selectedSale != null;
-
-    return Row(
-      children: [
-        // Left: search always visible on desktop
-        Container(
-          width: 380,
-          decoration: BoxDecoration(
-            border: Border(right: BorderSide(color: colors.border)),
-          ),
-          child: ReturnsSearchView(
-            controller: searchCtrl,
-            state: state,
-          ),
-        ),
-        // Right: item selector or prompt
-        Expanded(
-          child: hasSale
-              ? ItemSelectorView(state: state)
-              : const _DesktopNoSalePrompt(),
-        ),
-      ],
-    );
-  }
-}
-
-class _DesktopNoSalePrompt extends StatelessWidget {
-  const _DesktopNoSalePrompt();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDims.s6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.dangerLight,
-                borderRadius: BorderRadius.circular(AppDims.rXl),
-                border: Border.all(
-                    color: AppColors.danger.withValues(alpha: 0.18)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.danger.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                SolarIconsOutline.undoLeft,
-                size: 32,
-                color: AppColors.danger,
-              ),
-            ),
-            const SizedBox(height: AppDims.s4),
-            Text(
-              context.tr.returnFindSale,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w900,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: AppDims.s2),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 300),
-              child: Text(
-                context.tr.returnFindSaleSubtitle,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bs100(context).copyWith(
-                  color: colors.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -294,7 +177,7 @@ class _BackButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           child: Center(
             child: DirectionalIcon(
-              icon: SolarIconsOutline.altArrowLeft,
+              icon: PhosphorIconsRegular.caretLeft,
               flipInRtl: true,
               size: 22,
               color: colors.textPrimary,
@@ -343,8 +226,8 @@ class _ReturnAllButton extends StatelessWidget {
               children: [
                 Icon(
                   allSelected
-                      ? SolarIconsOutline.closeCircle
-                      : SolarIconsOutline.undoLeft,
+                      ? PhosphorIconsRegular.xCircle
+                      : PhosphorIconsRegular.arrowUUpLeft,
                   size: 14,
                   color: foreground,
                 ),
@@ -394,7 +277,7 @@ class _DefaultAppBarTitle extends StatelessWidget {
             width: 34,
             height: 34,
             child: Icon(
-              SolarIconsOutline.undoLeft,
+              PhosphorIconsRegular.arrowUUpLeft,
               size: 18,
               color: Colors.white,
             ),

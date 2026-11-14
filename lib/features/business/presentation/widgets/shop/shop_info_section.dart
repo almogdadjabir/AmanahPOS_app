@@ -4,15 +4,12 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ShopInfoSection extends StatelessWidget {
   final ShopData shop;
 
-  const ShopInfoSection({
-    super.key,
-    required this.shop,
-  });
+  const ShopInfoSection({super.key, required this.shop});
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +27,8 @@ class ShopInfoSection extends StatelessWidget {
       child: Column(
         children: [
           _InfoRow(
-            icon: SolarIconsBold.recordCircle,
-            iconColor: isActive
-                ? const Color(0xFF22C55E)
-                : colors.textHint,
+            icon: PhosphorIconsFill.record,
+            iconColor: isActive ? const Color(0xFF22C55E) : colors.textHint,
             label: context.tr.status,
             value: isActive ? context.tr.active : context.tr.inactive,
           ),
@@ -42,7 +37,7 @@ class ShopInfoSection extends StatelessWidget {
 
           if (address != null && address.isNotEmpty) ...[
             _InfoRow(
-              icon: SolarIconsOutline.mapPoint,
+              icon: PhosphorIconsRegular.mapPin,
               label: context.tr.address,
               value: address,
             ),
@@ -51,7 +46,7 @@ class ShopInfoSection extends StatelessWidget {
 
           if (phone != null && phone.isNotEmpty)
             _InfoRow(
-              icon: SolarIconsOutline.phone,
+              icon: PhosphorIconsRegular.phone,
               label: context.tr.phone,
               value: phone,
             ),
@@ -85,11 +80,7 @@ class _InfoRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 22,
-            color: iconColor ?? colors.textHint,
-          ),
+          Icon(icon, size: 22, color: iconColor ?? colors.textHint),
           const SizedBox(width: AppDims.s3),
           Text(
             label,
@@ -120,9 +111,7 @@ class _InfoRow extends StatelessWidget {
 class _InfoDivider extends StatelessWidget {
   final Color color;
 
-  const _InfoDivider({
-    required this.color,
-  });
+  const _InfoDivider({required this.color});
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,8 @@ class CapacityItem extends StatelessWidget {
   final String label;
   final int? value;
   final AppThemeColors colors;
-  const CapacityItem({super.key,
+  const CapacityItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
@@ -36,9 +37,9 @@ class CapacityItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: AppTextStyles.bs100(context).copyWith(
-              color: colors.textSecondary,
-            ),
+            style: AppTextStyles.bs100(
+              context,
+            ).copyWith(color: colors.textSecondary),
           ),
         ],
       ),

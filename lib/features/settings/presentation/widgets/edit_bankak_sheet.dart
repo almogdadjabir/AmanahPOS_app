@@ -2,14 +2,15 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/settings/data/models/update_profile_request_dto.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/app_bottom_sheet.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/primary_sheet_button.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
+import 'package:amana_pos/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 
 class EditBankakSheet extends StatefulWidget {
@@ -77,7 +78,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
     return AppBottomSheet(
       title: hasExisting ? tr.bankakChangeTitle : tr.bankakAddTitle,
       subtitle: tr.bankakSheetSubtitle,
-      icon: Icons.account_balance_wallet_outlined,
+      icon: PhosphorIconsRegular.wallet,
       logoAsset: 'assets/images/bankak_logo.png',
       child: Form(
         key: _formKey,
@@ -97,7 +98,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.info_outline_rounded,
+                    PhosphorIconsRegular.info,
                     color: context.appColors.primary,
                     size: 18,
                   ),
@@ -121,7 +122,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
             AppFormField(
               controller: _accountCtrl,
               hint: 'Example: 1234567890',
-              prefixIcon: Icons.numbers_rounded,
+              prefixIcon: PhosphorIconsRegular.hash,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _submit(),
@@ -151,7 +152,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: isLoading ? null : _remove,
-                          icon: const Icon(Icons.delete_outline_rounded),
+                          icon: const Icon(PhosphorIconsRegular.trash),
                           label: Text(tr.bankakRemove),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFFDC2626),
@@ -170,7 +171,7 @@ class _EditBankakSheetState extends State<EditBankakSheet> {
                     ],
                     Expanded(
                       flex: 2,
-                      child: PrimarySheetButton(
+                      child: AppButton.wide(
                         label: hasExisting ? tr.bankakSaveChanges : tr.bankakAddAccount,
                         isLoading: isLoading,
                         onPressed: _submit,

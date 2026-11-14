@@ -12,20 +12,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BusinessDetailScreen extends StatelessWidget {
   final BusinessData business;
 
-  const BusinessDetailScreen({
-    super.key,
-    required this.business,
-  });
+  const BusinessDetailScreen({super.key, required this.business});
 
   @override
   Widget build(BuildContext context) {
     return BlocSelector<BusinessBloc, BusinessState, BusinessData?>(
       selector: (state) => state.businessList?.firstWhere(
-            (b) => b.id == business.id,
+        (b) => b.id == business.id,
         orElse: () => business,
       ),
       builder: (context, data) {
@@ -48,11 +46,7 @@ class BusinessDetailScreen extends StatelessWidget {
                   child: _BusinessProfileCard(business: b)
                       .mAnimate()
                       .fadeIn(duration: 320.ms)
-                      .slideY(
-                    begin: 0.06,
-                    end: 0,
-                    curve: Curves.easeOutCubic,
-                  ),
+                      .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
                 ),
               ),
 
@@ -82,11 +76,7 @@ class BusinessDetailScreen extends StatelessWidget {
                   child: InfoSection(business: b)
                       .mAnimate()
                       .fadeIn(delay: 80.ms, duration: 320.ms)
-                      .slideY(
-                    begin: 0.06,
-                    end: 0,
-                    curve: Curves.easeOutCubic,
-                  ),
+                      .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
                 ),
               ),
 
@@ -98,17 +88,15 @@ class BusinessDetailScreen extends StatelessWidget {
                   0,
                 ),
                 sliver: SliverToBoxAdapter(
-                  child: ShopsSection(
-                    shops: b.shops ?? const [],
-                    businessId: b.id,
-                  )
-                      .mAnimate()
-                      .fadeIn(delay: 140.ms, duration: 320.ms)
-                      .slideY(
-                    begin: 0.06,
-                    end: 0,
-                    curve: Curves.easeOutCubic,
-                  ),
+                  child:
+                      ShopsSection(shops: b.shops ?? const [], businessId: b.id)
+                          .mAnimate()
+                          .fadeIn(delay: 140.ms, duration: 320.ms)
+                          .slideY(
+                            begin: 0.06,
+                            end: 0,
+                            curve: Curves.easeOutCubic,
+                          ),
                 ),
               ),
 
@@ -123,11 +111,7 @@ class BusinessDetailScreen extends StatelessWidget {
                   child: _BusinessSettingsCard()
                       .mAnimate()
                       .fadeIn(delay: 200.ms, duration: 320.ms)
-                      .slideY(
-                    begin: 0.06,
-                    end: 0,
-                    curve: Curves.easeOutCubic,
-                  ),
+                      .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
                 ),
               ),
             ],
@@ -141,9 +125,7 @@ class BusinessDetailScreen extends StatelessWidget {
 class _BusinessProfileCard extends StatelessWidget {
   final BusinessData business;
 
-  const _BusinessProfileCard({
-    required this.business,
-  });
+  const _BusinessProfileCard({required this.business});
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +181,7 @@ class _BusinessProfileCard extends StatelessWidget {
                 Row(
                   children: [
                     _SmallInfoChip(
-                      icon: Icons.store_outlined,
+                      icon: PhosphorIconsRegular.storefront,
                       label: '${business.shopCount ?? 0} shops',
                     ),
                     const SizedBox(width: AppDims.s2),
@@ -218,9 +200,7 @@ class _BusinessProfileCard extends StatelessWidget {
 class _BusinessAvatar extends StatelessWidget {
   final BusinessData business;
 
-  const _BusinessAvatar({
-    required this.business,
-  });
+  const _BusinessAvatar({required this.business});
 
   @override
   Widget build(BuildContext context) {
@@ -236,15 +216,15 @@ class _BusinessAvatar extends StatelessWidget {
       alignment: Alignment.center,
       child: business.logo != null
           ? ClipRRect(
-        borderRadius: BorderRadius.circular(AppDims.rLg),
-        child: Image.network(
-          business.logo!,
-          width: 68,
-          height: 68,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _Initials(business: business),
-        ),
-      )
+              borderRadius: BorderRadius.circular(AppDims.rLg),
+              child: Image.network(
+                business.logo!,
+                width: 68,
+                height: 68,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _Initials(business: business),
+              ),
+            )
           : _Initials(business: business),
     );
   }
@@ -253,18 +233,15 @@ class _BusinessAvatar extends StatelessWidget {
 class _Initials extends StatelessWidget {
   final BusinessData business;
 
-  const _Initials({
-    required this.business,
-  });
+  const _Initials({required this.business});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       business.name?.initials ?? '?',
-      style: AppTextStyles.bs600(context).copyWith(
-        color: context.appColors.primary,
-        fontWeight: FontWeight.w900,
-      ),
+      style: AppTextStyles.bs600(
+        context,
+      ).copyWith(color: context.appColors.primary, fontWeight: FontWeight.w900),
     );
   }
 }
@@ -273,10 +250,7 @@ class _SectionTitle extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _SectionTitle({
-    required this.title,
-    required this.subtitle,
-  });
+  const _SectionTitle({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -287,18 +261,16 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: AppTextStyles.bs600(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-          ),
+          style: AppTextStyles.bs600(
+            context,
+          ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: AppTextStyles.bs200(context).copyWith(
-            color: colors.textHint,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.bs200(
+            context,
+          ).copyWith(color: colors.textHint, fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -309,20 +281,14 @@ class _SmallInfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _SmallInfoChip({
-    required this.icon,
-    required this.label,
-  });
+  const _SmallInfoChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDims.s2,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppDims.s2, vertical: 5),
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(999),
@@ -348,19 +314,14 @@ class _SmallInfoChip extends StatelessWidget {
 class _StatusChip extends StatelessWidget {
   final bool active;
 
-  const _StatusChip({
-    required this.active,
-  });
+  const _StatusChip({required this.active});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDims.s2,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppDims.s2, vertical: 5),
       decoration: BoxDecoration(
         color: active
             ? const Color(0xFF22C55E).withValues(alpha: 0.12)
@@ -389,17 +350,11 @@ class _BusinessSettingsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(AppDims.rMd),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.12)),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.lock_outline_rounded,
-            color: colors.primary,
-            size: 20,
-          ),
+          Icon(PhosphorIconsRegular.lock, color: colors.primary, size: 20),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: Text(

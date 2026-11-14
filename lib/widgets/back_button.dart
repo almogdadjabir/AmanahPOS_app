@@ -1,11 +1,10 @@
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BackButton extends StatelessWidget {
-
-  const BackButton({super.key,});
+  const BackButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +24,7 @@ class BackButton extends StatelessWidget {
             ),
           ),
           child: DirectionalIcon(
-            icon: SolarIconsOutline.altArrowLeft,
+            icon: PhosphorIconsRegular.caretLeft,
             color: context.appColors.textPrimary,
             size: 25,
           ),

@@ -9,7 +9,7 @@ import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ItemSelectorView extends StatelessWidget {
   final ReturnsState state;
@@ -63,7 +63,7 @@ class _ItemSelectorContent extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.saleSquare,
+                PhosphorIconsRegular.tag,
                 size: compact ? 15 : 18,
                 color: AppColors.danger,
               ),
@@ -184,7 +184,7 @@ class _ItemSelectorContent extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(SolarIconsOutline.dangerTriangle,
+                Icon(PhosphorIconsRegular.warning,
                     size: compact ? 13 : 16, color: AppColors.danger),
                 const SizedBox(width: AppDims.s2),
                 Expanded(
@@ -225,7 +225,7 @@ class _ItemSelectorContent extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(SolarIconsOutline.undoLeft,
+                        Icon(PhosphorIconsRegular.arrowUUpLeft,
                             size: compact ? 13 : 15, color: AppColors.danger),
                         const SizedBox(width: 6),
                         Text(

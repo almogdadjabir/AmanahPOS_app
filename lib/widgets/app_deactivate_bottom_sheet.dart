@@ -4,7 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class AppDeactivateBottomSheet extends StatelessWidget {
   const AppDeactivateBottomSheet({
@@ -15,7 +15,7 @@ class AppDeactivateBottomSheet extends StatelessWidget {
     required this.onConfirm,
     this.cancelText,
     this.confirmText,
-    this.icon = SolarIconsOutline.forbiddenCircle,
+    this.icon = PhosphorIconsRegular.prohibit,
     this.confirmIcon,
     this.confirmColor,
   });
@@ -34,11 +34,7 @@ class AppDeactivateBottomSheet extends StatelessWidget {
     required BuildContext context,
     required Widget child,
   }) {
-    return showAdaptivePanel<T>(
-      context,
-      desktopWidth: 360,
-      builder: (_) => child,
-    );
+    return showAdaptivePanel<T>(context, builder: (_) => child);
   }
 
   @override
@@ -52,9 +48,7 @@ class AppDeactivateBottomSheet extends StatelessWidget {
     return AnimatedPadding(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
         top: false,
         child: DecoratedBox(
@@ -83,10 +77,7 @@ class AppDeactivateBottomSheet extends StatelessWidget {
               children: [
                 const _BottomSheetHandle(),
                 const SizedBox(height: AppDims.s4),
-                _DangerIcon(
-                  icon: icon,
-                  color: dangerColor,
-                ),
+                _DangerIcon(icon: icon, color: dangerColor),
                 const SizedBox(height: AppDims.s3),
                 _Title(title: title),
                 const SizedBox(height: AppDims.s2),
@@ -122,19 +113,13 @@ class _BottomSheetHandle extends StatelessWidget {
         color: colors.border,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: const SizedBox(
-        width: 38,
-        height: 4,
-      ),
+      child: const SizedBox(width: 38, height: 4),
     );
   }
 }
 
 class _DangerIcon extends StatelessWidget {
-  const _DangerIcon({
-    required this.icon,
-    required this.color,
-  });
+  const _DangerIcon({required this.icon, required this.color});
 
   final IconData icon;
   final Color color;
@@ -145,27 +130,19 @@ class _DangerIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: color.withValues(alpha: 0.18),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: SizedBox(
         width: 70,
         height: 70,
-        child: Icon(
-          icon,
-          size: 32,
-          color: color,
-        ),
+        child: Icon(icon, size: 32, color: color),
       ),
     );
   }
 }
 
 class _Title extends StatelessWidget {
-  const _Title({
-    required this.title,
-  });
+  const _Title({required this.title});
 
   final String title;
 
@@ -186,9 +163,7 @@ class _Title extends StatelessWidget {
 }
 
 class _Description extends StatelessWidget {
-  const _Description({
-    required this.description,
-  });
+  const _Description({required this.description});
 
   final String description;
 
@@ -197,9 +172,7 @@ class _Description extends StatelessWidget {
     final colors = context.appColors;
 
     return Padding(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppDims.s3,
-      ),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: AppDims.s3),
       child: Text(
         description,
         textAlign: TextAlign.center,
@@ -337,19 +310,19 @@ class _ConfirmButton extends StatelessWidget {
           switchOutCurve: Curves.easeInCubic,
           child: isLoading
               ? const SizedBox(
-            key: ValueKey('loading'),
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: Colors.white,
-            ),
-          )
+                  key: ValueKey('loading'),
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
               : _ConfirmButtonContent(
-            key: const ValueKey('content'),
-            text: text,
-            icon: icon,
-          ),
+                  key: const ValueKey('content'),
+                  text: text,
+                  icon: icon,
+                ),
         ),
       ),
     );
@@ -371,21 +344,16 @@ class _ConfirmButtonContent extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: Colors.white,
-        ),
+        Icon(icon, size: 18, color: Colors.white),
         const SizedBox(width: AppDims.s2),
         Flexible(
           child: Text(
             text,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bs400(context).copyWith(
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppTextStyles.bs400(
+              context,
+            ).copyWith(fontWeight: FontWeight.w900, color: Colors.white),
           ),
         ),
       ],

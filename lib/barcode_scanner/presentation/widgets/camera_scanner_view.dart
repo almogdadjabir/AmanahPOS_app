@@ -2,6 +2,7 @@ import 'package:amana_pos/barcode_scanner/presentation/widgets/scan_line.dart';
 import 'package:amana_pos/barcode_scanner/presentation/widgets/scanner_overlay_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CameraScannerView extends StatelessWidget {
   final MobileScannerController controller;
@@ -46,7 +47,7 @@ class CameraScannerView extends StatelessWidget {
           top: topPadding + 12,
           left: 16,
           child: circleActionButton(
-            icon: Icons.arrow_back_rounded,
+            icon: PhosphorIconsRegular.arrowLeft,
             onTap: onBackPressed,
           ),
         ),
@@ -55,7 +56,7 @@ class CameraScannerView extends StatelessWidget {
           top: topPadding + 12,
           right: 16,
           child: circleActionButton(
-            icon: Icons.flash_on_rounded,
+            icon: PhosphorIconsRegular.lightning,
             onTap: onTorchPressed,
           ),
         ),

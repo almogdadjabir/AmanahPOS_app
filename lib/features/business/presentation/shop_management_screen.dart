@@ -12,22 +12,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ShopManagementScreen extends StatelessWidget {
   final BusinessData business;
 
-  const ShopManagementScreen({
-    super.key,
-    required this.business,
-  });
+  const ShopManagementScreen({super.key, required this.business});
 
   @override
   Widget build(BuildContext context) {
     return BlocSelector<BusinessBloc, BusinessState, BusinessData?>(
       selector: (state) {
         return state.businessList?.firstWhere(
-              (b) => b.id == business.id,
+          (b) => b.id == business.id,
           orElse: () => business,
         );
       },
@@ -47,7 +44,7 @@ class ShopManagementScreen extends StatelessWidget {
                 leading: IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: DirectionalIcon(
-                    icon: SolarIconsOutline.arrowLeft,
+                    icon: PhosphorIconsRegular.arrowLeft,
                     color: context.appColors.textPrimary,
                     size: 22,
                   ),
@@ -69,12 +66,12 @@ class ShopManagementScreen extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 34),
                       ),
-                      icon: const Icon(Icons.add_rounded, size: 17),
+                      icon: const Icon(PhosphorIconsRegular.plus, size: 17),
                       label: Text(
                         context.tr.addShop,
-                        style: AppTextStyles.sm100(context).copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
+                        style: AppTextStyles.sm100(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.w900),
                       ),
                     ),
                   ),
@@ -92,14 +89,9 @@ class ShopManagementScreen extends StatelessWidget {
                   child: ShopQuickStats(shops: shops)
                       .mAnimate()
                       .fadeIn(delay: 80.ms, duration: 320.ms)
-                      .slideY(
-                    begin: 0.06,
-                    end: 0,
-                    curve: Curves.easeOutCubic,
-                  ),
+                      .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
                 ),
               ),
-
 
               if (shops.isEmpty)
                 SliverPadding(
@@ -110,16 +102,18 @@ class ShopManagementScreen extends StatelessWidget {
                     AppDims.s6,
                   ),
                   sliver: SliverToBoxAdapter(
-                    child: _EmptyShopManagement(
-                      onAddTap: () => showAddShopSheet(context, data.id),
-                    )
-                        .mAnimate()
-                        .fadeIn(delay: 120.ms, duration: 320.ms)
-                        .slideY(
-                      begin: 0.06,
-                      end: 0,
-                      curve: Curves.easeOutCubic,
-                    ),
+                    child:
+                        _EmptyShopManagement(
+                              onAddTap: () =>
+                                  showAddShopSheet(context, data.id),
+                            )
+                            .mAnimate()
+                            .fadeIn(delay: 120.ms, duration: 320.ms)
+                            .slideY(
+                              begin: 0.06,
+                              end: 0,
+                              curve: Curves.easeOutCubic,
+                            ),
                   ),
                 )
               else
@@ -133,22 +127,22 @@ class ShopManagementScreen extends StatelessWidget {
                   sliver: SliverList.separated(
                     itemCount: shops.length,
                     separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppDims.s3),
+                        const SizedBox(height: AppDims.s3),
                     itemBuilder: (context, index) {
                       return ShopManagementCard(
-                        shop: shops[index],
-                        businessId: data.id,
-                      )
+                            shop: shops[index],
+                            businessId: data.id,
+                          )
                           .mAnimate()
                           .fadeIn(
-                        delay: Duration(milliseconds: 80 + (index * 40)),
-                        duration: 280.ms,
-                      )
+                            delay: Duration(milliseconds: 80 + (index * 40)),
+                            duration: 280.ms,
+                          )
                           .slideY(
-                        begin: 0.05,
-                        end: 0,
-                        curve: Curves.easeOutCubic,
-                      );
+                            begin: 0.05,
+                            end: 0,
+                            curve: Curves.easeOutCubic,
+                          );
                     },
                   ),
                 ),
@@ -160,13 +154,10 @@ class ShopManagementScreen extends StatelessWidget {
   }
 }
 
-
 class _EmptyShopManagement extends StatelessWidget {
   final VoidCallback onAddTap;
 
-  const _EmptyShopManagement({
-    required this.onAddTap,
-  });
+  const _EmptyShopManagement({required this.onAddTap});
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +181,7 @@ class _EmptyShopManagement extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              SolarIconsOutline.shop,
+              PhosphorIconsRegular.storefront,
               size: 34,
               color: colors.primary,
             ),
@@ -198,10 +189,9 @@ class _EmptyShopManagement extends StatelessWidget {
           const SizedBox(height: AppDims.s3),
           Text(
             context.tr.noShopsYet,
-            style: AppTextStyles.bs600(context).copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
+            style: AppTextStyles.bs600(
+              context,
+            ).copyWith(color: colors.textPrimary, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: AppDims.s1),
           Text(
@@ -219,7 +209,7 @@ class _EmptyShopManagement extends StatelessWidget {
             height: 48,
             child: FilledButton.icon(
               onPressed: onAddTap,
-              icon: const Icon(SolarIconsOutline.addCircle),
+              icon: const Icon(PhosphorIconsRegular.plusCircle),
               label: Text(context.tr.bizAddFirstShop),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,
@@ -227,9 +217,9 @@ class _EmptyShopManagement extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
-                textStyle: AppTextStyles.bs500(context).copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                textStyle: AppTextStyles.bs500(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w900),
               ),
             ),
           ),

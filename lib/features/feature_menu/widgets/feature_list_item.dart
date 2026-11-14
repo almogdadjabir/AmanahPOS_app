@@ -2,6 +2,7 @@ import 'package:amana_pos/features/main_screen/data/section.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class FeatureListItem extends StatefulWidget {
   final SectionItem  item;
@@ -77,7 +78,7 @@ class _FeatureListItemState extends State<FeatureListItem> {
             ),
 
             Icon(
-              Icons.chevron_right_rounded,
+              PhosphorIconsRegular.caretRight,
               size:  20,
               color: active
                   ? color.withValues(alpha: 0.60)

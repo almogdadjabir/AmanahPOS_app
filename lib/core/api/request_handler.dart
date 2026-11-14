@@ -10,12 +10,12 @@ class RequestHandler {
   final DioClient dioClient;
 
   Future<Either<String?, T>> handleGetRequest<T>(
-      String path,
-      T Function(dynamic) fromJson, {
-        dynamic data,
-        Map<String, dynamic>? headers,
-      }) async {
-try {
+    String path,
+    T Function(dynamic) fromJson, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+  }) async {
+    try {
       final response = await dioClient.get(
         path,
         data: data,
@@ -29,33 +29,36 @@ try {
       } else {
         return Left(response.statusMessage);
       }
-} on DioException catch (e) {
-  if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
-  final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
-  return Left(errorMessage);
-} catch (e) {
-  final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
-  return Left(errorMessage);
-}
+    } on DioException catch (e) {
+      if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'GET $path',
+      );
+      return Left(errorMessage);
+    } catch (e) {
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'GET $path',
+      );
+      return Left(errorMessage);
+    }
   }
 
   Future<Either<String?, T>> handlePostRequest<T>(
-      String path,
-      T Function(dynamic) fromJson, {
-        dynamic data,
-        Map<String, dynamic>? headers,
-        ProgressCallback? onSendProgress,
-        ResponseType? responseType,
-      }) async {
+    String path,
+    T Function(dynamic) fromJson, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+    ProgressCallback? onSendProgress,
+    ResponseType? responseType,
+  }) async {
     try {
-
       final isMultipart = data is FormData;
 
       final options = Options(
-        headers: headers ??
-            {
-              if (!isMultipart) 'Content-Type': 'application/json',
-            },
+        headers:
+            headers ?? {if (!isMultipart) 'Content-Type': 'application/json'},
         contentType: isMultipart ? 'multipart/form-data' : null,
         responseType: responseType ?? ResponseType.json,
       );
@@ -82,25 +85,26 @@ try {
       if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
       return Left(_handleDioError(e, 'POST $path'));
     } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'POST $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'POST $path',
+      );
       return Left(errorMessage);
     }
   }
 
   Future<Either<String?, T>> handlePutRequest<T>(
-      String path,
-      T Function(dynamic) fromJson, {
-        dynamic data,
-        Map<String, dynamic>? headers,
-      }) async {
+    String path,
+    T Function(dynamic) fromJson, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+  }) async {
     try {
       final isMultipart = data is FormData;
 
       final options = Options(
-        headers: headers ??
-            {
-              if (!isMultipart) 'Content-Type': 'application/json',
-            },
+        headers:
+            headers ?? {if (!isMultipart) 'Content-Type': 'application/json'},
         contentType: isMultipart ? 'multipart/form-data' : null,
       );
 
@@ -121,25 +125,26 @@ try {
       if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
       return Left(_handleDioError(e, 'PUT $path'));
     } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'PUT $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'PUT $path',
+      );
       return Left(errorMessage);
     }
   }
 
   Future<Either<String?, T>> handlePatchRequest<T>(
-      String path,
-      T Function(dynamic) fromJson, {
-        dynamic data,
-        Map<String, dynamic>? headers,
-      }) async {
+    String path,
+    T Function(dynamic) fromJson, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+  }) async {
     try {
       final isMultipart = data is FormData;
 
       final options = Options(
-        headers: headers ??
-            {
-              if (!isMultipart) 'Content-Type': 'application/json',
-            },
+        headers:
+            headers ?? {if (!isMultipart) 'Content-Type': 'application/json'},
         contentType: isMultipart ? 'multipart/form-data' : null,
       );
       options.extra ??= {};
@@ -148,7 +153,11 @@ try {
         options.extra!['__formDataBackup'] = await _extractFormData(data);
       }
 
-      final response = await dioClient.patch(path, data: data, options: options);
+      final response = await dioClient.patch(
+        path,
+        data: data,
+        options: options,
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return Right(fromJson(response.data));
@@ -159,40 +168,51 @@ try {
       if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
       return Left(_handleDioError(e, 'PUT $path'));
     } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'PUT $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'PUT $path',
+      );
       return Left(errorMessage);
     }
   }
 
   Future<Either<String?, List<T>>> handleGetRequestList<T>(
-      String path,
-      T Function(dynamic) fromJson,
-      ) async {
+    String path,
+    T Function(dynamic) fromJson,
+  ) async {
     try {
       final response = await dioClient.get(path);
 
       if (response.statusCode == 200) {
-        List<T> data = (response.data as List).map((item) => fromJson(item)).toList();
+        List<T> data = (response.data as List)
+            .map((item) => fromJson(item))
+            .toList();
         return Right(data);
       } else {
         return Left(response.statusMessage);
       }
     } on DioException catch (e) {
       if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
-      final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'GET $path',
+      );
       return Left(errorMessage);
     } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'GET $path',
+      );
       return Left(errorMessage);
     }
   }
 
   Future<Either<String?, T>> handleDeleteRequest<T>(
-      String path,
-      T Function(dynamic) fromJson, {
-        dynamic data,
-        Map<String, dynamic>? headers,
-      }) async {
+    String path,
+    T Function(dynamic) fromJson, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+  }) async {
     try {
       final response = await dioClient.delete(
         path,
@@ -209,18 +229,24 @@ try {
       }
     } on DioException catch (e) {
       if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
-      final errorMessage = ErrorHandler.handleException(e, context: 'DELETE $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'DELETE $path',
+      );
       return Left(errorMessage);
     } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'DELETE $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'DELETE $path',
+      );
       return Left(errorMessage);
     }
   }
 
   Future<Either<String?, List<T>>> fetchDataList<T>(
-      String path,
-      T Function(Map<String, dynamic>) fromJson,
-      ) async {
+    String path,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
     try {
       final response = await dioClient.get(path);
 
@@ -234,10 +260,16 @@ try {
       }
     } on DioException catch (e) {
       if (AppInterceptors.isSessionExpiredError(e)) return const Left(null);
-      final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'GET $path',
+      );
       return Left(errorMessage);
     } catch (e) {
-      final errorMessage = ErrorHandler.handleException(e, context: 'GET $path');
+      final errorMessage = ErrorHandler.handleException(
+        e,
+        context: 'GET $path',
+      );
       return Left(errorMessage);
     }
   }
@@ -247,12 +279,12 @@ try {
     final code = _extractErrorCode(data);
 
     // Special codes - return as-is for UI to handle
-    if (code == '78052') return '78052';//RestrictedRegion
-    if (code == '80005') return '80005';//IdentityClaim
-    if (code == '71340') return '71340';// IdentityClaim
+    if (code == '78052') return '78052'; //RestrictedRegion
+    if (code == '80005') return '80005'; //IdentityClaim
+    if (code == '71340') return '71340'; // IdentityClaim
     if (code == '93007') return '93007'; // invalid username/password
-    if (code == '90008') return '90008';// Card not found/user don't have card
-    if (code == '909090') return '909090';//IdentityClaim
+    if (code == '90008') return '90008'; // Card not found/user don't have card
+    if (code == '909090') return '909090'; //IdentityClaim
     if (code == '92011') return '92011'; //phoneReclaim
 
     // Try catalog lookup first
@@ -360,7 +392,9 @@ try {
     for (final f in formData.files) {
       final file = f.value;
       if (file is! ExtendedMultipartFile) {
-        throw Exception('Please use ExtendedMultipartFile to avoid finalize issues');
+        throw Exception(
+          'Please use ExtendedMultipartFile to avoid finalize issues',
+        );
       }
 
       backup.add({

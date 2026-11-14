@@ -1,6 +1,6 @@
 import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class FeatureConfig {
   final AppFeature feature;
@@ -23,7 +23,7 @@ const kFeatureConfigs = <AppFeature, FeatureConfig>{
     feature: AppFeature.categories,
     label: 'Categories',
     subtitle: 'Organize your products',
-    icon: SolarIconsBold.layers,
+    icon: PhosphorIconsFill.stack,
     color: Color(0xFF8B5CF6),
   ),
 
@@ -31,7 +31,7 @@ const kFeatureConfigs = <AppFeature, FeatureConfig>{
     feature: AppFeature.inventory,
     label: 'Stock',
     subtitle: 'Manage inventory levels',
-    icon: SolarIconsBold.box,
+    icon: PhosphorIconsFill.package,
     color: Color(0xFFEC4899),
   ),
 
@@ -39,7 +39,7 @@ const kFeatureConfigs = <AppFeature, FeatureConfig>{
     feature: AppFeature.users,
     label: 'Cashiers',
     subtitle: 'Staff access & accounts',
-    icon: SolarIconsBold.userPlus,
+    icon: PhosphorIconsFill.userPlus,
     color: Color(0xFF0D9488),
   ),
 
@@ -47,7 +47,7 @@ const kFeatureConfigs = <AppFeature, FeatureConfig>{
     feature: AppFeature.customers,
     label: 'Customers',
     subtitle: 'Profiles and loyalty',
-    icon: SolarIconsBold.usersGroupRounded,
+    icon: PhosphorIconsFill.users,
     color: Color(0xFF0EA5E9),
   ),
 };

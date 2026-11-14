@@ -13,11 +13,11 @@ class CategoryBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categories = context.select<ProductBloc, List<CategoryData>>(
-          (bloc) => bloc.state.categories,
+      (bloc) => bloc.state.categories,
     );
 
     final selectedCategoryId = context.select<PosBloc, String?>(
-          (bloc) => bloc.state.selectedCategoryId,
+      (bloc) => bloc.state.selectedCategoryId,
     );
 
     if (categories.isEmpty) {
@@ -25,16 +25,16 @@ class CategoryBar extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 60,
+      height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(
+        padding: const EdgeInsetsDirectional.fromSTEB(
           AppDims.s4,
-          AppDims.s2,
+          0,
           AppDims.s4,
-          AppDims.s2,
+          AppDims.s3,
         ),
         itemCount: categories.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: AppDims.s2),
@@ -45,9 +45,7 @@ class CategoryBar extends StatelessWidget {
               label: context.tr.posAllCategory,
               selected: selectedCategoryId == null,
               onTap: () {
-                context.read<PosBloc>().add(
-                  const PosCategoryChanged(null),
-                );
+                context.read<PosBloc>().add(const PosCategoryChanged(null));
               },
             );
           }
@@ -64,9 +62,7 @@ class CategoryBar extends StatelessWidget {
             label: label,
             selected: selectedCategoryId == categoryId,
             onTap: () {
-              context.read<PosBloc>().add(
-                PosCategoryChanged(categoryId),
-              );
+              context.read<PosBloc>().add(PosCategoryChanged(categoryId));
             },
           );
         },

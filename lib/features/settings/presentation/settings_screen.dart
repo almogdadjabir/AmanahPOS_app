@@ -1,7 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/locale_bloc/locale_bloc.dart';
 import 'package:amana_pos/core/responsive/layout_metrics.dart';
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/config/enum.dart';
@@ -13,7 +12,6 @@ import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/desktop_settings_view.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/owner_header.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_actions.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_group_card.dart';
@@ -29,7 +27,7 @@ import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -61,14 +59,6 @@ class SettingsScreen extends StatelessWidget {
           }
 
           final isOwner = authState.permissions.isOwner;
-
-          if (context.isDesktop) {
-            return DesktopSettingsView(
-              profile: profile,
-              isOwner: isOwner,
-              businessName: authState.defaultBusiness?.name,
-            );
-          }
 
           return _MobileSettingsScreen(profile: profile, isOwner: isOwner);
         },
@@ -131,7 +121,7 @@ class _MobileSettingsScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: DirectionalIcon(
-            icon: SolarIconsOutline.altArrowLeft,
+            icon: PhosphorIconsRegular.caretLeft,
             color: colors.textPrimary,
             size: 22,
           ),
@@ -197,25 +187,25 @@ class _ManageSection extends StatelessWidget {
         SettingsGroupCard(
           items: [
             SettingsRowItem(
-              icon: SolarIconsOutline.layersMinimalistic,
+              icon: PhosphorIconsRegular.stack,
               title: tr.settingsCategories,
               subtitle: tr.settingsCategoriesSubtitle,
               onTap: () => selectMainFeature(context, AppFeature.categories),
             ),
             SettingsRowItem(
-              icon: SolarIconsOutline.userPlus,
+              icon: PhosphorIconsRegular.userPlus,
               title: tr.settingsCashiers,
               subtitle: tr.settingsCashiersSubtitle,
               onTap: () => selectMainFeature(context, AppFeature.users),
             ),
             SettingsRowItem(
-              icon: SolarIconsOutline.usersGroupTwoRounded,
+              icon: PhosphorIconsRegular.users,
               title: tr.settingsCustomers,
               subtitle: tr.settingsCustomersSubtitle,
               onTap: () => selectMainFeature(context, AppFeature.customers),
             ),
             SettingsRowItem(
-              icon: SolarIconsOutline.roundArrowLeftUp,
+              icon: PhosphorIconsRegular.arrowUUpLeft,
               title: tr.settingsReturns,
               subtitle: tr.settingsReturnsSubtitle,
               onTap: () {
@@ -223,7 +213,7 @@ class _ManageSection extends StatelessWidget {
               },
             ),
             SettingsRowItem(
-              icon: SolarIconsOutline.notebook,
+              icon: PhosphorIconsRegular.notebook,
               title: tr.settingsSalesHistory,
               subtitle: tr.settingsSalesHistorySubtitle,
               onTap: () {
@@ -255,7 +245,7 @@ class _DevicesSection extends StatelessWidget {
               builder: (context, state) {
                 final printer = state.savedPrinter;
                 return SettingsRowItem(
-                  icon: SolarIconsOutline.printer,
+                  icon: PhosphorIconsRegular.printer,
                   title: printer?.name ?? tr.settingsAddPrinter,
                   subtitle: printer != null
                       ? state.status.label(context)
@@ -296,7 +286,7 @@ class _AccountSection extends StatelessWidget {
         SettingsGroupCard(
           items: [
             SettingsRowItem(
-              icon: SolarIconsOutline.user,
+              icon: PhosphorIconsRegular.user,
               title: tr.settingsProfile,
               subtitle: profileSubtitle(context, profile),
               trailing: tr.commonEdit,
@@ -304,7 +294,7 @@ class _AccountSection extends StatelessWidget {
             ),
             if (isOwner)
               SettingsRowItem(
-                icon: SolarIconsOutline.card,
+                icon: PhosphorIconsRegular.creditCard,
                 iconColor: const Color(0xFF2DD4BF),
                 title: tr.settingsBankakPayments,
                 subtitle: bankakSubtitle(context, profile),
@@ -314,7 +304,7 @@ class _AccountSection extends StatelessWidget {
                 onTap: () => openBankakSheet(context, profile),
               ),
             SettingsRowItem(
-              icon: SolarIconsOutline.lockPassword,
+              icon: PhosphorIconsRegular.lockKey,
               iconColor: const Color(0xFF94A3B8),
               title: tr.settingsPassword,
               subtitle: tr.settingsPasswordSubtitle,
@@ -322,7 +312,7 @@ class _AccountSection extends StatelessWidget {
               onTap: () => openPasswordSheet(context),
             ),
             SettingsRowItem(
-              icon: SolarIconsOutline.lockKeyhole,
+              icon: PhosphorIconsRegular.lockKey,
               title: 'Change PIN',
               subtitle: 'Update your unlock PIN',
               onTap: () {
@@ -335,7 +325,7 @@ class _AccountSection extends StatelessWidget {
               },
             ),
             SettingsRowItem(
-              icon: SolarIconsOutline.forbiddenCircle,
+              icon: PhosphorIconsRegular.prohibit,
               iconColor: const Color(0xFFEF4444),
               title: 'Disable PIN',
               subtitle: 'Remove PIN unlock on this device',
@@ -453,7 +443,7 @@ class _SupportSection extends StatelessWidget {
         SettingsGroupCard(
           items: [
             SettingsRowItem(
-              icon: SolarIconsOutline.chatRound,
+              icon: PhosphorIconsRegular.chatCircle,
               iconColor: const Color(0xFF25D366),
               title: tr.settingsWhatsappSupport,
               subtitle: '+249 91 230 0000',
@@ -465,7 +455,7 @@ class _SupportSection extends StatelessWidget {
               selector: (state) => state.locale,
               builder: (context, locale) {
                 return SettingsRowItem(
-                  icon: SolarIconsOutline.global,
+                  icon: PhosphorIconsRegular.globe,
                   title: tr.settingsLanguage,
                   subtitle: tr.currentLanguageName,
                   onTap: () => openLanguageSheet(context),
@@ -490,7 +480,7 @@ class _SignOutButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: () => confirmLogout(context),
       icon: Icon(
-        Icons.logout_rounded,
+        PhosphorIconsRegular.signOut,
         size: 18,
         color: colors.danger,
       ),

@@ -131,7 +131,8 @@ class AppRouter {
         );
 
       case RouteStrings.barcodeScannerScreen:
-        return _materialOrInstant(
+        // Typed so callers can `pushNamed<String>` and receive the code.
+        return _materialOrInstant<String>(
           FeatureBlocProviders.barcodeScanner(
             child: const BarcodeScannerScreen(),
           ),
@@ -210,8 +211,8 @@ class AppRouter {
   /// Returns an instant (zero-duration, no-transition) route. Used by both
   /// [_buildRoute] when motion is off and [_materialOrInstant] for screens
   /// that previously used [MaterialPageRoute] directly.
-  PageRoute _instantRoute(Widget child, RouteSettings settings) {
-    return PageRouteBuilder(
+  PageRoute<T> _instantRoute<T>(Widget child, RouteSettings settings) {
+    return PageRouteBuilder<T>(
       settings: settings,
       pageBuilder: (context, animation, secondaryAnimation) => child,
       transitionsBuilder: (context, animation, secondaryAnimation, child) =>
@@ -224,9 +225,9 @@ class AppRouter {
   /// When motion is on, returns a standard [MaterialPageRoute] (vertical
   /// slide-up transition). When motion is off, returns an instant route so
   /// screens that bypassed [_buildRoute] still respect the off-switch.
-  PageRoute _materialOrInstant(Widget child, RouteSettings settings) {
-    if (!Motion.on) return _instantRoute(child, settings);
-    return MaterialPageRoute(builder: (_) => child, settings: settings);
+  PageRoute<T> _materialOrInstant<T>(Widget child, RouteSettings settings) {
+    if (!Motion.on) return _instantRoute<T>(child, settings);
+    return MaterialPageRoute<T>(builder: (_) => child, settings: settings);
   }
 
   PageRoute _buildRoute(Widget child, RouteSettings settings) {

@@ -24,7 +24,7 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:amana_pos/widgets/optional_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showAddProductSheet(
     BuildContext context, {
@@ -35,7 +35,6 @@ void showAddProductSheet(
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     showDragHandle: false,
     builder: (_) => BlocProvider.value(
       value: productBloc,
@@ -314,7 +313,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                 focusNode: _nameFocus,
                 nextFocus: _priceFocus,
                 hint: tr.productNameHint,
-                prefixIcon: SolarIconsOutline.box,
+                prefixIcon: PhosphorIconsRegular.package,
                 validator: (value) => ProductFormValidators.name(context, value),
               ),
 
@@ -387,7 +386,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                 focusNode: _descFocus,
                 nextFocus: _skuFocus,
                 hint: tr.productDescriptionHint,
-                prefixIcon: SolarIconsOutline.notes,
+                prefixIcon: PhosphorIconsRegular.notepad,
                 maxLines: 3,
               ),
 
@@ -401,7 +400,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                   focusNode: _skuFocus,
                   nextFocus: _barcodeFocus,
                   hint: 'SKU-001',
-                  prefixIcon: SolarIconsOutline.qrCode,
+                  prefixIcon: PhosphorIconsRegular.qrCode,
                 ),
 
                 const SizedBox(height: AppDims.s3),
@@ -485,7 +484,7 @@ class _AutoCategoryInfo extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.magicStick_3,
+                PhosphorIconsRegular.magicWand,
                 size: 18,
                 color: colors.primary,
               ),
@@ -582,7 +581,7 @@ class _OpeningStockSection extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    SolarIconsOutline.box,
+                    PhosphorIconsRegular.package,
                     size: 18,
                     color: colors.primary,
                   ),
@@ -626,7 +625,7 @@ class _OpeningStockSection extends StatelessWidget {
                 focusNode: focusNode,
                 nextFocus: nextFocus,
                 hint: 'e.g. 50',
-                prefixIcon: Icons.inventory_2_outlined,
+                prefixIcon: PhosphorIconsRegular.package,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -686,7 +685,7 @@ class _OpeningStockSection extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      SolarIconsOutline.shop_2,
+                      PhosphorIconsRegular.storefront,
                       size: 14,
                       color: colors.textHint,
                     ),

@@ -1,11 +1,10 @@
-import 'package:amana_pos/core/responsive/responsive.dart';
 import 'package:amana_pos/widgets/login_country.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 int phoneMaxLength(String value) => value.startsWith('0') ? 10 : 9;
 
@@ -131,106 +130,101 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
 
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                height: context.isDesktop ? 42 : 56,
+                height: 56,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: colors.surfaceSoft,
-                  borderRadius: AppRadius.borderMd,
+                  borderRadius: AppDims.borderMd,
                   border: Border.all(color: borderColor, width: 1.5),
                 ),
                 child: Directionality(
-                textDirection: TextDirection.ltr,
-                child: Row(
-                  children: [
-                    _CountryChip(
-                      country: widget.country,
-                      onCountryChanged: widget.onCountryChanged,
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 10,
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                    children: [
+                      _CountryChip(
+                        country: widget.country,
+                        onCountryChanged: widget.onCountryChanged,
                       ),
-                      child: VerticalDivider(
-                        width: 1,
-                        thickness: 1,
-                        color: colors.border,
-                      ),
-                    ),
 
-                    Expanded(
-                      child: ValueListenableBuilder(
-                        valueListenable: _maxLength,
-                        builder: (context, maxLen, _) {
-                          return TextField(
-                            controller: widget.controller,
-                            focusNode: _focusNode,
-                            keyboardType: TextInputType.phone,
-                            textDirection: TextDirection.ltr,
-                            textAlign: TextAlign.left,
-                            maxLength: maxLen,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(maxLen),
-                            ],
-                            style: AppTextStyles.bs200(
-                              context,
-                              weight: AppTextStyles.semibold,
-                              color: colors.textPrimary,
-                            ).copyWith(
-                              fontSize: context.isDesktop ? 16 : null,
-                            ),
-                            decoration: InputDecoration(
-                              filled: false,
-                              hintText: widget.country.hint,
-                              hintTextDirection: TextDirection.ltr,
-                              hintStyle: AppTextStyles.bs200(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDims.s3,
+                          vertical: 10,
+                        ),
+                        child: VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color: colors.border,
+                        ),
+                      ),
+
+                      Expanded(
+                        child: ValueListenableBuilder(
+                          valueListenable: _maxLength,
+                          builder: (context, maxLen, _) {
+                            return TextField(
+                              controller: widget.controller,
+                              focusNode: _focusNode,
+                              keyboardType: TextInputType.phone,
+                              textDirection: TextDirection.ltr,
+                              textAlign: TextAlign.left,
+                              maxLength: maxLen,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(maxLen),
+                              ],
+                              style: AppTextStyles.bs200(
                                 context,
-                                color: colors.textHint,
-                              ).copyWith(
-                                fontSize: context.isDesktop ? 16 : null,
+                                weight: AppTextStyles.semibold,
+                                color: colors.textPrimary,
                               ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              counterText: '',
-                              contentPadding: EdgeInsets.zero,
-                              isDense: true,
+                              decoration: InputDecoration(
+                                filled: false,
+                                hintText: widget.country.hint,
+                                hintTextDirection: TextDirection.ltr,
+                                hintStyle: AppTextStyles.bs200(
+                                  context,
+                                  color: colors.textHint,
+                                ),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                counterText: '',
+                                contentPadding: EdgeInsets.zero,
+                                isDense: true,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      ValueListenableBuilder(
+                        valueListenable: _hasContent,
+                        builder: (context, hasContent, _) {
+                          if (!hasContent) return const SizedBox.shrink();
+
+                          return GestureDetector(
+                            onTap: _clearField,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppDims.s2,
+                              ),
+                              child: Icon(
+                                PhosphorIconsRegular.xCircle,
+                                size: 18,
+                                color: colors.textHint,
+                              ),
                             ),
                           );
                         },
                       ),
-                    ),
-
-                    ValueListenableBuilder(
-                      valueListenable: _hasContent,
-                      builder: (context, hasContent, _) {
-                        if (!hasContent) return const SizedBox.shrink();
-
-                        return GestureDetector(
-                          onTap: _clearField,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
-                            ),
-                            child: Icon(
-                              SolarIconsOutline.closeCircle,
-                              size: 18,
-                              color: colors.textHint,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
               );
             },
           ),
         ),
-
       ],
     );
   }
@@ -253,33 +247,42 @@ class _CountryChip extends StatelessWidget {
       context,
       weight: AppTextStyles.bold,
       color: colors.textPrimary,
-    ).copyWith(fontSize: context.isDesktop ? 16 : null);
+    );
 
     Widget content(VoidCallback? onTap) => GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.only(left: AppSpacing.md),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(country.flag, style: AppTextStyles.bs200(
-                  context,
-                  weight: AppTextStyles.semibold,
-                  color: colors.textPrimary,
-                )),
-                const SizedBox(width: 6),
-                Text(country.dialCode,
-                    textDirection: TextDirection.ltr, style: dialStyle),
-                if (selectable) ...[
-                  const SizedBox(width: 2),
-                  Icon(SolarIconsOutline.altArrowDown,
-                      size: 16, color: colors.textHint),
-                ],
-              ],
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(left: AppDims.s4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              country.flag,
+              style: AppTextStyles.bs200(
+                context,
+                weight: AppTextStyles.semibold,
+                color: colors.textPrimary,
+              ),
             ),
-          ),
-        );
+            const SizedBox(width: 6),
+            Text(
+              country.dialCode,
+              textDirection: TextDirection.ltr,
+              style: dialStyle,
+            ),
+            if (selectable) ...[
+              const SizedBox(width: 2),
+              Icon(
+                PhosphorIconsRegular.caretDown,
+                size: 16,
+                color: colors.textHint,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
 
     if (!selectable) return content(null);
 
@@ -289,11 +292,11 @@ class _CountryChip extends StatelessWidget {
         elevation: const WidgetStatePropertyAll(8),
         shadowColor: WidgetStatePropertyAll(colors.shadow),
         padding: const WidgetStatePropertyAll(
-          EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          EdgeInsets.symmetric(vertical: AppDims.s2),
         ),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            borderRadius: AppRadius.borderMd,
+            borderRadius: AppDims.borderMd,
             side: BorderSide(color: colors.border),
           ),
         ),
@@ -331,10 +334,10 @@ class _CountryMenuItem extends StatelessWidget {
       onPressed: onTap,
       leadingIcon: Text(country.flag, style: const TextStyle(fontSize: 12)),
       trailingIcon: selected
-          ? Icon(SolarIconsOutline.checkCircle, size: 12, color: colors.primary)
+          ? Icon(PhosphorIconsRegular.checkCircle, size: 12, color: colors.primary)
           : const SizedBox(width: 12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppDims.s2),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -346,7 +349,7 @@ class _CountryMenuItem extends StatelessWidget {
                 color: colors.textPrimary,
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppDims.s3),
             Text(
               country.dialCode,
               textDirection: TextDirection.ltr,

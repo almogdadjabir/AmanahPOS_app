@@ -182,7 +182,7 @@ class _OTPInputSquareState extends State<OTPInputSquare>
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: widget.is6Digit ? AppSpacing.xxs : AppSpacing.xs,
+        horizontal: widget.is6Digit ? AppDims.s1 : AppDims.s2,
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -190,7 +190,7 @@ class _OTPInputSquareState extends State<OTPInputSquare>
         height: 60,
         decoration: BoxDecoration(
           color: _boxColor(colors),
-          borderRadius: AppRadius.borderMd,
+          borderRadius: AppDims.borderMd,
           border: Border.all(color: _borderColor(colors), width: 1.5),
           boxShadow: isFilled && !widget.hasError && !widget.isOTPMatched
               ? [

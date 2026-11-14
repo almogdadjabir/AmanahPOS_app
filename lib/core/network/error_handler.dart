@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 class ErrorHandler {
-
   static String handleError(Response response, {String? context}) {
     // Extract error message
     if (response.data is Map && response.data.containsKey('detail')) {
@@ -17,26 +16,25 @@ class ErrorHandler {
   }
 
   static String handleException(
-      dynamic exception, {
-        String? context,
-        Map<String, dynamic>? extras,
-      }) {
+    dynamic exception, {
+    String? context,
+    Map<String, dynamic>? extras,
+  }) {
     final errorMessage = NetworkExceptions.getErrorMessage(exception);
 
     // Only report non-network exceptions to Sentry
     if (exception is DioException) {
       _handleDioException(exception, context, extras);
-    } else {
-    }
+    } else {}
 
     return errorMessage;
   }
 
   static void _handleDioException(
-      DioException exception,
-      String? context,
-      Map<String, dynamic>? extras,
-      ) {
+    DioException exception,
+    String? context,
+    Map<String, dynamic>? extras,
+  ) {
     final statusCode = exception.response?.statusCode;
 
     // Skip network errors (they're noisy and not actionable)

@@ -6,17 +6,13 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/back_button.dart' as app;
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ShopAppBar extends StatelessWidget {
   final String businessId;
   final ShopData shop;
 
-  const ShopAppBar({
-    super.key,
-    required this.businessId,
-    required this.shop,
-  });
+  const ShopAppBar({super.key, required this.businessId, required this.shop});
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +28,10 @@ class ShopAppBar extends StatelessWidget {
       actions: [
         IconButton(
           onPressed: () {
-            showEditShopSheet(
-              context,
-              businessId: businessId,
-              shop: shop,
-            );
+            showEditShopSheet(context, businessId: businessId, shop: shop);
           },
           icon: Icon(
-            SolarIconsOutline.pen,
+            PhosphorIconsRegular.pencilSimple,
             color: colors.textPrimary,
             size: 20,
           ),
@@ -48,9 +40,7 @@ class ShopAppBar extends StatelessWidget {
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.surface,
-          ),
+          decoration: BoxDecoration(color: colors.surface),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -63,7 +53,7 @@ class ShopAppBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
                 child: Icon(
-                  SolarIconsOutline.shop,
+                  PhosphorIconsRegular.storefront,
                   size: 30,
                   color: colors.primary,
                 ),

@@ -6,7 +6,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ShopManagementCard extends StatelessWidget {
   final ShopData shop;
@@ -33,10 +33,7 @@ class ShopManagementCard extends StatelessWidget {
 
           Navigator.of(context).pushNamed(
             RouteStrings.shopDetailScreen,
-            arguments: {
-              'businessId': businessId,
-              'shop': shop,
-            },
+            arguments: {'businessId': businessId, 'shop': shop},
           );
         },
         child: Container(
@@ -55,7 +52,7 @@ class ShopManagementCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppDims.rMd),
                 ),
                 child: Icon(
-                  SolarIconsOutline.shop,
+                  PhosphorIconsRegular.storefront,
                   color: colors.primary,
                   size: 26,
                 ),
@@ -83,7 +80,7 @@ class ShopManagementCard extends StatelessWidget {
                       Row(
                         children: [
                           Icon(
-                            SolarIconsOutline.mapPoint,
+                            PhosphorIconsRegular.mapPin,
                             size: 14,
                             color: colors.textHint,
                           ),
@@ -133,7 +130,7 @@ class ShopManagementCard extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
 
               DirectionalIcon(
-                icon: SolarIconsOutline.altArrowRight,
+                icon: PhosphorIconsRegular.caretRight,
                 color: colors.textHint,
                 size: 22,
               ),

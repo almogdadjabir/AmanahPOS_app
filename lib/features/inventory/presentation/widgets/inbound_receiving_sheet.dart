@@ -16,7 +16,7 @@ import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showInboundReceivingSheet(BuildContext context) {
   final inventoryBloc = context.read<InventoryBloc>();
@@ -32,7 +32,6 @@ void showInboundReceivingSheet(BuildContext context) {
 
   showAdaptivePanel<void>(
     context,
-    desktopWidth: 480,
     builder: (_) => MultiBlocProvider(
       providers: [
         BlocProvider.value(value: inventoryBloc),
@@ -117,7 +116,6 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
 
     final selected = await showAdaptivePanel<VendorData>(
       context,
-      desktopWidth: 480,
       builder: (_) => _VendorPickerSheet(
         vendors: vendors,
         selectedVendorId: _selectedVendorId,
@@ -155,7 +153,6 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
 
     final picked = await showAdaptivePanel<ProductData>(
       context,
-      desktopWidth: 480,
       builder: (_) => _ProductPickerSheet(
         products: products,
         selectedProductId: _items[index].product?.id,
@@ -368,7 +365,7 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
                               TextButton.icon(
                                 onPressed: _addItem,
                                 icon: const Icon(
-                                  SolarIconsOutline.addCircle,
+                                  PhosphorIconsRegular.plusCircle,
                                   size: 18,
                                 ),
                                 label: const Text('Add item'),
@@ -391,7 +388,7 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
                                 return const _InlineLoadingCard(
                                   title: 'Loading products...',
                                   subtitle: 'Preparing product list for receiving.',
-                                  icon: SolarIconsOutline.bag5,
+                                  icon: PhosphorIconsRegular.shoppingBag,
                                 );
                               }
 
@@ -400,7 +397,7 @@ class _InboundReceivingSheetState extends State<_InboundReceivingSheet> {
                                   title: 'No products found',
                                   subtitle:
                                   'Create products first before receiving stock.',
-                                  icon: SolarIconsOutline.bag5,
+                                  icon: PhosphorIconsRegular.shoppingBag,
                                   actionLabel: 'Retry',
                                   onAction: () {
                                     context.read<ProductBloc>().add(
@@ -488,7 +485,7 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppDims.rLg),
             ),
             child: Icon(
-              SolarIconsOutline.box,
+              PhosphorIconsRegular.package,
               color: colors.primary,
               size: 22,
             ),
@@ -523,7 +520,7 @@ class _Header extends StatelessWidget {
           IconButton(
             onPressed: onClose,
             icon: Icon(
-              SolarIconsOutline.closeCircle,
+              PhosphorIconsRegular.xCircle,
               color: colors.textHint,
             ),
           ),
@@ -561,7 +558,7 @@ class _PremiumIntroCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppDims.rLg),
             ),
             child: Icon(
-              SolarIconsOutline.box,
+              PhosphorIconsRegular.package,
               color: colors.primary,
               size: 28,
             ),
@@ -655,7 +652,7 @@ class _ReferenceCard extends StatelessWidget {
           AppFormField(
             controller: referenceCtrl,
             hint: 'PO-2026-0001',
-            prefixIcon: SolarIconsOutline.notes,
+            prefixIcon: PhosphorIconsRegular.notepad,
             textInputAction: TextInputAction.next,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -686,7 +683,7 @@ class _ReferenceCard extends StatelessWidget {
             validator: (value) => value == null ? 'Shop is required' : null,
             decoration: _dropdownDecoration(
               context: context,
-              icon: SolarIconsOutline.shop,
+              icon: PhosphorIconsRegular.storefront,
               hint: shops.isEmpty ? 'No shops available' : 'Select shop',
             ),
           ),
@@ -711,7 +708,7 @@ class _ReferenceCard extends StatelessWidget {
           AppFormField(
             controller: notesCtrl,
             hint: 'Supplier delivery note',
-            prefixIcon: SolarIconsOutline.notes,
+            prefixIcon: PhosphorIconsRegular.notepad,
             textInputAction: TextInputAction.newline,
             maxLines: 2,
           ),
@@ -777,7 +774,7 @@ class _VendorSelectorField extends StatelessWidget {
       return const _PickerLikeField(
         title: 'Loading vendors...',
         subtitle: 'Preparing supplier list',
-        icon: SolarIconsOutline.buildings,
+        icon: PhosphorIconsRegular.buildings,
         trailing: SizedBox(
           width: 18,
           height: 18,
@@ -790,7 +787,7 @@ class _VendorSelectorField extends StatelessWidget {
       return _PickerLikeField(
         title: 'Could not load vendors',
         subtitle: error ?? 'Tap retry to load suppliers again',
-        icon: SolarIconsOutline.buildings,
+        icon: PhosphorIconsRegular.buildings,
         trailing: TextButton(
           onPressed: onRetry,
           child: const Text('Retry'),
@@ -802,7 +799,7 @@ class _VendorSelectorField extends StatelessWidget {
       return _PickerLikeField(
         title: 'No vendors available',
         subtitle: 'Create a vendor first, then receive stock',
-        icon: SolarIconsOutline.buildings,
+        icon: PhosphorIconsRegular.buildings,
         trailing: TextButton(
           onPressed: onRetry,
           child: const Text('Refresh'),
@@ -844,7 +841,7 @@ class _VendorSelectorField extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        SolarIconsOutline.buildings,
+                        PhosphorIconsRegular.buildings,
                         size: 18,
                         color: hasError ? colors.danger : colors.textHint,
                       ),
@@ -884,7 +881,7 @@ class _VendorSelectorField extends StatelessWidget {
                       ),
                       const SizedBox(width: AppDims.s2),
                       Icon(
-                        SolarIconsOutline.altArrowDown,
+                        PhosphorIconsRegular.caretDown,
                         color: colors.textHint,
                         size: 18,
                       ),
@@ -975,7 +972,7 @@ class _InboundItemCard extends StatelessWidget {
                 IconButton(
                   onPressed: onRemove,
                   icon: Icon(
-                    SolarIconsOutline.trashBinTrash,
+                    PhosphorIconsRegular.trash,
                     color: colors.danger,
                   ),
                 ),
@@ -989,7 +986,7 @@ class _InboundItemCard extends StatelessWidget {
             _PickerLikeButton(
               title: 'Select product',
               subtitle: 'Search by name, SKU, or barcode',
-              icon: SolarIconsOutline.bag5,
+              icon: PhosphorIconsRegular.shoppingBag,
               onTap: onPickProduct,
             )
           else
@@ -1010,7 +1007,7 @@ class _InboundItemCard extends StatelessWidget {
                 child: AppFormField(
                   controller: item.quantityCtrl,
                   hint: '10',
-                  prefixIcon: SolarIconsOutline.addCircle,
+                  prefixIcon: PhosphorIconsRegular.plusCircle,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -1024,7 +1021,7 @@ class _InboundItemCard extends StatelessWidget {
                 child: AppFormField(
                   controller: item.unitCostCtrl,
                   hint: '0.00',
-                  prefixIcon: SolarIconsOutline.walletMoney,
+                  prefixIcon: PhosphorIconsRegular.wallet,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -1072,7 +1069,7 @@ class _InboundItemCard extends StatelessWidget {
                 child: AppFormField(
                   controller: item.batchCtrl,
                   hint: 'BATCH-A',
-                  prefixIcon: SolarIconsOutline.tag,
+                  prefixIcon: PhosphorIconsRegular.tag,
                   textInputAction: TextInputAction.done,
                 ),
               );
@@ -1173,7 +1170,7 @@ class _DatePickerField extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.calendar,
+                PhosphorIconsRegular.calendarBlank,
                 color: colors.textHint,
                 size: 18,
               ),
@@ -1233,7 +1230,7 @@ class _SelectedProductRow extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                SolarIconsOutline.bag5,
+                PhosphorIconsRegular.shoppingBag,
                 color: colors.primary,
                 size: 23,
               ),
@@ -1348,7 +1345,7 @@ class _SubmitBar extends StatelessWidget {
                   : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(SolarIconsOutline.box, size: 22),
+                  const Icon(PhosphorIconsRegular.package, size: 22),
                   const SizedBox(width: AppDims.s2),
                   Text(
                     'Receive Stock',
@@ -1462,7 +1459,7 @@ class _VendorPickerSheetState extends State<_VendorPickerSheet> {
                 _PickerHeader(
                   title: 'Select Vendor',
                   subtitle: 'Choose the supplier for this receipt',
-                  icon: SolarIconsOutline.buildings,
+                  icon: PhosphorIconsRegular.buildings,
                   onClose: () => Navigator.pop(context),
                 ),
                 _PickerSearchField(
@@ -1480,7 +1477,7 @@ class _VendorPickerSheetState extends State<_VendorPickerSheet> {
                       ? _PickerEmptyState(
                     title: 'No vendors found',
                     subtitle: 'Try another search keyword.',
-                    icon: SolarIconsOutline.buildings,
+                    icon: PhosphorIconsRegular.buildings,
                   )
                       : ListView.separated(
                     controller: scrollController,
@@ -1607,7 +1604,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                 _PickerHeader(
                   title: 'Select Product',
                   subtitle: 'Choose the item you received',
-                  icon: SolarIconsOutline.bag5,
+                  icon: PhosphorIconsRegular.shoppingBag,
                   onClose: () => Navigator.pop(context),
                 ),
                 _PickerSearchField(
@@ -1625,7 +1622,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                       ? _PickerEmptyState(
                     title: 'No products found',
                     subtitle: 'Try another search keyword.',
-                    icon: SolarIconsOutline.bag5,
+                    icon: PhosphorIconsRegular.shoppingBag,
                   )
                       : ListView.separated(
                     controller: scrollController,
@@ -1721,7 +1718,7 @@ class _PickerHeader extends StatelessWidget {
           IconButton(
             onPressed: onClose,
             icon: Icon(
-              SolarIconsOutline.closeCircle,
+              PhosphorIconsRegular.xCircle,
               color: colors.textSecondary,
             ),
           ),
@@ -1760,7 +1757,7 @@ class _PickerSearchField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(
-            SolarIconsOutline.magnifier,
+            PhosphorIconsRegular.magnifyingGlass,
             color: colors.textSecondary,
             size: 20,
           ),
@@ -1772,7 +1769,7 @@ class _PickerSearchField extends StatelessWidget {
               onChanged('');
             },
             icon: Icon(
-              SolarIconsOutline.closeCircle,
+              PhosphorIconsRegular.xCircle,
               color: colors.textSecondary,
               size: 20,
             ),
@@ -1873,7 +1870,7 @@ class _VendorTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  SolarIconsOutline.buildings,
+                  PhosphorIconsRegular.buildings,
                   color: colors.primary,
                   size: 19,
                 ),
@@ -1922,8 +1919,8 @@ class _VendorTile extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               DirectionalIcon(
                 icon: isSelected
-                    ? SolarIconsOutline.checkCircle
-                    : SolarIconsOutline.altArrowRight,
+                    ? PhosphorIconsRegular.checkCircle
+                    : PhosphorIconsRegular.caretRight,
                 flipInRtl: !isSelected,
                 size: 19,
                 color: isSelected ? colors.primary : colors.textHint,
@@ -1971,7 +1968,7 @@ class _ProductTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  SolarIconsOutline.bag5,
+                  PhosphorIconsRegular.shoppingBag,
                   color: colors.primary,
                   size: 19,
                 ),
@@ -2018,8 +2015,8 @@ class _ProductTile extends StatelessWidget {
               const SizedBox(width: AppDims.s2),
               DirectionalIcon(
                 icon: isSelected
-                    ? SolarIconsOutline.checkCircle
-                    : SolarIconsOutline.altArrowRight,
+                    ? PhosphorIconsRegular.checkCircle
+                    : PhosphorIconsRegular.caretRight,
                 flipInRtl: !isSelected,
                 size: 19,
                 color: isSelected ? colors.primary : colors.textHint,
@@ -2097,7 +2094,7 @@ class _PickerLikeButton extends StatelessWidget {
               ),
               const SizedBox(width: AppDims.s2),
               Icon(
-                SolarIconsOutline.altArrowDown,
+                PhosphorIconsRegular.caretDown,
                 color: colors.textHint,
                 size: 18,
               ),

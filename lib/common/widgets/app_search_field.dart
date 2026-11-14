@@ -2,7 +2,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// Unified search field widget used across the app.
 ///
@@ -40,7 +40,7 @@ class AppSearchField extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: AppDims.s3),
-          Icon(SolarIconsOutline.magnifier, size: 18, color: colors.textHint),
+          Icon(PhosphorIconsRegular.magnifyingGlass, size: 18, color: colors.textHint),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: TextField(
@@ -55,10 +55,9 @@ class AppSearchField extends StatelessWidget {
                 isDense: true,
                 border: InputBorder.none,
                 hintText: hint,
-                hintStyle: AppTextStyles.bs300(context).copyWith(
-                  color: colors.textHint,
-                  fontWeight: FontWeight.w500,
-                ),
+                hintStyle: AppTextStyles.bs300(
+                  context,
+                ).copyWith(color: colors.textHint, fontWeight: FontWeight.w500),
               ),
             ),
           ),

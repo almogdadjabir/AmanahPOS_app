@@ -1,13 +1,13 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
-import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/widgets/app_button.dart';
+import 'package:amana_pos/widgets/app_sheet.dart';
 import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductSheetShell extends StatelessWidget {
   final String title;
@@ -25,120 +25,12 @@ class ProductSheetShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final screenHeight = MediaQuery.sizeOf(context).height;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppDims.rXl),
-          ),
-        ),
-        child: ConstrainedBox(
-          constraints: maxHeightFactor < 1.0
-              ? BoxConstraints(maxHeight: screenHeight * maxHeightFactor)
-              : const BoxConstraints(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s4,
-                  0,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _SheetTitleBlock(
-                        title: title,
-                        subtitle: subtitle,
-                      ),
-                    ),
-
-                    const SizedBox(width: AppDims.s2),
-
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: colors.surfaceSoft,
-                        fixedSize: const Size(42, 42),
-                        minimumSize: const Size(42, 42),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDims.rSm),
-                        ),
-                      ),
-                      icon: Icon(
-                        Icons.close,
-                        size: 24,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Flexible(
-                child: SingleChildScrollView(
-                  keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: const EdgeInsets.all(AppDims.s4),
-                  child: body,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SheetTitleBlock extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-
-  const _SheetTitleBlock({
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final subtitleText = subtitle?.trim();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bs200(context).copyWith(
-            fontWeight: FontWeight.w800,
-            color: colors.textPrimary,
-          ),
-        ),
-        if (subtitleText != null && subtitleText.isNotEmpty) ...[
-          const SizedBox(height: 2),
-          Text(
-            subtitleText,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.sm200(context).copyWith(
-              color: colors.textHint,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ],
+    return AppSheet(
+      title: title,
+      subtitle: subtitle,
+      maxHeightFactor: maxHeightFactor,
+      showGrabber: false,
+      child: body,
     );
   }
 }
@@ -172,7 +64,7 @@ class ProductPriceRow extends StatelessWidget {
             focusNode: priceFocus,
             nextFocus: costFocus,
             hint: '1.50',
-            prefixIcon: SolarIconsOutline.walletMoney,
+            prefixIcon: PhosphorIconsRegular.wallet,
             isRequired: true,
             validator: (value) => ProductFormValidators.price(context, value),
           ),
@@ -187,7 +79,7 @@ class ProductPriceRow extends StatelessWidget {
             focusNode: costFocus,
             nextFocus: nextFocus,
             hint: '0.80',
-            prefixIcon: SolarIconsOutline.moneyBag,
+            prefixIcon: PhosphorIconsRegular.coins,
             validator: (value) {
               return ProductFormValidators.optionalPrice(context, value);
             },
@@ -270,7 +162,7 @@ class ProductSkuBarcodeRow extends StatelessWidget {
             focusNode: skuFocus,
             nextFocus: barcodeFocus,
             hint: 'SKU-001',
-            prefixIcon: SolarIconsOutline.qrCode,
+            prefixIcon: PhosphorIconsRegular.qrCode,
           ),
         ),
 
@@ -282,7 +174,7 @@ class ProductSkuBarcodeRow extends StatelessWidget {
             controller: barcodeCtrl,
             focusNode: barcodeFocus,
             hint: '123456789',
-            prefixIcon: SolarIconsOutline.scanner,
+            prefixIcon: PhosphorIconsRegular.scan,
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.done,
           ),
@@ -346,49 +238,15 @@ class ProductSubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
     return BlocSelector<ProductBloc, ProductState, ProductSubmitStatus>(
       selector: (state) => state.submitStatus,
       builder: (context, submitStatus) {
         final isLoading = submitStatus == ProductSubmitStatus.loading;
 
-        return SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: FilledButton(
-            onPressed: isLoading ? null : onPressed,
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.primary,
-              disabledBackgroundColor: colors.border,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDims.rMd),
-              ),
-            ),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: isLoading
-                  ? const SizedBox(
-                key: ValueKey('loading'),
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
-                  : Text(
-                label,
-                key: const ValueKey('label'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bs100(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+        return AppButton.wide(
+          label: label,
+          isLoading: isLoading,
+          onPressed: isLoading ? null : onPressed,
         );
       },
     );

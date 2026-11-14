@@ -4,7 +4,7 @@ import 'package:amana_pos/features/inventory/presentation/premium/widgets/bento_
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class RecentReceiptsCard extends StatelessWidget {
   final List<InboundTransactionData> recentInbound;
@@ -30,7 +30,7 @@ class RecentReceiptsCard extends StatelessWidget {
         children: [
           CardHeader(
             title: context.tr.invRecentReceiptsTitle,
-            icon: SolarIconsOutline.documentText,
+            icon: PhosphorIconsRegular.fileText,
             accent: Color(0xFF93C5FD),
           ),
           const SizedBox(height: AppDims.s3),
@@ -64,7 +64,7 @@ class RecentReceiptsCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
-                        SolarIconsOutline.documentText,
+                        PhosphorIconsRegular.fileText,
                         color: Color(0xFF93C5FD),
                         size: 18,
                       ),

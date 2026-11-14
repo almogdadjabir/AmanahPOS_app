@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ThemePickerSheet extends StatelessWidget {
   const ThemePickerSheet({super.key});
@@ -19,7 +20,7 @@ class ThemePickerSheet extends StatelessWidget {
     return AppBottomSheet(
       title: tr.themePickerTitle,
       subtitle: tr.themePickerSubtitle,
-      icon: Icons.palette_outlined,
+      icon: PhosphorIconsRegular.palette,
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           final current = state.mode ?? ScreenMode.device;
@@ -31,7 +32,7 @@ class ThemePickerSheet extends StatelessWidget {
                 current: current,
                 title: tr.themeLight,
                 subtitle: tr.themeLightSubtitle,
-                icon: Icons.wb_sunny_rounded,
+                icon: PhosphorIconsRegular.sun,
                 iconColor: const Color(0xFFF59E0B),
                 delay: 0,
               ),
@@ -41,7 +42,7 @@ class ThemePickerSheet extends StatelessWidget {
                 current: current,
                 title: tr.themeDark,
                 subtitle: tr.themeDarkSubtitle,
-                icon: Icons.nights_stay_rounded,
+                icon: PhosphorIconsRegular.moon,
                 iconColor: const Color(0xFF6366F1),
                 delay: 55,
               ),
@@ -51,7 +52,7 @@ class ThemePickerSheet extends StatelessWidget {
                 current: current,
                 title: tr.themeSystem,
                 subtitle: tr.themeSystemSubtitle,
-                icon: Icons.phone_android_rounded,
+                icon: PhosphorIconsRegular.deviceMobile,
                 iconColor: const Color(0xFF0D9488),
                 delay: 110,
               ),
@@ -152,7 +153,7 @@ class _PickerOptionRow extends StatelessWidget {
                 ),
               ),
               child: isSelected
-                  ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                  ? const Icon(PhosphorIconsRegular.check, size: 13, color: Colors.white)
                   : null,
             ),
           ],

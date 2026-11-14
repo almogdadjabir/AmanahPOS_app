@@ -1,7 +1,7 @@
-import 'dart:ui' as ui;
-
-import 'package:amana_pos/theme/app_text_styles.dart';
+import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/format.dart';
+import 'package:amana_pos/widgets/app_amount.dart';
 import 'package:flutter/material.dart';
 
 class TotalRow extends StatelessWidget {
@@ -19,42 +19,36 @@ class TotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final valueStyle = (isTotal
-        ? AppTextStyles.bs600(context)
-        : AppTextStyles.bs300(context))
-        .copyWith(
-      color: isTotal ? colors.primary : colors.textPrimary,
-      fontWeight: FontWeight.w900,
-      height: 1,
-      letterSpacing: isTotal ? -0.6 : -0.2,
-    );
+    final text = Theme.of(context).textTheme;
+
+    final labelStyle = isTotal
+        ? text.titleMedium!.copyWith(color: colors.textPrimary)
+        : text.bodyMedium!.copyWith(color: colors.textSecondary, fontSize: 15);
+    final valueStyle = isTotal
+        ? text.headlineMedium!.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w600,
+          )
+        : text.bodyMedium!.copyWith(color: colors.textSecondary, fontSize: 15);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
         Expanded(
           child: Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.start,
-            style: AppTextStyles.bs300(context).copyWith(
-              color: isTotal ? colors.textPrimary : colors.textSecondary,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
+            style: labelStyle,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppDims.s3),
         Flexible(
-          child: Directionality(
-            textDirection: ui.TextDirection.ltr,
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              style: valueStyle,
-            ),
+          child: AppAmount(
+            value: value,
+            unit: AppFormat.currency,
+            style: valueStyle,
           ),
         ),
       ],

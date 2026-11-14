@@ -6,6 +6,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class PinChangeScreen extends StatelessWidget {
   const PinChangeScreen({super.key});
@@ -71,7 +72,7 @@ class _ChangeMark extends StatelessWidget {
         shape: BoxShape.circle,
         color: colors.primaryContainer.withValues(alpha: 0.5),
       ),
-      child: Icon(Icons.password_rounded, size: 32, color: colors.primary),
+      child: Icon(PhosphorIconsRegular.password, size: 32, color: colors.primary),
     );
   }
 }

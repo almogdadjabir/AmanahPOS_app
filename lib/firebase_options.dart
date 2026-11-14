@@ -24,15 +24,6 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -65,25 +56,6 @@ class DefaultFirebaseOptions {
     authDomain: 'amanapos.firebaseapp.com',
     storageBucket: 'amanapos.firebasestorage.app',
     measurementId: 'G-9WGRL8TSJB',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCWhQiDvTvC8E4k7DOeg29LHr9BegJ4o0g',
-    appId: '1:266105140472:ios:cfb33d993e8b288914b70d',
-    messagingSenderId: '266105140472',
-    projectId: 'amanapos',
-    storageBucket: 'amanapos.firebasestorage.app',
-    iosBundleId: 'sd.amanapos.amanaPos',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBMw1ojPkDspSpZkWeI6ti6mTd09RuLZNQ',
-    appId: '1:266105140472:web:ad9c2840c92b049114b70d',
-    messagingSenderId: '266105140472',
-    projectId: 'amanapos',
-    authDomain: 'amanapos.firebaseapp.com',
-    storageBucket: 'amanapos.firebasestorage.app',
-    measurementId: 'G-KF7G5HYB3J',
   );
 
 }

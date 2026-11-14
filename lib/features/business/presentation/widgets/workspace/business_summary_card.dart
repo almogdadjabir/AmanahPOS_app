@@ -4,13 +4,12 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/extension.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class BusinessSummaryCard extends StatelessWidget {
   final BusinessData data;
 
-  const BusinessSummaryCard({super.key,
-    required this.data,
-  });
+  const BusinessSummaryCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +21,7 @@ class BusinessSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -51,7 +48,7 @@ class BusinessSummaryCard extends StatelessWidget {
                     color: context.appColors.primary,
                     fontWeight: FontWeight.w900,
                   ),
-                )
+                ),
               ),
               const SizedBox(width: AppDims.s3),
               Expanded(
@@ -92,7 +89,7 @@ class BusinessSummaryCard extends StatelessWidget {
               Expanded(
                 child: metricTile(
                   context: context,
-                  icon: Icons.store_outlined,
+                  icon: PhosphorIconsRegular.storefront,
                   label: 'Shops',
                   value: '${data.shopCount ?? 0}',
                 ),
@@ -102,8 +99,8 @@ class BusinessSummaryCard extends StatelessWidget {
                 child: metricTile(
                   context: context,
                   icon: isActive
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.pause_circle_outline_rounded,
+                      ? PhosphorIconsRegular.checkCircle
+                      : PhosphorIconsRegular.pauseCircle,
                   label: 'Status',
                   value: isActive ? 'Active' : 'Inactive',
                 ),
@@ -115,13 +112,12 @@ class BusinessSummaryCard extends StatelessWidget {
     );
   }
 
-
   Widget metricTile({
     required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
-}){
+  }) {
     return Container(
       padding: const EdgeInsets.all(AppDims.s3),
       decoration: BoxDecoration(
@@ -130,11 +126,7 @@ class BusinessSummaryCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: context.appColors.primary,
-          ),
+          Icon(icon, size: 18, color: context.appColors.primary),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: Column(

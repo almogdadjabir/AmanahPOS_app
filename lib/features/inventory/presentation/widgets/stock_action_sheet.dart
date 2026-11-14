@@ -11,6 +11,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 enum _Tab { add, adjust, transfer }
 
@@ -23,7 +24,6 @@ void showStockActionSheet(
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: bloc,
       child: _StockActionSheet(stock: stock, allStock: allStock),
@@ -227,7 +227,7 @@ class _StockActionSheetState extends State<_StockActionSheet> {
                           color: context.appColors.surfaceSoft,
                           borderRadius: BorderRadius.circular(AppDims.rSm),
                         ),
-                        child: Icon(Icons.close_rounded,
+                        child: Icon(PhosphorIconsRegular.x,
                             size: 20,
                             color: context.appColors.textSecondary),
                       ),
@@ -319,21 +319,21 @@ class _TabSelector extends StatelessWidget {
         children: [
           _TabChip(
             label: context.tr.invAddIn,
-            icon: Icons.add_circle_outline_rounded,
+            icon: PhosphorIconsRegular.plusCircle,
             color: const Color(0xFF16A34A),
             selected: selected == _Tab.add,
             onTap: () => onSelect(_Tab.add),
           ),
           _TabChip(
             label: context.tr.invAdjust,
-            icon: Icons.tune_rounded,
+            icon: PhosphorIconsRegular.sliders,
             color: const Color(0xFF0EA5E9),
             selected: selected == _Tab.adjust,
             onTap: () => onSelect(_Tab.adjust),
           ),
           _TabChip(
             label: context.tr.invTransfer,
-            icon: Icons.swap_horiz_rounded,
+            icon: PhosphorIconsRegular.arrowsLeftRight,
             color: const Color(0xFF8B5CF6),
             selected: selected == _Tab.transfer,
             onTap: () => onSelect(_Tab.transfer),
@@ -500,7 +500,7 @@ class _AddStockForm extends StatelessWidget {
             focusNode:   qtyFocus,
             nextFocus:   refFocus,
             hint:         '50',
-            prefixIcon:   Icons.add_circle_outline_rounded,
+            prefixIcon:   PhosphorIconsRegular.plusCircle,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Quantity is required';
@@ -518,7 +518,7 @@ class _AddStockForm extends StatelessWidget {
             controller:     refCtrl,
             focusNode:      refFocus,
             hint:            'PO-001',
-            prefixIcon:      Icons.tag_rounded,
+            prefixIcon:      PhosphorIconsRegular.tag,
             textInputAction: TextInputAction.done,
             onSubmitted:     (_) => onSubmit(),
           ),
@@ -578,7 +578,7 @@ class _AdjustStockForm extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded,
+                const Icon(PhosphorIconsRegular.info,
                     size: 16, color: Color(0xFF0EA5E9)),
                 const SizedBox(width: AppDims.s2),
                 Expanded(
@@ -602,7 +602,7 @@ class _AdjustStockForm extends StatelessWidget {
             focusNode:   qtyFocus,
             nextFocus:   noteFocus,
             hint:         '45',
-            prefixIcon:   Icons.tune_rounded,
+            prefixIcon:   PhosphorIconsRegular.sliders,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Quantity is required';
@@ -619,7 +619,7 @@ class _AdjustStockForm extends StatelessWidget {
             controller:      noteCtrl,
             focusNode:       noteFocus,
             hint:             'Stock count correction',
-            prefixIcon:       Icons.notes_rounded,
+            prefixIcon:       PhosphorIconsRegular.notepad,
             maxLines:         2,
             textInputAction:  TextInputAction.done,
             onSubmitted:      (_) => onSubmit(),
@@ -678,7 +678,7 @@ class _TransferStockForm extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.storefront_outlined,
+                  Icon(PhosphorIconsRegular.storefront,
                       size: 16, color: context.appColors.textHint),
                   const SizedBox(width: AppDims.s2),
                   Text(
@@ -713,7 +713,7 @@ class _TransferStockForm extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.storefront_outlined,
+                      Icon(PhosphorIconsRegular.storefront,
                           size: 16,
                           color: isSelected
                               ? const Color(0xFF8B5CF6)
@@ -742,7 +742,7 @@ class _TransferStockForm extends StatelessWidget {
                         ),
                       ),
                       if (isSelected)
-                        Icon(Icons.check_circle_rounded,
+                        Icon(PhosphorIconsFill.checkCircle,
                             size: 18,
                             color: const Color(0xFF8B5CF6)),
                     ],
@@ -759,7 +759,7 @@ class _TransferStockForm extends StatelessWidget {
             controller:  qtyCtrl,
             focusNode:   qtyFocus,
             hint:         '10',
-            prefixIcon:   Icons.swap_horiz_rounded,
+            prefixIcon:   PhosphorIconsRegular.arrowsLeftRight,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.done,
             onSubmitted:  (_) => onSubmit(),

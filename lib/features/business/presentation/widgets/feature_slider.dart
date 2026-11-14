@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class FeatureSlider extends StatefulWidget {
   const FeatureSlider({super.key});
@@ -15,37 +16,40 @@ class FeatureSlider extends StatefulWidget {
 class _FeatureSliderState extends State<FeatureSlider> {
   static const List<_FeatureAd> _features = [
     _FeatureAd(
-      icon: Icons.bolt_rounded,
+      icon: PhosphorIconsRegular.lightning,
       title: 'Instant checkout flow',
-      subtitle: 'Serve customers faster with a clean, focused sales experience.',
+      subtitle:
+          'Serve customers faster with a clean, focused sales experience.',
     ),
     _FeatureAd(
-      icon: Icons.admin_panel_settings_rounded,
+      icon: PhosphorIconsRegular.userGear,
       title: 'Role-based staff control',
       subtitle: 'Give each team member the right access without confusion.',
     ),
     _FeatureAd(
-      icon: Icons.query_stats_rounded,
+      icon: PhosphorIconsRegular.chartLineUp,
       title: 'Real-time business pulse',
-      subtitle: 'See what is selling, what is slowing down, and what needs action.',
+      subtitle:
+          'See what is selling, what is slowing down, and what needs action.',
     ),
     _FeatureAd(
-      icon: Icons.inventory_rounded,
+      icon: PhosphorIconsFill.package,
       title: 'Stock awareness',
-      subtitle: 'Stay ahead of low stock and avoid selling unavailable products.',
+      subtitle:
+          'Stay ahead of low stock and avoid selling unavailable products.',
     ),
     _FeatureAd(
-      icon: Icons.storefront_rounded,
+      icon: PhosphorIconsRegular.storefront,
       title: 'Branch-ready workspace',
       subtitle: 'Start with one location and grow into multiple shops easily.',
     ),
     _FeatureAd(
-      icon: Icons.receipt_rounded,
+      icon: PhosphorIconsRegular.receipt,
       title: 'Clean order tracking',
       subtitle: 'Keep every order visible, organized, and easy to follow.',
     ),
     _FeatureAd(
-      icon: Icons.workspace_premium_rounded,
+      icon: PhosphorIconsRegular.crown,
       title: 'Owner command center',
       subtitle: 'Create your business once and unlock your full POS workspace.',
     ),
@@ -66,10 +70,7 @@ class _FeatureSliderState extends State<FeatureSlider> {
     // Start from a large number so we can always animate forward smoothly.
     _page = _features.length * 1000;
 
-    _pageController = PageController(
-      initialPage: _page,
-      keepPage: false,
-    );
+    _pageController = PageController(initialPage: _page, keepPage: false);
 
     _timer = Timer.periodic(_readDuration, (_) {
       final controller = _pageController;
@@ -126,10 +127,14 @@ class _FeatureSliderState extends State<FeatureSlider> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: context.appColors.primary.withValues(alpha: 0.10),
+                          color: context.appColors.primary.withValues(
+                            alpha: 0.10,
+                          ),
                           borderRadius: BorderRadius.circular(AppDims.rMd),
                           border: Border.all(
-                            color: context.appColors.primary.withValues(alpha: 0.12),
+                            color: context.appColors.primary.withValues(
+                              alpha: 0.12,
+                            ),
                           ),
                         ),
                         child: Icon(
@@ -189,10 +194,7 @@ class _FeatureSliderState extends State<FeatureSlider> {
 
                 return Opacity(
                   opacity: opacity,
-                  child: Transform.scale(
-                    scale: scale,
-                    child: child,
-                  ),
+                  child: Transform.scale(scale: scale, child: child),
                 );
               },
             );

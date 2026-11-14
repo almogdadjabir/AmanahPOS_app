@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:amana_pos/config/environment/environment.dart';
 import 'package:flutter/foundation.dart';
 
 const _defaultConnectTimeout = Duration(minutes: 3);
@@ -17,19 +18,20 @@ class DioClient {
   DioClient(this.baseUrl, {required this.dio, required this.interceptors}) {
     dio = dio;
 
-    if (kDebugMode) {
+    if (kDebugMode && debugProxy.isNotEmpty) {
       /// setting proxy for reflecting network calls in Proxy man.
       dio.httpClientAdapter = IOHttpClientAdapter(
         createHttpClient: () {
           final client = HttpClient();
-          client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-            return true;
-          };
+          client.badCertificateCallback =
+              (X509Certificate cert, String host, int port) {
+                return true;
+              };
           // Config the client.
           client.findProxy = (uri) {
-            return 'PROXY 172.16.10.54:9099';
+            return 'PROXY $debugProxy';
           };
-           return client;
+          return client;
         },
       );
       //========end Proxy config==============

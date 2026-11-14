@@ -6,7 +6,8 @@ abstract class BusinessEvent extends Equatable {
 
 class OnBusinessInitial extends BusinessEvent {
   const OnBusinessInitial();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }
 
 class OnEditBusiness extends BusinessEvent {

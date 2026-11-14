@@ -9,7 +9,7 @@ import 'package:amana_pos/widgets/field_label.dart';
 import 'package:amana_pos/widgets/form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 void showAddShopSheet(BuildContext context, String? businessId) {
   if (businessId == null || businessId.isEmpty) return;
@@ -18,7 +18,6 @@ void showAddShopSheet(BuildContext context, String? businessId) {
 
   showAdaptivePanel(
     context,
-    desktopWidth: 480,
     builder: (_) => BlocProvider.value(
       value: businessBloc,
       child: _AddShopSheet(businessId: businessId),
@@ -29,9 +28,7 @@ void showAddShopSheet(BuildContext context, String? businessId) {
 class _AddShopSheet extends StatefulWidget {
   final String businessId;
 
-  const _AddShopSheet({
-    required this.businessId,
-  });
+  const _AddShopSheet({required this.businessId});
 
   @override
   State<_AddShopSheet> createState() => _AddShopSheetState();
@@ -130,7 +127,6 @@ class _AddShopSheetState extends State<_AddShopSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
                   AppDims.s4,
@@ -164,7 +160,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       icon: Icon(
-                        SolarIconsOutline.closeCircle,
+                        PhosphorIconsRegular.xCircle,
                         size: 24,
                         color: colors.textSecondary,
                       ),
@@ -176,7 +172,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
               Flexible(
                 child: SingleChildScrollView(
                   keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.all(AppDims.s4),
                   child: Form(
                     key: _formKey,
@@ -193,7 +189,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                           focusNode: _nameFocus,
                           nextFocus: _addressFocus,
                           hint: context.tr.mainBranchHint,
-                          prefixIcon: SolarIconsOutline.shop,
+                          prefixIcon: PhosphorIconsRegular.storefront,
                           validator: (value) {
                             final name = value?.trim() ?? '';
 
@@ -211,9 +207,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
 
                         const SizedBox(height: AppDims.s4),
 
-                        _OptionalDivider(
-                          label: context.tr.optional,
-                        ),
+                        _OptionalDivider(label: context.tr.optional),
 
                         const SizedBox(height: AppDims.s4),
 
@@ -224,7 +218,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                           focusNode: _addressFocus,
                           nextFocus: _phoneFocus,
                           hint: context.tr.khartoumCentreHint,
-                          prefixIcon: SolarIconsOutline.mapPoint,
+                          prefixIcon: PhosphorIconsRegular.mapPin,
                         ),
 
                         const SizedBox(height: AppDims.s3),
@@ -235,7 +229,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
                           controller: _phoneCtrl,
                           focusNode: _phoneFocus,
                           hint: '+249912345678',
-                          prefixIcon: SolarIconsOutline.phone,
+                          prefixIcon: PhosphorIconsRegular.phone,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.done,
                           onSubmitted: (_) => _submit(),
@@ -271,9 +265,7 @@ class _AddShopSheetState extends State<_AddShopSheet> {
 class _OptionalDivider extends StatelessWidget {
   final String label;
 
-  const _OptionalDivider({
-    required this.label,
-  });
+  const _OptionalDivider({required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -302,9 +294,7 @@ class _OptionalDivider extends StatelessWidget {
 class _SubmitButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const _SubmitButton({
-    required this.onPressed,
-  });
+  const _SubmitButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -331,22 +321,22 @@ class _SubmitButton extends StatelessWidget {
               duration: const Duration(milliseconds: 180),
               child: isLoading
                   ? const SizedBox(
-                key: ValueKey('loading'),
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
+                      key: ValueKey('loading'),
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
                   : Text(
-                context.tr.addShop,
-                key: const ValueKey('label'),
-                style: AppTextStyles.bs600(context).copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
+                      context.tr.addShop,
+                      key: const ValueKey('label'),
+                      style: AppTextStyles.bs600(context).copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         );

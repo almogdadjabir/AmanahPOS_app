@@ -3,7 +3,7 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class MoreActionRow extends StatelessWidget {
   final IconData icon;
@@ -74,7 +74,7 @@ class MoreActionRow extends StatelessWidget {
                   ),
                 ),
                 DirectionalIcon(
-                  icon: SolarIconsOutline.altArrowRight,
+                  icon: PhosphorIconsRegular.caretRight,
                   size: 18,
                   color: colors.textHint,
                 ),

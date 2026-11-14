@@ -3,7 +3,7 @@ import 'package:amana_pos/common/widgets/empty_view.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class InventoryEmptyView extends StatelessWidget {
   final StockFilter filter;
@@ -29,10 +29,10 @@ class InventoryEmptyView extends StatelessWidget {
     };
 
     final icon = switch (filter) {
-      StockFilter.all => SolarIconsOutline.box,
-      StockFilter.healthy => SolarIconsOutline.checkCircle,
-      StockFilter.lowStock => SolarIconsOutline.dangerTriangle,
-      StockFilter.outOfStock => SolarIconsOutline.bagCross,
+      StockFilter.all => PhosphorIconsRegular.package,
+      StockFilter.healthy => PhosphorIconsRegular.checkCircle,
+      StockFilter.lowStock => PhosphorIconsRegular.warning,
+      StockFilter.outOfStock => PhosphorIconsRegular.shoppingBagOpen,
     };
 
     return AppEmptyView(
@@ -40,7 +40,7 @@ class InventoryEmptyView extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       ctaLabel: filter == StockFilter.all ? tr.addStock : null,
-      ctaIcon: filter == StockFilter.all ? SolarIconsOutline.addCircle : null,
+      ctaIcon: filter == StockFilter.all ? PhosphorIconsRegular.plusCircle : null,
       onCta: filter == StockFilter.all
           ? () => showAddStockProductSheet(context)
           : null,

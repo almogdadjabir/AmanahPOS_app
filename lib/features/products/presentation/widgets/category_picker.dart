@@ -4,6 +4,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class CategoryPicker extends StatelessWidget {
   final List<CategoryData> categories;
@@ -32,7 +33,7 @@ class CategoryPicker extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.layers_rounded, size: 18, color: colors.textHint),
+            Icon(PhosphorIconsRegular.stack, size: 18, color: colors.textHint),
             const SizedBox(width: AppDims.s2),
             Expanded(
               child: Text(
@@ -43,7 +44,7 @@ class CategoryPicker extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.keyboard_arrow_down_rounded,
+            Icon(PhosphorIconsRegular.caretDown,
                 size: 20, color: colors.textHint),
           ],
         ),
@@ -56,7 +57,6 @@ class CategoryPicker extends StatelessWidget {
 
     showAdaptivePanel(
       context,
-      desktopWidth: 360,
       builder: (_) => Container(
         decoration: BoxDecoration(
           color: colors.surface,
@@ -111,7 +111,7 @@ class CategoryPicker extends StatelessWidget {
                           color: colors.primaryContainer,
                           borderRadius: BorderRadius.circular(AppDims.rSm),
                         ),
-                        child: Icon(Icons.layers_rounded,
+                        child: Icon(PhosphorIconsRegular.stack,
                             size: 18, color: colors.primary),
                       ),
                       title: Text(
@@ -124,7 +124,7 @@ class CategoryPicker extends StatelessWidget {
                         ),
                       ),
                       trailing: isSelected
-                          ? Icon(Icons.check_circle_rounded,
+                          ? Icon(PhosphorIconsFill.checkCircle,
                           color: colors.primary, size: 20)
                           : null,
                     );

@@ -15,9 +15,9 @@ class OfflineSaleSyncResponseDto {
       results: (map['results'] as List<dynamic>? ?? const [])
           .map(
             (item) => OfflineSaleSyncResult.fromJson(
-          Map<String, dynamic>.from(item as Map),
-        ),
-      )
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
           .toList(),
     );
   }

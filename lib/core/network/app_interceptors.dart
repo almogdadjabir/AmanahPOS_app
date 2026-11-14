@@ -17,7 +17,10 @@ class AppInterceptors extends Interceptor {
   AppInterceptors(this._dio);
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     await _addHeaders(options);
     handler.next(options);
   }
@@ -28,7 +31,10 @@ class AppInterceptors extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (err.response?.statusCode != 401) {
       handler.next(err);
       return;
@@ -42,29 +48,31 @@ class AppInterceptors extends Interceptor {
     await _handleUnauthorizedError(err, handler);
   }
 
- Future<void> _addHeaders(RequestOptions options) async {
+  Future<void> _addHeaders(RequestOptions options) async {
     final authToken = await _cacheStorage.getValue(Constants.authToken);
     final xTenantID = await _cacheStorage.getValue(Constants.xTenantID);
 
-    final requiresAuth = options.path.startsWith('api/') || options.path.startsWith('/api/');
+    final requiresAuth =
+        options.path.startsWith('api/') || options.path.startsWith('/api/');
 
     if (authToken != null && requiresAuth) {
       options.headers['Authorization'] = 'Bearer $authToken';
     }
 
-    if(xTenantID != null){
+    if (xTenantID != null) {
       options.headers['X-Tenant-ID'] = xTenantID;
     }
 
-    final hasAccept = options.headers.keys
-        .any((k) => k.toString().toLowerCase() == 'accept');
+    final hasAccept = options.headers.keys.any(
+      (k) => k.toString().toLowerCase() == 'accept',
+    );
     if (!hasAccept) options.headers['Accept'] = 'application/json';
   }
 
   Future<void> _handleUnauthorizedError(
-      DioException err,
-      ErrorInterceptorHandler handler,
-      ) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     _refreshTokenFuture ??= _refreshMainToken();
 
     bool refreshSucceeded;
@@ -111,7 +119,6 @@ class AppInterceptors extends Interceptor {
     }
   }
 
-
   Future<bool> _refreshMainToken() async {
     final refreshToken = await _cacheStorage.getValue(Constants.refreshToken);
     if (refreshToken == null || refreshToken.isEmpty) return false;
@@ -124,7 +131,7 @@ class AppInterceptors extends Interceptor {
       );
 
       if (response.statusCode == 200) {
-        final newAccess  = response.data['access']  as String?;
+        final newAccess = response.data['access'] as String?;
         final newRefresh = response.data['refresh'] as String?;
 
         if (newAccess == null) return false;
@@ -140,7 +147,8 @@ class AppInterceptors extends Interceptor {
       }
       return false;
     } catch (e) {
-      if (kDebugMode) debugPrint('[AppInterceptors] _refreshMainToken error: $e');
+      if (kDebugMode)
+        debugPrint('[AppInterceptors] _refreshMainToken error: $e');
       return false;
     }
   }
@@ -154,7 +162,8 @@ class AppInterceptors extends Interceptor {
 
       await _navigateToLoginSafely();
     } catch (e) {
-      if (kDebugMode) debugPrint('[AppInterceptors] _triggerForcedLogout error: $e');
+      if (kDebugMode)
+        debugPrint('[AppInterceptors] _triggerForcedLogout error: $e');
     } finally {
       Future.delayed(const Duration(seconds: 4), () {
         isLoggingOut = false;
@@ -171,18 +180,26 @@ class AppInterceptors extends Interceptor {
         try {
           return;
         } catch (e) {
-          if (kDebugMode) debugPrint('[AppInterceptors] navigation attempt ${attempt + 1} threw: $e');
+          if (kDebugMode)
+            debugPrint(
+              '[AppInterceptors] navigation attempt ${attempt + 1} threw: $e',
+            );
         }
       }
 
       if (kDebugMode) {
-        debugPrint('[AppInterceptors] navigator not ready (attempt ${attempt + 1}/5), retrying...');
+        debugPrint(
+          '[AppInterceptors] navigator not ready (attempt ${attempt + 1}/5), retrying...',
+        );
       }
 
       await Future.delayed(Duration(milliseconds: 100 * (1 << attempt)));
     }
 
-    if (kDebugMode) debugPrint('[AppInterceptors] all navigation attempts failed — app restart needed');
+    if (kDebugMode)
+      debugPrint(
+        '[AppInterceptors] all navigation attempts failed — app restart needed',
+      );
   }
 
   static bool isSessionExpiredError(DioException e) =>
@@ -199,23 +216,33 @@ class AppInterceptors extends Interceptor {
 
     for (final item in backup) {
       if (item['type'] == 'field') {
-        formData.fields.add(MapEntry(item['name'] as String, item['value'] as String));
+        formData.fields.add(
+          MapEntry(item['name'] as String, item['value'] as String),
+        );
         continue;
       }
 
       if (item['type'] == 'file') {
-        final filename    = item['filename']    as String?;
-        final ctString    = item['contentType'] as String?;
-        final contentType = ctString != null ? DioMediaType.parse(ctString) : null;
-        final filePath    = item['filePath']    as String?;
-        final bytes       = item['bytes']       as List<int>?;
+        final filename = item['filename'] as String?;
+        final ctString = item['contentType'] as String?;
+        final contentType = ctString != null
+            ? DioMediaType.parse(ctString)
+            : null;
+        final filePath = item['filePath'] as String?;
+        final bytes = item['bytes'] as List<int>?;
 
         final multipart = filePath != null
-            ? ExtendedMultipartFile.fromFileSync(filePath,
-            filename: filename, contentType: contentType)
+            ? ExtendedMultipartFile.fromFileSync(
+                filePath,
+                filename: filename,
+                contentType: contentType,
+              )
             : bytes != null
-            ? ExtendedMultipartFile.fromBytesSync(bytes,
-            filename: filename, contentType: contentType)
+            ? ExtendedMultipartFile.fromBytesSync(
+                bytes,
+                filename: filename,
+                contentType: contentType,
+              )
             : throw StateError('File backup missing both filePath and bytes');
 
         formData.files.add(MapEntry(item['name'] as String, multipart));

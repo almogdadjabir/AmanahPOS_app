@@ -38,8 +38,6 @@ class OfflineDb {
     return _database!;
   }
 
-
-
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await _createPendingInboundTables(db);
@@ -54,7 +52,7 @@ class OfflineDb {
     }
 
     if (oldVersion < 5) {
-    await _migrateV5(db);
+      await _migrateV5(db);
     }
   }
 
@@ -85,8 +83,12 @@ class OfflineDb {
       )
     ''');
 
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_inbound_shop ON inbound_transactions(shop_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_inbound_created ON inbound_transactions(created_at)');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_inbound_shop ON inbound_transactions(shop_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_inbound_created ON inbound_transactions(created_at)',
+    );
   }
 
   Future<void> _createPendingInboundTables(Database db) async {
@@ -105,8 +107,12 @@ class OfflineDb {
       )
     ''');
 
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_pending_inbound_status ON pending_inbound_transactions(status)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_pending_inbound_reference ON pending_inbound_transactions(reference)');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_pending_inbound_status ON pending_inbound_transactions(status)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_pending_inbound_reference ON pending_inbound_transactions(reference)',
+    );
   }
 
   Future<void> _createPerformanceIndexes(Database db) async {
@@ -158,7 +164,6 @@ class OfflineDb {
     ''');
   }
 
-  
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE sync_metadata (
@@ -212,7 +217,9 @@ class OfflineDb {
       )
     ''');
 
-    await db.execute('CREATE INDEX idx_products_category ON products(category_id)');
+    await db.execute(
+      'CREATE INDEX idx_products_category ON products(category_id)',
+    );
     await db.execute('CREATE INDEX idx_products_name ON products(name)');
     await db.execute('CREATE INDEX idx_products_barcode ON products(barcode)');
 
@@ -242,7 +249,9 @@ class OfflineDb {
       )
     ''');
 
-    await db.execute('CREATE INDEX idx_stock_product_shop ON stock(product_id, shop_id)');
+    await db.execute(
+      'CREATE INDEX idx_stock_product_shop ON stock(product_id, shop_id)',
+    );
 
     await db.execute('''
       CREATE TABLE offline_assets (
@@ -276,7 +285,9 @@ class OfflineDb {
       )
     ''');
 
-    await db.execute('CREATE INDEX idx_pending_sales_status ON pending_sales(status)');
+    await db.execute(
+      'CREATE INDEX idx_pending_sales_status ON pending_sales(status)',
+    );
 
     await _createPendingInboundTables(db);
 
@@ -315,15 +326,11 @@ class OfflineDb {
 
   Future<void> setMetadata(String key, String value) async {
     final db = await database;
-    await db.insert(
-      'sync_metadata',
-      {
-        'key': key,
-        'value': value,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('sync_metadata', {
+      'key': key,
+      'value': value,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<String?> getMetadata(String key) async {

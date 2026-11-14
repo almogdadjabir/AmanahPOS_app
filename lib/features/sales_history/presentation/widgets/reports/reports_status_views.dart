@@ -5,7 +5,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 const _kLoadingSkeletonIconSize = 48.0;
 const _kErrorIconSize = 40.0;
@@ -151,7 +151,7 @@ class ReportsEmptyView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              SolarIconsOutline.chartSquare,
+              PhosphorIconsRegular.chartBar,
               size: _kLoadingSkeletonIconSize,
               color: context.appColors.textHint,
             )
@@ -192,7 +192,7 @@ class ReportsErrorView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              SolarIconsOutline.closeCircle,
+              PhosphorIconsRegular.xCircle,
               size: _kErrorIconSize,
               color: context.appColors.danger,
             ).mAnimate().fadeIn(duration: 300.ms).scale(

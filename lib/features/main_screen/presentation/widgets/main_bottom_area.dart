@@ -3,6 +3,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/features/cart/presentation/cart_panel.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/bottom_nav.dart';
+import 'package:amana_pos/features/main_screen/presentation/widgets/nav_shell.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
@@ -17,10 +18,10 @@ class MainBottomArea extends StatefulWidget {
 }
 
 class _MainBottomAreaState extends State<MainBottomArea> {
-  static const double _navBarHeight = 86;
-  static const double _fabLift = 26;
-  static const double _cartHeight = 78;
-  static const double _cartGapAboveNav = 0;
+  static const double _cartHeight = 64;
+  static const double _cartGapAboveNav = 6;
+
+  static const double _cartCluster = _cartHeight + _cartGapAboveNav;
 
   bool _checkoutResolvingShop = false;
 
@@ -28,11 +29,8 @@ class _MainBottomAreaState extends State<MainBottomArea> {
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
 
-    final totalHeight = _navBarHeight +
-        _fabLift +
-        safeBottom +
-        _cartHeight +
-        _cartGapAboveNav;
+    final navHeight = NavShell.contentHeight + safeBottom;
+    final totalHeight = navHeight + _cartCluster;
 
     return SizedBox(
       height: totalHeight,
@@ -43,7 +41,7 @@ class _MainBottomAreaState extends State<MainBottomArea> {
           PositionedDirectional(
             start: 0,
             end: 0,
-            bottom: _navBarHeight + safeBottom + _cartGapAboveNav,
+            bottom: navHeight + _cartGapAboveNav,
             child: BlocSelector<PosBloc, PosState, _CartPeekStateView>(
               selector: (state) => _CartPeekStateView(
                 itemsHash: Object.hashAll(state.items),

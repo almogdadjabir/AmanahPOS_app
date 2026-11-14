@@ -5,7 +5,7 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ProductSummaryCardView extends StatelessWidget {
   final ProductData product;
@@ -47,7 +47,7 @@ class ProductSummaryCardView extends StatelessWidget {
               children: [
                 Expanded(
                   child: _InfoTile(
-                    icon: SolarIconsOutline.walletMoney,
+                    icon: PhosphorIconsRegular.wallet,
                     label: tr.price,
                     value: _formatPrice(product.price),
                     color: colors.primary,
@@ -56,7 +56,7 @@ class ProductSummaryCardView extends StatelessWidget {
                 const SizedBox(width: AppDims.s2),
                 Expanded(
                   child: _InfoTile(
-                    icon: SolarIconsOutline.tag,
+                    icon: PhosphorIconsRegular.tag,
                     label: tr.category,
                     value: categoryName?.isNotEmpty == true
                         ? categoryName!
@@ -74,7 +74,7 @@ class ProductSummaryCardView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _InfoTile(
-                      icon: SolarIconsOutline.box,
+                      icon: PhosphorIconsRegular.package,
                       label: tr.stock,
                       value: _formatQty(stock),
                       color: _stockColor(stock),
@@ -145,7 +145,7 @@ class _AlertRow extends StatelessWidget {
 
     final minTile = hasMinStock
         ? _InfoTile(
-      icon: SolarIconsOutline.dangerTriangle,
+      icon: PhosphorIconsRegular.warning,
       label: context.tr.fieldMinStockLevel,
       value: ProductSummaryCardView._formatQty(minStock!),
       color: amber,
@@ -154,7 +154,7 @@ class _AlertRow extends StatelessWidget {
 
     final expiryTile = hasExpiryAlert
         ? _InfoTile(
-      icon: SolarIconsOutline.calendarMark,
+      icon: PhosphorIconsRegular.calendarCheck,
       label: context.tr.fieldExpiryAlert,
       value: context.tr.dayCountLabel(expiryDays!),
       color: orange,
@@ -188,8 +188,8 @@ class _StatusTile extends StatelessWidget {
 
     return _InfoTile(
       icon: isActive
-          ? SolarIconsOutline.checkCircle
-          : SolarIconsOutline.pauseCircle,
+          ? PhosphorIconsRegular.checkCircle
+          : PhosphorIconsRegular.pauseCircle,
       label: context.tr.status,
       value: isActive ? context.tr.active : context.tr.inactive,
       color: isActive ? const Color(0xFF16A34A) : colors.textHint,

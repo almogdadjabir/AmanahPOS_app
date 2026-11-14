@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+
 String friendlyError(Object? error) {
   if (error is String) {
     final trimmed = error.trim();
@@ -24,11 +25,11 @@ String friendlyError(Object? error) {
       case DioExceptionType.cancel:
         return _kGeneric;
       case DioExceptionType.badResponse:
-      // Prefer a clean message the server sent us; otherwise stay generic.
+        // Prefer a clean message the server sent us; otherwise stay generic.
         return _serverMessage(error.response?.data) ??
             _statusMessage(error.response?.statusCode);
       case DioExceptionType.unknown:
-      // `unknown` is frequently a wrapped SocketException (offline).
+        // `unknown` is frequently a wrapped SocketException (offline).
         if (error.error is SocketException) return _kNoInternet;
         return _kGeneric;
     }
@@ -39,12 +40,10 @@ String friendlyError(Object? error) {
   return _kGeneric;
 }
 
-const String _kGeneric =
-    'Something went wrong. Please try again.';
+const String _kGeneric = 'Something went wrong. Please try again.';
 const String _kNoInternet =
     'No internet connection. Please check your network and try again.';
-const String _kTimeout =
-    'The connection timed out. Please try again.';
+const String _kTimeout = 'The connection timed out. Please try again.';
 
 String _statusMessage(int? statusCode) {
   switch (statusCode) {

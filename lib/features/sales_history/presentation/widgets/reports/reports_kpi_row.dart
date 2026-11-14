@@ -9,7 +9,7 @@ import 'package:amana_pos/utilities/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:solar_icons/solar_icons.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class ReportsKpiRow extends StatelessWidget {
   const ReportsKpiRow({super.key, required this.summary});
@@ -31,7 +31,7 @@ class ReportsKpiRow extends StatelessWidget {
         background: AppColors.secondaryLight,
         valueColor: AppColors.secondaryDark,
         labelColor: AppColors.secondaryDark,
-        icon: SolarIconsOutline.walletMoney,
+        icon: PhosphorIconsRegular.wallet,
       ),
       _KpiCard(
         label: context.tr.reportsSalesCount,
@@ -39,7 +39,7 @@ class ReportsKpiRow extends StatelessWidget {
         background: AppColors.primaryLight,
         valueColor: AppColors.primaryDark,
         labelColor: AppColors.primary,
-        icon: SolarIconsOutline.billList,
+        icon: PhosphorIconsRegular.receipt,
       ),
       _KpiCard(
         label: context.tr.avgSale,
@@ -48,7 +48,7 @@ class ReportsKpiRow extends StatelessWidget {
         background: AppColors.infoLight,
         valueColor: AppColors.info,
         labelColor: AppColors.info,
-        icon: SolarIconsOutline.chartSquare,
+        icon: PhosphorIconsRegular.chartBar,
       ),
       _KpiCard(
         label: context.tr.reportsNetSales,
@@ -57,7 +57,7 @@ class ReportsKpiRow extends StatelessWidget {
         background: const Color(0xFFDCFCE7), // green-100
         valueColor: AppColors.success,
         labelColor: AppColors.success,
-        icon: SolarIconsOutline.chart,
+        icon: PhosphorIconsRegular.chartLine,
       ),
       if (summary.totalTaxCollected > 0)
         _KpiCard(
@@ -67,7 +67,7 @@ class ReportsKpiRow extends StatelessWidget {
           background: AppColors.warningLight,
           valueColor: AppColors.warning,
           labelColor: AppColors.warning,
-          icon: SolarIconsOutline.documentText,
+          icon: PhosphorIconsRegular.fileText,
         ),
       _KpiCard(
         label: context.tr.refunds,
@@ -76,7 +76,7 @@ class ReportsKpiRow extends StatelessWidget {
         background: AppColors.dangerLight,
         valueColor: AppColors.danger,
         labelColor: AppColors.danger,
-        icon: SolarIconsOutline.undoLeft,
+        icon: PhosphorIconsRegular.arrowUUpLeft,
       ),
     ];
 

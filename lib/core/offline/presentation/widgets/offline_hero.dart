@@ -1,6 +1,7 @@
 import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class OfflineHero extends StatefulWidget {
   const OfflineHero({super.key});
@@ -23,9 +24,10 @@ class _OfflineHeroState extends State<OfflineHero>
       duration: const Duration(milliseconds: 1400),
     );
 
-    _float = Tween<double>(begin: -6, end: 6).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _float = Tween<double>(
+      begin: -6,
+      end: 6,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     // Motion is read once at init — acceptable because the setting changes at
     // most once per session and the widget is remounted when the screen re-enters
@@ -70,9 +72,7 @@ class _OfflineHeroState extends State<OfflineHero>
               colors.surfaceSoft,
             ],
           ),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.20),
-          ),
+          border: Border.all(color: colors.primary.withValues(alpha: 0.20)),
           boxShadow: [
             BoxShadow(
               color: colors.primary.withValues(alpha: 0.12),
@@ -93,11 +93,7 @@ class _OfflineHeroState extends State<OfflineHero>
                 border: Border.all(color: colors.border),
               ),
             ),
-            Icon(
-              Icons.cloud_sync_rounded,
-              size: 44,
-              color: colors.primary,
-            ),
+            Icon(PhosphorIconsRegular.cloudArrowUp, size: 44, color: colors.primary),
             Positioned(
               right: 26,
               bottom: 28,
@@ -107,13 +103,10 @@ class _OfflineHeroState extends State<OfflineHero>
                 decoration: BoxDecoration(
                   color: const Color(0xFF16A34A),
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors.surface,
-                    width: 3,
-                  ),
+                  border: Border.all(color: colors.surface, width: 3),
                 ),
                 child: const Icon(
-                  Icons.offline_bolt_rounded,
+                  PhosphorIconsRegular.lightning,
                   size: 16,
                   color: Colors.white,
                 ),

@@ -14,20 +14,21 @@ class OfflineRemoteDataSource {
     );
 
     return result.match(
-          (error) => throw Exception(error ?? 'Session expired'),
-          (data) => data,
+      (error) => throw Exception(error ?? 'Session expired'),
+      (data) => data,
     );
   }
 
   Future<OfflineAssetManifestDto> getAssetManifest() async {
-    final result = await _requestHandler.handleGetRequest<OfflineAssetManifestDto>(
-      '/api/v1/offline/assets/manifest/',
-      OfflineAssetManifestDto.fromJson,
-    );
+    final result = await _requestHandler
+        .handleGetRequest<OfflineAssetManifestDto>(
+          '/api/v1/offline/assets/manifest/',
+          OfflineAssetManifestDto.fromJson,
+        );
 
     return result.match(
-          (error) => throw Exception(error ?? 'Session expired'),
-          (data) => data,
+      (error) => throw Exception(error ?? 'Session expired'),
+      (data) => data,
     );
   }
 }
