@@ -2443,4 +2443,163 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commonLoading => 'جارٍ التحميل';
+
+  @override
+  String get homeStatusLive => 'مباشر';
+
+  @override
+  String get homeStatusCached => 'محفوظ';
+
+  @override
+  String get homeStatusOffline => 'تشمل مبيعات دون اتصال';
+
+  @override
+  String get homeGrossSales => 'إجمالي المبيعات';
+
+  @override
+  String get homeStatSales => 'المبيعات';
+
+  @override
+  String get homeStatAverage => 'المتوسط';
+
+  @override
+  String get homeStatRefunds => 'المرتجعات';
+
+  @override
+  String get homePayments => 'المدفوعات';
+
+  @override
+  String get homeTopSellers => 'الأكثر مبيعًا';
+
+  @override
+  String get homeManage => 'الإدارة';
+
+  @override
+  String homeSoldQty(String qty) {
+    return '$qty مباع';
+  }
+
+  @override
+  String homeShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فرعًا',
+      few: '$count فروع',
+      two: 'فرعان',
+      one: 'فرع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeProductsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeUsersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مستخدمًا',
+      few: '$count مستخدمين',
+      two: 'مستخدمان',
+      one: 'مستخدم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeNoSalesTitle => 'لا مبيعات اليوم بعد';
+
+  @override
+  String get homeNoSalesBody => 'ستظهر مبيعاتك هنا ساعةً بساعة.';
+
+  @override
+  String get homeStartSelling => 'ابدأ البيع';
+
+  @override
+  String get homePlanNone => 'لا يوجد اشتراك فعّال';
+
+  @override
+  String get homePlanContact => 'تواصل مع الدعم لتفعيل خطتك';
+
+  @override
+  String get homePlanFree => 'مجانية';
+
+  @override
+  String get homePlanPaid => 'خطة مدفوعة';
+
+  @override
+  String get homePlanInactive => 'غير فعّالة';
+
+  @override
+  String get homePlanNoExpiry => 'بلا انتهاء';
+
+  @override
+  String get homePlanExpired => 'منتهية';
+
+  @override
+  String homePlanDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'متبقٍ $count يومًا',
+      few: 'متبقٍ $count أيام',
+      two: 'متبقٍ يومان',
+      one: 'متبقٍ يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homePlanLimits(String shops, String products, String users) {
+    return 'المتاجر $shops · المنتجات $products · المستخدمون $users';
+  }
+
+  @override
+  String get homePlanUnlimited => 'غير محدود';
+
+  @override
+  String get homePayCard => 'بطاقة';
+
+  @override
+  String get homePayBankTransfer => 'تحويل بنكي';
+
+  @override
+  String get homePayWallet => 'محفظة إلكترونية';
+
+  @override
+  String get homePayLoyalty => 'نقاط الولاء';
+
+  @override
+  String get homePayCredit => 'آجل';
+
+  @override
+  String get homePaySplit => 'دفع مقسّم';
+
+  @override
+  String get homePayOther => 'أخرى';
+
+  @override
+  String homePlanPriceMonthly(String price) {
+    return '$price شهريًا';
+  }
+
+  @override
+  String homePlanPriceYearly(String price) {
+    return '$price سنويًا';
+  }
+
+  @override
+  String get homeReportsHint => 'جميع المعاملات';
 }

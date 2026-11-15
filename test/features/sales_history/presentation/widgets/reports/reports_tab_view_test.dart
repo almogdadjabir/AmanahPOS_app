@@ -31,14 +31,24 @@ SalesReport _fakeReport() => SalesReport(
   paymentMethods: const [],
   topProducts: const [],
   topCategories: const [],
-  peakHours: List.generate(24, (h) => PeakHourStat(hour: h, salesCount: 0, amount: 0)),
-  dayOfWeek: List.generate(7, (d) => DayOfWeekStat(weekday: d + 1, salesCount: 0, amount: 0)),
+  peakHours: List.generate(
+    24,
+    (h) => PeakHourStat(hour: h, salesCount: 0, amount: 0),
+  ),
+  dayOfWeek: List.generate(
+    7,
+    (d) => DayOfWeekStat(weekday: d + 1, salesCount: 0, amount: 0),
+  ),
 );
 
 void main() {
   late MockSalesReportBloc bloc;
 
-  setUpAll(() => registerFallbackValue(const SalesReportRangeChanged(preset: ReportPreset.today)));
+  setUpAll(
+    () => registerFallbackValue(
+      const SalesReportRangeChanged(preset: ReportPreset.today),
+    ),
+  );
 
   setUp(() => bloc = MockSalesReportBloc());
   tearDown(() => bloc.close());
@@ -57,9 +67,9 @@ void main() {
   );
 
   testWidgets('shows ReportsLoadingSkeleton when loading', (tester) async {
-    when(() => bloc.state).thenReturn(
-      const SalesReportState(status: SalesReportBlocStatus.loading),
-    );
+    when(
+      () => bloc.state,
+    ).thenReturn(const SalesReportState(status: SalesReportBlocStatus.loading));
     await tester.pumpWidget(wrap(const ReportsTabView()));
     await tester.pump();
     expect(find.byType(ReportsLoadingSkeleton), findsOneWidget);
@@ -77,43 +87,66 @@ void main() {
     expect(find.byType(ReportsErrorView), findsOneWidget);
   });
 
-  testWidgets('shows ReportsEmptyView only when report is null', (tester) async {
+  testWidgets('shows ReportsEmptyView only when report is null', (
+    tester,
+  ) async {
     when(() => bloc.state).thenReturn(
-      const SalesReportState(status: SalesReportBlocStatus.loaded, report: null),
+      const SalesReportState(
+        status: SalesReportBlocStatus.loaded,
+        report: null,
+      ),
     );
     await tester.pumpWidget(wrap(const ReportsTabView()));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byType(ReportsEmptyView), findsOneWidget);
   });
 
-  testWidgets('shows _ReportsContent layout when report has zero sales', (tester) async {
+  testWidgets('shows _ReportsContent layout when report has zero sales', (
+    tester,
+  ) async {
     final zeroReport = SalesReport(
       rangeFrom: '2026-06-10',
       rangeTo: '2026-06-10',
       currency: 'SDG',
       summary: const SalesReportSummary(
-        grossSalesAmount: 0, netSalesAmount: 0, salesCount: 0,
-        averageSaleAmount: 0, refundAmount: 0, refundCount: 0,
+        grossSalesAmount: 0,
+        netSalesAmount: 0,
+        salesCount: 0,
+        averageSaleAmount: 0,
+        refundAmount: 0,
+        refundCount: 0,
       ),
       trend: const SalesTrend(interval: 'hour', points: []),
       paymentMethods: const [],
       topProducts: const [],
       topCategories: const [],
-      peakHours: List.generate(24, (h) => PeakHourStat(hour: h, salesCount: 0, amount: 0)),
-      dayOfWeek: List.generate(7, (d) => DayOfWeekStat(weekday: d + 1, salesCount: 0, amount: 0)),
+      peakHours: List.generate(
+        24,
+        (h) => PeakHourStat(hour: h, salesCount: 0, amount: 0),
+      ),
+      dayOfWeek: List.generate(
+        7,
+        (d) => DayOfWeekStat(weekday: d + 1, salesCount: 0, amount: 0),
+      ),
     );
     when(() => bloc.state).thenReturn(
-      SalesReportState(status: SalesReportBlocStatus.loaded, report: zeroReport),
+      SalesReportState(
+        status: SalesReportBlocStatus.loaded,
+        report: zeroReport,
+      ),
     );
     await tester.pumpWidget(wrap(const ReportsTabView()));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byType(ReportsEmptyView), findsNothing);
     expect(find.text('Today'), findsOneWidget); // DateRangeBar still visible
   });
 
   testWidgets('shows DateRangeBar when loaded with data', (tester) async {
     when(() => bloc.state).thenReturn(
-      SalesReportState(status: SalesReportBlocStatus.loaded, report: _fakeReport()),
+      SalesReportState(
+        status: SalesReportBlocStatus.loaded,
+        report: _fakeReport(),
+      ),
     );
     await tester.pumpWidget(wrap(const ReportsTabView()));
     await tester.pumpAndSettle();

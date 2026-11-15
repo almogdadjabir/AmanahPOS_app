@@ -1,9 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum DashboardSummarySource {
-  remote,
-  cache,
-}
+enum DashboardSummarySource { remote, cache }
 
 class DashboardSummary extends Equatable {
   final String? serverTime;
@@ -57,7 +54,7 @@ class DashboardSummary extends Equatable {
       sync: sync ?? this.sync,
       source: source ?? this.source,
       includesLocalPendingSales:
-      includesLocalPendingSales ?? this.includesLocalPendingSales,
+          includesLocalPendingSales ?? this.includesLocalPendingSales,
     );
   }
 
@@ -74,22 +71,25 @@ class DashboardSummary extends Equatable {
   DashboardSummary mergePendingSales(PendingSalesDelta delta) {
     if (delta.isEmpty) return this;
 
-    final mergedToday = today.copyWith(
-      grossSalesAmount: today.grossSalesAmount + delta.grossAmount,
-      netSalesAmount: today.netSalesAmount + delta.netAmount,
-      salesCount: today.salesCount + delta.salesCount,
-      cashAmount: today.cashAmount + delta.cashAmount,
-      bankakAmount: today.bankakAmount + delta.bankakAmount,
-    ).recalculateAverage();
+    final mergedToday = today
+        .copyWith(
+          grossSalesAmount: today.grossSalesAmount + delta.grossAmount,
+          netSalesAmount: today.netSalesAmount + delta.netAmount,
+          salesCount: today.salesCount + delta.salesCount,
+          cashAmount: today.cashAmount + delta.cashAmount,
+          bankakAmount: today.bankakAmount + delta.bankakAmount,
+          paymentBreakdown: _mergeBreakdown(today.paymentBreakdown, delta),
+        )
+        .recalculateAverage();
 
     final mergedShift = shift == null
         ? null
         : shift!
-        .copyWith(
-      grossSalesAmount: shift!.grossSalesAmount + delta.grossAmount,
-      salesCount: shift!.salesCount + delta.salesCount,
-    )
-        .recalculateAverage();
+              .copyWith(
+                grossSalesAmount: shift!.grossSalesAmount + delta.grossAmount,
+                salesCount: shift!.salesCount + delta.salesCount,
+              )
+              .recalculateAverage();
 
     return copyWith(
       today: mergedToday,
@@ -97,16 +97,36 @@ class DashboardSummary extends Equatable {
       sparkline: sparkline.mergePending(delta.sparklinePoints),
       topSellers: _mergeTopSellers(topSellers, delta.topSellers),
       includesLocalPendingSales: true,
-      sync: sync.copyWith(
-        includesPendingOfflineSales: true,
-      ),
+      sync: sync.copyWith(includesPendingOfflineSales: true),
     );
   }
 
+  List<PaymentBreakdownItem> _mergeBreakdown(
+    List<PaymentBreakdownItem> remote,
+    PendingSalesDelta delta,
+  ) {
+    if (remote.isEmpty) return remote;
+
+    final map = {for (final item in remote) item.method: item};
+
+    void add(String method, double amount) {
+      if (amount <= 0) return;
+      final old = map[method];
+      map[method] = old == null
+          ? PaymentBreakdownItem(method: method, amount: amount, count: 1)
+          : old.copyWith(amount: old.amount + amount);
+    }
+
+    add('cash', delta.cashAmount);
+    add('bankak', delta.bankakAmount);
+
+    return map.values.toList()..sort((a, b) => b.amount.compareTo(a.amount));
+  }
+
   List<TopSeller> _mergeTopSellers(
-      List<TopSeller> remote,
-      List<TopSeller> pending,
-      ) {
+    List<TopSeller> remote,
+    List<TopSeller> pending,
+  ) {
     if (pending.isEmpty) return remote;
 
     final map = <String, TopSeller>{};
@@ -163,10 +183,7 @@ class DashboardSummary extends Equatable {
         salesCount: 0,
         averageSaleAmount: 0,
       ),
-      sparkline: const SparklineSummary(
-        interval: 'hour',
-        points: [],
-      ),
+      sparkline: const SparklineSummary(interval: 'hour', points: []),
       topSellers: const [],
       sync: const DashboardSyncInfo(
         includesPendingOfflineSales: false,
@@ -197,11 +214,7 @@ class DashboardScope extends Equatable {
   final String? shopId;
   final String? shopName;
 
-  const DashboardScope({
-    this.businessId,
-    this.shopId,
-    this.shopName,
-  });
+  const DashboardScope({this.businessId, this.shopId, this.shopName});
 
   @override
   List<Object?> get props => [businessId, shopId, shopName];
@@ -217,6 +230,13 @@ class TodaySalesSummary extends Equatable {
   final int refundCount;
   final double cashAmount;
   final double bankakAmount;
+  final double otherAmount;
+  final List<PaymentBreakdownItem> paymentBreakdown;
+  final double refundCashAmount;
+  final double refundBankakAmount;
+  final double customAmount;
+  final int customCount;
+  final SalesComparison? comparison;
 
   const TodaySalesSummary({
     required this.date,
@@ -228,11 +248,16 @@ class TodaySalesSummary extends Equatable {
     required this.refundCount,
     required this.cashAmount,
     required this.bankakAmount,
+    this.otherAmount = 0,
+    this.paymentBreakdown = const [],
+    this.refundCashAmount = 0,
+    this.refundBankakAmount = 0,
+    this.customAmount = 0,
+    this.customCount = 0,
+    this.comparison,
   });
 
-  factory TodaySalesSummary.empty({
-    required String date,
-  }) {
+  factory TodaySalesSummary.empty({required String date}) {
     return TodaySalesSummary(
       date: date,
       grossSalesAmount: 0,
@@ -256,6 +281,8 @@ class TodaySalesSummary extends Equatable {
     int? refundCount,
     double? cashAmount,
     double? bankakAmount,
+    double? otherAmount,
+    List<PaymentBreakdownItem>? paymentBreakdown,
   }) {
     return TodaySalesSummary(
       date: date ?? this.date,
@@ -267,6 +294,13 @@ class TodaySalesSummary extends Equatable {
       refundCount: refundCount ?? this.refundCount,
       cashAmount: cashAmount ?? this.cashAmount,
       bankakAmount: bankakAmount ?? this.bankakAmount,
+      otherAmount: otherAmount ?? this.otherAmount,
+      paymentBreakdown: paymentBreakdown ?? this.paymentBreakdown,
+      refundCashAmount: refundCashAmount,
+      refundBankakAmount: refundBankakAmount,
+      customAmount: customAmount,
+      customCount: customCount,
+      comparison: comparison,
     );
   }
 
@@ -287,6 +321,59 @@ class TodaySalesSummary extends Equatable {
     refundCount,
     cashAmount,
     bankakAmount,
+    otherAmount,
+    paymentBreakdown,
+    refundCashAmount,
+    refundBankakAmount,
+    customAmount,
+    customCount,
+    comparison,
+  ];
+}
+
+class PaymentBreakdownItem extends Equatable {
+  final String method;
+  final double amount;
+  final int count;
+
+  const PaymentBreakdownItem({
+    required this.method,
+    required this.amount,
+    required this.count,
+  });
+
+  PaymentBreakdownItem copyWith({double? amount, int? count}) {
+    return PaymentBreakdownItem(
+      method: method,
+      amount: amount ?? this.amount,
+      count: count ?? this.count,
+    );
+  }
+
+  @override
+  List<Object?> get props => [method, amount, count];
+}
+
+/// Previous-day figures from the server; null when that day had no sales.
+class SalesComparison extends Equatable {
+  final String date;
+  final double grossSalesAmount;
+  final int salesCount;
+  final double grossSalesAmountSameTime;
+
+  const SalesComparison({
+    required this.date,
+    required this.grossSalesAmount,
+    required this.salesCount,
+    required this.grossSalesAmountSameTime,
+  });
+
+  @override
+  List<Object?> get props => [
+    date,
+    grossSalesAmount,
+    salesCount,
+    grossSalesAmountSameTime,
   ];
 }
 
@@ -351,9 +438,13 @@ class SparklineSummary extends Equatable {
   final String interval;
   final List<SparklinePoint> points;
 
+  /// First hour with a sale ("HH:00"), or null when there are none yet.
+  final String? firstSaleHour;
+
   const SparklineSummary({
     required this.interval,
     required this.points,
+    this.firstSaleHour,
   });
 
   SparklineSummary mergePending(List<SparklinePoint> pendingPoints) {
@@ -381,14 +472,23 @@ class SparklineSummary extends Equatable {
     final merged = map.values.toList()
       ..sort((a, b) => a.label.compareTo(b.label));
 
+    final pendingFirst = pendingPoints
+        .where((e) => e.amount > 0)
+        .map((e) => e.label)
+        .fold<String?>(
+          firstSaleHour,
+          (a, b) => a == null || b.compareTo(a) < 0 ? b : a,
+        );
+
     return SparklineSummary(
       interval: interval,
       points: merged,
+      firstSaleHour: pendingFirst,
     );
   }
 
   @override
-  List<Object?> get props => [interval, points];
+  List<Object?> get props => [interval, points, firstSaleHour];
 }
 
 class SparklinePoint extends Equatable {
@@ -402,11 +502,7 @@ class SparklinePoint extends Equatable {
     required this.salesCount,
   });
 
-  SparklinePoint copyWith({
-    String? label,
-    double? amount,
-    int? salesCount,
-  }) {
+  SparklinePoint copyWith({String? label, double? amount, int? salesCount}) {
     return SparklinePoint(
       label: label ?? this.label,
       amount: amount ?? this.amount,
@@ -474,16 +570,13 @@ class DashboardSyncInfo extends Equatable {
   }) {
     return DashboardSyncInfo(
       includesPendingOfflineSales:
-      includesPendingOfflineSales ?? this.includesPendingOfflineSales,
+          includesPendingOfflineSales ?? this.includesPendingOfflineSales,
       lastCalculatedAt: lastCalculatedAt ?? this.lastCalculatedAt,
     );
   }
 
   @override
-  List<Object?> get props => [
-    includesPendingOfflineSales,
-    lastCalculatedAt,
-  ];
+  List<Object?> get props => [includesPendingOfflineSales, lastCalculatedAt];
 }
 
 class PendingSalesDelta extends Equatable {
@@ -530,4 +623,3 @@ class PendingSalesDelta extends Equatable {
     topSellers,
   ];
 }
-

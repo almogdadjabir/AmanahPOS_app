@@ -28,26 +28,16 @@ class DashboardSummaryDto {
       serverTime: _asString(json['server_time']),
       timezone: _asString(json['timezone']) ?? 'Africa/Khartoum',
       currency: _asString(json['currency']) ?? 'SDG',
-      scope: DashboardScopeDto.fromJson(
-        _asMap(json['scope']),
-      ),
-      today: TodaySalesSummaryDto.fromJson(
-        _asMap(json['today']),
-      ),
+      scope: DashboardScopeDto.fromJson(_asMap(json['scope'])),
+      today: TodaySalesSummaryDto.fromJson(_asMap(json['today'])),
       shift: json['shift'] == null
           ? null
-          : ShiftSalesSummaryDto.fromJson(
-        _asMap(json['shift']),
-      ),
-      sparkline: SparklineSummaryDto.fromJson(
-        _asMap(json['sparkline']),
-      ),
-      topSellers: _asList(json['top_sellers'])
-          .map((e) => TopSellerDto.fromJson(_asMap(e)))
-          .toList(),
-      sync: DashboardSyncInfoDto.fromJson(
-        _asMap(json['sync']),
-      ),
+          : ShiftSalesSummaryDto.fromJson(_asMap(json['shift'])),
+      sparkline: SparklineSummaryDto.fromJson(_asMap(json['sparkline'])),
+      topSellers: _asList(
+        json['top_sellers'],
+      ).map((e) => TopSellerDto.fromJson(_asMap(e))).toList(),
+      sync: DashboardSyncInfoDto.fromJson(_asMap(json['sync'])),
     );
   }
 
@@ -93,8 +83,9 @@ class DashboardSummaryDto {
           ? null
           : ShiftSalesSummaryDto.fromEntity(entity.shift!),
       sparkline: SparklineSummaryDto.fromEntity(entity.sparkline),
-      topSellers:
-      entity.topSellers.map((e) => TopSellerDto.fromEntity(e)).toList(),
+      topSellers: entity.topSellers
+          .map((e) => TopSellerDto.fromEntity(e))
+          .toList(),
       sync: DashboardSyncInfoDto.fromEntity(entity.sync),
     );
   }
@@ -154,6 +145,13 @@ class TodaySalesSummaryDto {
   final int refundCount;
   final double cashAmount;
   final double bankakAmount;
+  final double otherAmount;
+  final List<PaymentBreakdownItem> paymentBreakdown;
+  final double refundCashAmount;
+  final double refundBankakAmount;
+  final double customAmount;
+  final int customCount;
+  final SalesComparison? comparison;
 
   const TodaySalesSummaryDto({
     required this.date,
@@ -165,6 +163,13 @@ class TodaySalesSummaryDto {
     required this.refundCount,
     required this.cashAmount,
     required this.bankakAmount,
+    this.otherAmount = 0,
+    this.paymentBreakdown = const [],
+    this.refundCashAmount = 0,
+    this.refundBankakAmount = 0,
+    this.customAmount = 0,
+    this.customCount = 0,
+    this.comparison,
   });
 
   factory TodaySalesSummaryDto.fromJson(Map<String, dynamic> json) {
@@ -178,6 +183,31 @@ class TodaySalesSummaryDto {
       refundCount: _asInt(json['refund_count']),
       cashAmount: _asDouble(json['cash_amount']),
       bankakAmount: _asDouble(json['bankak_amount']),
+      otherAmount: _asDouble(json['other_amount']),
+      paymentBreakdown: _asList(json['payment_breakdown']).map((e) {
+        final m = _asMap(e);
+        return PaymentBreakdownItem(
+          method: _asString(m['method']) ?? '',
+          amount: _asDouble(m['amount']),
+          count: _asInt(m['count']),
+        );
+      }).toList(),
+      refundCashAmount: _asDouble(json['refund_cash_amount']),
+      refundBankakAmount: _asDouble(json['refund_bankak_amount']),
+      customAmount: _asDouble(json['custom_amount']),
+      customCount: _asInt(json['custom_count']),
+      comparison: json['comparison'] is Map
+          ? SalesComparison(
+              date: _asString(_asMap(json['comparison'])['date']) ?? '',
+              grossSalesAmount: _asDouble(
+                _asMap(json['comparison'])['gross_sales_amount'],
+              ),
+              salesCount: _asInt(_asMap(json['comparison'])['sales_count']),
+              grossSalesAmountSameTime: _asDouble(
+                _asMap(json['comparison'])['gross_sales_amount_same_time'],
+              ),
+            )
+          : null,
     );
   }
 
@@ -192,6 +222,13 @@ class TodaySalesSummaryDto {
       refundCount: entity.refundCount,
       cashAmount: entity.cashAmount,
       bankakAmount: entity.bankakAmount,
+      otherAmount: entity.otherAmount,
+      paymentBreakdown: entity.paymentBreakdown,
+      refundCashAmount: entity.refundCashAmount,
+      refundBankakAmount: entity.refundBankakAmount,
+      customAmount: entity.customAmount,
+      customCount: entity.customCount,
+      comparison: entity.comparison,
     );
   }
 
@@ -206,6 +243,13 @@ class TodaySalesSummaryDto {
       refundCount: refundCount,
       cashAmount: cashAmount,
       bankakAmount: bankakAmount,
+      otherAmount: otherAmount,
+      paymentBreakdown: paymentBreakdown,
+      refundCashAmount: refundCashAmount,
+      refundBankakAmount: refundBankakAmount,
+      customAmount: customAmount,
+      customCount: customCount,
+      comparison: comparison,
     );
   }
 
@@ -220,6 +264,22 @@ class TodaySalesSummaryDto {
       'refund_count': refundCount,
       'cash_amount': cashAmount,
       'bankak_amount': bankakAmount,
+      'other_amount': otherAmount,
+      'payment_breakdown': [
+        for (final e in paymentBreakdown)
+          {'method': e.method, 'amount': e.amount, 'count': e.count},
+      ],
+      'refund_cash_amount': refundCashAmount,
+      'refund_bankak_amount': refundBankakAmount,
+      'custom_amount': customAmount,
+      'custom_count': customCount,
+      if (comparison != null)
+        'comparison': {
+          'date': comparison!.date,
+          'gross_sales_amount': comparison!.grossSalesAmount,
+          'sales_count': comparison!.salesCount,
+          'gross_sales_amount_same_time': comparison!.grossSalesAmountSameTime,
+        },
     };
   }
 }
@@ -295,25 +355,31 @@ class ShiftSalesSummaryDto {
 class SparklineSummaryDto {
   final String interval;
   final List<SparklinePointDto> points;
+  final String? firstSaleHour;
 
   const SparklineSummaryDto({
     required this.interval,
     required this.points,
+    this.firstSaleHour,
   });
 
   factory SparklineSummaryDto.fromJson(Map<String, dynamic> json) {
     return SparklineSummaryDto(
       interval: _asString(json['interval']) ?? 'hour',
-      points: _asList(json['points'])
-          .map((e) => SparklinePointDto.fromJson(_asMap(e)))
-          .toList(),
+      points: _asList(
+        json['points'],
+      ).map((e) => SparklinePointDto.fromJson(_asMap(e))).toList(),
+      firstSaleHour: _asString(json['first_sale_hour']),
     );
   }
 
   factory SparklineSummaryDto.fromEntity(SparklineSummary entity) {
     return SparklineSummaryDto(
       interval: entity.interval,
-      points: entity.points.map((e) => SparklinePointDto.fromEntity(e)).toList(),
+      points: entity.points
+          .map((e) => SparklinePointDto.fromEntity(e))
+          .toList(),
+      firstSaleHour: entity.firstSaleHour,
     );
   }
 
@@ -321,6 +387,7 @@ class SparklineSummaryDto {
     return SparklineSummary(
       interval: interval,
       points: points.map((e) => e.toEntity()).toList(),
+      firstSaleHour: firstSaleHour,
     );
   }
 
@@ -328,6 +395,7 @@ class SparklineSummaryDto {
     return {
       'interval': interval,
       'points': points.map((e) => e.toJson()).toList(),
+      'first_sale_hour': firstSaleHour,
     };
   }
 }
@@ -360,19 +428,11 @@ class SparklinePointDto {
   }
 
   SparklinePoint toEntity() {
-    return SparklinePoint(
-      label: label,
-      amount: amount,
-      salesCount: salesCount,
-    );
+    return SparklinePoint(label: label, amount: amount, salesCount: salesCount);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'label': label,
-      'amount': amount,
-      'sales_count': salesCount,
-    };
+    return {'label': label, 'amount': amount, 'sales_count': salesCount};
   }
 }
 
@@ -444,7 +504,7 @@ class DashboardSyncInfoDto {
   factory DashboardSyncInfoDto.fromJson(Map<String, dynamic> json) {
     return DashboardSyncInfoDto(
       includesPendingOfflineSales:
-      json['includes_pending_offline_sales'] == true,
+          json['includes_pending_offline_sales'] == true,
       lastCalculatedAt: _asString(json['last_calculated_at']),
     );
   }

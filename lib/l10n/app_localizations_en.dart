@@ -2463,4 +2463,156 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonLoading => 'Loading';
+
+  @override
+  String get homeStatusLive => 'Live';
+
+  @override
+  String get homeStatusCached => 'Cached';
+
+  @override
+  String get homeStatusOffline => 'Offline sales included';
+
+  @override
+  String get homeGrossSales => 'Gross sales';
+
+  @override
+  String get homeStatSales => 'Sales';
+
+  @override
+  String get homeStatAverage => 'Average';
+
+  @override
+  String get homeStatRefunds => 'Refunds';
+
+  @override
+  String get homePayments => 'Payments';
+
+  @override
+  String get homeTopSellers => 'Top sellers';
+
+  @override
+  String get homeManage => 'Manage';
+
+  @override
+  String homeSoldQty(String qty) {
+    return '$qty sold';
+  }
+
+  @override
+  String homeShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count branches',
+      one: '1 branch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeProductsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeUsersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count users',
+      one: '1 user',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeNoSalesTitle => 'No sales yet today';
+
+  @override
+  String get homeNoSalesBody =>
+      'Sales you make will show up here, hour by hour.';
+
+  @override
+  String get homeStartSelling => 'Start selling';
+
+  @override
+  String get homePlanNone => 'No active subscription';
+
+  @override
+  String get homePlanContact => 'Contact support to activate your plan';
+
+  @override
+  String get homePlanFree => 'Free';
+
+  @override
+  String get homePlanPaid => 'Paid plan';
+
+  @override
+  String get homePlanInactive => 'Inactive';
+
+  @override
+  String get homePlanNoExpiry => 'No expiry';
+
+  @override
+  String get homePlanExpired => 'Expired';
+
+  @override
+  String homePlanDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homePlanLimits(String shops, String products, String users) {
+    return 'Shops $shops · Products $products · Users $users';
+  }
+
+  @override
+  String get homePlanUnlimited => 'Unlimited';
+
+  @override
+  String get homePayCard => 'Card';
+
+  @override
+  String get homePayBankTransfer => 'Bank transfer';
+
+  @override
+  String get homePayWallet => 'Mobile wallet';
+
+  @override
+  String get homePayLoyalty => 'Loyalty points';
+
+  @override
+  String get homePayCredit => 'Credit';
+
+  @override
+  String get homePaySplit => 'Split';
+
+  @override
+  String get homePayOther => 'Other';
+
+  @override
+  String homePlanPriceMonthly(String price) {
+    return '$price a month';
+  }
+
+  @override
+  String homePlanPriceYearly(String price) {
+    return '$price a year';
+  }
+
+  @override
+  String get homeReportsHint => 'All transactions';
 }

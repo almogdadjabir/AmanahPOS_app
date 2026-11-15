@@ -41,6 +41,7 @@ class BusinessData {
   ActiveSubscription? activeSubscription;
   bool? isActive;
   int? shopCount;
+  BusinessCounts? counts;
   List<ShopData>? shops;
   String? createdAt;
   String? updatedAt;
@@ -62,6 +63,7 @@ class BusinessData {
     this.activeSubscription,
     this.isActive,
     this.shopCount,
+    this.counts,
     this.shops,
     this.createdAt,
     this.updatedAt,
@@ -86,6 +88,9 @@ class BusinessData {
         : null;
     isActive = json['is_active'];
     shopCount = json['shop_count'];
+    counts = json['counts'] is Map<String, dynamic>
+        ? BusinessCounts.fromJson(json['counts'] as Map<String, dynamic>)
+        : null;
     if (json['shops'] != null) {
       shops = <ShopData>[];
       json['shops'].forEach((v) {
@@ -118,6 +123,9 @@ class BusinessData {
     }
     data['is_active'] = isActive;
     data['shop_count'] = shopCount;
+    if (counts != null) {
+      data['counts'] = counts!.toJson();
+    }
     if (shops != null) {
       data['shops'] = shops!.map((v) => v.toJson()).toList();
     }
@@ -223,6 +231,46 @@ class ShopData {
   }
 }
 
+/// Live counts for the Home "Manage" list. Sent to owners and managers only.
+class BusinessCounts {
+  final int shopsActive;
+  final int productsActive;
+  final int productsInactive;
+  final int usersActive;
+  final int cashiersActive;
+  final int managersActive;
+
+  const BusinessCounts({
+    this.shopsActive = 0,
+    this.productsActive = 0,
+    this.productsInactive = 0,
+    this.usersActive = 0,
+    this.cashiersActive = 0,
+    this.managersActive = 0,
+  });
+
+  factory BusinessCounts.fromJson(Map<String, dynamic> json) {
+    int n(String k) => (json[k] as num?)?.toInt() ?? 0;
+    return BusinessCounts(
+      shopsActive: n('shops_active'),
+      productsActive: n('products_active'),
+      productsInactive: n('products_inactive'),
+      usersActive: n('users_active'),
+      cashiersActive: n('cashiers_active'),
+      managersActive: n('managers_active'),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'shops_active': shopsActive,
+    'products_active': productsActive,
+    'products_inactive': productsInactive,
+    'users_active': usersActive,
+    'cashiers_active': cashiersActive,
+    'managers_active': managersActive,
+  };
+}
+
 class ActiveSubscription {
   String? id;
   String? name;
@@ -233,8 +281,13 @@ class ActiveSubscription {
   bool? isFree;
   String? price;
   String? currency;
+  String? startDate;
   String? endDate;
   int? daysRemaining;
+  int? billingCycleDays;
+
+  /// "monthly", "yearly" or null when the plan is neither.
+  String? billingPeriod;
 
   ActiveSubscription({
     this.id,
@@ -246,8 +299,11 @@ class ActiveSubscription {
     this.isFree,
     this.price,
     this.currency,
+    this.startDate,
     this.endDate,
     this.daysRemaining,
+    this.billingCycleDays,
+    this.billingPeriod,
   });
 
   ActiveSubscription.fromJson(Map<String, dynamic> json) {
@@ -262,8 +318,11 @@ class ActiveSubscription {
     isFree = json['is_free'];
     price = json['price'];
     currency = json['currency'];
+    startDate = json['start_date'];
     endDate = json['end_date'];
     daysRemaining = json['days_remaining'];
+    billingCycleDays = json['billing_cycle_days'];
+    billingPeriod = json['billing_period'];
   }
 
   Map<String, dynamic> toJson() {
@@ -279,8 +338,11 @@ class ActiveSubscription {
     data['is_free'] = isFree;
     data['price'] = price;
     data['currency'] = currency;
+    data['start_date'] = startDate;
     data['end_date'] = endDate;
     data['days_remaining'] = daysRemaining;
+    data['billing_cycle_days'] = billingCycleDays;
+    data['billing_period'] = billingPeriod;
     return data;
   }
 }

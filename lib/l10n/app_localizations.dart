@@ -4669,6 +4669,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading'**
   String get commonLoading;
+
+  /// No description provided for @homeStatusLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get homeStatusLive;
+
+  /// No description provided for @homeStatusCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached'**
+  String get homeStatusCached;
+
+  /// No description provided for @homeStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline sales included'**
+  String get homeStatusOffline;
+
+  /// No description provided for @homeGrossSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross sales'**
+  String get homeGrossSales;
+
+  /// No description provided for @homeStatSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get homeStatSales;
+
+  /// No description provided for @homeStatAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get homeStatAverage;
+
+  /// No description provided for @homeStatRefunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds'**
+  String get homeStatRefunds;
+
+  /// No description provided for @homePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get homePayments;
+
+  /// No description provided for @homeTopSellers.
+  ///
+  /// In en, this message translates to:
+  /// **'Top sellers'**
+  String get homeTopSellers;
+
+  /// No description provided for @homeManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get homeManage;
+
+  /// No description provided for @homeSoldQty.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} sold'**
+  String homeSoldQty(String qty);
+
+  /// No description provided for @homeShopsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 branch} other{{count} branches}}'**
+  String homeShopsCount(int count);
+
+  /// No description provided for @homeProductsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String homeProductsCount(int count);
+
+  /// No description provided for @homeUsersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 user} other{{count} users}}'**
+  String homeUsersCount(int count);
+
+  /// No description provided for @homeNoSalesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales yet today'**
+  String get homeNoSalesTitle;
+
+  /// No description provided for @homeNoSalesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales you make will show up here, hour by hour.'**
+  String get homeNoSalesBody;
+
+  /// No description provided for @homeStartSelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Start selling'**
+  String get homeStartSelling;
+
+  /// No description provided for @homePlanNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No active subscription'**
+  String get homePlanNone;
+
+  /// No description provided for @homePlanContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support to activate your plan'**
+  String get homePlanContact;
+
+  /// No description provided for @homePlanFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get homePlanFree;
+
+  /// No description provided for @homePlanPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid plan'**
+  String get homePlanPaid;
+
+  /// No description provided for @homePlanInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get homePlanInactive;
+
+  /// No description provided for @homePlanNoExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'No expiry'**
+  String get homePlanNoExpiry;
+
+  /// No description provided for @homePlanExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get homePlanExpired;
+
+  /// No description provided for @homePlanDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
+  String homePlanDaysLeft(int count);
+
+  /// No description provided for @homePlanLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops {shops} · Products {products} · Users {users}'**
+  String homePlanLimits(String shops, String products, String users);
+
+  /// No description provided for @homePlanUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get homePlanUnlimited;
+
+  /// No description provided for @homePayCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get homePayCard;
+
+  /// No description provided for @homePayBankTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer'**
+  String get homePayBankTransfer;
+
+  /// No description provided for @homePayWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile wallet'**
+  String get homePayWallet;
+
+  /// No description provided for @homePayLoyalty.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty points'**
+  String get homePayLoyalty;
+
+  /// No description provided for @homePayCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get homePayCredit;
+
+  /// No description provided for @homePaySplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get homePaySplit;
+
+  /// No description provided for @homePayOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get homePayOther;
+
+  /// No description provided for @homePlanPriceMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} a month'**
+  String homePlanPriceMonthly(String price);
+
+  /// No description provided for @homePlanPriceYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} a year'**
+  String homePlanPriceYearly(String price);
+
+  /// No description provided for @homeReportsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'All transactions'**
+  String get homeReportsHint;
 }
 
 class _AppLocalizationsDelegate

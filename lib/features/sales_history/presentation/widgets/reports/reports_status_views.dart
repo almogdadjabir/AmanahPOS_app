@@ -6,132 +6,89 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
+import 'package:amana_pos/widgets/shimmer.dart';
 
 const _kLoadingSkeletonIconSize = 48.0;
 const _kErrorIconSize = 40.0;
 
-/// Shimmer-animated skeleton for loading reports.
+/// Loading skeleton for reports: one soft pulse over the whole layout.
 class ReportsLoadingSkeleton extends StatelessWidget {
   const ReportsLoadingSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final baseColor = colors.border.withAlpha(80);
+    final baseColor = context.appColors.surfaceSoft;
+
+    Widget block(double height, double radius, {EdgeInsetsGeometry? margin}) {
+      return Container(
+        height: height,
+        margin: margin,
+        decoration: BoxDecoration(
+          color: baseColor,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+    }
 
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppDims.s4),
-        child: Column(
-          children: [
-            // KPI Cards Row — 5 cards
-            Row(
-              children: List.generate(
-                5,
-                (index) => Expanded(
-                  child: Container(
-                    height: 72,
-                    margin: EdgeInsets.only(
-                      left: index == 0 ? 0 : AppDims.s2,
-                      right: index == 4 ? 0 : AppDims.s2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: baseColor,
-                      borderRadius: BorderRadius.circular(AppDims.rMd),
-                    ),
-                  )
-                      .mAnimate(delay: (index * 80).ms, onPlay: (c) => c.repeat())
-                      .shimmer(
-                        duration: 1200.ms,
-                        color: Colors.white.withAlpha(60),
+      child: AppSkeleton(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppDims.s4),
+          child: Column(
+            children: [
+              // KPI cards row: 5 cards
+              Row(
+                children: List.generate(
+                  5,
+                  (index) => Expanded(
+                    child: block(
+                      72,
+                      AppDims.rMd,
+                      margin: EdgeInsetsDirectional.only(
+                        start: index == 0 ? 0 : AppDims.s2,
+                        end: index == 4 ? 0 : AppDims.s2,
                       ),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppDims.s4),
-            // Main chart row (2/3 + 1/3)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    height: 400,
-                    decoration: BoxDecoration(
-                      color: baseColor,
-                      borderRadius: BorderRadius.circular(AppDims.rXl),
                     ),
-                  )
-                      .mAnimate(delay: 100.ms, onPlay: (c) => c.repeat())
-                      .shimmer(
-                        duration: 1400.ms,
-                        color: Colors.white.withAlpha(60),
-                      ),
-                ),
-                const SizedBox(width: AppDims.s3),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 192,
-                        decoration: BoxDecoration(
-                          color: baseColor,
-                          borderRadius: BorderRadius.circular(AppDims.rXl),
-                        ),
-                      )
-                          .mAnimate(delay: 200.ms, onPlay: (c) => c.repeat())
-                          .shimmer(
-                            duration: 1400.ms,
-                            color: Colors.white.withAlpha(60),
-                          ),
-                      const SizedBox(height: AppDims.s3),
-                      Container(
-                        height: 192,
-                        decoration: BoxDecoration(
-                          color: baseColor,
-                          borderRadius: BorderRadius.circular(AppDims.rXl),
-                        ),
-                      )
-                          .mAnimate(delay: 300.ms, onPlay: (c) => c.repeat())
-                          .shimmer(
-                            duration: 1400.ms,
-                            color: Colors.white.withAlpha(60),
-                          ),
-                    ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: AppDims.s3),
-            // Bottom row — 3 equal cards
-            Row(
-              children: List.generate(
-                3,
-                (index) => Expanded(
-                  child: Container(
-                    height: 240,
-                    margin: EdgeInsets.only(
-                      left: index == 0 ? 0 : AppDims.s3,
+              ),
+              const SizedBox(height: AppDims.s4),
+              // Main chart row (2/3 + 1/3)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: block(400, AppDims.rXl)),
+                  const SizedBox(width: AppDims.s3),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        block(192, AppDims.rXl),
+                        const SizedBox(height: AppDims.s3),
+                        block(192, AppDims.rXl),
+                      ],
                     ),
-                    decoration: BoxDecoration(
-                      color: baseColor,
-                      borderRadius: BorderRadius.circular(AppDims.rXl),
-                    ),
-                  )
-                      .mAnimate(
-                        delay: (400 + index * 100).ms,
-                        onPlay: (c) => c.repeat(),
-                      )
-                      .shimmer(
-                        duration: 1400.ms,
-                        color: Colors.white.withAlpha(60),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDims.s3),
+              // Bottom row: 3 equal cards
+              Row(
+                children: List.generate(
+                  3,
+                  (index) => Expanded(
+                    child: block(
+                      240,
+                      AppDims.rXl,
+                      margin: EdgeInsetsDirectional.only(
+                        start: index == 0 ? 0 : AppDims.s3,
                       ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -151,20 +108,26 @@ class ReportsEmptyView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              PhosphorIconsRegular.chartBar,
-              size: _kLoadingSkeletonIconSize,
-              color: context.appColors.textHint,
-            )
+                  PhosphorIconsRegular.chartBar,
+                  size: _kLoadingSkeletonIconSize,
+                  color: context.appColors.textHint,
+                )
                 .mAnimate()
                 .fadeIn(duration: 400.ms)
-                .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack),
+                .scale(
+                  begin: const Offset(0.8, 0.8),
+                  curve: Curves.easeOutBack,
+                ),
             const SizedBox(height: AppDims.s3),
             Text(
-              context.tr.reportsNoSalesInRange,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: context.appColors.textHint,
-              ),
-            ).mAnimate(delay: 100.ms).fadeIn(duration: 300.ms).slideY(begin: 0.1),
+                  context.tr.reportsNoSalesInRange,
+                  style: AppTextStyles.bs200(
+                    context,
+                  ).copyWith(color: context.appColors.textHint),
+                )
+                .mAnimate(delay: 100.ms)
+                .fadeIn(duration: 300.ms)
+                .slideY(begin: 0.1),
           ],
         ),
       ),
@@ -192,21 +155,29 @@ class ReportsErrorView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              PhosphorIconsRegular.xCircle,
-              size: _kErrorIconSize,
-              color: context.appColors.danger,
-            ).mAnimate().fadeIn(duration: 300.ms).scale(
-              begin: const Offset(0.7, 0.7),
-              curve: Curves.easeOutBack,
-            ),
+                  PhosphorIconsRegular.xCircle,
+                  size: _kErrorIconSize,
+                  color: context.appColors.danger,
+                )
+                .mAnimate()
+                .fadeIn(duration: 300.ms)
+                .scale(
+                  begin: const Offset(0.7, 0.7),
+                  curve: Curves.easeOutBack,
+                ),
             const SizedBox(height: AppDims.s3),
             Text(
-              (message?.isNotEmpty == true) ? message! : context.tr.reportsLoadError,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: context.appColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ).mAnimate(delay: 80.ms).fadeIn(duration: 280.ms).slideY(begin: 0.1),
+                  (message?.isNotEmpty == true)
+                      ? message!
+                      : context.tr.reportsLoadError,
+                  style: AppTextStyles.bs200(
+                    context,
+                  ).copyWith(color: context.appColors.textSecondary),
+                  textAlign: TextAlign.center,
+                )
+                .mAnimate(delay: 80.ms)
+                .fadeIn(duration: 280.ms)
+                .slideY(begin: 0.1),
             const SizedBox(height: AppDims.s3),
             TextButton(
               onPressed: onRetry,
