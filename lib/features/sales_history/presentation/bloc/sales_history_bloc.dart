@@ -23,7 +23,8 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
     on<SalesHistoryLoadMore>(_onLoadMore);
     on<SalesHistoryRefreshed>(_onRefreshed);
     on<SalesHistorySearchChanged>(_onSearchChanged);
-    on<SalesHistoryItemReturnProcessed>(_onReturnProcessed);
+    on<SalesHistoryFiltersChanged>(_onFiltersChanged);
+    on<SalesHistoryItemReplaced>(_onItemReplaced);
   }
 
   @override
@@ -62,6 +63,7 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
       currentPage: 0,
       hasMore:     true,
       clearError:  true,
+      clearTotal:  true,
     ));
     await _fetchPage(emit, page: 1, replace: true);
   }
@@ -91,20 +93,33 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
     await _fetchPage(emit, page: 1, replace: true);
   }
 
-  void _onReturnProcessed(
-      SalesHistoryItemReturnProcessed event,
-      Emitter<SalesHistoryState> emit,
-      ) {
-    final updated = state.items.map((item) {
-      if (item.id != event.saleId) return item;
-      return item.copyWith(
-        status: event.isPartial
-            ? SaleHistoryStatus.partialRefund
-            : SaleHistoryStatus.refunded,
-      );
-    }).toList();
+  Future<void> _onFiltersChanged(
+    SalesHistoryFiltersChanged event,
+    Emitter<SalesHistoryState> emit,
+  ) async {
+    _searchTimer?.cancel();
+    emit(state.copyWith(
+      filters: event.filters,
+      status: SalesHistoryBlocStatus.loading,
+      items: [],
+      currentPage: 0,
+      hasMore: true,
+      clearError: true,
+      clearTotal: true,
+    ));
+    await _fetchPage(emit, page: 1, replace: true);
+  }
 
-    emit(state.copyWith(items: updated));
+  void _onItemReplaced(
+    SalesHistoryItemReplaced event,
+    Emitter<SalesHistoryState> emit,
+  ) {
+    emit(state.copyWith(
+      items: [
+        for (final item in state.items)
+          if (item.id != null && item.id == event.sale.id) event.sale else item,
+      ],
+    ));
   }
 
   Future<void> _fetchPage(
@@ -114,13 +129,22 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
       }) async {
     final query = state.searchQuery.trim();
 
+    final f = state.filters;
+    final range = f.range;
     final result = await _useCase.getSalesPage(
       page:     page,
       pageSize: _pageSize,
       search:   query.isEmpty ? null : query,
+      status: f.status,
+      paymentMethod: f.payment,
+      dateFrom: range?.from,
+      dateTo: range?.to,
+      onlyUnsynced: f.onlyUnsynced,
     );
 
     if (emit.isDone) return;
+    // A newer search or filter change replaced this request: drop the result.
+    if (state.searchQuery.trim() != query || state.filters != f) return;
 
     result.fold(
           (error) => emit(state.copyWith(
@@ -146,6 +170,7 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
           status: SalesHistoryBlocStatus.loaded,
           currentPage: page,
           hasMore: pageData.hasMore,
+          totalCount: pageData.totalCount,
           clearError:  true,
         ));
       },

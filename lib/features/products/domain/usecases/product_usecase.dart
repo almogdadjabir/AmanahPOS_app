@@ -23,7 +23,14 @@ class ProductUseCase {
   Future<Either<String?, ProductListResponseDto>> getProducts({
     required int page,
     int pageSize = 20,
-  }) => repository.getProducts(page: page, pageSize: pageSize);
+    String? search,
+    String? isActive,
+  }) => repository.getProducts(
+    page: page,
+    pageSize: pageSize,
+    search: search,
+    isActive: isActive,
+  );
 
   Future<Either<String?, CategoryProductsResponseDto>> getProductsByCategory({
     required String categoryId,

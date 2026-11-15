@@ -26,21 +26,48 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
     int pageSize = 20,
     String?  search,
     String?  shopId,
+    String? status,
+    String? paymentMethod,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    bool onlyUnsynced = false,
   }) async {
     try {
       final isOnline = await _networkMonitor.isOnline;
 
       // Offline items are only prepended on page 1 (most-recent position).
-      final offlineItems = page == 1 ? await _getOfflineItems() : <SaleHistoryItem>[];
+      // Sales that are not on the server yet can only match filters that
+      // do not depend on server state, so apply them locally.
+      var offlineItems = page == 1 ? await _getOfflineItems() : <SaleHistoryItem>[];
+      offlineItems = offlineItems
+          .where((o) => _offlineMatches(
+                o,
+                search: search,
+                status: status,
+                paymentMethod: paymentMethod,
+                dateFrom: dateFrom,
+                dateTo: dateTo,
+              ))
+          .toList();
 
-      if (!isOnline) {
+      if (onlyUnsynced || !isOnline) {
         return Right(SalesHistoryPage(
           items: page == 1 ? offlineItems : [],
           hasMore: false,
+          totalCount: page == 1 ? offlineItems.length : 0,
         ));
       }
 
-      final uri = _buildUri(page: page, pageSize: pageSize, search: search, shopId: shopId);
+      final uri = _buildUri(
+        page: page,
+        pageSize: pageSize,
+        search: search,
+        shopId: shopId,
+        status: status,
+        paymentMethod: paymentMethod,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+      );
 
       final result = await _requestHandler.handleGetRequest(
         uri,
@@ -56,10 +83,15 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
           return SalesHistoryPage(
             items: [...uniqueOffline, ...onlineItems],
             hasMore: dto.next != null,
+            totalCount: dto.count + uniqueOffline.length,
           );
         }
 
-        return SalesHistoryPage(items: onlineItems, hasMore: dto.next != null);
+        return SalesHistoryPage(
+          items: onlineItems,
+          hasMore: dto.next != null,
+          totalCount: dto.count,
+        );
       });
     } catch (e) {
       return Left(e.toString());
@@ -120,11 +152,47 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
     required int pageSize,
     String? search,
     String? shopId,
+    String? status,
+    String? paymentMethod,
+    DateTime? dateFrom,
+    DateTime? dateTo,
   }) {
     final buf = StringBuffer('api/v1/sales/?page=$page&page_size=$pageSize');
     if (search?.isNotEmpty == true) buf.write('&search=${Uri.encodeComponent(search!)}');
     if (shopId?.isNotEmpty == true) buf.write('&shop=$shopId');
+    if (status?.isNotEmpty == true) buf.write('&status=$status');
+    if (paymentMethod?.isNotEmpty == true) buf.write('&payment_method=$paymentMethod');
+    if (dateFrom != null) buf.write('&date_from=${_formatDate(dateFrom)}');
+    if (dateTo != null) buf.write('&date_to=${_formatDate(dateTo)}');
     return buf.toString();
+  }
+
+  bool _offlineMatches(
+    SaleHistoryItem o, {
+    String? search,
+    String? status,
+    String? paymentMethod,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+  }) {
+    // A sale that is not on the server cannot be completed/refunded yet.
+    if (status?.isNotEmpty == true) return false;
+    if (paymentMethod?.isNotEmpty == true && o.paymentMethod != paymentMethod) {
+      return false;
+    }
+    final q = search?.trim().toLowerCase() ?? '';
+    if (q.isNotEmpty && !o.displayRef.toLowerCase().contains(q)) return false;
+    final day = DateTime(o.createdAt.toLocal().year, o.createdAt.toLocal().month,
+        o.createdAt.toLocal().day);
+    if (dateFrom != null &&
+        day.isBefore(DateTime(dateFrom.year, dateFrom.month, dateFrom.day))) {
+      return false;
+    }
+    if (dateTo != null &&
+        day.isAfter(DateTime(dateTo.year, dateTo.month, dateTo.day))) {
+      return false;
+    }
+    return true;
   }
 
   String _buildReportUri({

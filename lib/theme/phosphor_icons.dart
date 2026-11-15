@@ -176,6 +176,7 @@ abstract final class PhosphorIconsRegular {
   static const IconData userPlus = IconData(0xe4d0, fontFamily: 'Phosphor');
   static const IconData users = IconData(0xe4d6, fontFamily: 'Phosphor');
   static const IconData wallet = IconData(0xe68a, fontFamily: 'Phosphor');
+  static const IconData whatsappLogo = IconData(0xe5d0, fontFamily: 'Phosphor');
   static const IconData warning = IconData(0xe4e0, fontFamily: 'Phosphor');
   static const IconData warningCircle = IconData(
     0xe4e2,
@@ -224,6 +225,8 @@ abstract final class PhosphorIconsFill {
 
 abstract final class PhosphorIconsBold {
   PhosphorIconsBold._();
+
+  static const IconData check = IconData(0xe182, fontFamily: 'PhosphorBold');
 
   static const IconData dotsThree = IconData(
     0xe1fe,

@@ -40,6 +40,11 @@ class SaleDto {
   final String? clientSaleId;
   final List<SaleItemDto> items;
   final DateTime createdAt;
+  final String? cashierName;
+  final String discountAmount;
+  final String? notes;
+  final String? bankakSnapshot;
+  final List<SaleRefundDto> refunds;
 
   const SaleDto({
     required this.id,
@@ -58,6 +63,11 @@ class SaleDto {
     required this.clientSaleId,
     required this.items,
     required this.createdAt,
+    this.cashierName,
+    this.discountAmount = '0',
+    this.notes,
+    this.bankakSnapshot,
+    this.refunds = const [],
   });
 
   factory SaleDto.fromJson(Map<String, dynamic> json) {
@@ -103,11 +113,41 @@ class SaleDto {
           .toList(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.now(),
+      cashierName: json['cashier_name']?.toString(),
+      discountAmount: json['discount_amount']?.toString() ?? '0',
+      notes: json['notes']?.toString(),
+      bankakSnapshot: json['bankak_account_snapshot']?.toString(),
+      refunds: (json['refunds'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(SaleRefundDto.fromJson)
+          .toList(),
     );
   }
 }
 
+class SaleRefundDto {
+  final String reference;
+  final String total;
+  final DateTime createdAt;
+
+  const SaleRefundDto({
+    required this.reference,
+    required this.total,
+    required this.createdAt,
+  });
+
+  factory SaleRefundDto.fromJson(Map<String, dynamic> json) => SaleRefundDto(
+        reference: json['reference']?.toString() ?? '',
+        total: json['total']?.toString() ?? '0',
+        createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+            DateTime.now(),
+      );
+}
+
 class SaleItemDto {
+  final String id;
+  final bool isCustom;
+  final String returnedQuantity;
   final String productId;
   final String productName;
   final String quantity;
@@ -115,6 +155,9 @@ class SaleItemDto {
   final String subtotal;
 
   const SaleItemDto({
+    this.id = '',
+    this.isCustom = false,
+    this.returnedQuantity = '0',
     required this.productId,
     required this.productName,
     required this.quantity,
@@ -135,7 +178,11 @@ class SaleItemDto {
       productName = json['product_name']?.toString() ?? '';
     }
 
+    final isCustom = json['is_custom'] == true;
     return SaleItemDto(
+      id: json['id']?.toString() ?? '',
+      isCustom: isCustom,
+      returnedQuantity: json['returned_quantity']?.toString() ?? '0',
       productId: productId,
       productName: productName.isNotEmpty ? productName : (json['product_name']?.toString() ?? 'Item'),
       quantity: json['quantity']?.toString() ?? '1',
@@ -144,6 +191,7 @@ class SaleItemDto {
     );
   }
 
+  double get returnedQuantityDouble => double.tryParse(returnedQuantity) ?? 0;
   double get quantityDouble => double.tryParse(quantity) ?? 1;
   double get unitPriceDouble => double.tryParse(unitPrice) ?? 0;
   double get subtotalDouble => double.tryParse(subtotal) ?? 0;

@@ -14,111 +14,72 @@ class ReturnsBloc extends Bloc<ReturnsEvent, ReturnsState> {
   ReturnsBloc({required ReturnsUseCase useCase})
       : _useCase = useCase,
         super(ReturnsState.initial()) {
-    on<ReturnsSearchChanged>(_onSearchChanged);
-    on<ReturnsSaleSelected>(_onSaleSelected);
-    on<ReturnsItemToggled>(_onItemToggled);
+    on<ReturnsStarted>(_onStarted);
+    on<ReturnsLineToggled>(_onLineToggled);
     on<ReturnsQuantityChanged>(_onQuantityChanged);
     on<ReturnsAllToggled>(_onAllToggled);
     on<ReturnsSubmitted>(_onSubmitted);
     on<ReturnsReset>(_onReset);
-    on<ReturnsPreloadSale>(_onPreloadSale);
   }
 
-  Future<void> _onSearchChanged(
-      ReturnsSearchChanged event, Emitter<ReturnsState> emit) async {
-    emit(state.copyWith(
-      searchQuery: event.query,
-      searchStatus: event.query.trim().isEmpty
-          ? ReturnsSearchStatus.idle
-          : ReturnsSearchStatus.loading,
-      searchResults: [],
-    ));
-
-    if (event.query.trim().isEmpty) return;
-
-    final result =
-        await _useCase.searchSales(query: event.query.trim());
-
-    result.fold(
-      (error) => emit(state.copyWith(
-        searchStatus: ReturnsSearchStatus.failure,
-        errorMessage: error ?? 'Search failed',
-      )),
-      (page) => emit(state.copyWith(
-        searchResults: page.items,
-        searchStatus: ReturnsSearchStatus.success,
-      )),
-    );
+  void _onStarted(ReturnsStarted event, Emitter<ReturnsState> emit) {
+    emit(ReturnsState.initial().copyWith(sale: event.sale));
   }
 
-  void _onSaleSelected(ReturnsSaleSelected event, Emitter<ReturnsState> emit) {
-    // Default: all items selected at original quantity
-    final selectedItems = {
-      for (final item in event.sale.items)
-        item.productId: item.quantity.toInt(),
-    };
-    emit(state.copyWith(
-      selectedSale: event.sale,
-      selectedItems: selectedItems,
-    ));
-  }
-
-  void _onItemToggled(ReturnsItemToggled event, Emitter<ReturnsState> emit) {
-    final updated = Map<String, int>.from(state.selectedItems);
-    if (updated.containsKey(event.productId)) {
-      updated.remove(event.productId);
+  void _onLineToggled(ReturnsLineToggled event, Emitter<ReturnsState> emit) {
+    final line = state.lineById(event.lineId);
+    if (line == null || line.returnableQuantity <= 0) return;
+    final next = Map<String, double>.from(state.selected);
+    if (next.containsKey(event.lineId)) {
+      next.remove(event.lineId);
     } else {
-      // Find original quantity and default to it
-      final original = state.selectedSale?.items
-          .firstWhere((i) => i.productId == event.productId,
-              orElse: () => SaleHistoryLineItem(
-                  productId: '', productName: '', quantity: 1,
-                  unitPrice: 0, subtotal: 0))
-          .quantity
-          .toInt() ?? 1;
-      updated[event.productId] = original;
+      next[event.lineId] = line.returnableQuantity;
     }
-    emit(state.copyWith(selectedItems: updated));
+    emit(state.copyWith(selected: next));
   }
 
   void _onQuantityChanged(
-      ReturnsQuantityChanged event, Emitter<ReturnsState> emit) {
-    final updated = Map<String, int>.from(state.selectedItems);
-    if (event.quantity <= 0) {
-      updated.remove(event.productId);
+    ReturnsQuantityChanged event,
+    Emitter<ReturnsState> emit,
+  ) {
+    final line = state.lineById(event.lineId);
+    if (line == null) return;
+    final next = Map<String, double>.from(state.selected);
+    final q = double.parse(
+      event.quantity.clamp(0, line.returnableQuantity).toStringAsFixed(3),
+    );
+    if (q <= 0) {
+      next.remove(event.lineId);
     } else {
-      updated[event.productId] = event.quantity;
+      next[event.lineId] = q;
     }
-    emit(state.copyWith(selectedItems: updated));
+    emit(state.copyWith(selected: next));
   }
 
   void _onAllToggled(ReturnsAllToggled event, Emitter<ReturnsState> emit) {
-    final sale = state.selectedSale;
-    if (sale == null) return;
-
-    if (state.selectedItems.length == sale.items.length) {
-      // Deselect all
-      emit(state.copyWith(selectedItems: {}));
-    } else {
-      // Select all at original quantities
-      final all = {
-        for (final item in sale.items) item.productId: item.quantity.toInt(),
-      };
-      emit(state.copyWith(selectedItems: all));
+    if (state.allSelected) {
+      emit(state.copyWith(selected: {}));
+      return;
     }
+    emit(state.copyWith(selected: {
+      for (final l in state.returnableLines) l.lineId: l.returnableQuantity,
+    }));
   }
 
   Future<void> _onSubmitted(
-      ReturnsSubmitted event, Emitter<ReturnsState> emit) async {
-    final sale = state.selectedSale;
-    if (sale == null || sale.id == null) return;
-    if (state.selectedItems.isEmpty) return;
+    ReturnsSubmitted event,
+    Emitter<ReturnsState> emit,
+  ) async {
+    final sale = state.sale;
+    if (sale == null || sale.id == null || !state.hasSelection) return;
+    if (state.submitStatus == ReturnsSubmitStatus.loading) return;
 
     emit(state.copyWith(submitStatus: ReturnsSubmitStatus.loading));
 
-    final items = state.selectedItems.entries
-        .map((e) => RefundItemDto(productId: e.key, quantity: e.value))
-        .toList();
+    final items = [
+      for (final e in state.selected.entries)
+        RefundItemDto(itemId: e.key, quantity: e.value),
+    ];
 
     final result = await _useCase.processRefund(
       saleId: sale.id!,
@@ -139,16 +100,5 @@ class ReturnsBloc extends Bloc<ReturnsEvent, ReturnsState> {
 
   void _onReset(ReturnsReset event, Emitter<ReturnsState> emit) {
     emit(ReturnsState.initial());
-  }
-
-  void _onPreloadSale(ReturnsPreloadSale event, Emitter<ReturnsState> emit) {
-    final selectedItems = {
-      for (final item in event.sale.items)
-        item.productId: item.quantity.toInt(),
-    };
-    emit(state.copyWith(
-      selectedSale: event.sale,
-      selectedItems: selectedItems,
-    ));
   }
 }

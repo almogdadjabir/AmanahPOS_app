@@ -19,7 +19,8 @@ import 'package:amana_pos/features/products/data/model/response/category_product
 import 'package:amana_pos/features/products/presentation/product_detail_screen.dart';
 import 'package:amana_pos/features/products/presentation/product_screen.dart';
 import 'package:amana_pos/features/registration/presentation/registration_screen.dart';
-import 'package:amana_pos/features/returns/presentation/returns_screen.dart';
+import 'package:amana_pos/features/returns/presentation/return_items_screen.dart';
+import 'package:amana_pos/features/sales_history/presentation/reports_screen.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/presentation/sales_history_screen.dart';
 import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
@@ -148,6 +149,12 @@ class AppRouter {
           settings,
         );
 
+      case RouteStrings.reportsScreen:
+        return _buildRoute(
+          FeatureBlocProviders.salesReports(child: const ReportsScreen()),
+          settings,
+        );
+
       case RouteStrings.printerSettingsScreen:
         return _buildRoute(const PrinterSettingsScreen(), settings);
 
@@ -187,11 +194,15 @@ class AppRouter {
         );
 
       case RouteStrings.returnsScreen:
-        final preloadedSale = settings.arguments as SaleHistoryItem?;
+        // No argument: the Returns entry, i.e. the sales list in pick mode.
+        // With a sale: straight into the return flow for it.
+        final sale = settings.arguments as SaleHistoryItem?;
         return _buildRoute(
-          FeatureBlocProviders.returns(
-            child: ReturnsScreen(preloadedSale: preloadedSale),
-          ),
+          sale == null
+              ? FeatureBlocProviders.salesHistory(
+                  child: const SalesHistoryScreen(pickMode: true),
+                )
+              : ReturnItemsScreen(sale: sale),
           settings,
         );
 

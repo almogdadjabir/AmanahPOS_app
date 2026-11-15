@@ -25,6 +25,21 @@ class ImageUploadBox extends StatelessWidget {
     required this.onChanged,
   });
 
+  /// Opens the gallery / camera chooser (with permission handling) without
+  /// the box UI, for screens that draw their own photo tile.
+  static void showPicker(
+    BuildContext context,
+    ValueChanged<PickedAppImage?> onChanged,
+  ) {
+    ImageUploadBox(
+      pickedImage: null,
+      imageUrl: null,
+      title: '',
+      subtitle: '',
+      onChanged: onChanged,
+    )._showPickerActions(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;

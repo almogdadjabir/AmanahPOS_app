@@ -1,77 +1,72 @@
 part of 'returns_bloc.dart';
 
-enum ReturnsSearchStatus { idle, loading, success, failure }
 enum ReturnsSubmitStatus { idle, loading, success, failure }
 
 class ReturnsState extends Equatable {
-  final String searchQuery;
-  final ReturnsSearchStatus searchStatus;
-  final List<SaleHistoryItem> searchResults;
-  final SaleHistoryItem? selectedSale;
-  final Map<String, int> selectedItems;
+  final SaleHistoryItem? sale;
+
+  /// Selected sale lines: server line id -> quantity to return.
+  final Map<String, double> selected;
   final ReturnsSubmitStatus submitStatus;
   final RefundResponseDto? refundResult;
   final String? errorMessage;
 
   const ReturnsState({
-    required this.searchQuery,
-    required this.searchStatus,
-    required this.searchResults,
-    required this.selectedSale,
-    required this.selectedItems,
+    required this.sale,
+    required this.selected,
     required this.submitStatus,
     required this.refundResult,
     required this.errorMessage,
   });
 
   factory ReturnsState.initial() => const ReturnsState(
-        searchQuery: '',
-        searchStatus: ReturnsSearchStatus.idle,
-        searchResults: [],
-        selectedSale: null,
-        selectedItems: {},
+        sale: null,
+        selected: {},
         submitStatus: ReturnsSubmitStatus.idle,
         refundResult: null,
         errorMessage: null,
       );
 
+  SaleHistoryLineItem? lineById(String lineId) {
+    for (final l in sale?.items ?? const <SaleHistoryLineItem>[]) {
+      if (l.lineId == lineId) return l;
+    }
+    return null;
+  }
+
   double get refundTotal {
-    final sale = selectedSale;
-    if (sale == null) return 0;
     double total = 0;
-    for (final entry in selectedItems.entries) {
-      final lineItem = sale.items
-          .cast<SaleHistoryLineItem?>()
-          .firstWhere((i) => i?.productId == entry.key, orElse: () => null);
-      if (lineItem != null) {
-        total += lineItem.unitPrice * entry.value;
-      }
+    for (final e in selected.entries) {
+      final line = lineById(e.key);
+      if (line != null) total += line.unitPrice * e.value;
     }
     return total;
   }
 
-  bool get hasSelection => selectedItems.isNotEmpty;
-  bool get allSelected => selectedSale != null &&
-      selectedItems.length == selectedSale!.items.length;
+  bool get hasSelection => selected.isNotEmpty;
+
+  int get selectedLineCount => selected.length;
+
+  /// Lines that still have something to return.
+  List<SaleHistoryLineItem> get returnableLines => [
+        for (final l in sale?.items ?? const <SaleHistoryLineItem>[])
+          if (l.returnableQuantity > 0) l,
+      ];
+
+  bool get allSelected =>
+      returnableLines.isNotEmpty &&
+      returnableLines.every((l) => selected.containsKey(l.lineId));
 
   ReturnsState copyWith({
-    String? searchQuery,
-    ReturnsSearchStatus? searchStatus,
-    List<SaleHistoryItem>? searchResults,
-    SaleHistoryItem? selectedSale,
-    bool clearSelectedSale = false,
-    Map<String, int>? selectedItems,
+    SaleHistoryItem? sale,
+    Map<String, double>? selected,
     ReturnsSubmitStatus? submitStatus,
     RefundResponseDto? refundResult,
     String? errorMessage,
   }) {
     return ReturnsState(
-      searchQuery: searchQuery ?? this.searchQuery,
-      searchStatus: searchStatus ?? this.searchStatus,
-      searchResults: searchResults ?? this.searchResults,
-      selectedSale:
-          clearSelectedSale ? null : (selectedSale ?? this.selectedSale),
-      selectedItems: selectedItems ?? this.selectedItems,
+      sale: sale ?? this.sale,
+      selected: selected ?? this.selected,
       submitStatus: submitStatus ?? this.submitStatus,
       refundResult: refundResult ?? this.refundResult,
       errorMessage: errorMessage,
@@ -79,8 +74,6 @@ class ReturnsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        searchQuery, searchStatus, searchResults, selectedSale,
-        selectedItems, submitStatus, refundResult, errorMessage,
-      ];
+  List<Object?> get props =>
+      [sale, selected, submitStatus, refundResult, errorMessage];
 }

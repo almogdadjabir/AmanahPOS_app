@@ -17,6 +17,33 @@ class OnProductCategorySelected extends ProductEvent {
   @override List<Object?> get props => [categoryId];
 }
 
+/// Search and/or inactive-only query. Results land in
+/// [ProductState.queryResults] and never touch the main product list.
+/// An empty [search] with [inactiveOnly] false clears the query.
+class OnProductQuery extends ProductEvent {
+  final String search;
+  final bool inactiveOnly;
+  const OnProductQuery({this.search = '', this.inactiveOnly = false});
+  @override List<Object?> get props => [search, inactiveOnly];
+}
+
+/// Loads every remaining page so client-side filters (Low / Out of stock)
+/// see the whole catalog.
+class OnProductsLoadAll extends ProductEvent {
+  const OnProductsLoadAll();
+  @override List<Object?> get props => [];
+}
+
+/// Creates a category from inside the product form. The new category is
+/// appended to [ProductState.categories] and handed back through
+/// [completer] (null on failure).
+class OnCreateProductCategory extends ProductEvent {
+  final String name;
+  final Completer<CategoryData?> completer;
+  const OnCreateProductCategory({required this.name, required this.completer});
+  @override List<Object?> get props => [name, completer];
+}
+
 class OnLoadMoreProducts extends ProductEvent {
   const OnLoadMoreProducts();
   @override List<Object?> get props => [];

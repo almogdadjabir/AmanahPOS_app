@@ -2602,4 +2602,738 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeReportsHint => 'جميع المعاملات';
+
+  @override
+  String get pcSearchHint => 'ابحث بالاسم أو SKU أو الباركود';
+
+  @override
+  String pcCount(String count) {
+    return '$count منتج';
+  }
+
+  @override
+  String get pcChipCategory => 'الفئة';
+
+  @override
+  String get pcChipLow => 'مخزون منخفض';
+
+  @override
+  String get pcChipOut => 'نفد';
+
+  @override
+  String pcInStock(String qty) {
+    return '$qty متوفر';
+  }
+
+  @override
+  String pcLeft(String qty) {
+    return 'متبقي $qty';
+  }
+
+  @override
+  String get pcOutOfStock => 'نفد المخزون';
+
+  @override
+  String get pcSwipeStock => 'المخزون';
+
+  @override
+  String get pcNoMatches => 'لا نتائج';
+
+  @override
+  String get pcNoMatchesBody => 'جرّب اسمًا أو SKU أو باركودًا آخر.';
+
+  @override
+  String get pcErrorTitle => 'تعذّر تحميل المنتجات';
+
+  @override
+  String get pcErrorBody => 'تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get pcAllCategories => 'كل الفئات';
+
+  @override
+  String get pcShowingSaved => 'عرض المنتجات المحفوظة';
+
+  @override
+  String pcDeleteTitle(String name) {
+    return 'حذف $name؟';
+  }
+
+  @override
+  String get pcDeleteBody => 'سيُزال من الكتالوج. تبقى سجلات المبيعات السابقة.';
+
+  @override
+  String get pcDeleted => 'تم حذف المنتج';
+
+  @override
+  String get pcUpdateStock => 'تحديث المخزون';
+
+  @override
+  String get pcByShop => 'حسب الفرع';
+
+  @override
+  String get pcDetails => 'التفاصيل';
+
+  @override
+  String get pcUnitsShort => 'وحدة';
+
+  @override
+  String get pcNoStockYet => 'لم يُسجَّل مخزون بعد';
+
+  @override
+  String get pcStockNotTracked => 'المخزون غير مُتتبَّع لهذا المنتج';
+
+  @override
+  String get usAdd => 'إضافة';
+
+  @override
+  String get usRemove => 'خصم';
+
+  @override
+  String get usCount => 'جرد';
+
+  @override
+  String get usMove => 'نقل';
+
+  @override
+  String get usHintAdd => 'وصلت كمية جديدة أو وُجدت.';
+
+  @override
+  String get usHintRemove => 'تالف أو مفقود أو مستهلك.';
+
+  @override
+  String get usHintCount =>
+      'اكتب ما عددته على الرف. سيُضبط المخزون على هذا الرقم.';
+
+  @override
+  String get usHintMove => 'أرسل مخزونًا إلى فرع آخر.';
+
+  @override
+  String get usFrom => 'من';
+
+  @override
+  String get usTo => 'إلى';
+
+  @override
+  String get usAfter => 'بعد التحديث';
+
+  @override
+  String get usExpiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get usNote => 'ملاحظة';
+
+  @override
+  String usSaveAdd(String qty) {
+    return 'إضافة $qty';
+  }
+
+  @override
+  String usSaveRemove(String qty) {
+    return 'خصم $qty';
+  }
+
+  @override
+  String usSaveCount(String qty) {
+    return 'ضبط الجرد على $qty';
+  }
+
+  @override
+  String usSaveMove(String qty) {
+    return 'نقل $qty';
+  }
+
+  @override
+  String get usSaved => 'تم تحديث المخزون';
+
+  @override
+  String get usNotEnough => 'المخزون غير كافٍ في هذا الفرع';
+
+  @override
+  String get usPickDifferentShop => 'اختر فرعين مختلفين';
+
+  @override
+  String get usEnterQuantity => 'أدخل كمية';
+
+  @override
+  String get pfTrackStock => 'تتبع المخزون';
+
+  @override
+  String get pfTrackStockHint => 'يحسب الكمية وينبّهك عند انخفاضها.';
+
+  @override
+  String get pfStartingStock => 'المخزون الابتدائي';
+
+  @override
+  String get pfMoreDetails => 'مزيد من التفاصيل';
+
+  @override
+  String get pfFewerDetails => 'تفاصيل أقل';
+
+  @override
+  String get pfLowStockAlert => 'تنبيه انخفاض المخزون';
+
+  @override
+  String get pfExpiryAlert => 'تنبيه الصلاحية';
+
+  @override
+  String pfExpiryDays(String days) {
+    return 'قبل $days يومًا';
+  }
+
+  @override
+  String get pfAddPhoto => 'إضافة صورة';
+
+  @override
+  String get pfChangePhoto => 'تغيير الصورة';
+
+  @override
+  String get pfDeleteProduct => 'حذف المنتج';
+
+  @override
+  String get pfCategoryLockedNote => 'لا يمكن نقل المنتج إلى فئة أخرى.';
+
+  @override
+  String get pfCategoryNameHint => 'اسم الفئة';
+
+  @override
+  String get pfGeneralHint => 'تُستخدم عند عدم الاختيار';
+
+  @override
+  String get pfEnterName => 'أدخل الاسم';
+
+  @override
+  String get pfEnterPrice => 'أدخل السعر';
+
+  @override
+  String pfStockRowValue(String qty, String unit) {
+    return '$qty $unit';
+  }
+
+  @override
+  String get pfUnit => 'الوحدة';
+
+  @override
+  String get pfBarcode => 'الباركود';
+
+  @override
+  String get pfCostPrice => 'سعر التكلفة';
+
+  @override
+  String get pfSaving => 'جارٍ الحفظ';
+
+  @override
+  String ctCountTitle(String count) {
+    return '$count فئات';
+  }
+
+  @override
+  String get ctEmptyBody => 'أنشئ فئة لتجمع المنتجات وتجدها أسرع.';
+
+  @override
+  String get ctDelete => 'حذف الفئة';
+
+  @override
+  String get ctDeleteNote => 'تبقى منتجاتها في الكتالوج بلا فئة.';
+
+  @override
+  String ctInThis(String count) {
+    return '$count منتج في هذه الفئة';
+  }
+
+  @override
+  String get ctNoProducts => 'لا منتجات في هذه الفئة';
+
+  @override
+  String get ctNoProductsBody => 'المنتجات التي تضيفها هنا ستظهر في هذه الفئة.';
+
+  @override
+  String get ctDescHint => 'ما الذي يندرج تحت هذه الفئة';
+
+  @override
+  String get ctEnterName => 'أدخل اسم الفئة';
+
+  @override
+  String get stReceive => 'استلام مخزون';
+
+  @override
+  String get stReceiveHint => 'سجّل توريدًا';
+
+  @override
+  String get stAddStock => 'إضافة مخزون';
+
+  @override
+  String get stAttention => 'يحتاج انتباهك';
+
+  @override
+  String get stExpiring => 'قارب الانتهاء';
+
+  @override
+  String get stAllGood => 'كل شيء متوفر';
+
+  @override
+  String get stAllGoodBody => 'المنتجات منخفضة المخزون أو النافدة ستظهر هنا.';
+
+  @override
+  String get stVendors => 'الموردون';
+
+  @override
+  String get stReceipts => 'الإيصالات';
+
+  @override
+  String get stExpiryReport => 'تقرير الصلاحية';
+
+  @override
+  String get stMore => 'المزيد';
+
+  @override
+  String get fbOpeningStockWarning =>
+      'تم إنشاء المنتج، لكن المخزون الابتدائي لم يُحفظ. أضفه من تحديث المخزون.';
+
+  @override
+  String get fbCategoriesErrorTitle => 'تعذّر تحميل الفئات';
+
+  @override
+  String get fbInvalidNumber => 'أدخل رقمًا، صفرًا أو أكثر';
+
+  @override
+  String get fbInvalidDays => 'أدخل عدد أيام صحيحًا، 1 أو أكثر';
+
+  @override
+  String get fbCategoriesTitle => 'التصنيفات';
+
+  @override
+  String get pcAddProduct => 'إضافة منتج';
+
+  @override
+  String get pcEmptyBody => 'أضف أول منتج لتبدأ ببيعه.';
+
+  @override
+  String get pfNewProduct => 'منتج جديد';
+
+  @override
+  String get pfEditProduct => 'تعديل المنتج';
+
+  @override
+  String get pfName => 'الاسم';
+
+  @override
+  String get pfNewCategory => 'تصنيف جديد';
+
+  @override
+  String get pfEditCategory => 'تعديل التصنيف';
+
+  @override
+  String get sessionEndedSignInAgain =>
+      'انتهت جلستك. سجّل الدخول مرة أخرى للمتابعة.';
+
+  @override
+  String get shUnit => 'ج.س';
+
+  @override
+  String get shTitle => 'سجل المبيعات';
+
+  @override
+  String get shSearchHint => 'ابحث برقم الإيصال أو العميل أو الهاتف';
+
+  @override
+  String shCount(int count) {
+    return '$count عملية بيع';
+  }
+
+  @override
+  String get shChipDate => 'التاريخ';
+
+  @override
+  String get shDateAny => 'أي تاريخ';
+
+  @override
+  String get shDateToday => 'اليوم';
+
+  @override
+  String get shDateYesterday => 'أمس';
+
+  @override
+  String get shDateLast7 => 'آخر 7 أيام';
+
+  @override
+  String get shDateMonth => 'هذا الشهر';
+
+  @override
+  String get shDateCustom => 'نطاق مخصص';
+
+  @override
+  String get shChipPayment => 'الدفع';
+
+  @override
+  String get shPayAll => 'كل الدفعات';
+
+  @override
+  String get shPayCash => 'نقدًا';
+
+  @override
+  String get shPayBankak => 'بنكك';
+
+  @override
+  String get shPayCard => 'بطاقة';
+
+  @override
+  String get shChipStatus => 'الحالة';
+
+  @override
+  String get shStatusAll => 'كل الحالات';
+
+  @override
+  String get shStatusCompleted => 'مكتملة';
+
+  @override
+  String get shStatusPartial => 'مرتجعة جزئيًا';
+
+  @override
+  String get shStatusReturned => 'مُرتجعة';
+
+  @override
+  String get shStatusCancelled => 'ملغاة';
+
+  @override
+  String get shChipUnsynced => 'غير مزامنة';
+
+  @override
+  String get shPillNotSynced => 'غير مزامنة';
+
+  @override
+  String get shPillSyncFailed => 'فشلت المزامنة';
+
+  @override
+  String get shPillReturned => 'مُرتجعة';
+
+  @override
+  String get shPillPartial => 'مرتجعة جزئيًا';
+
+  @override
+  String shItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجات',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shWalkIn => 'عميل عابر';
+
+  @override
+  String get shSwipeReturn => 'إرجاع';
+
+  @override
+  String get shSwipeReceipt => 'الإيصال';
+
+  @override
+  String get shEmptyTitle => 'لا توجد مبيعات';
+
+  @override
+  String get shEmptyBody => 'جرّب رقم إيصال أو عميلًا أو فلترًا آخر.';
+
+  @override
+  String get shClearFilters => 'مسح الفلاتر';
+
+  @override
+  String get shErrorTitle => 'تعذّر تحميل المبيعات';
+
+  @override
+  String get shErrorBody => 'تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get shTryAgain => 'حاول مرة أخرى';
+
+  @override
+  String shWhen(String day, String time) {
+    return '$day · $time';
+  }
+
+  @override
+  String get shReceipt => 'الإيصال';
+
+  @override
+  String get shDate => 'التاريخ';
+
+  @override
+  String get shCashier => 'الكاشير';
+
+  @override
+  String get shShop => 'الفرع';
+
+  @override
+  String get shCustomer => 'العميل';
+
+  @override
+  String get shPayment => 'الدفع';
+
+  @override
+  String get shNote => 'ملاحظة';
+
+  @override
+  String shItemsHeader(int count) {
+    return 'المنتجات · $count';
+  }
+
+  @override
+  String get shSubtotal => 'المجموع الفرعي';
+
+  @override
+  String get shDiscount => 'الخصم';
+
+  @override
+  String shTaxIncluded(String rate) {
+    return 'شامل الضريبة $rate%';
+  }
+
+  @override
+  String get shTax => 'الضريبة';
+
+  @override
+  String get shTotal => 'الإجمالي';
+
+  @override
+  String get shReturnedTotal => 'المرتجع';
+
+  @override
+  String get shNet => 'الصافي';
+
+  @override
+  String get shReturnsHeader => 'المرتجعات';
+
+  @override
+  String get shReturnItems => 'إرجاع منتجات';
+
+  @override
+  String get shShareReceipt => 'مشاركة الإيصال';
+
+  @override
+  String get shCopied => 'تم النسخ';
+
+  @override
+  String shLineReturned(String qty) {
+    return 'أُرجع $qty';
+  }
+
+  @override
+  String get shBannerPending =>
+      'بانتظار المزامنة. يمكنك إرجاع هذه العملية بعد مزامنتها.';
+
+  @override
+  String shBannerFailed(String reason) {
+    return 'تعذّرت مزامنة هذه العملية: $reason';
+  }
+
+  @override
+  String get shBannerFailedNoReason => 'تعذّرت مزامنة هذه العملية.';
+
+  @override
+  String shBankakAccount(String last4) {
+    return 'بنكك ••• $last4';
+  }
+
+  @override
+  String get shReceiptFailed => 'تعذّر تجهيز الإيصال. حاول مرة أخرى.';
+
+  @override
+  String get rtTitle => 'إرجاع منتجات';
+
+  @override
+  String get rtSelectAll => 'تحديد الكل';
+
+  @override
+  String get rtClear => 'مسح';
+
+  @override
+  String get rtItemsToReturn => 'المنتجات المراد إرجاعها';
+
+  @override
+  String rtSold(String qty) {
+    return 'بيع $qty';
+  }
+
+  @override
+  String rtSoldReturned(String qty, String returned) {
+    return 'بيع $qty · أُرجع $returned';
+  }
+
+  @override
+  String get rtQuantity => 'الكمية المرجعة';
+
+  @override
+  String rtUpTo(String qty) {
+    return 'حتى $qty';
+  }
+
+  @override
+  String get rtReason => 'السبب';
+
+  @override
+  String get rtOptional => 'اختياري';
+
+  @override
+  String get rtPayBack => 'الإرجاع عبر';
+
+  @override
+  String get rtFooter =>
+      'يعود المخزون إلى الرف ويُحتسب المبلغ المسترد في تقاريرك.';
+
+  @override
+  String rtRefundButton(String amount) {
+    return 'استرداد $amount';
+  }
+
+  @override
+  String get rtPickItems => 'اختر المنتجات المراد إرجاعها';
+
+  @override
+  String rtConfirmTitle(String amount) {
+    return 'استرداد $amount؟';
+  }
+
+  @override
+  String rtConfirmBodyCash(String amount) {
+    return 'سيعود المخزون. أعطِ العميل $amount نقدًا.';
+  }
+
+  @override
+  String rtConfirmBodyOther(String amount, String method) {
+    return 'سيعود المخزون. أرسل للعميل $amount عبر $method.';
+  }
+
+  @override
+  String get rtConfirmGo => 'استرداد';
+
+  @override
+  String get rtDoneTitle => 'تم تسجيل الإرجاع';
+
+  @override
+  String get rtDoneBody => 'عاد المخزون إلى الرف.';
+
+  @override
+  String get rtReference => 'المرجع';
+
+  @override
+  String get rtShareWhatsApp => 'مشاركة عبر واتساب';
+
+  @override
+  String get rtFailed => 'تعذّر تسجيل الإرجاع. حاول مرة أخرى.';
+
+  @override
+  String get rtPickTitle => 'إرجاع منتجات';
+
+  @override
+  String get rtPickSubtitle => 'اختر عملية البيع المراد الإرجاع منها.';
+
+  @override
+  String get rtNotSynced => 'لم تتم مزامنتها بعد';
+
+  @override
+  String get rtAlreadyReturned => 'أُرجعت بالكامل';
+
+  @override
+  String get rpTitle => 'التقارير';
+
+  @override
+  String get rpToday => 'اليوم';
+
+  @override
+  String get rpYesterday => 'أمس';
+
+  @override
+  String get rpWeek => 'هذا الأسبوع';
+
+  @override
+  String get rpMonth => 'هذا الشهر';
+
+  @override
+  String get rpCustom => 'مخصص';
+
+  @override
+  String get rpNetSales => 'صافي المبيعات';
+
+  @override
+  String rpFromSales(String count, String avg) {
+    return 'من $count عملية بيع · المتوسط $avg';
+  }
+
+  @override
+  String get rpGross => 'الإجمالي';
+
+  @override
+  String get rpReturns => 'المرتجعات';
+
+  @override
+  String get rpTax => 'الضريبة';
+
+  @override
+  String get rpTrendHour => 'المبيعات حسب الساعة';
+
+  @override
+  String get rpTrendDay => 'المبيعات حسب اليوم';
+
+  @override
+  String get rpBusiest => 'الأعلى';
+
+  @override
+  String get rpPayments => 'طرق الدفع';
+
+  @override
+  String get rpTopProducts => 'أفضل المنتجات';
+
+  @override
+  String get rpTopCategories => 'أفضل الفئات';
+
+  @override
+  String get rpPeakHours => 'أوقات الذروة';
+
+  @override
+  String get rpBusiestDays => 'أيام الذروة';
+
+  @override
+  String rpSold(String qty) {
+    return 'بيع $qty';
+  }
+
+  @override
+  String get rpFrom => 'من';
+
+  @override
+  String get rpTo => 'إلى';
+
+  @override
+  String get rpApply => 'تطبيق';
+
+  @override
+  String get rpCustomRange => 'نطاق مخصص';
+
+  @override
+  String get rpEmptyTitle => 'لا مبيعات في هذه الفترة';
+
+  @override
+  String get rpEmptyBody => 'اختر نطاقًا آخر لترى أرقامك.';
+
+  @override
+  String get rpErrorTitle => 'تعذّر تحميل التقرير';
+
+  @override
+  String rpUpdated(String time) {
+    return 'حُدّث $time';
+  }
+
+  @override
+  String get rpOwnersOnly => 'التقارير للمالكين فقط.';
+
+  @override
+  String get homeSalesHistory => 'سجل المبيعات';
+
+  @override
+  String get homeSalesHint => 'الإيصالات والمرتجعات';
+
+  @override
+  String get homeReportsPerformance => 'المبيعات والأداء';
 }

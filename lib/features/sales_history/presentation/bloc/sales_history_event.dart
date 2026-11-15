@@ -27,15 +27,19 @@ class SalesHistorySearchChanged extends SalesHistoryEvent {
   List<Object?> get props => [query];
 }
 
-class SalesHistoryItemReturnProcessed extends SalesHistoryEvent {
-  final String saleId;
-  final bool   isPartial;
-
-  const SalesHistoryItemReturnProcessed({
-    required this.saleId,
-    required this.isPartial,
-  });
+class SalesHistoryFiltersChanged extends SalesHistoryEvent {
+  final SalesHistoryFilters filters;
+  const SalesHistoryFiltersChanged(this.filters);
 
   @override
-  List<Object?> get props => [saleId, isPartial];
+  List<Object?> get props => [filters];
+}
+
+/// A sale changed elsewhere (for example a return was recorded on it).
+class SalesHistoryItemReplaced extends SalesHistoryEvent {
+  final SaleHistoryItem sale;
+  const SalesHistoryItemReplaced(this.sale);
+
+  @override
+  List<Object?> get props => [sale.id, sale.status];
 }

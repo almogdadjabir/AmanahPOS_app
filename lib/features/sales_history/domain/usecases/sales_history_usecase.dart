@@ -12,12 +12,22 @@ class SalesHistoryUseCase {
     int pageSize = 20,
     String? search,
     String? shopId,
+    String? status,
+    String? paymentMethod,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    bool onlyUnsynced = false,
   }) =>
       repository.getSalesPage(
         page: page,
         pageSize: pageSize,
         search: search,
         shopId: shopId,
+        status: status,
+        paymentMethod: paymentMethod,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        onlyUnsynced: onlyUnsynced,
       );
 
   Future<Either<String?, SaleHistoryItem>> getSaleById(String saleId) =>

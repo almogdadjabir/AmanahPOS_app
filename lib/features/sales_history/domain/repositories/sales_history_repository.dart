@@ -8,6 +8,11 @@ abstract class SalesHistoryRepository {
     int pageSize,
     String? search,
     String? shopId,
+    String? status,
+    String? paymentMethod,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    bool onlyUnsynced,
   });
 
   Future<Either<String?, SaleHistoryItem>> getSaleById(String saleId);

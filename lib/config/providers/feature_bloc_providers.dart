@@ -216,19 +216,19 @@ class FeatureBlocProviders {
 
 
   static Widget salesHistory({required Widget child}) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => SalesHistoryBloc(
-            useCase: getIt<SalesHistoryUseCase>(),
-          ),
-        ),
-        BlocProvider(
-          create: (_) => SalesReportBloc(
-            useCase: getIt<SalesHistoryUseCase>(),
-          ),
-        ),
-      ],
+    return BlocProvider(
+      create: (_) => SalesHistoryBloc(
+        useCase: getIt<SalesHistoryUseCase>(),
+      ),
+      child: child,
+    );
+  }
+
+  static Widget salesReports({required Widget child}) {
+    return BlocProvider(
+      create: (_) => SalesReportBloc(
+        useCase: getIt<SalesHistoryUseCase>(),
+      ),
       child: child,
     );
   }

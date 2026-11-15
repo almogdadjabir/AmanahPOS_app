@@ -24,6 +24,7 @@ class CategoryData {
   final String? thumbnailUrl;
   final bool? isActive;
   final int? sortOrder;
+  final int? productCount;
   final List<CategoryData>? children;
   final String? createdAt;
   final String? updatedAt;
@@ -38,6 +39,7 @@ class CategoryData {
     this.thumbnailUrl,
     this.isActive,
     this.sortOrder,
+    this.productCount,
     this.children,
     this.createdAt,
     this.updatedAt,
@@ -54,6 +56,7 @@ class CategoryData {
       thumbnailUrl: json['thumbnail_url']?.toString(),
       isActive:    json['is_active'],
       sortOrder:   json['sort_order'],
+      productCount: (json['product_count'] as num?)?.toInt(),
       children:    (json['children'] as List?)
           ?.map((e) => CategoryData.fromJson(e))
           .toList(),
@@ -67,6 +70,7 @@ class CategoryData {
     String? description,
     bool? isActive,
     int? sortOrder,
+    int? productCount,
     List<CategoryData>? children,
   }) {
     return CategoryData(
@@ -79,6 +83,7 @@ class CategoryData {
       thumbnailUrl: thumbnailUrl,
       isActive:    isActive    ?? this.isActive,
       sortOrder:   sortOrder   ?? this.sortOrder,
+      productCount: productCount ?? this.productCount,
       children:    children    ?? this.children,
       createdAt:   createdAt,
       updatedAt:   updatedAt,

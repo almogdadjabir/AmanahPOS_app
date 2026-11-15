@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @navInventory.
   ///
   /// In en, this message translates to:
-  /// **'Inventory'**
+  /// **'Stock'**
   String get navInventory;
 
   /// No description provided for @navReports.
@@ -4891,6 +4891,1332 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All transactions'**
   String get homeReportsHint;
+
+  /// No description provided for @pcSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name, SKU or barcode'**
+  String get pcSearchHint;
+
+  /// No description provided for @pcCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} products'**
+  String pcCount(String count);
+
+  /// No description provided for @pcChipCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get pcChipCategory;
+
+  /// No description provided for @pcChipLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock'**
+  String get pcChipLow;
+
+  /// No description provided for @pcChipOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get pcChipOut;
+
+  /// No description provided for @pcInStock.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} in stock'**
+  String pcInStock(String qty);
+
+  /// No description provided for @pcLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} left'**
+  String pcLeft(String qty);
+
+  /// No description provided for @pcOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get pcOutOfStock;
+
+  /// No description provided for @pcSwipeStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get pcSwipeStock;
+
+  /// No description provided for @pcNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get pcNoMatches;
+
+  /// No description provided for @pcNoMatchesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another name, SKU or barcode.'**
+  String get pcNoMatchesBody;
+
+  /// No description provided for @pcErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load products'**
+  String get pcErrorTitle;
+
+  /// No description provided for @pcErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get pcErrorBody;
+
+  /// No description provided for @pcAllCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get pcAllCategories;
+
+  /// No description provided for @pcShowingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing saved products'**
+  String get pcShowingSaved;
+
+  /// No description provided for @pcDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String pcDeleteTitle(String name);
+
+  /// No description provided for @pcDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes it from your catalog. Past sales keep their records.'**
+  String get pcDeleteBody;
+
+  /// No description provided for @pcDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Product deleted'**
+  String get pcDeleted;
+
+  /// No description provided for @pcUpdateStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Update stock'**
+  String get pcUpdateStock;
+
+  /// No description provided for @pcByShop.
+  ///
+  /// In en, this message translates to:
+  /// **'By shop'**
+  String get pcByShop;
+
+  /// No description provided for @pcDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get pcDetails;
+
+  /// No description provided for @pcUnitsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'units'**
+  String get pcUnitsShort;
+
+  /// No description provided for @pcNoStockYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock recorded yet'**
+  String get pcNoStockYet;
+
+  /// No description provided for @pcStockNotTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is not tracked for this product'**
+  String get pcStockNotTracked;
+
+  /// No description provided for @usAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get usAdd;
+
+  /// No description provided for @usRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get usRemove;
+
+  /// No description provided for @usCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get usCount;
+
+  /// No description provided for @usMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get usMove;
+
+  /// No description provided for @usHintAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'New stock arrived or was found.'**
+  String get usHintAdd;
+
+  /// No description provided for @usHintRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Damaged, lost or used up.'**
+  String get usHintRemove;
+
+  /// No description provided for @usHintCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Type what you counted on the shelf. Stock is set to this number.'**
+  String get usHintCount;
+
+  /// No description provided for @usHintMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Send stock to another shop.'**
+  String get usHintMove;
+
+  /// No description provided for @usFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get usFrom;
+
+  /// No description provided for @usTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get usTo;
+
+  /// No description provided for @usAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get usAfter;
+
+  /// No description provided for @usExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get usExpiryDate;
+
+  /// No description provided for @usNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get usNote;
+
+  /// No description provided for @usSaveAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {qty}'**
+  String usSaveAdd(String qty);
+
+  /// No description provided for @usSaveRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {qty}'**
+  String usSaveRemove(String qty);
+
+  /// No description provided for @usSaveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Set count to {qty}'**
+  String usSaveCount(String qty);
+
+  /// No description provided for @usSaveMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {qty}'**
+  String usSaveMove(String qty);
+
+  /// No description provided for @usSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock updated'**
+  String get usSaved;
+
+  /// No description provided for @usNotEnough.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough stock in this shop'**
+  String get usNotEnough;
+
+  /// No description provided for @usPickDifferentShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose two different shops'**
+  String get usPickDifferentShop;
+
+  /// No description provided for @usEnterQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a quantity'**
+  String get usEnterQuantity;
+
+  /// No description provided for @pfTrackStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Track stock'**
+  String get pfTrackStock;
+
+  /// No description provided for @pfTrackStockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts stock and warns when it runs low.'**
+  String get pfTrackStockHint;
+
+  /// No description provided for @pfStartingStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting stock'**
+  String get pfStartingStock;
+
+  /// No description provided for @pfMoreDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'More details'**
+  String get pfMoreDetails;
+
+  /// No description provided for @pfFewerDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer details'**
+  String get pfFewerDetails;
+
+  /// No description provided for @pfLowStockAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock alert'**
+  String get pfLowStockAlert;
+
+  /// No description provided for @pfExpiryAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry alert'**
+  String get pfExpiryAlert;
+
+  /// No description provided for @pfExpiryDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days before'**
+  String pfExpiryDays(String days);
+
+  /// No description provided for @pfAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get pfAddPhoto;
+
+  /// No description provided for @pfChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get pfChangePhoto;
+
+  /// No description provided for @pfDeleteProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete product'**
+  String get pfDeleteProduct;
+
+  /// No description provided for @pfCategoryLockedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A product cannot move to another category.'**
+  String get pfCategoryLockedNote;
+
+  /// No description provided for @pfCategoryNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get pfCategoryNameHint;
+
+  /// No description provided for @pfGeneralHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used when you pick nothing'**
+  String get pfGeneralHint;
+
+  /// No description provided for @pfEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get pfEnterName;
+
+  /// No description provided for @pfEnterPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a price'**
+  String get pfEnterPrice;
+
+  /// No description provided for @pfStockRowValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} {unit}'**
+  String pfStockRowValue(String qty, String unit);
+
+  /// No description provided for @pfUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get pfUnit;
+
+  /// No description provided for @pfBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode'**
+  String get pfBarcode;
+
+  /// No description provided for @pfCostPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost price'**
+  String get pfCostPrice;
+
+  /// No description provided for @pfSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving'**
+  String get pfSaving;
+
+  /// No description provided for @ctCountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} categories'**
+  String ctCountTitle(String count);
+
+  /// No description provided for @ctEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a category to group products and find them faster.'**
+  String get ctEmptyBody;
+
+  /// No description provided for @ctDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get ctDelete;
+
+  /// No description provided for @ctDeleteNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Its products stay in your catalog without a category.'**
+  String get ctDeleteNote;
+
+  /// No description provided for @ctInThis.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} products in this category'**
+  String ctInThis(String count);
+
+  /// No description provided for @ctNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products in this category'**
+  String get ctNoProducts;
+
+  /// No description provided for @ctNoProductsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Products you add here will show up in this category.'**
+  String get ctNoProductsBody;
+
+  /// No description provided for @ctDescHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What goes in this category'**
+  String get ctDescHint;
+
+  /// No description provided for @ctEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a category name'**
+  String get ctEnterName;
+
+  /// No description provided for @stReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive stock'**
+  String get stReceive;
+
+  /// No description provided for @stReceiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a delivery'**
+  String get stReceiveHint;
+
+  /// No description provided for @stAddStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Add stock'**
+  String get stAddStock;
+
+  /// No description provided for @stAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get stAttention;
+
+  /// No description provided for @stExpiring.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring'**
+  String get stExpiring;
+
+  /// No description provided for @stAllGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is in stock'**
+  String get stAllGood;
+
+  /// No description provided for @stAllGoodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Low and out-of-stock products will show up here.'**
+  String get stAllGoodBody;
+
+  /// No description provided for @stVendors.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendors'**
+  String get stVendors;
+
+  /// No description provided for @stReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts'**
+  String get stReceipts;
+
+  /// No description provided for @stExpiryReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry report'**
+  String get stExpiryReport;
+
+  /// No description provided for @stMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get stMore;
+
+  /// No description provided for @fbOpeningStockWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Product created, but its starting stock was not saved. Add it with Update stock.'**
+  String get fbOpeningStockWarning;
+
+  /// No description provided for @fbCategoriesErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load categories'**
+  String get fbCategoriesErrorTitle;
+
+  /// No description provided for @fbInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number, 0 or more'**
+  String get fbInvalidNumber;
+
+  /// No description provided for @fbInvalidDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter whole days, 1 or more'**
+  String get fbInvalidDays;
+
+  /// No description provided for @fbCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get fbCategoriesTitle;
+
+  /// No description provided for @pcAddProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Add product'**
+  String get pcAddProduct;
+
+  /// No description provided for @pcEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first product to start selling it.'**
+  String get pcEmptyBody;
+
+  /// No description provided for @pfNewProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'New product'**
+  String get pfNewProduct;
+
+  /// No description provided for @pfEditProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit product'**
+  String get pfEditProduct;
+
+  /// No description provided for @pfName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pfName;
+
+  /// No description provided for @pfNewCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get pfNewCategory;
+
+  /// No description provided for @pfEditCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get pfEditCategory;
+
+  /// No description provided for @sessionEndedSignInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session ended. Sign in again to continue.'**
+  String get sessionEndedSignInAgain;
+
+  /// No description provided for @shUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'SDG'**
+  String get shUnit;
+
+  /// No description provided for @shTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get shTitle;
+
+  /// No description provided for @shSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search receipt, customer or phone'**
+  String get shSearchHint;
+
+  /// No description provided for @shCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sale} other{{count} sales}}'**
+  String shCount(int count);
+
+  /// No description provided for @shChipDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get shChipDate;
+
+  /// No description provided for @shDateAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any date'**
+  String get shDateAny;
+
+  /// No description provided for @shDateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get shDateToday;
+
+  /// No description provided for @shDateYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get shDateYesterday;
+
+  /// No description provided for @shDateLast7.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get shDateLast7;
+
+  /// No description provided for @shDateMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get shDateMonth;
+
+  /// No description provided for @shDateCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range'**
+  String get shDateCustom;
+
+  /// No description provided for @shChipPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get shChipPayment;
+
+  /// No description provided for @shPayAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All payments'**
+  String get shPayAll;
+
+  /// No description provided for @shPayCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get shPayCash;
+
+  /// No description provided for @shPayBankak.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak'**
+  String get shPayBankak;
+
+  /// No description provided for @shPayCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get shPayCard;
+
+  /// No description provided for @shChipStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get shChipStatus;
+
+  /// No description provided for @shStatusAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get shStatusAll;
+
+  /// No description provided for @shStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get shStatusCompleted;
+
+  /// No description provided for @shStatusPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly returned'**
+  String get shStatusPartial;
+
+  /// No description provided for @shStatusReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get shStatusReturned;
+
+  /// No description provided for @shStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get shStatusCancelled;
+
+  /// No description provided for @shChipUnsynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced'**
+  String get shChipUnsynced;
+
+  /// No description provided for @shPillNotSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced'**
+  String get shPillNotSynced;
+
+  /// No description provided for @shPillSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get shPillSyncFailed;
+
+  /// No description provided for @shPillReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get shPillReturned;
+
+  /// No description provided for @shPillPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly returned'**
+  String get shPillPartial;
+
+  /// No description provided for @shItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String shItems(int count);
+
+  /// No description provided for @shWalkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk-in'**
+  String get shWalkIn;
+
+  /// No description provided for @shSwipeReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get shSwipeReturn;
+
+  /// No description provided for @shSwipeReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get shSwipeReceipt;
+
+  /// No description provided for @shEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales found'**
+  String get shEmptyTitle;
+
+  /// No description provided for @shEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another receipt number, customer or filter.'**
+  String get shEmptyBody;
+
+  /// No description provided for @shClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get shClearFilters;
+
+  /// No description provided for @shErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load sales'**
+  String get shErrorTitle;
+
+  /// No description provided for @shErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get shErrorBody;
+
+  /// No description provided for @shTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get shTryAgain;
+
+  /// No description provided for @shWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · {time}'**
+  String shWhen(String day, String time);
+
+  /// No description provided for @shReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get shReceipt;
+
+  /// No description provided for @shDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get shDate;
+
+  /// No description provided for @shCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get shCashier;
+
+  /// No description provided for @shShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get shShop;
+
+  /// No description provided for @shCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get shCustomer;
+
+  /// No description provided for @shPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get shPayment;
+
+  /// No description provided for @shNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get shNote;
+
+  /// No description provided for @shItemsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Items · {count}'**
+  String shItemsHeader(int count);
+
+  /// No description provided for @shSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get shSubtotal;
+
+  /// No description provided for @shDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get shDiscount;
+
+  /// No description provided for @shTaxIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes tax {rate}%'**
+  String shTaxIncluded(String rate);
+
+  /// No description provided for @shTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get shTax;
+
+  /// No description provided for @shTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get shTotal;
+
+  /// No description provided for @shReturnedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get shReturnedTotal;
+
+  /// No description provided for @shNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get shNet;
+
+  /// No description provided for @shReturnsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns'**
+  String get shReturnsHeader;
+
+  /// No description provided for @shReturnItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Return items'**
+  String get shReturnItems;
+
+  /// No description provided for @shShareReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share receipt'**
+  String get shShareReceipt;
+
+  /// No description provided for @shCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get shCopied;
+
+  /// No description provided for @shLineReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} returned'**
+  String shLineReturned(String qty);
+
+  /// No description provided for @shBannerPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync. You can return this sale after it syncs.'**
+  String get shBannerPending;
+
+  /// No description provided for @shBannerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not sync this sale: {reason}'**
+  String shBannerFailed(String reason);
+
+  /// No description provided for @shBannerFailedNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not sync this sale.'**
+  String get shBannerFailedNoReason;
+
+  /// No description provided for @shBankakAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak ••• {last4}'**
+  String shBankakAccount(String last4);
+
+  /// No description provided for @shReceiptFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare the receipt. Try again.'**
+  String get shReceiptFailed;
+
+  /// No description provided for @rtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return items'**
+  String get rtTitle;
+
+  /// No description provided for @rtSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get rtSelectAll;
+
+  /// No description provided for @rtClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get rtClear;
+
+  /// No description provided for @rtItemsToReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Items to return'**
+  String get rtItemsToReturn;
+
+  /// No description provided for @rtSold.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold {qty}'**
+  String rtSold(String qty);
+
+  /// No description provided for @rtSoldReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold {qty} · Returned {returned}'**
+  String rtSoldReturned(String qty, String returned);
+
+  /// No description provided for @rtQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity to return'**
+  String get rtQuantity;
+
+  /// No description provided for @rtUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {qty}'**
+  String rtUpTo(String qty);
+
+  /// No description provided for @rtReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get rtReason;
+
+  /// No description provided for @rtOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get rtOptional;
+
+  /// No description provided for @rtPayBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay back via'**
+  String get rtPayBack;
+
+  /// No description provided for @rtFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock goes back on the shelf and the refund is counted in your reports.'**
+  String get rtFooter;
+
+  /// No description provided for @rtRefundButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund {amount}'**
+  String rtRefundButton(String amount);
+
+  /// No description provided for @rtPickItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Select items to return'**
+  String get rtPickItems;
+
+  /// No description provided for @rtConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund {amount}?'**
+  String rtConfirmTitle(String amount);
+
+  /// No description provided for @rtConfirmBodyCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is restored. Give the customer {amount} in cash.'**
+  String rtConfirmBodyCash(String amount);
+
+  /// No description provided for @rtConfirmBodyOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is restored. Send the customer {amount} by {method}.'**
+  String rtConfirmBodyOther(String amount, String method);
+
+  /// No description provided for @rtConfirmGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get rtConfirmGo;
+
+  /// No description provided for @rtDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return recorded'**
+  String get rtDoneTitle;
+
+  /// No description provided for @rtDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is back on the shelf.'**
+  String get rtDoneBody;
+
+  /// No description provided for @rtReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get rtReference;
+
+  /// No description provided for @rtShareWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share on WhatsApp'**
+  String get rtShareWhatsApp;
+
+  /// No description provided for @rtFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not record the return. Try again.'**
+  String get rtFailed;
+
+  /// No description provided for @rtPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return items'**
+  String get rtPickTitle;
+
+  /// No description provided for @rtPickSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the sale to return from.'**
+  String get rtPickSubtitle;
+
+  /// No description provided for @rtNotSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get rtNotSynced;
+
+  /// No description provided for @rtAlreadyReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Already returned'**
+  String get rtAlreadyReturned;
+
+  /// No description provided for @rpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get rpTitle;
+
+  /// No description provided for @rpToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get rpToday;
+
+  /// No description provided for @rpYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get rpYesterday;
+
+  /// No description provided for @rpWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get rpWeek;
+
+  /// No description provided for @rpMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get rpMonth;
+
+  /// No description provided for @rpCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get rpCustom;
+
+  /// No description provided for @rpNetSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Net sales'**
+  String get rpNetSales;
+
+  /// No description provided for @rpFromSales.
+  ///
+  /// In en, this message translates to:
+  /// **'From {count} sales · average {avg}'**
+  String rpFromSales(String count, String avg);
+
+  /// No description provided for @rpGross.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross'**
+  String get rpGross;
+
+  /// No description provided for @rpReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns'**
+  String get rpReturns;
+
+  /// No description provided for @rpTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get rpTax;
+
+  /// No description provided for @rpTrendHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by hour'**
+  String get rpTrendHour;
+
+  /// No description provided for @rpTrendDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by day'**
+  String get rpTrendDay;
+
+  /// No description provided for @rpBusiest.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest'**
+  String get rpBusiest;
+
+  /// No description provided for @rpPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment methods'**
+  String get rpPayments;
+
+  /// No description provided for @rpTopProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Top products'**
+  String get rpTopProducts;
+
+  /// No description provided for @rpTopCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Top categories'**
+  String get rpTopCategories;
+
+  /// No description provided for @rpPeakHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest hours'**
+  String get rpPeakHours;
+
+  /// No description provided for @rpBusiestDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest days'**
+  String get rpBusiestDays;
+
+  /// No description provided for @rpSold.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} sold'**
+  String rpSold(String qty);
+
+  /// No description provided for @rpFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get rpFrom;
+
+  /// No description provided for @rpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get rpTo;
+
+  /// No description provided for @rpApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get rpApply;
+
+  /// No description provided for @rpCustomRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range'**
+  String get rpCustomRange;
+
+  /// No description provided for @rpEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales in this period'**
+  String get rpEmptyTitle;
+
+  /// No description provided for @rpEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick another range to see your numbers.'**
+  String get rpEmptyBody;
+
+  /// No description provided for @rpErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the report'**
+  String get rpErrorTitle;
+
+  /// No description provided for @rpUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String rpUpdated(String time);
+
+  /// No description provided for @rpOwnersOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports is for owners only.'**
+  String get rpOwnersOnly;
+
+  /// No description provided for @homeSalesHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get homeSalesHistory;
+
+  /// No description provided for @homeSalesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts and returns'**
+  String get homeSalesHint;
+
+  /// No description provided for @homeReportsPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales and performance'**
+  String get homeReportsPerformance;
 }
 
 class _AppLocalizationsDelegate

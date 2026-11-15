@@ -304,6 +304,7 @@ class OfflineLocalCache {
       'thumbnail_url': data.thumbnailUrl,
       'is_active': data.isActive,
       'sort_order': data.sortOrder,
+      'product_count': data.productCount,
       'children': data.children?.map(_categoryToJson).toList(),
       'created_at': data.createdAt,
       'updated_at': data.updatedAt,

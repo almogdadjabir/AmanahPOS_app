@@ -11,13 +11,14 @@ class RefundRequestDto {
 }
 
 class RefundItemDto {
-  final String productId;
-  final int quantity;
+  /// Server id of the sale line (works for product and custom-amount lines).
+  final String itemId;
+  final double quantity;
 
-  const RefundItemDto({required this.productId, required this.quantity});
+  const RefundItemDto({required this.itemId, required this.quantity});
 
   Map<String, dynamic> toJson() => {
-        'product_id': productId,
+        'item_id': itemId,
         'quantity': quantity,
       };
 }

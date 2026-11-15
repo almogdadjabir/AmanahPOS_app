@@ -3,6 +3,11 @@ import 'dart:async';
 import 'package:amana_pos/core/network/multipart_file_extended.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/features/pin/data/biometric_unlock_service.dart';
+import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
+import 'package:amana_pos/l10n/app_localizations.dart';
+import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -160,6 +165,15 @@ class AppInterceptors extends Interceptor {
     try {
       await _cacheStorage.resetTokens();
 
+      // The session is dead, so a PIN or Face ID would unlock into nothing.
+      // Offline data (including unsent sales) is kept: signing in as the same
+      // user picks it back up, and the login flow wipes it only for another
+      // business.
+      try {
+        await getIt<PinVaultService>().clearVault();
+        await getIt<BiometricUnlockService>().disable();
+      } catch (_) {}
+
       await _navigateToLoginSafely();
     } catch (e) {
       if (kDebugMode)
@@ -178,6 +192,14 @@ class AppInterceptors extends Interceptor {
 
       if (navigator != null && navigator.mounted) {
         try {
+          navigator.pushNamedAndRemoveUntil(RouteStrings.login, (_) => false);
+          final context = Constants.navigatorKey.currentContext;
+          if (context != null) {
+            final tr = AppLocalizations.of(context);
+            if (tr != null) {
+              GlobalSnackBar.showInfo(message: tr.sessionEndedSignInAgain);
+            }
+          }
           return;
         } catch (e) {
           if (kDebugMode)

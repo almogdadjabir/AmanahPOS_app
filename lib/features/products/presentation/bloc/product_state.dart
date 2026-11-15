@@ -2,6 +2,7 @@ part of 'product_bloc.dart';
 
 enum ProductStatus { initial, loading, loadingMore, success, failure }
 enum ProductSubmitStatus { idle, loading, success, failure }
+enum ProductQueryStatus { idle, loading, success, failure }
 
 class ProductState extends Equatable {
   final ProductStatus productStatus;
@@ -23,6 +24,13 @@ class ProductState extends Equatable {
   /// True when data came from SQLite/offline cache.
   final bool isFromCache;
 
+  /// Search / inactive-only query, kept apart from [products].
+  final ProductQueryStatus queryStatus;
+  final List<ProductData> queryResults;
+
+  /// True while [OnProductsLoadAll] is still fetching pages.
+  final bool loadingAll;
+
   const ProductState({
     this.productStatus = ProductStatus.initial,
     this.products = const [],
@@ -36,6 +44,9 @@ class ProductState extends Equatable {
     this.submitError,
     this.submitWarning,
     this.isFromCache = false,
+    this.queryStatus = ProductQueryStatus.idle,
+    this.queryResults = const [],
+    this.loadingAll = false,
   });
 
   factory ProductState.initial() => const ProductState();
@@ -59,6 +70,9 @@ class ProductState extends Equatable {
     String? submitWarning,
     bool clearSubmitWarning = false,
     bool? isFromCache,
+    ProductQueryStatus? queryStatus,
+    List<ProductData>? queryResults,
+    bool? loadingAll,
   }) {
     return ProductState(
       productStatus: productStatus ?? this.productStatus,
@@ -75,6 +89,9 @@ class ProductState extends Equatable {
       submitError: clearSubmitError ? null : submitError,
       submitWarning: clearSubmitWarning ? null : submitWarning,
       isFromCache: isFromCache ?? this.isFromCache,
+      queryStatus: queryStatus ?? this.queryStatus,
+      queryResults: queryResults ?? this.queryResults,
+      loadingAll: loadingAll ?? this.loadingAll,
     );
   }
 
@@ -92,5 +109,8 @@ class ProductState extends Equatable {
     submitError,
     submitWarning,
     isFromCache,
+    queryStatus,
+    queryResults,
+    loadingAll,
   ];
 }

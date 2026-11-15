@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
@@ -11,7 +12,7 @@ import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Shops, Products, Cashiers, Reports as an iOS grouped list.
+/// Shops, Products, Cashiers, Sales history, Reports as an iOS grouped list.
 class HomeManageGroup extends StatelessWidget {
   final BusinessData data;
 
@@ -36,6 +37,9 @@ class HomeManageGroup extends StatelessWidget {
     final products = counts?.productsActive ?? loadedProducts;
     final users = counts?.usersActive ?? loadedUsers;
     final nav = Navigator.of(context);
+    final canSeeReports = context.select<AuthBloc, bool>(
+      (b) => b.state.permissions.canAccessReports,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,12 +76,22 @@ class HomeManageGroup extends StatelessWidget {
               ),
               const HomeHairline(indent: 60),
               _ManageRow(
-                icon: PhosphorIconsRegular.notebook,
+                icon: PhosphorIconsRegular.receipt,
                 fill: _slate,
-                title: tr.navReports,
-                value: tr.homeReportsHint,
+                title: tr.homeSalesHistory,
+                value: tr.homeSalesHint,
                 onTap: () => nav.pushNamed(RouteStrings.salesHistoryScreen),
               ),
+              if (canSeeReports) ...[
+                const HomeHairline(indent: 60),
+                _ManageRow(
+                  icon: PhosphorIconsRegular.chartBar,
+                  fill: _teal,
+                  title: tr.navReports,
+                  value: tr.homeReportsPerformance,
+                  onTap: () => nav.pushNamed(RouteStrings.reportsScreen),
+                ),
+              ],
             ],
           ),
         ),
@@ -142,7 +156,7 @@ class _ManageRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
                   style: text.bodyLarge!.copyWith(
-                    fontSize: 17,
+                    fontSize: 15,
                     color: colors.textHint,
                   ),
                 ),

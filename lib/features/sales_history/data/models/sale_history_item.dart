@@ -31,7 +31,29 @@ enum SaleHistoryStatus {
 }
 
 
+class SaleHistoryRefund {
+  final String reference;
+  final double total;
+  final DateTime createdAt;
+
+  const SaleHistoryRefund({
+    required this.reference,
+    required this.total,
+    required this.createdAt,
+  });
+
+  factory SaleHistoryRefund.fromDto(SaleRefundDto dto) => SaleHistoryRefund(
+        reference: dto.reference,
+        total: double.tryParse(dto.total) ?? 0,
+        createdAt: dto.createdAt,
+      );
+}
+
 class SaleHistoryLineItem {
+  /// Server id of the sale line. Empty for offline (not yet synced) sales.
+  final String lineId;
+  final bool isCustom;
+  final double returnedQuantity;
   final String productId;
   final String productName;
   final double quantity;
@@ -39,6 +61,9 @@ class SaleHistoryLineItem {
   final double subtotal;
 
   const SaleHistoryLineItem({
+    this.lineId = '',
+    this.isCustom = false,
+    this.returnedQuantity = 0,
     required this.productId,
     required this.productName,
     required this.quantity,
@@ -46,7 +71,14 @@ class SaleHistoryLineItem {
     required this.subtotal,
   });
 
+  /// What can still be returned on this line.
+  double get returnableQuantity =>
+      (quantity - returnedQuantity).clamp(0, double.infinity).toDouble();
+
   factory SaleHistoryLineItem.fromDto(SaleItemDto dto) => SaleHistoryLineItem(
+    lineId: dto.id,
+    isCustom: dto.isCustom,
+    returnedQuantity: dto.returnedQuantityDouble,
     productId: dto.productId,
     productName: dto.productName,
     quantity: dto.quantityDouble,
@@ -87,6 +119,11 @@ class SaleHistoryItem {
   final bool isOfflinePending;
   final String? offlineErrorMessage;
   final List<SaleHistoryLineItem> items;
+  final String? cashierName;
+  final double discount;
+  final String? notes;
+  final String? bankakSnapshot;
+  final List<SaleHistoryRefund> refunds;
 
   const SaleHistoryItem({
     required this.id,
@@ -107,6 +144,11 @@ class SaleHistoryItem {
     required this.isOfflinePending,
     required this.offlineErrorMessage,
     required this.items,
+    this.cashierName,
+    this.discount = 0,
+    this.notes,
+    this.bankakSnapshot,
+    this.refunds = const [],
   });
 
 
@@ -132,6 +174,11 @@ class SaleHistoryItem {
       isOfflinePending: false,
       offlineErrorMessage: null,
       items: dto.items.map(SaleHistoryLineItem.fromDto).toList(),
+      cashierName: dto.cashierName,
+      discount: double.tryParse(dto.discountAmount) ?? 0,
+      notes: dto.notes,
+      bankakSnapshot: dto.bankakSnapshot,
+      refunds: dto.refunds.map(SaleHistoryRefund.fromDto).toList(),
     );
   }
 
@@ -178,7 +225,12 @@ class SaleHistoryItem {
 
   /// A sale can only be returned when it is fully synced and completed.
   bool get canBeReturned =>
-      !isOfflinePending && id != null && status == SaleHistoryStatus.completed;
+      !isOfflinePending &&
+      id != null &&
+      (status == SaleHistoryStatus.completed ||
+          status == SaleHistoryStatus.partialRefund);
+
+  double get refundedTotal => refunds.fold(0.0, (a, r) => a + r.total);
 
 
   SaleHistoryItem copyWith({SaleHistoryStatus? status}) => SaleHistoryItem(
@@ -200,6 +252,11 @@ class SaleHistoryItem {
     isOfflinePending: isOfflinePending,
     offlineErrorMessage: offlineErrorMessage,
     items: items,
+    cashierName: cashierName,
+    discount: discount,
+    notes: notes,
+    bankakSnapshot: bankakSnapshot,
+    refunds: refunds,
   );
 
 
@@ -215,5 +272,12 @@ class SaleHistoryItem {
 class SalesHistoryPage {
   final List<SaleHistoryItem> items;
   final bool hasMore;
-  const SalesHistoryPage({required this.items, required this.hasMore});
+
+  /// Server count for the current filters (sales not yet synced are extra).
+  final int? totalCount;
+  const SalesHistoryPage({
+    required this.items,
+    required this.hasMore,
+    this.totalCount,
+  });
 }

@@ -36,6 +36,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }) : super(ProductState.initial()) {
     on<OnProductInitial>(_init);
     on<OnProductCategorySelected>(_onCategorySelected);
+    on<OnProductQuery>(_query);
+    on<OnProductsLoadAll>(_loadAll);
+    on<OnCreateProductCategory>(_createCategory);
     on<OnLoadMoreProducts>(_loadMore);
     on<OnToggleProductLayout>(_toggleLayout);
     on<OnAddProduct>(_addProduct);
@@ -400,6 +403,177 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         );
       }
+    }
+  }
+
+  int _queryToken = 0;
+
+  Future<void> _query(
+      OnProductQuery event,
+      Emitter<ProductState> emit,
+      ) async {
+    final token = ++_queryToken;
+    final search = event.search.trim();
+
+    if (search.isEmpty && !event.inactiveOnly) {
+      emit(state.copyWith(
+        queryStatus: ProductQueryStatus.idle,
+        queryResults: const [],
+      ));
+      return;
+    }
+
+    emit(state.copyWith(queryStatus: ProductQueryStatus.loading));
+
+    try {
+      final response = await useCase.getProducts(
+        page: 1,
+        pageSize: 200,
+        search: search.isEmpty ? null : search,
+        isActive: event.inactiveOnly ? 'false' : null,
+      );
+
+      if (token != _queryToken) return;
+
+      final error = response.getLeft().toNullable();
+
+      if (error != null) {
+        await _queryFromCache(event, emit, token);
+        return;
+      }
+
+      final results = response.getRight().toNullable()?.results ?? const [];
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          queryStatus: ProductQueryStatus.success,
+          queryResults: results,
+        ));
+      }
+    } catch (_) {
+      if (token != _queryToken) return;
+      await _queryFromCache(event, emit, token);
+    }
+  }
+
+  /// Offline fallback: search whatever is in the local cache.
+  Future<void> _queryFromCache(
+      OnProductQuery event,
+      Emitter<ProductState> emit,
+      int token,
+      ) async {
+    try {
+      final cached = await offlineLocalCache.getProducts(
+        search: event.search,
+      );
+      if (token != _queryToken) return;
+      final results = event.inactiveOnly
+          ? cached.where((p) => p.isActive == false).toList()
+          : cached;
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          queryStatus: ProductQueryStatus.success,
+          queryResults: results,
+        ));
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(state.copyWith(queryStatus: ProductQueryStatus.failure));
+      }
+    }
+  }
+
+  Future<void> _loadAll(
+      OnProductsLoadAll event,
+      Emitter<ProductState> emit,
+      ) async {
+    if (state.loadingAll) return;
+    if (state.isFromCache || !state.hasMorePages) return;
+    if (state.productStatus == ProductStatus.loading ||
+        state.productStatus == ProductStatus.loadingMore) {
+      return;
+    }
+
+    emit(state.copyWith(loadingAll: true));
+
+    try {
+      var page = state.currentPage;
+      var total = state.totalPages;
+      var guard = 0;
+
+      while (page < total && guard < 25) {
+        guard++;
+        final next = page + 1;
+
+        final response = state.selectedCategoryId == null
+            ? await useCase.getProducts(page: next, pageSize: 200)
+            : await useCase.getProductsByCategory(
+          categoryId: state.selectedCategoryId!,
+          page: next,
+          pageSize: 200,
+        );
+
+        if (response.getLeft().toNullable() != null) break;
+
+        final result = response.getRight().toNullable();
+        if (result == null) break;
+
+        final List<ProductData> fresh;
+        if (state.selectedCategoryId == null) {
+          final r = result as ProductListResponseDto;
+          fresh = r.results ?? const [];
+          total = r.totalPages ?? total;
+        } else {
+          final r = result as CategoryProductsResponseDto;
+          fresh = r.products ?? const [];
+          total = r.totalPages ?? total;
+        }
+
+        await offlineLocalCache.saveProductsToCache(fresh);
+        page = next;
+
+        final normalized = await offlineLocalCache.getProducts(
+          categoryId: state.selectedCategoryId,
+        );
+
+        if (emit.isDone) return;
+        emit(state.copyWith(
+          products: normalized,
+          currentPage: page,
+          totalPages: total,
+        ));
+      }
+    } catch (_) {
+      // Keep whatever pages loaded; the list is still usable.
+    } finally {
+      if (!emit.isDone) emit(state.copyWith(loadingAll: false));
+    }
+  }
+
+  Future<void> _createCategory(
+      OnCreateProductCategory event,
+      Emitter<ProductState> emit,
+      ) async {
+    try {
+      final response = await categoryUseCase.addCategory(
+        AddCategoryRequestDto(name: event.name.trim()),
+      );
+      final created = response.getRight().toNullable()?.data;
+
+      if (created == null) {
+        event.completer.complete(null);
+        return;
+      }
+
+      try {
+        await offlineLocalCache.saveCategoriesToCache([created]);
+      } catch (_) {}
+
+      if (!emit.isDone) {
+        emit(state.copyWith(categories: [...state.categories, created]));
+      }
+      event.completer.complete(created);
+    } catch (_) {
+      if (!event.completer.isCompleted) event.completer.complete(null);
     }
   }
 

@@ -41,9 +41,19 @@ class ProductRepoImpl extends ProductRepository {
   Future<Either<String?, ProductListResponseDto>> getProducts({
     required int page,
     int pageSize = 20,
+    String? search,
+    String? isActive,
   }) {
+    final query = <String>['page=$page', 'page_size=$pageSize'];
+    final cleanSearch = search?.trim();
+    if (cleanSearch != null && cleanSearch.isNotEmpty) {
+      query.add('search=${Uri.encodeQueryComponent(cleanSearch)}');
+    }
+    if (isActive != null && isActive.isNotEmpty) {
+      query.add('is_active=$isActive');
+    }
     return requestHandler.handleGetRequest(
-      'api/v1/products/?page=$page&page_size=$pageSize',
+      'api/v1/products/?${query.join('&')}',
           (data) => ProductListResponseDto.fromJson(data as Map<String, dynamic>),
     );
   }

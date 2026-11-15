@@ -18,7 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSell => 'Sell';
 
   @override
-  String get navInventory => 'Inventory';
+  String get navInventory => 'Stock';
 
   @override
   String get navReports => 'Reports';
@@ -2615,4 +2615,750 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeReportsHint => 'All transactions';
+
+  @override
+  String get pcSearchHint => 'Search name, SKU or barcode';
+
+  @override
+  String pcCount(String count) {
+    return '$count products';
+  }
+
+  @override
+  String get pcChipCategory => 'Category';
+
+  @override
+  String get pcChipLow => 'Low stock';
+
+  @override
+  String get pcChipOut => 'Out of stock';
+
+  @override
+  String pcInStock(String qty) {
+    return '$qty in stock';
+  }
+
+  @override
+  String pcLeft(String qty) {
+    return '$qty left';
+  }
+
+  @override
+  String get pcOutOfStock => 'Out of stock';
+
+  @override
+  String get pcSwipeStock => 'Stock';
+
+  @override
+  String get pcNoMatches => 'No matches';
+
+  @override
+  String get pcNoMatchesBody => 'Try another name, SKU or barcode.';
+
+  @override
+  String get pcErrorTitle => 'Could not load products';
+
+  @override
+  String get pcErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get pcAllCategories => 'All categories';
+
+  @override
+  String get pcShowingSaved => 'Showing saved products';
+
+  @override
+  String pcDeleteTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get pcDeleteBody =>
+      'This removes it from your catalog. Past sales keep their records.';
+
+  @override
+  String get pcDeleted => 'Product deleted';
+
+  @override
+  String get pcUpdateStock => 'Update stock';
+
+  @override
+  String get pcByShop => 'By shop';
+
+  @override
+  String get pcDetails => 'Details';
+
+  @override
+  String get pcUnitsShort => 'units';
+
+  @override
+  String get pcNoStockYet => 'No stock recorded yet';
+
+  @override
+  String get pcStockNotTracked => 'Stock is not tracked for this product';
+
+  @override
+  String get usAdd => 'Add';
+
+  @override
+  String get usRemove => 'Remove';
+
+  @override
+  String get usCount => 'Count';
+
+  @override
+  String get usMove => 'Move';
+
+  @override
+  String get usHintAdd => 'New stock arrived or was found.';
+
+  @override
+  String get usHintRemove => 'Damaged, lost or used up.';
+
+  @override
+  String get usHintCount =>
+      'Type what you counted on the shelf. Stock is set to this number.';
+
+  @override
+  String get usHintMove => 'Send stock to another shop.';
+
+  @override
+  String get usFrom => 'From';
+
+  @override
+  String get usTo => 'To';
+
+  @override
+  String get usAfter => 'After';
+
+  @override
+  String get usExpiryDate => 'Expiry date';
+
+  @override
+  String get usNote => 'Note';
+
+  @override
+  String usSaveAdd(String qty) {
+    return 'Add $qty';
+  }
+
+  @override
+  String usSaveRemove(String qty) {
+    return 'Remove $qty';
+  }
+
+  @override
+  String usSaveCount(String qty) {
+    return 'Set count to $qty';
+  }
+
+  @override
+  String usSaveMove(String qty) {
+    return 'Move $qty';
+  }
+
+  @override
+  String get usSaved => 'Stock updated';
+
+  @override
+  String get usNotEnough => 'Not enough stock in this shop';
+
+  @override
+  String get usPickDifferentShop => 'Choose two different shops';
+
+  @override
+  String get usEnterQuantity => 'Enter a quantity';
+
+  @override
+  String get pfTrackStock => 'Track stock';
+
+  @override
+  String get pfTrackStockHint => 'Counts stock and warns when it runs low.';
+
+  @override
+  String get pfStartingStock => 'Starting stock';
+
+  @override
+  String get pfMoreDetails => 'More details';
+
+  @override
+  String get pfFewerDetails => 'Fewer details';
+
+  @override
+  String get pfLowStockAlert => 'Low stock alert';
+
+  @override
+  String get pfExpiryAlert => 'Expiry alert';
+
+  @override
+  String pfExpiryDays(String days) {
+    return '$days days before';
+  }
+
+  @override
+  String get pfAddPhoto => 'Add photo';
+
+  @override
+  String get pfChangePhoto => 'Change photo';
+
+  @override
+  String get pfDeleteProduct => 'Delete product';
+
+  @override
+  String get pfCategoryLockedNote =>
+      'A product cannot move to another category.';
+
+  @override
+  String get pfCategoryNameHint => 'Category name';
+
+  @override
+  String get pfGeneralHint => 'Used when you pick nothing';
+
+  @override
+  String get pfEnterName => 'Enter a name';
+
+  @override
+  String get pfEnterPrice => 'Enter a price';
+
+  @override
+  String pfStockRowValue(String qty, String unit) {
+    return '$qty $unit';
+  }
+
+  @override
+  String get pfUnit => 'Unit';
+
+  @override
+  String get pfBarcode => 'Barcode';
+
+  @override
+  String get pfCostPrice => 'Cost price';
+
+  @override
+  String get pfSaving => 'Saving';
+
+  @override
+  String ctCountTitle(String count) {
+    return '$count categories';
+  }
+
+  @override
+  String get ctEmptyBody =>
+      'Create a category to group products and find them faster.';
+
+  @override
+  String get ctDelete => 'Delete category';
+
+  @override
+  String get ctDeleteNote =>
+      'Its products stay in your catalog without a category.';
+
+  @override
+  String ctInThis(String count) {
+    return '$count products in this category';
+  }
+
+  @override
+  String get ctNoProducts => 'No products in this category';
+
+  @override
+  String get ctNoProductsBody =>
+      'Products you add here will show up in this category.';
+
+  @override
+  String get ctDescHint => 'What goes in this category';
+
+  @override
+  String get ctEnterName => 'Enter a category name';
+
+  @override
+  String get stReceive => 'Receive stock';
+
+  @override
+  String get stReceiveHint => 'Record a delivery';
+
+  @override
+  String get stAddStock => 'Add stock';
+
+  @override
+  String get stAttention => 'Needs attention';
+
+  @override
+  String get stExpiring => 'Expiring';
+
+  @override
+  String get stAllGood => 'Everything is in stock';
+
+  @override
+  String get stAllGoodBody =>
+      'Low and out-of-stock products will show up here.';
+
+  @override
+  String get stVendors => 'Vendors';
+
+  @override
+  String get stReceipts => 'Receipts';
+
+  @override
+  String get stExpiryReport => 'Expiry report';
+
+  @override
+  String get stMore => 'More';
+
+  @override
+  String get fbOpeningStockWarning =>
+      'Product created, but its starting stock was not saved. Add it with Update stock.';
+
+  @override
+  String get fbCategoriesErrorTitle => 'Could not load categories';
+
+  @override
+  String get fbInvalidNumber => 'Enter a number, 0 or more';
+
+  @override
+  String get fbInvalidDays => 'Enter whole days, 1 or more';
+
+  @override
+  String get fbCategoriesTitle => 'Categories';
+
+  @override
+  String get pcAddProduct => 'Add product';
+
+  @override
+  String get pcEmptyBody => 'Add your first product to start selling it.';
+
+  @override
+  String get pfNewProduct => 'New product';
+
+  @override
+  String get pfEditProduct => 'Edit product';
+
+  @override
+  String get pfName => 'Name';
+
+  @override
+  String get pfNewCategory => 'New category';
+
+  @override
+  String get pfEditCategory => 'Edit category';
+
+  @override
+  String get sessionEndedSignInAgain =>
+      'Your session ended. Sign in again to continue.';
+
+  @override
+  String get shUnit => 'SDG';
+
+  @override
+  String get shTitle => 'Sales history';
+
+  @override
+  String get shSearchHint => 'Search receipt, customer or phone';
+
+  @override
+  String shCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sales',
+      one: '1 sale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shChipDate => 'Date';
+
+  @override
+  String get shDateAny => 'Any date';
+
+  @override
+  String get shDateToday => 'Today';
+
+  @override
+  String get shDateYesterday => 'Yesterday';
+
+  @override
+  String get shDateLast7 => 'Last 7 days';
+
+  @override
+  String get shDateMonth => 'This month';
+
+  @override
+  String get shDateCustom => 'Custom range';
+
+  @override
+  String get shChipPayment => 'Payment';
+
+  @override
+  String get shPayAll => 'All payments';
+
+  @override
+  String get shPayCash => 'Cash';
+
+  @override
+  String get shPayBankak => 'Bankak';
+
+  @override
+  String get shPayCard => 'Card';
+
+  @override
+  String get shChipStatus => 'Status';
+
+  @override
+  String get shStatusAll => 'All statuses';
+
+  @override
+  String get shStatusCompleted => 'Completed';
+
+  @override
+  String get shStatusPartial => 'Partly returned';
+
+  @override
+  String get shStatusReturned => 'Returned';
+
+  @override
+  String get shStatusCancelled => 'Cancelled';
+
+  @override
+  String get shChipUnsynced => 'Not synced';
+
+  @override
+  String get shPillNotSynced => 'Not synced';
+
+  @override
+  String get shPillSyncFailed => 'Sync failed';
+
+  @override
+  String get shPillReturned => 'Returned';
+
+  @override
+  String get shPillPartial => 'Partly returned';
+
+  @override
+  String shItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shWalkIn => 'Walk-in';
+
+  @override
+  String get shSwipeReturn => 'Return';
+
+  @override
+  String get shSwipeReceipt => 'Receipt';
+
+  @override
+  String get shEmptyTitle => 'No sales found';
+
+  @override
+  String get shEmptyBody => 'Try another receipt number, customer or filter.';
+
+  @override
+  String get shClearFilters => 'Clear filters';
+
+  @override
+  String get shErrorTitle => 'Could not load sales';
+
+  @override
+  String get shErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get shTryAgain => 'Try again';
+
+  @override
+  String shWhen(String day, String time) {
+    return '$day · $time';
+  }
+
+  @override
+  String get shReceipt => 'Receipt';
+
+  @override
+  String get shDate => 'Date';
+
+  @override
+  String get shCashier => 'Cashier';
+
+  @override
+  String get shShop => 'Shop';
+
+  @override
+  String get shCustomer => 'Customer';
+
+  @override
+  String get shPayment => 'Payment';
+
+  @override
+  String get shNote => 'Note';
+
+  @override
+  String shItemsHeader(int count) {
+    return 'Items · $count';
+  }
+
+  @override
+  String get shSubtotal => 'Subtotal';
+
+  @override
+  String get shDiscount => 'Discount';
+
+  @override
+  String shTaxIncluded(String rate) {
+    return 'Includes tax $rate%';
+  }
+
+  @override
+  String get shTax => 'Tax';
+
+  @override
+  String get shTotal => 'Total';
+
+  @override
+  String get shReturnedTotal => 'Returned';
+
+  @override
+  String get shNet => 'Net';
+
+  @override
+  String get shReturnsHeader => 'Returns';
+
+  @override
+  String get shReturnItems => 'Return items';
+
+  @override
+  String get shShareReceipt => 'Share receipt';
+
+  @override
+  String get shCopied => 'Copied';
+
+  @override
+  String shLineReturned(String qty) {
+    return '$qty returned';
+  }
+
+  @override
+  String get shBannerPending =>
+      'Waiting to sync. You can return this sale after it syncs.';
+
+  @override
+  String shBannerFailed(String reason) {
+    return 'Could not sync this sale: $reason';
+  }
+
+  @override
+  String get shBannerFailedNoReason => 'Could not sync this sale.';
+
+  @override
+  String shBankakAccount(String last4) {
+    return 'Bankak ••• $last4';
+  }
+
+  @override
+  String get shReceiptFailed => 'Could not prepare the receipt. Try again.';
+
+  @override
+  String get rtTitle => 'Return items';
+
+  @override
+  String get rtSelectAll => 'Select all';
+
+  @override
+  String get rtClear => 'Clear';
+
+  @override
+  String get rtItemsToReturn => 'Items to return';
+
+  @override
+  String rtSold(String qty) {
+    return 'Sold $qty';
+  }
+
+  @override
+  String rtSoldReturned(String qty, String returned) {
+    return 'Sold $qty · Returned $returned';
+  }
+
+  @override
+  String get rtQuantity => 'Quantity to return';
+
+  @override
+  String rtUpTo(String qty) {
+    return 'Up to $qty';
+  }
+
+  @override
+  String get rtReason => 'Reason';
+
+  @override
+  String get rtOptional => 'Optional';
+
+  @override
+  String get rtPayBack => 'Pay back via';
+
+  @override
+  String get rtFooter =>
+      'Stock goes back on the shelf and the refund is counted in your reports.';
+
+  @override
+  String rtRefundButton(String amount) {
+    return 'Refund $amount';
+  }
+
+  @override
+  String get rtPickItems => 'Select items to return';
+
+  @override
+  String rtConfirmTitle(String amount) {
+    return 'Refund $amount?';
+  }
+
+  @override
+  String rtConfirmBodyCash(String amount) {
+    return 'Stock is restored. Give the customer $amount in cash.';
+  }
+
+  @override
+  String rtConfirmBodyOther(String amount, String method) {
+    return 'Stock is restored. Send the customer $amount by $method.';
+  }
+
+  @override
+  String get rtConfirmGo => 'Refund';
+
+  @override
+  String get rtDoneTitle => 'Return recorded';
+
+  @override
+  String get rtDoneBody => 'Stock is back on the shelf.';
+
+  @override
+  String get rtReference => 'Reference';
+
+  @override
+  String get rtShareWhatsApp => 'Share on WhatsApp';
+
+  @override
+  String get rtFailed => 'Could not record the return. Try again.';
+
+  @override
+  String get rtPickTitle => 'Return items';
+
+  @override
+  String get rtPickSubtitle => 'Find the sale to return from.';
+
+  @override
+  String get rtNotSynced => 'Not synced yet';
+
+  @override
+  String get rtAlreadyReturned => 'Already returned';
+
+  @override
+  String get rpTitle => 'Reports';
+
+  @override
+  String get rpToday => 'Today';
+
+  @override
+  String get rpYesterday => 'Yesterday';
+
+  @override
+  String get rpWeek => 'This week';
+
+  @override
+  String get rpMonth => 'This month';
+
+  @override
+  String get rpCustom => 'Custom';
+
+  @override
+  String get rpNetSales => 'Net sales';
+
+  @override
+  String rpFromSales(String count, String avg) {
+    return 'From $count sales · average $avg';
+  }
+
+  @override
+  String get rpGross => 'Gross';
+
+  @override
+  String get rpReturns => 'Returns';
+
+  @override
+  String get rpTax => 'Tax';
+
+  @override
+  String get rpTrendHour => 'Sales by hour';
+
+  @override
+  String get rpTrendDay => 'Sales by day';
+
+  @override
+  String get rpBusiest => 'Busiest';
+
+  @override
+  String get rpPayments => 'Payment methods';
+
+  @override
+  String get rpTopProducts => 'Top products';
+
+  @override
+  String get rpTopCategories => 'Top categories';
+
+  @override
+  String get rpPeakHours => 'Busiest hours';
+
+  @override
+  String get rpBusiestDays => 'Busiest days';
+
+  @override
+  String rpSold(String qty) {
+    return '$qty sold';
+  }
+
+  @override
+  String get rpFrom => 'From';
+
+  @override
+  String get rpTo => 'To';
+
+  @override
+  String get rpApply => 'Apply';
+
+  @override
+  String get rpCustomRange => 'Custom range';
+
+  @override
+  String get rpEmptyTitle => 'No sales in this period';
+
+  @override
+  String get rpEmptyBody => 'Pick another range to see your numbers.';
+
+  @override
+  String get rpErrorTitle => 'Could not load the report';
+
+  @override
+  String rpUpdated(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String get rpOwnersOnly => 'Reports is for owners only.';
+
+  @override
+  String get homeSalesHistory => 'Sales history';
+
+  @override
+  String get homeSalesHint => 'Receipts and returns';
+
+  @override
+  String get homeReportsPerformance => 'Sales and performance';
 }

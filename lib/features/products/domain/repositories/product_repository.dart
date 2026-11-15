@@ -18,6 +18,8 @@ abstract class ProductRepository {
   Future<Either<String?, ProductListResponseDto>> getProducts({
     required int page,
     int pageSize = 20,
+    String? search,
+    String? isActive,
   });
 
   Future<Either<String?, CategoryProductsResponseDto>> getProductsByCategory({
