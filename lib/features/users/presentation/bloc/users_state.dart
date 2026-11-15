@@ -1,6 +1,7 @@
 part of 'users_bloc.dart';
 
 enum UserStatus { initial, loading, success, failure }
+
 enum UserSubmitStatus { idle, loading, success, failure }
 
 class UserState extends Equatable {
@@ -42,7 +43,10 @@ class UserState extends Equatable {
 
   @override
   List<Object?> get props => [
-    userStatus, submitStatus,
-    userList, responseError, submitError,
+    userStatus,
+    submitStatus,
+    userList,
+    responseError,
+    submitError,
   ];
 }

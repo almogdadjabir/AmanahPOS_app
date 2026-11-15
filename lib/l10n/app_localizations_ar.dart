@@ -3336,4 +3336,304 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeReportsPerformance => 'المبيعات والأداء';
+
+  @override
+  String get fmOptional => 'اختياري';
+
+  @override
+  String get cuTitle => 'العملاء';
+
+  @override
+  String cuCount(int count) {
+    return '$count عميل';
+  }
+
+  @override
+  String cuCountInactive(int count) {
+    return '$count عميل · غير نشط';
+  }
+
+  @override
+  String get cuSearch => 'ابحث بالاسم أو الهاتف';
+
+  @override
+  String get cuChipActive => 'النشطون';
+
+  @override
+  String get cuChipInactive => 'غير النشطين';
+
+  @override
+  String get cuEmptyTitle => 'لا يوجد عملاء بعد';
+
+  @override
+  String get cuEmptyBody => 'احفظ العميل مرة واحدة واربطه بأي عملية بيع بلمسة.';
+
+  @override
+  String get cuEmptyAction => 'إضافة عميل';
+
+  @override
+  String get cuSwipeEdit => 'تعديل';
+
+  @override
+  String get cuSwipeDeactivate => 'إيقاف';
+
+  @override
+  String get cuSwipeReactivate => 'إعادة تفعيل';
+
+  @override
+  String get cuInactiveTag => 'غير نشط';
+
+  @override
+  String get cuEdit => 'تعديل';
+
+  @override
+  String get cuCall => 'اتصال';
+
+  @override
+  String get cuWhatsApp => 'واتساب';
+
+  @override
+  String get cuEmailAction => 'بريد';
+
+  @override
+  String get cuTotalPurchases => 'إجمالي المشتريات';
+
+  @override
+  String get cuLoyalty => 'نقاط الولاء';
+
+  @override
+  String get cuSince => 'عميل منذ';
+
+  @override
+  String get cuContact => 'التواصل';
+
+  @override
+  String get cuPhone => 'الهاتف';
+
+  @override
+  String get cuEmail => 'البريد';
+
+  @override
+  String get cuAddress => 'العنوان';
+
+  @override
+  String get cuNotes => 'ملاحظات';
+
+  @override
+  String get cuDeactivate => 'إيقاف العميل';
+
+  @override
+  String get cuReactivate => 'إعادة تفعيل العميل';
+
+  @override
+  String get cuInactiveBanner => 'غير نشط. لا يظهر في البحث عند البيع.';
+
+  @override
+  String get cuNew => 'عميل جديد';
+
+  @override
+  String get cuEditTitle => 'تعديل العميل';
+
+  @override
+  String get cuName => 'الاسم';
+
+  @override
+  String get cuMore => 'تفاصيل أكثر';
+
+  @override
+  String get cuLess => 'تفاصيل أقل';
+
+  @override
+  String get cuPhoneFoot =>
+      'يُستخدم للعثور على العميل ومشاركة الإيصالات عبر واتساب.';
+
+  @override
+  String cuDeactivateTitle(String name) {
+    return 'إيقاف $name؟';
+  }
+
+  @override
+  String cuDeactivateBody(String name) {
+    return 'لن يظهر $name في قائمة العملاء. تبقى المبيعات السابقة في السجل ويمكنك إعادة التفعيل في أي وقت.';
+  }
+
+  @override
+  String get cuDeactivateConfirm => 'إيقاف';
+
+  @override
+  String get cuErrorTitle => 'تعذر تحميل العملاء';
+
+  @override
+  String get cuErrorBody => 'تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get cuSaved => 'تم حفظ العميل';
+
+  @override
+  String get cuDeactivated => 'تم إيقاف العميل';
+
+  @override
+  String get cuReactivated => 'تمت إعادة تفعيل العميل';
+
+  @override
+  String get tmTitle => 'الفريق';
+
+  @override
+  String tmCount(int count) {
+    return '$count أشخاص';
+  }
+
+  @override
+  String get tmManagers => 'المديرون';
+
+  @override
+  String get tmCashiers => 'الكاشير';
+
+  @override
+  String get tmInvited => 'مدعو';
+
+  @override
+  String get tmInactive => 'غير نشط';
+
+  @override
+  String get tmNever => 'لم يسجل الدخول بعد';
+
+  @override
+  String get tmEmptyTitle => 'لا يوجد فريق بعد';
+
+  @override
+  String get tmEmptyBody => 'أضف كاشير ومديرين. يسجل كل واحد الدخول بهاتفه.';
+
+  @override
+  String get tmEmptyAction => 'إضافة عضو';
+
+  @override
+  String get tmSwipeDeactivate => 'إيقاف';
+
+  @override
+  String get tmRole => 'الدور';
+
+  @override
+  String get tmBranch => 'الفرع';
+
+  @override
+  String get tmLastSignIn => 'آخر دخول';
+
+  @override
+  String get tmJoined => 'انضم';
+
+  @override
+  String get tmCanSignIn => 'يمكنه تسجيل الدخول';
+
+  @override
+  String get tmCanSignInFoot =>
+      'أوقفه لمنع الدخول فوراً. تبقى مبيعاته في السجل.';
+
+  @override
+  String get tmRoleManager => 'مدير';
+
+  @override
+  String get tmRoleCashier => 'كاشير';
+
+  @override
+  String get tmRoleManagerDesc =>
+      'يبيع ويدير المنتجات والمخزون ويرى التقارير. لا يدير الفريق ولا الاشتراك.';
+
+  @override
+  String get tmRoleCashierDesc => 'يبيع ويجري المرتجعات. يرى ورديته فقط.';
+
+  @override
+  String get tmNew => 'عضو جديد';
+
+  @override
+  String get tmFullName => 'الاسم الكامل';
+
+  @override
+  String get tmPhone => 'الهاتف';
+
+  @override
+  String get tmSignFoot =>
+      'يسجل الدخول برمز يصله على هذا الهاتف. لا توجد كلمة مرور أو رقم سري.';
+
+  @override
+  String tmDeactivateTitle(String name) {
+    return 'إيقاف $name؟';
+  }
+
+  @override
+  String tmDeactivateBody(String name) {
+    return 'سيتم تسجيل خروج $name ولن يستطيع الدخول. تبقى مبيعاته في السجل.';
+  }
+
+  @override
+  String get tmDeactivateConfirm => 'إيقاف';
+
+  @override
+  String get tmToday => 'اليوم';
+
+  @override
+  String get tmYesterday => 'أمس';
+
+  @override
+  String tmDaysAgo(int count) {
+    return 'قبل $count أيام';
+  }
+
+  @override
+  String get tmErrorTitle => 'تعذر تحميل الفريق';
+
+  @override
+  String get tmSaved => 'تم حفظ العضو';
+
+  @override
+  String get tmUpdated => 'تم تحديث العضو';
+
+  @override
+  String get prnTestReceipt => 'طباعة إيصال تجريبي';
+
+  @override
+  String get prnForget => 'إزالة الطابعة';
+
+  @override
+  String get prnOther => 'طابعات أخرى';
+
+  @override
+  String get prnSearchNearby => 'بحث في المنطقة';
+
+  @override
+  String get prnSearching => 'جارٍ البحث…';
+
+  @override
+  String get prnAddByIp => 'إضافة بعنوان IP';
+
+  @override
+  String get prnIpFoot =>
+      'للطابعات المتصلة بالشبكة على المنفذ 9100 مثل SAM4s GIANT-100.';
+
+  @override
+  String get prnNearFoot =>
+      'تظهر هنا الطابعات المقترنة في إعدادات الهاتف أو التي تُكتشف عبر بلوتوث.';
+
+  @override
+  String get prnNetworkTitle => 'طابعة شبكة';
+
+  @override
+  String get prnName => 'الاسم';
+
+  @override
+  String get prnNoPrinterTitle => 'لا توجد طابعة بعد';
+
+  @override
+  String get prnNoPrinterBody =>
+      'ابحث عن طابعة بلوتوث أو أضف طابعة شبكة بعنوان IP.';
+
+  @override
+  String get prnBtOffTitle => 'البلوتوث متوقف لتطبيق أمانة';
+
+  @override
+  String get prnBtOffBody =>
+      'اسمح بالبلوتوث من الإعدادات للعثور على الطابعات القريبة.';
+
+  @override
+  String get prnOpenSettings => 'فتح الإعدادات';
 }

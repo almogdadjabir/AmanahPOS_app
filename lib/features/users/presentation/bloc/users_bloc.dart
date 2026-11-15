@@ -12,136 +12,158 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   UserBloc({required this.useCase}) : super(UserState.initial()) {
     on<OnUserInitial>(_onInitial);
     on<OnAddUser>(_onAddUser);
-    on<OnEditUser>(_onEditUser);
+    on<OnUpdateUser>(_onUpdateUser);
     on<OnDeactivateUser>(_onDeactivateUser);
-    on<OnAssignUserShop>(_onAssignUserShop);
-    on<OnSetCashierPin>(_onSetCashierPin);
-    on<OnDisableCashierPin>(_onDisableCashierPin);
+    on<OnReactivateUser>(_onReactivateUser);
   }
 
-  Future<void> _onInitial(
-      OnUserInitial event, Emitter<UserState> emit) async {
-    emit(state.copyWith(userStatus: UserStatus.loading));
+  Future<void> _onInitial(OnUserInitial event, Emitter<UserState> emit) async {
+    final keep = event.silent && state.userList.isNotEmpty;
+    if (!keep) emit(state.copyWith(userStatus: UserStatus.loading));
     final result = await useCase.getUsers();
     result.fold(
-          (error) => emit(state.copyWith(
-          userStatus: UserStatus.failure, responseError: error)),
-          (data)  => emit(state.copyWith(
-          userStatus: UserStatus.success, userList: data.data ?? [])),
+      (error) => emit(
+        keep
+            ? state.copyWith(userStatus: UserStatus.success)
+            : state.copyWith(
+                userStatus: UserStatus.failure,
+                responseError: error,
+              ),
+      ),
+      (data) => emit(
+        state.copyWith(
+          userStatus: UserStatus.success,
+          userList: data.data ?? [],
+        ),
+      ),
     );
   }
 
-  Future<void> _onAddUser(
-      OnAddUser event, Emitter<UserState> emit) async {
+  Future<void> _onAddUser(OnAddUser event, Emitter<UserState> emit) async {
     emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
 
-    // Step 1: create the user
     final result = await useCase.addUser(
-      phone:    event.phone,
+      phone: event.phone,
       fullName: event.fullName,
-      role:     event.role,
-      pin:      event.pin,
+      role: event.role,
+      shopId: event.shopId,
     );
 
-    await result.fold(
-          (error) async {
-        emit(state.copyWith(
-            submitStatus: UserSubmitStatus.failure, submitError: error));
-      },
-          (createdUser) async {
-        // Step 2: assign shop if provided and user has a valid ID
-        if (event.shopId != null &&
-            event.shopId!.isNotEmpty &&
-            createdUser.id != null) {
-          final assignResult = await useCase.assignShop(
-            userId: createdUser.id!,
-            shopId: event.shopId,
-          );
-          // If assign-shop fails, still treat the creation as successful
-          // but could log the error for debugging
-          assignResult.fold(
-                (error) => null, // non-fatal — user was created
-                (_)     => null,
-          );
-        }
+    final created = result.fold<UserData?>((_) => null, (u) => u);
+    if (result.isLeft()) {
+      emit(
+        state.copyWith(
+          submitStatus: UserSubmitStatus.failure,
+          submitError: result.swap().getOrElse((_) => null),
+        ),
+      );
+      return;
+    }
 
-        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
-        add(OnUserInitial()); // refresh list
-      },
+    emit(
+      state.copyWith(
+        submitStatus: UserSubmitStatus.success,
+        userStatus: UserStatus.success,
+        userList: [
+          if (created != null && created.id != null) created,
+          ...state.userList,
+        ],
+      ),
+    );
+    add(const OnUserInitial(silent: true));
+  }
+
+  Future<void> _onUpdateUser(
+    OnUpdateUser event,
+    Emitter<UserState> emit,
+  ) async {
+    await _update(
+      emit,
+      userId: event.userId,
+      fullName: event.fullName,
+      role: event.role,
+      isActive: event.isActive,
+      shopId: event.shopId,
     );
   }
 
-  Future<void> _onEditUser(
-      OnEditUser event, Emitter<UserState> emit) async {
+  Future<void> _onReactivateUser(
+    OnReactivateUser event,
+    Emitter<UserState> emit,
+  ) => _update(emit, userId: event.userId, isActive: true);
+
+  Future<void> _update(
+    Emitter<UserState> emit, {
+    required String userId,
+    String? fullName,
+    String? role,
+    bool? isActive,
+    String? shopId,
+  }) async {
     emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
-    final result = await useCase.editUser(
-      userId:   event.userId,
-      fullName: event.fullName,
-      role:     event.role,
+    final result = await useCase.updateUser(
+      userId: userId,
+      fullName: fullName,
+      role: role,
+      isActive: isActive,
+      shopId: shopId,
     );
     result.fold(
-          (error) => emit(state.copyWith(
-          submitStatus: UserSubmitStatus.failure, submitError: error)),
-          (_) {
-        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
-        add(OnUserInitial());
+      (error) => emit(
+        state.copyWith(
+          submitStatus: UserSubmitStatus.failure,
+          submitError: error,
+        ),
+      ),
+      (_) {
+        emit(
+          state.copyWith(
+            submitStatus: UserSubmitStatus.success,
+            userList: _patchList(
+              userId,
+              (u) => u.patched(
+                fullName: fullName,
+                role: role,
+                isActive: isActive,
+                shopId: shopId,
+              ),
+            ),
+          ),
+        );
+        add(const OnUserInitial(silent: true));
       },
     );
   }
 
   Future<void> _onDeactivateUser(
-      OnDeactivateUser event, Emitter<UserState> emit) async {
+    OnDeactivateUser event,
+    Emitter<UserState> emit,
+  ) async {
+    emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
     final result = await useCase.deactivateUser(event.userId);
     result.fold(
-          (error) => emit(state.copyWith(
-          submitStatus: UserSubmitStatus.failure, submitError: error)),
-          (_) => add(OnUserInitial()),
-    );
-  }
-
-  Future<void> _onSetCashierPin(
-      OnSetCashierPin event, Emitter<UserState> emit) async {
-    emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
-    final result = await useCase.setCashierPin(
-        userId: event.userId, pin: event.pin);
-    result.fold(
-          (error) => emit(state.copyWith(
-          submitStatus: UserSubmitStatus.failure, submitError: error)),
-          (_) {
-        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
-        add(OnUserInitial());
+      (error) => emit(
+        state.copyWith(
+          submitStatus: UserSubmitStatus.failure,
+          submitError: error,
+        ),
+      ),
+      (_) {
+        emit(
+          state.copyWith(
+            submitStatus: UserSubmitStatus.success,
+            userList: _patchList(
+              event.userId,
+              (u) => u.patched(isActive: false),
+            ),
+          ),
+        );
+        add(const OnUserInitial(silent: true));
       },
     );
   }
 
-  Future<void> _onDisableCashierPin(
-      OnDisableCashierPin event, Emitter<UserState> emit) async {
-    emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
-    final result = await useCase.disableCashierPin(event.userId);
-    result.fold(
-          (error) => emit(state.copyWith(
-          submitStatus: UserSubmitStatus.failure, submitError: error)),
-          (_) {
-        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
-        add(OnUserInitial());
-      },
-    );
-  }
-
-  Future<void> _onAssignUserShop(
-      OnAssignUserShop event, Emitter<UserState> emit) async {
-    emit(state.copyWith(submitStatus: UserSubmitStatus.loading));
-    final result = await useCase.assignShop(
-      userId: event.userId,
-      shopId: event.shopId,
-    );
-    result.fold(
-          (error) => emit(state.copyWith(
-          submitStatus: UserSubmitStatus.failure, submitError: error)),
-          (_) {
-        emit(state.copyWith(submitStatus: UserSubmitStatus.success));
-        add(OnUserInitial());
-      },
-    );
-  }
+  List<UserData> _patchList(String id, UserData Function(UserData) patch) => [
+    for (final u in state.userList) u.id == id ? patch(u) : u,
+  ];
 }

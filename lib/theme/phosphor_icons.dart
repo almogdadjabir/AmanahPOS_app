@@ -26,6 +26,8 @@ abstract final class PhosphorIconsRegular {
   static const IconData barcode = IconData(0xe0b8, fontFamily: 'Phosphor');
   static const IconData bell = IconData(0xe0ce, fontFamily: 'Phosphor');
   static const IconData bellRinging = IconData(0xe5e8, fontFamily: 'Phosphor');
+  static const IconData bluetooth = IconData(0xe0da, fontFamily: 'Phosphor');
+  static const IconData bluetoothSlash = IconData(0xe0de, fontFamily: 'Phosphor');
   static const IconData broom = IconData(0xec54, fontFamily: 'Phosphor');
   static const IconData buildings = IconData(0xe102, fontFamily: 'Phosphor');
   static const IconData calendarBlank = IconData(

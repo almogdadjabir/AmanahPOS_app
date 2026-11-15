@@ -1,24 +1,28 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/common/widgets/section_label.dart';
 import 'package:amana_pos/core/responsive/layout_metrics.dart';
+import 'package:amana_pos/features/category/presentation/widgets/category_states.dart';
 import 'package:amana_pos/features/devices/domain/entities/printer_device.dart';
+import 'package:amana_pos/features/devices/domain/printer_error.dart';
 import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
 import 'package:amana_pos/features/devices/presentation/printer_l10n.dart';
-import 'package:amana_pos/features/settings/presentation/widgets/settings_group_card.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/theme/phosphor_icons.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
+import 'package:amana_pos/widgets/app_form_group.dart';
+import 'package:amana_pos/widgets/app_large_title.dart';
+import 'package:amana_pos/widgets/app_sheet.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:amana_pos/theme/phosphor_icons.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-/// Settings → Devices → Add Printer.
+/// Settings → Receipt printer.
 ///
-/// Shows the saved default printer with live connection status and actions
-/// (connect, test print, remove), plus a scan list to pick a new printer.
+/// iOS Settings style page: the default printer is a card with its status and
+/// two actions; nearby search and add-by-IP sit below it.
 class PrinterSettingsScreen extends StatefulWidget {
   const PrinterSettingsScreen({super.key});
 
@@ -36,7 +40,9 @@ class _PrinterSettingsScreenState extends State<PrinterSettingsScreen> {
   void _onStateChanged(BuildContext context, PrinterState state) {
     switch (state.status) {
       case PrinterStatus.printSuccess:
-        GlobalSnackBar.showSuccess(message: context.tr.printerStatusPrintSuccess);
+        GlobalSnackBar.showSuccess(
+          message: context.tr.printerStatusPrintSuccess,
+        );
       case PrinterStatus.printFailed:
       case PrinterStatus.connectionFailed:
         final error = state.error;
@@ -53,436 +59,86 @@ class _PrinterSettingsScreenState extends State<PrinterSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final tr = context.tr;
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom + 24;
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: DirectionalIcon(
-            icon: PhosphorIconsRegular.caretLeft,
-            color: colors.textPrimary,
-            size: 22,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          tr.printerScreenTitle,
-          style: AppTextStyles.bs400(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      body: BlocConsumer<PrinterBloc, PrinterState>(
-        listenWhen: (previous, current) => previous.status != current.status,
-        listener: _onStateChanged,
-        builder: (context, state) {
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: context.maxContentWidth),
-              child: ListView(
-                padding: const EdgeInsets.all(AppDims.s4),
-                children: [
-                  if (state.hasSavedPrinter) ...[
-                    SectionLabel(label: tr.printerDefaultLabel),
-                    const SizedBox(height: AppDims.s2),
-                    _SavedPrinterCard(state: state),
-                    const SizedBox(height: AppDims.s5),
-                  ],
-                  SectionLabel(label: tr.printerAvailable),
-                  const SizedBox(height: AppDims.s2),
-                  _ScanSection(state: state),
-                  const SizedBox(height: AppDims.s5),
-                  SectionLabel(label: tr.printerNetworkSection),
-                  const SizedBox(height: AppDims.s2),
-                  const _NetworkPrinterSection(),
-                  const SizedBox(height: AppDims.s6),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ── Saved printer ────────────────────────────────────────────────────────────
-
-class _SavedPrinterCard extends StatelessWidget {
-  final PrinterState state;
-
-  const _SavedPrinterCard({required this.state});
-
-  Future<void> _confirmForget(BuildContext context) async {
-    final tr = context.tr;
-    final colors = context.appColors;
-
-    final shouldForget = await showDialog<bool>(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: colors.surface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDims.rXl),
-          side: BorderSide(color: colors.border),
-        ),
-        title: Text(
-          tr.printerForgetConfirmTitle,
-          style: AppTextStyles.bs500(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: colors.textPrimary,
-          ),
-        ),
-        content: Text(
-          tr.printerForgetConfirmBody,
-          style: AppTextStyles.bs200(context).copyWith(
-            color: colors.textSecondary,
-            height: 1.4,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx, false),
-            child: Text(tr.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.danger,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.pop(dialogCtx, true),
-            child: Text(tr.printerForget),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldForget == true && context.mounted) {
-      context.read<PrinterBloc>().add(const PrinterForgotten());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final tr = context.tr;
-    final printer = state.savedPrinter!;
-    final status = state.status;
-    final statusColor = status.color(context);
-    final isBusy = status.isBusy;
-
-    return Container(
-      padding: const EdgeInsets.all(AppDims.s4),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(PhosphorIconsRegular.printer,
-                    color: statusColor, size: 24),
-              ),
-              const SizedBox(width: AppDims.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      printer.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bs400(context).copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w800,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: context.maxContentWidth),
+            child: Column(
+              children: [
+                const _NavBar(),
+                Expanded(
+                  child: BlocConsumer<PrinterBloc, PrinterState>(
+                    listenWhen: (p, c) => p.status != c.status,
+                    listener: _onStateChanged,
+                    builder: (context, state) => ListView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      switch (printer.type) {
-                        PrinterConnectionType.network =>
-                          '${context.tr.printerNetworkLabel} · ${printer.displayAddress}',
-                        PrinterConnectionType.ble =>
-                          '${context.tr.printerBleLabel} · ${printer.displayAddress}',
-                        PrinterConnectionType.bluetooth =>
-                          printer.displayAddress,
-                      },
-                      style: AppTextStyles.bs100(context).copyWith(
-                        color: colors.textHint,
-                        fontFamily: 'monospace',
+                      padding: EdgeInsets.fromLTRB(
+                        AppDims.s4,
+                        0,
+                        AppDims.s4,
+                        bottomInset,
                       ),
+                      children: [
+                        AppLargeTitle(title: context.tr.printerScreenTitle),
+                        _Body(state: state),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              _StatusChip(status: status),
-            ],
-          ),
-          const SizedBox(height: AppDims.s4),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: isBusy
-                      ? null
-                      : () => context.read<PrinterBloc>().add(
-                            status.isConnected
-                                ? const PrinterDisconnectRequested()
-                                : const PrinterConnectRequested(),
-                          ),
-                  icon: isBusy
-                      ? SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colors.textHint,
-                          ),
-                        )
-                      : Icon(
-                          status.isConnected
-                              ? PhosphorIconsRegular.linkBreak
-                              : PhosphorIconsRegular.link,
-                          size: 16,
-                        ),
-                  label: Text(
-                    status.isConnected ? tr.printerDisconnect : tr.printerConnect,
                   ),
                 ),
-              ),
-              const SizedBox(width: AppDims.s2),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: isBusy
-                      ? null
-                      : () {
-                          final businessName = context
-                                  .read<AuthBloc>()
-                                  .state
-                                  .defaultBusiness
-                                  ?.name ??
-                              'AmanaPOS';
-                          context.read<PrinterBloc>().add(
-                                PrinterTestPrintRequested(
-                                  businessName: businessName,
-                                ),
-                              );
-                        },
-                  icon: const Icon(PhosphorIconsRegular.fileText, size: 16),
-                  label: Text(tr.printerTestPrint),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDims.s2),
-          TextButton.icon(
-            onPressed: isBusy ? null : () => _confirmForget(context),
-            icon: Icon(PhosphorIconsRegular.trash,
-                size: 16, color: colors.danger),
-            label: Text(
-              tr.printerForget,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.danger,
-                fontWeight: FontWeight.w700,
-              ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  final PrinterStatus status;
-
-  const _StatusChip({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = status.color(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDims.s2,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            status.label(context),
-            style: AppTextStyles.sm100(context).copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Scan section ─────────────────────────────────────────────────────────────
-
-class _ScanSection extends StatelessWidget {
-  final PrinterState state;
-
-  const _ScanSection({required this.state});
+class _NavBar extends StatelessWidget {
+  const _NavBar();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final tr = context.tr;
 
-    final visibleDevices = state.availableDevices
-        .where((d) => d != state.savedPrinter)
-        .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (state.error != null && !state.isScanning) ...[
-          _ErrorBanner(message: printerErrorMessage(context, state.error!)),
-          const SizedBox(height: AppDims.s3),
-        ],
-        if (visibleDevices.isNotEmpty) ...[
-          SettingsGroupCard(
-            items: [
-              for (final device in visibleDevices)
-                _DeviceTile(device: device),
-            ],
-          ),
-          const SizedBox(height: AppDims.s3),
-        ] else if (!state.isScanning && state.error == null) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDims.s2,
-              vertical: AppDims.s2,
-            ),
-            child: Text(
-              tr.printerNoDevicesFound,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-        OutlinedButton.icon(
-          onPressed: state.isScanning
-              ? null
-              : () => context
-                  .read<PrinterBloc>()
-                  .add(const PrinterScanRequested()),
-          icon: state.isScanning
-              ? SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colors.textHint,
-                  ),
-                )
-              : const Icon(PhosphorIconsRegular.arrowsClockwise, size: 16),
-          label: Text(state.isScanning ? tr.printerScanning : tr.printerScan),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            side: BorderSide(color: colors.border),
-          ),
-        ),
-        const SizedBox(height: AppDims.s3),
-        Text(
-          tr.printerScanHint,
-          style: AppTextStyles.bs100(context).copyWith(
-            color: colors.textHint,
-            height: 1.45,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DeviceTile extends StatelessWidget {
-  final PrinterDevice device;
-
-  const _DeviceTile({required this.device});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final tr = context.tr;
-
-    return InkWell(
-      onTap: () {
-        context.read<PrinterBloc>().add(PrinterDeviceSelected(device));
-        GlobalSnackBar.showSuccess(message: tr.printerSavedAsDefault);
-      },
+    return SizedBox(
+      height: 44,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDims.s4,
-          vertical: AppDims.s3,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            Icon(PhosphorIconsRegular.printer, color: colors.primary, size: 22),
-            const SizedBox(width: AppDims.s3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    device.name.isEmpty ? device.address : device.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bs300(context).copyWith(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w700,
+            Pressable(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 4),
+                    DirectionalIcon(
+                      icon: PhosphorIconsRegular.caretLeft,
+                      size: 24,
+                      color: colors.primary,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    device.isBle
-                        ? '${tr.printerBleLabel} · ${device.address}'
-                        : device.address,
-                    style: AppTextStyles.bs100(context).copyWith(
-                      color: colors.textHint,
-                      fontFamily: 'monospace',
+                    Text(
+                      context.tr.back,
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 1.3,
+                        color: colors.primary,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                  ],
+                ),
               ),
-            ),
-            DirectionalIcon(
-              icon: PhosphorIconsRegular.caretRight,
-              size: 15,
-              color: colors.textHint,
             ),
           ],
         ),
@@ -491,69 +147,636 @@ class _DeviceTile extends StatelessWidget {
   }
 }
 
-// ── Network printer (LAN/WiFi) ───────────────────────────────────────────────
+bool _isPermissionError(PrinterError? e) =>
+    e == PrinterError.bluetoothOff || e == PrinterError.permissionDenied;
 
-/// Manual setup for ESC/POS network printers (TCP port 9100) such as the
-/// SAM4s GIANT-100, which has no Bluetooth radio and never appears in scans.
-class _NetworkPrinterSection extends StatelessWidget {
-  const _NetworkPrinterSection();
+// ── Body ─────────────────────────────────────────────────────────────────────
 
-  Future<void> _openAddDialog(BuildContext context) async {
-    final device = await showDialog<PrinterDevice>(
-      context: context,
-      builder: (_) => const _NetworkPrinterDialog(),
+class _Body extends StatelessWidget {
+  final PrinterState state;
+
+  const _Body({required this.state});
+
+  Future<void> _addByIp(BuildContext context) async {
+    final bloc = context.read<PrinterBloc>();
+    final tr = context.tr;
+    final device = await showAppSheet<PrinterDevice>(
+      context,
+      builder: (_) => const _NetworkPrinterSheet(),
+    );
+    if (device != null) {
+      bloc.add(PrinterDeviceSelected(device));
+      GlobalSnackBar.showSuccess(message: tr.printerSavedAsDefault);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = context.tr;
+    final error = state.error;
+    final permError = _isPermissionError(error) && !state.isScanning;
+    final otherError = error != null && !permError && !state.isScanning;
+    final devices = state.availableDevices
+        .where((d) => d != state.savedPrinter)
+        .toList();
+    final showEmpty =
+        !state.hasSavedPrinter &&
+        !state.isScanning &&
+        devices.isEmpty &&
+        !permError;
+
+    final ipRow = _IconRow(
+      icon: PhosphorIconsRegular.plus,
+      tone: _BadgeTone.indigo,
+      title: tr.prnAddByIp,
+      titleColor: context.appColors.textPrimary,
+      trailing: DirectionalIcon(
+        icon: PhosphorIconsRegular.caretRight,
+        size: 18,
+        color: context.appColors.borderStrong,
+      ),
+      onTap: () => _addByIp(context),
     );
 
-    if (device != null && context.mounted) {
-      context.read<PrinterBloc>().add(PrinterDeviceSelected(device));
-      GlobalSnackBar.showSuccess(message: context.tr.printerSavedAsDefault);
-    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (permError) ...[
+          const SizedBox(height: 6),
+          _Banner(
+            icon: PhosphorIconsRegular.bluetooth,
+            title: tr.prnBtOffTitle,
+            body: tr.prnBtOffBody,
+          ),
+          AppFormGroup(
+            children: [
+              _ActionRow(
+                label: tr.prnOpenSettings,
+                onTap: () => openAppSettings(),
+              ),
+            ],
+          ),
+          if (state.hasSavedPrinter) ...[
+            const SizedBox(height: 12),
+            _SavedCard(state: state),
+            const SizedBox(height: 22),
+          ],
+        ] else ...[
+          if (otherError) ...[
+            const SizedBox(height: 6),
+            _Banner(
+              icon: PhosphorIconsRegular.info,
+              body: printerErrorMessage(context, error),
+            ),
+          ],
+          if (state.hasSavedPrinter) ...[
+            _SavedCard(state: state),
+            const SizedBox(height: 22),
+          ],
+        ],
+        if (showEmpty) ...[
+          const SizedBox(height: 12),
+          CategoryStateCard(
+            icon: PhosphorIconsRegular.printer,
+            title: tr.prnNoPrinterTitle,
+            body: tr.prnNoPrinterBody,
+            actionLabel: tr.prnSearchNearby,
+            onAction: () =>
+                context.read<PrinterBloc>().add(const PrinterScanRequested()),
+          ),
+          const SizedBox(height: 22),
+          AppFormGroup(footer: tr.prnIpFoot, children: [ipRow]),
+        ] else if (permError && !state.hasSavedPrinter) ...[
+          const SizedBox(height: 22),
+          AppFormGroup(footer: tr.prnIpFoot, children: [ipRow]),
+        ] else ...[
+          AppFormGroup(
+            header: tr.prnOther,
+            footer: state.isScanning ? tr.prnNearFoot : tr.prnIpFoot,
+            children: [
+              if (!permError)
+                _IconRow(
+                  icon: PhosphorIconsRegular.magnifyingGlass,
+                  tone: _BadgeTone.brand,
+                  spinner: state.isScanning,
+                  title: state.isScanning
+                      ? tr.prnSearching
+                      : tr.prnSearchNearby,
+                  onTap: state.isScanning
+                      ? null
+                      : () => context.read<PrinterBloc>().add(
+                          const PrinterScanRequested(),
+                        ),
+                ),
+              for (final d in devices) _DeviceRow(device: d),
+              ipRow,
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── Saved printer card ───────────────────────────────────────────────────────
+
+class _SavedCard extends StatelessWidget {
+  final PrinterState state;
+
+  const _SavedCard({required this.state});
+
+  Future<void> _forget(BuildContext context) async {
+    final tr = context.tr;
+    final bloc = context.read<PrinterBloc>();
+    final ok = await showAppConfirmSheet(
+      context,
+      title: tr.printerForgetConfirmTitle,
+      message: tr.printerForgetConfirmBody,
+      confirmLabel: tr.prnForget,
+    );
+    if (ok) bloc.add(const PrinterForgotten());
+  }
+
+  void _testPrint(BuildContext context) {
+    final name =
+        context.read<AuthBloc>().state.defaultBusiness?.name ?? 'AmanaPOS';
+    context.read<PrinterBloc>().add(
+      PrinterTestPrintRequested(businessName: name),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final tr = context.tr;
+    final text = Theme.of(context).textTheme;
+    final printer = state.savedPrinter!;
+    final status = state.status;
+    final connected = status.isConnected;
+    final busy = status.isBusy;
+    final statusColor = busy
+        ? colors.warning
+        : connected
+        ? colors.success
+        : colors.textHint;
+    final statusLabel = busy
+        ? status.label(context)
+        : connected
+        ? tr.printerStatusConnected
+        : tr.printerStatusNotConnected;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        OutlinedButton.icon(
-          onPressed: () => _openAddDialog(context),
-          icon: const Icon(PhosphorIconsRegular.wifiHigh, size: 16),
-          label: Text(tr.printerAddNetwork),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            side: BorderSide(color: colors.border),
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: AppDims.borderLg,
+        border: Border.all(color: colors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: AppDims.borderLg,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: connected
+                          ? colors.primaryContainer
+                          : colors.surfaceSoft,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      PhosphorIconsRegular.printer,
+                      size: 28,
+                      color: connected ? colors.primary : colors.textHint,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          printer.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.titleLarge!.copyWith(
+                            fontSize: 19,
+                            height: 1.3,
+                            fontWeight: FontWeight.w600,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1),
+                          child: Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(
+                                printer.displayAddress,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  height: 1.3,
+                                  color: colors.textHint,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                color: statusColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              statusLabel,
+                              style: TextStyle(
+                                fontSize: 13,
+                                height: 1.3,
+                                fontWeight: FontWeight.w600,
+                                color: statusColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 0.5, thickness: 0.5, color: colors.border),
+            if (connected)
+              _ActionRow(
+                label: tr.prnTestReceipt,
+                icon: PhosphorIconsRegular.receipt,
+                onTap: busy ? null : () => _testPrint(context),
+              )
+            else
+              _ActionRow(
+                label: tr.printerConnect,
+                spinner: busy,
+                onTap: busy
+                    ? null
+                    : () => context.read<PrinterBloc>().add(
+                        const PrinterConnectRequested(),
+                      ),
+              ),
+            Divider(
+              height: 0.5,
+              thickness: 0.5,
+              indent: AppDims.s4,
+              color: colors.border,
+            ),
+            _ActionRow(
+              label: tr.prnForget,
+              destructive: true,
+              onTap: busy ? null : () => _forget(context),
+            ),
+          ],
         ),
-        const SizedBox(height: AppDims.s3),
-        Text(
-          tr.printerNetworkHint,
-          style: AppTextStyles.bs100(context).copyWith(
-            color: colors.textHint,
-            height: 1.45,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _NetworkPrinterDialog extends StatefulWidget {
-  const _NetworkPrinterDialog();
+/// Centered 50px row button (Test receipt / Connect / Forget / Open Settings).
+class _ActionRow extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool destructive;
+  final bool spinner;
+  final VoidCallback? onTap;
+
+  const _ActionRow({
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.destructive = false,
+    this.spinner = false,
+  });
 
   @override
-  State<_NetworkPrinterDialog> createState() => _NetworkPrinterDialogState();
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final color = destructive ? colors.danger : colors.primary;
+
+    return Pressable(
+      onTap: onTap,
+      scale: 1,
+      child: SizedBox(
+        height: 50,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (spinner) ...[
+              _Spinner(size: 18, color: color),
+              const SizedBox(width: 8),
+            ] else if (icon != null) ...[
+              Icon(icon, size: 20, color: color),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 17,
+                height: 1.3,
+                fontWeight: FontWeight.w500,
+                color: onTap == null && !spinner ? colors.disabled : color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _NetworkPrinterDialogState extends State<_NetworkPrinterDialog> {
+class _Spinner extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _Spinner({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CircularProgressIndicator(
+        strokeWidth: 2.4,
+        color: color,
+        backgroundColor: context.appColors.surfaceSoft,
+      ),
+    );
+  }
+}
+
+// ── Rows ─────────────────────────────────────────────────────────────────────
+
+enum _BadgeTone { neutral, brand, indigo }
+
+class _IconRow extends StatelessWidget {
+  final IconData icon;
+  final _BadgeTone tone;
+  final String title;
+  final Color? titleColor;
+  final bool spinner;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _IconRow({
+    required this.icon,
+    required this.tone,
+    required this.title,
+    required this.onTap,
+    this.titleColor,
+    this.spinner = false,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final (bg, fg) = switch (tone) {
+      _BadgeTone.neutral => (colors.surfaceSoft, colors.textSecondary),
+      _BadgeTone.brand => (colors.primaryContainer, colors.primary),
+      _BadgeTone.indigo => (colors.digitalTint, colors.digitalInk),
+    };
+
+    return Pressable(
+      onTap: onTap,
+      scale: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 54),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+          child: Row(
+            children: [
+              _Badge(
+                bg: bg,
+                child: spinner
+                    ? _Spinner(size: 18, color: colors.primary)
+                    : Icon(icon, size: 20, color: fg),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 1.3,
+                    fontWeight: FontWeight.w500,
+                    color: titleColor ?? colors.primary,
+                  ),
+                ),
+              ),
+              ?trailing,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final Color bg;
+  final Widget child;
+
+  const _Badge({required this.bg, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _DeviceRow extends StatelessWidget {
+  final PrinterDevice device;
+
+  const _DeviceRow({required this.device});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+    final network = device.isNetwork;
+    final tone = network ? _BadgeTone.indigo : _BadgeTone.neutral;
+    final (bg, fg) = tone == _BadgeTone.indigo
+        ? (colors.digitalTint, colors.digitalInk)
+        : (colors.surfaceSoft, colors.textSecondary);
+
+    return Pressable(
+      onTap: () {
+        context.read<PrinterBloc>().add(PrinterDeviceSelected(device));
+        GlobalSnackBar.showSuccess(message: tr.printerSavedAsDefault);
+      },
+      scale: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 64),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+          child: Row(
+            children: [
+              _Badge(
+                bg: bg,
+                child: Icon(
+                  network
+                      ? PhosphorIconsRegular.wifiHigh
+                      : PhosphorIconsRegular.bluetooth,
+                  size: 20,
+                  color: fg,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      device.name.isEmpty ? device.address : device.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 1.3,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          device.displayAddress,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.3,
+                            color: colors.textHint,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                tr.printerConnect,
+                style: TextStyle(
+                  fontSize: 17,
+                  height: 1.3,
+                  fontWeight: FontWeight.w500,
+                  color: colors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Banner ───────────────────────────────────────────────────────────────────
+
+class _Banner extends StatelessWidget {
+  final IconData icon;
+  final String? title;
+  final String body;
+
+  const _Banner({required this.icon, required this.body, this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: colors.dangerContainer,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: title != null
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 22, color: colors.danger),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title != null)
+                  Text(
+                    title!,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 20 / 15,
+                      fontWeight: FontWeight.w600,
+                      color: colors.danger,
+                    ),
+                  ),
+                Text(
+                  body,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 20 / 15,
+                    color: colors.danger,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Add by IP sheet ──────────────────────────────────────────────────────────
+
+class _NetworkPrinterSheet extends StatefulWidget {
+  const _NetworkPrinterSheet();
+
+  @override
+  State<_NetworkPrinterSheet> createState() => _NetworkPrinterSheetState();
+}
+
+class _NetworkPrinterSheetState extends State<_NetworkPrinterSheet> {
   static final _ipPattern = RegExp(
     r'^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}'
     r'(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$',
   );
 
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ipController = TextEditingController();
   final _portController = TextEditingController(
@@ -568,20 +791,22 @@ class _NetworkPrinterDialogState extends State<_NetworkPrinterDialog> {
     super.dispose();
   }
 
+  bool get _ipValid => _ipPattern.hasMatch(_ipController.text.trim());
+
+  bool get _portValid {
+    final port = int.tryParse(_portController.text.trim());
+    return port != null && port > 0 && port <= 65535;
+  }
+
   void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
-    final ip = _ipController.text.trim();
+    if (!_ipValid || !_portValid) return;
     final name = _nameController.text.trim();
-    final port = int.tryParse(_portController.text.trim()) ??
-        PrinterDevice.defaultNetworkPort;
-
     Navigator.of(context).pop(
       PrinterDevice(
         name: name.isEmpty ? context.tr.printerNetworkLabel : name,
-        address: ip,
+        address: _ipController.text.trim(),
         type: PrinterConnectionType.network,
-        port: port,
+        port: int.parse(_portController.text.trim()),
       ),
     );
   }
@@ -591,104 +816,74 @@ class _NetworkPrinterDialogState extends State<_NetworkPrinterDialog> {
     final colors = context.appColors;
     final tr = context.tr;
 
-    return AlertDialog(
-      backgroundColor: colors.surface,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDims.rXl),
-        side: BorderSide(color: colors.border),
+    return AppSheet(
+      title: tr.prnNetworkTitle,
+      leadingAction: AppSheetAction(
+        label: tr.cancel,
+        onTap: () => Navigator.of(context).pop(),
       ),
-      title: Text(
-        tr.printerAddNetwork,
-        style: AppTextStyles.bs500(context).copyWith(
-          fontWeight: FontWeight.w900,
-          color: colors.textPrimary,
-        ),
+      trailingAction: AppSheetAction(
+        label: tr.save,
+        emphasized: true,
+        onTap: _ipValid && _portValid ? _submit : null,
       ),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
+      child: AppFormGroup(
+        footer: tr.prnIpFoot,
+        children: [
+          AppFormRow(
+            label: tr.prnName,
+            child: AppRowTextField(
               controller: _nameController,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(labelText: tr.printerNameOptional),
+              hint: tr.fmOptional,
+              onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: AppDims.s3),
-            TextFormField(
-              controller: _ipController,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: tr.printerIpAddress,
-                hintText: '192.168.1.50',
-              ),
-              validator: (value) =>
-                  _ipPattern.hasMatch(value?.trim() ?? '')
-                      ? null
-                      : tr.printerInvalidIp,
+          ),
+          AppFormRow(
+            child: Row(
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 104),
+                  child: Text.rich(
+                    TextSpan(
+                      text: tr.printerIpAddress,
+                      children: [
+                        TextSpan(
+                          text: '*',
+                          style: TextStyle(color: colors.danger),
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: 1.3,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppDims.s2),
+                Expanded(
+                  child: AppRowTextField(
+                    controller: _ipController,
+                    hint: '192.168.1.50',
+                    numeric: true,
+                    keyboardType: TextInputType.number,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppDims.s3),
-            TextFormField(
+          ),
+          AppFormRow(
+            label: tr.printerPort,
+            child: AppRowTextField(
               controller: _portController,
+              numeric: true,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _submit(),
-              decoration: InputDecoration(labelText: tr.printerPort),
-              validator: (value) {
-                final port = int.tryParse(value?.trim() ?? '');
-                return port != null && port > 0 && port <= 65535
-                    ? null
-                    : tr.printerInvalidIp;
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(tr.cancel),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: Text(tr.save),
-        ),
-      ],
-    );
-  }
-}
-
-class _ErrorBanner extends StatelessWidget {
-  final String message;
-
-  const _ErrorBanner({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Container(
-      padding: const EdgeInsets.all(AppDims.s3),
-      decoration: BoxDecoration(
-        color: colors.danger.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.danger.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(PhosphorIconsRegular.info, size: 18, color: colors.danger),
-          const SizedBox(width: AppDims.s2),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.bs100(context).copyWith(
-                color: colors.textPrimary,
-                height: 1.45,
-              ),
+              onChanged: (_) => setState(() {}),
+              onSubmitted: (_) => _submit(),
             ),
           ),
         ],

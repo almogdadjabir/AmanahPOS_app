@@ -6217,6 +6217,558 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sales and performance'**
   String get homeReportsPerformance;
+
+  /// No description provided for @fmOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get fmOptional;
+
+  /// No description provided for @cuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get cuTitle;
+
+  /// No description provided for @cuCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 customer} other{{count} customers}}'**
+  String cuCount(int count);
+
+  /// No description provided for @cuCountInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 customer · inactive} other{{count} customers · inactive}}'**
+  String cuCountInactive(int count);
+
+  /// No description provided for @cuSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or phone'**
+  String get cuSearch;
+
+  /// No description provided for @cuChipActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get cuChipActive;
+
+  /// No description provided for @cuChipInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get cuChipInactive;
+
+  /// No description provided for @cuEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers yet'**
+  String get cuEmptyTitle;
+
+  /// No description provided for @cuEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a customer once and attach them to a sale in a tap.'**
+  String get cuEmptyBody;
+
+  /// No description provided for @cuEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add customer'**
+  String get cuEmptyAction;
+
+  /// No description provided for @cuSwipeEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get cuSwipeEdit;
+
+  /// No description provided for @cuSwipeDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get cuSwipeDeactivate;
+
+  /// No description provided for @cuSwipeReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get cuSwipeReactivate;
+
+  /// No description provided for @cuInactiveTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get cuInactiveTag;
+
+  /// No description provided for @cuEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get cuEdit;
+
+  /// No description provided for @cuCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get cuCall;
+
+  /// No description provided for @cuWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get cuWhatsApp;
+
+  /// No description provided for @cuEmailAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get cuEmailAction;
+
+  /// No description provided for @cuTotalPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Total purchases'**
+  String get cuTotalPurchases;
+
+  /// No description provided for @cuLoyalty.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty points'**
+  String get cuLoyalty;
+
+  /// No description provided for @cuSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer since'**
+  String get cuSince;
+
+  /// No description provided for @cuContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get cuContact;
+
+  /// No description provided for @cuPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get cuPhone;
+
+  /// No description provided for @cuEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get cuEmail;
+
+  /// No description provided for @cuAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get cuAddress;
+
+  /// No description provided for @cuNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get cuNotes;
+
+  /// No description provided for @cuDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate customer'**
+  String get cuDeactivate;
+
+  /// No description provided for @cuReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate customer'**
+  String get cuReactivate;
+
+  /// No description provided for @cuInactiveBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive. Hidden from search when selling.'**
+  String get cuInactiveBanner;
+
+  /// No description provided for @cuNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New customer'**
+  String get cuNew;
+
+  /// No description provided for @cuEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit customer'**
+  String get cuEditTitle;
+
+  /// No description provided for @cuName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get cuName;
+
+  /// No description provided for @cuMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More details'**
+  String get cuMore;
+
+  /// No description provided for @cuLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer details'**
+  String get cuLess;
+
+  /// No description provided for @cuPhoneFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to find the customer and share receipts on WhatsApp.'**
+  String get cuPhoneFoot;
+
+  /// No description provided for @cuDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String cuDeactivateTitle(String name);
+
+  /// No description provided for @cuDeactivateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will stop showing in the customer list. Past sales stay in history. You can reactivate any time.'**
+  String cuDeactivateBody(String name);
+
+  /// No description provided for @cuDeactivateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get cuDeactivateConfirm;
+
+  /// No description provided for @cuErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load customers'**
+  String get cuErrorTitle;
+
+  /// No description provided for @cuErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get cuErrorBody;
+
+  /// No description provided for @cuSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer saved'**
+  String get cuSaved;
+
+  /// No description provided for @cuDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer deactivated'**
+  String get cuDeactivated;
+
+  /// No description provided for @cuReactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer reactivated'**
+  String get cuReactivated;
+
+  /// No description provided for @tmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get tmTitle;
+
+  /// No description provided for @tmCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person} other{{count} people}}'**
+  String tmCount(int count);
+
+  /// No description provided for @tmManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'Managers'**
+  String get tmManagers;
+
+  /// No description provided for @tmCashiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashiers'**
+  String get tmCashiers;
+
+  /// No description provided for @tmInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited'**
+  String get tmInvited;
+
+  /// No description provided for @tmInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get tmInactive;
+
+  /// No description provided for @tmNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never signed in'**
+  String get tmNever;
+
+  /// No description provided for @tmEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No team yet'**
+  String get tmEmptyTitle;
+
+  /// No description provided for @tmEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cashiers and managers. Each one signs in with their own phone.'**
+  String get tmEmptyBody;
+
+  /// No description provided for @tmEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add team member'**
+  String get tmEmptyAction;
+
+  /// No description provided for @tmSwipeDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get tmSwipeDeactivate;
+
+  /// No description provided for @tmRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get tmRole;
+
+  /// No description provided for @tmBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get tmBranch;
+
+  /// No description provided for @tmLastSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sign-in'**
+  String get tmLastSignIn;
+
+  /// No description provided for @tmJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get tmJoined;
+
+  /// No description provided for @tmCanSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Can sign in'**
+  String get tmCanSignIn;
+
+  /// No description provided for @tmCanSignInFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to block sign-in right away. Their sales stay in history.'**
+  String get tmCanSignInFoot;
+
+  /// No description provided for @tmRoleManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get tmRoleManager;
+
+  /// No description provided for @tmRoleCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get tmRoleCashier;
+
+  /// No description provided for @tmRoleManagerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sells, manages products and stock, sees reports. Cannot manage the team or billing.'**
+  String get tmRoleManagerDesc;
+
+  /// No description provided for @tmRoleCashierDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sells and processes returns. Sees only their own shift.'**
+  String get tmRoleCashierDesc;
+
+  /// No description provided for @tmNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New team member'**
+  String get tmNew;
+
+  /// No description provided for @tmFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get tmFullName;
+
+  /// No description provided for @tmPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get tmPhone;
+
+  /// No description provided for @tmSignFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'They sign in with a code sent to this phone. There is no password or PIN to set.'**
+  String get tmSignFoot;
+
+  /// No description provided for @tmDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String tmDeactivateTitle(String name);
+
+  /// No description provided for @tmDeactivateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will be signed out and can no longer sign in. Their sales stay in history.'**
+  String tmDeactivateBody(String name);
+
+  /// No description provided for @tmDeactivateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get tmDeactivateConfirm;
+
+  /// No description provided for @tmToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get tmToday;
+
+  /// No description provided for @tmYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get tmYesterday;
+
+  /// No description provided for @tmDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String tmDaysAgo(int count);
+
+  /// No description provided for @tmErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the team'**
+  String get tmErrorTitle;
+
+  /// No description provided for @tmSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Team member saved'**
+  String get tmSaved;
+
+  /// No description provided for @tmUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Team member updated'**
+  String get tmUpdated;
+
+  /// No description provided for @prnTestReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Print a test receipt'**
+  String get prnTestReceipt;
+
+  /// No description provided for @prnForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget printer'**
+  String get prnForget;
+
+  /// No description provided for @prnOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other printers'**
+  String get prnOther;
+
+  /// No description provided for @prnSearchNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Search nearby'**
+  String get prnSearchNearby;
+
+  /// No description provided for @prnSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching nearby…'**
+  String get prnSearching;
+
+  /// No description provided for @prnAddByIp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add by IP address'**
+  String get prnAddByIp;
+
+  /// No description provided for @prnIpFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'For network printers that listen on port 9100, like the SAM4s GIANT-100.'**
+  String get prnIpFoot;
+
+  /// No description provided for @prnNearFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Printers paired in your phone settings or found over Bluetooth appear here.'**
+  String get prnNearFoot;
+
+  /// No description provided for @prnNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network printer'**
+  String get prnNetworkTitle;
+
+  /// No description provided for @prnName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get prnName;
+
+  /// No description provided for @prnNoPrinterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No printer yet'**
+  String get prnNoPrinterTitle;
+
+  /// No description provided for @prnNoPrinterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a Bluetooth printer or add a network printer by its IP address.'**
+  String get prnNoPrinterBody;
+
+  /// No description provided for @prnBtOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off for Amana'**
+  String get prnBtOffTitle;
+
+  /// No description provided for @prnBtOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Bluetooth in Settings to find printers near you.'**
+  String get prnBtOffBody;
+
+  /// No description provided for @prnOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get prnOpenSettings;
 }
 
 class _AppLocalizationsDelegate

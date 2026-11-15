@@ -6,10 +6,18 @@ enum CustomerSubmitStatus { idle, loading, success, failure }
 
 class CustomersState extends Equatable {
   final CustomersStatus status;
+
+  /// Rows loaded so far for the current search and filter. A customer that was
+  /// just (de)activated stays here, so an open detail screen can keep showing
+  /// it; [visibleCustomers] hides it from the list.
   final List<CustomerData> customers;
   final String searchQuery;
+  final CustomerActiveFilter filter;
   final int currentPage;
   final int totalPages;
+
+  /// `count` from the server: all customers matching search and filter.
+  final int totalCount;
   final String? responseError;
 
   final CustomerSubmitStatus submitStatus;
@@ -19,8 +27,10 @@ class CustomersState extends Equatable {
     required this.status,
     required this.customers,
     required this.searchQuery,
+    required this.filter,
     required this.currentPage,
     required this.totalPages,
+    required this.totalCount,
     this.responseError,
     required this.submitStatus,
     this.submitError,
@@ -31,36 +41,36 @@ class CustomersState extends Equatable {
       status: CustomersStatus.initial,
       customers: [],
       searchQuery: '',
+      filter: CustomerActiveFilter.active,
       currentPage: 1,
       totalPages: 1,
+      totalCount: 0,
       submitStatus: CustomerSubmitStatus.idle,
     );
   }
 
   bool get hasMorePages => currentPage < totalPages;
 
-  List<CustomerData> get filteredCustomers {
-    final query = searchQuery.trim().toLowerCase();
+  bool get isSearching => searchQuery.trim().isNotEmpty;
 
-    if (query.isEmpty) return customers;
-
-    return customers.where((customer) {
-      final name = customer.name?.toLowerCase() ?? '';
-      final phone = customer.phone?.toLowerCase() ?? '';
-      final email = customer.email?.toLowerCase() ?? '';
-
-      return name.contains(query) ||
-          phone.contains(query) ||
-          email.contains(query);
-    }).toList(growable: false);
+  /// Rows that belong in the current list: those whose status still matches
+  /// the chip (a row just toggled from its detail drops out). Not a search
+  /// filter, searching is done by the server.
+  List<CustomerData> get visibleCustomers {
+    final wantActive = filter == CustomerActiveFilter.active;
+    return customers
+        .where((c) => (c.isActive != false) == wantActive)
+        .toList(growable: false);
   }
 
   CustomersState copyWith({
     CustomersStatus? status,
     List<CustomerData>? customers,
     String? searchQuery,
+    CustomerActiveFilter? filter,
     int? currentPage,
     int? totalPages,
+    int? totalCount,
     String? responseError,
     CustomerSubmitStatus? submitStatus,
     String? submitError,
@@ -69,8 +79,10 @@ class CustomersState extends Equatable {
       status: status ?? this.status,
       customers: customers ?? this.customers,
       searchQuery: searchQuery ?? this.searchQuery,
+      filter: filter ?? this.filter,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
+      totalCount: totalCount ?? this.totalCount,
       responseError: responseError,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: submitError,
@@ -82,8 +94,10 @@ class CustomersState extends Equatable {
     status,
     customers,
     searchQuery,
+    filter,
     currentPage,
     totalPages,
+    totalCount,
     responseError,
     submitStatus,
     submitError,

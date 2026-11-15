@@ -3361,4 +3361,331 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeReportsPerformance => 'Sales and performance';
+
+  @override
+  String get fmOptional => 'Optional';
+
+  @override
+  String get cuTitle => 'Customers';
+
+  @override
+  String cuCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count customers',
+      one: '1 customer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cuCountInactive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count customers · inactive',
+      one: '1 customer · inactive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cuSearch => 'Search name or phone';
+
+  @override
+  String get cuChipActive => 'Active';
+
+  @override
+  String get cuChipInactive => 'Inactive';
+
+  @override
+  String get cuEmptyTitle => 'No customers yet';
+
+  @override
+  String get cuEmptyBody =>
+      'Save a customer once and attach them to a sale in a tap.';
+
+  @override
+  String get cuEmptyAction => 'Add customer';
+
+  @override
+  String get cuSwipeEdit => 'Edit';
+
+  @override
+  String get cuSwipeDeactivate => 'Deactivate';
+
+  @override
+  String get cuSwipeReactivate => 'Reactivate';
+
+  @override
+  String get cuInactiveTag => 'Inactive';
+
+  @override
+  String get cuEdit => 'Edit';
+
+  @override
+  String get cuCall => 'Call';
+
+  @override
+  String get cuWhatsApp => 'WhatsApp';
+
+  @override
+  String get cuEmailAction => 'Email';
+
+  @override
+  String get cuTotalPurchases => 'Total purchases';
+
+  @override
+  String get cuLoyalty => 'Loyalty points';
+
+  @override
+  String get cuSince => 'Customer since';
+
+  @override
+  String get cuContact => 'Contact';
+
+  @override
+  String get cuPhone => 'Phone';
+
+  @override
+  String get cuEmail => 'Email';
+
+  @override
+  String get cuAddress => 'Address';
+
+  @override
+  String get cuNotes => 'Notes';
+
+  @override
+  String get cuDeactivate => 'Deactivate customer';
+
+  @override
+  String get cuReactivate => 'Reactivate customer';
+
+  @override
+  String get cuInactiveBanner => 'Inactive. Hidden from search when selling.';
+
+  @override
+  String get cuNew => 'New customer';
+
+  @override
+  String get cuEditTitle => 'Edit customer';
+
+  @override
+  String get cuName => 'Name';
+
+  @override
+  String get cuMore => 'More details';
+
+  @override
+  String get cuLess => 'Fewer details';
+
+  @override
+  String get cuPhoneFoot =>
+      'Used to find the customer and share receipts on WhatsApp.';
+
+  @override
+  String cuDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String cuDeactivateBody(String name) {
+    return '$name will stop showing in the customer list. Past sales stay in history. You can reactivate any time.';
+  }
+
+  @override
+  String get cuDeactivateConfirm => 'Deactivate';
+
+  @override
+  String get cuErrorTitle => 'Could not load customers';
+
+  @override
+  String get cuErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get cuSaved => 'Customer saved';
+
+  @override
+  String get cuDeactivated => 'Customer deactivated';
+
+  @override
+  String get cuReactivated => 'Customer reactivated';
+
+  @override
+  String get tmTitle => 'Team';
+
+  @override
+  String tmCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tmManagers => 'Managers';
+
+  @override
+  String get tmCashiers => 'Cashiers';
+
+  @override
+  String get tmInvited => 'Invited';
+
+  @override
+  String get tmInactive => 'Inactive';
+
+  @override
+  String get tmNever => 'Never signed in';
+
+  @override
+  String get tmEmptyTitle => 'No team yet';
+
+  @override
+  String get tmEmptyBody =>
+      'Add cashiers and managers. Each one signs in with their own phone.';
+
+  @override
+  String get tmEmptyAction => 'Add team member';
+
+  @override
+  String get tmSwipeDeactivate => 'Deactivate';
+
+  @override
+  String get tmRole => 'Role';
+
+  @override
+  String get tmBranch => 'Branch';
+
+  @override
+  String get tmLastSignIn => 'Last sign-in';
+
+  @override
+  String get tmJoined => 'Joined';
+
+  @override
+  String get tmCanSignIn => 'Can sign in';
+
+  @override
+  String get tmCanSignInFoot =>
+      'Turn off to block sign-in right away. Their sales stay in history.';
+
+  @override
+  String get tmRoleManager => 'Manager';
+
+  @override
+  String get tmRoleCashier => 'Cashier';
+
+  @override
+  String get tmRoleManagerDesc =>
+      'Sells, manages products and stock, sees reports. Cannot manage the team or billing.';
+
+  @override
+  String get tmRoleCashierDesc =>
+      'Sells and processes returns. Sees only their own shift.';
+
+  @override
+  String get tmNew => 'New team member';
+
+  @override
+  String get tmFullName => 'Full name';
+
+  @override
+  String get tmPhone => 'Phone';
+
+  @override
+  String get tmSignFoot =>
+      'They sign in with a code sent to this phone. There is no password or PIN to set.';
+
+  @override
+  String tmDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String tmDeactivateBody(String name) {
+    return '$name will be signed out and can no longer sign in. Their sales stay in history.';
+  }
+
+  @override
+  String get tmDeactivateConfirm => 'Deactivate';
+
+  @override
+  String get tmToday => 'Today';
+
+  @override
+  String get tmYesterday => 'Yesterday';
+
+  @override
+  String tmDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tmErrorTitle => 'Could not load the team';
+
+  @override
+  String get tmSaved => 'Team member saved';
+
+  @override
+  String get tmUpdated => 'Team member updated';
+
+  @override
+  String get prnTestReceipt => 'Print a test receipt';
+
+  @override
+  String get prnForget => 'Forget printer';
+
+  @override
+  String get prnOther => 'Other printers';
+
+  @override
+  String get prnSearchNearby => 'Search nearby';
+
+  @override
+  String get prnSearching => 'Searching nearby…';
+
+  @override
+  String get prnAddByIp => 'Add by IP address';
+
+  @override
+  String get prnIpFoot =>
+      'For network printers that listen on port 9100, like the SAM4s GIANT-100.';
+
+  @override
+  String get prnNearFoot =>
+      'Printers paired in your phone settings or found over Bluetooth appear here.';
+
+  @override
+  String get prnNetworkTitle => 'Network printer';
+
+  @override
+  String get prnName => 'Name';
+
+  @override
+  String get prnNoPrinterTitle => 'No printer yet';
+
+  @override
+  String get prnNoPrinterBody =>
+      'Search for a Bluetooth printer or add a network printer by its IP address.';
+
+  @override
+  String get prnBtOffTitle => 'Bluetooth is off for Amana';
+
+  @override
+  String get prnBtOffBody =>
+      'Allow Bluetooth in Settings to find printers near you.';
+
+  @override
+  String get prnOpenSettings => 'Open Settings';
 }

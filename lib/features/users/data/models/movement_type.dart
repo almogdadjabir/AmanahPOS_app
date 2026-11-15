@@ -15,8 +15,8 @@ enum MovementType {
     MovementType.out => 'out',
     MovementType.opening => 'opening',
     MovementType.return_ => 'return',
-    MovementType.adjustment  => 'adjustment',
-    MovementType.transferIn  => 'transfer_in',
+    MovementType.adjustment => 'adjustment',
+    MovementType.transferIn => 'transfer_in',
     MovementType.transferOut => 'transfer_out',
     MovementType.sale => 'sale',
   };
@@ -26,8 +26,8 @@ enum MovementType {
     MovementType.out => 'Stock Out',
     MovementType.opening => 'Opening Stock',
     MovementType.return_ => 'Customer Return',
-    MovementType.adjustment  => 'Adjustment',
-    MovementType.transferIn  => 'Transfer In',
+    MovementType.adjustment => 'Adjustment',
+    MovementType.transferIn => 'Transfer In',
     MovementType.transferOut => 'Transfer Out',
     MovementType.sale => 'Sale',
   };

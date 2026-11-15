@@ -4,31 +4,23 @@ import 'package:fpdart/fpdart.dart';
 abstract class UsersRepository {
   Future<Either<String?, UserResponseDto>> getUsers();
 
-  // Returns the created UserData so the caller has the new user's ID.
+  /// Returns the created user. [shopId] is sent in the create body.
   Future<Either<String?, UserData>> addUser({
     required String phone,
     required String fullName,
     required String role,
-    required String pin,
+    String? shopId,
   });
 
-  Future<Either<String?, bool>> editUser({
+  /// PATCH: only the non-null fields are sent.
+  Future<Either<String?, bool>> updateUser({
     required String userId,
-    required String fullName,
-    required String role,
+    String? fullName,
+    String? role,
+    bool? isActive,
+    String? shopId,
   });
 
-  Future<Either<String?, bool>> setCashierPin({
-    required String userId,
-    required String pin,
-  });
-
-  Future<Either<String?, bool>> disableCashierPin(String userId);
-
+  /// DELETE = deactivate.
   Future<Either<String?, bool>> deactivateUser(String userId);
-
-  Future<Either<String?, bool>> assignShop({
-    required String  userId,
-    required String? shopId,
-  });
 }

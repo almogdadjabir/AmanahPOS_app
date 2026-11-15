@@ -1,28 +1,28 @@
 class CustomerRequestDto {
   final String name;
-  final String phone;
+  final String? phone;
   final String? email;
   final String? address;
   final String? notes;
-  final int? loyaltyPoints;
+  final bool? isActive;
 
   const CustomerRequestDto({
     required this.name,
-    required this.phone,
+    this.phone,
     this.email,
     this.address,
     this.notes,
-    this.loyaltyPoints,
+    this.isActive,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'phone': phone,
+      if (phone != null) 'phone': phone,
       if (email != null) 'email': email,
       if (address != null) 'address': address,
       if (notes != null) 'notes': notes,
-      if (loyaltyPoints != null) 'loyalty_points': loyaltyPoints,
+      if (isActive != null) 'is_active': isActive,
     };
   }
 }

@@ -6,36 +6,34 @@ class UsersUseCase {
   final UsersRepository repository;
   UsersUseCase({required this.repository});
 
-  Future<Either<String?, UserResponseDto>> getUsers() =>
-      repository.getUsers();
+  Future<Either<String?, UserResponseDto>> getUsers() => repository.getUsers();
 
   Future<Either<String?, UserData>> addUser({
     required String phone,
     required String fullName,
     required String role,
-    required String pin,
+    String? shopId,
   }) => repository.addUser(
-      phone: phone, fullName: fullName, role: role, pin: pin);
+    phone: phone,
+    fullName: fullName,
+    role: role,
+    shopId: shopId,
+  );
 
-  Future<Either<String?, bool>> setCashierPin({
+  Future<Either<String?, bool>> updateUser({
     required String userId,
-    required String pin,
-  }) => repository.setCashierPin(userId: userId, pin: pin);
-
-  Future<Either<String?, bool>> disableCashierPin(String userId) =>
-      repository.disableCashierPin(userId);
-
-  Future<Either<String?, bool>> editUser({
-    required String userId,
-    required String fullName,
-    required String role,
-  }) => repository.editUser(userId: userId, fullName: fullName, role: role);
+    String? fullName,
+    String? role,
+    bool? isActive,
+    String? shopId,
+  }) => repository.updateUser(
+    userId: userId,
+    fullName: fullName,
+    role: role,
+    isActive: isActive,
+    shopId: shopId,
+  );
 
   Future<Either<String?, bool>> deactivateUser(String userId) =>
       repository.deactivateUser(userId);
-
-  Future<Either<String?, bool>> assignShop({
-    required String  userId,
-    required String? shopId,
-  }) => repository.assignShop(userId: userId, shopId: shopId);
 }

@@ -1,815 +1,309 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
-import 'package:amana_pos/features/users/presentation/widgets/cashier_pin_sheet.dart';
-import 'package:amana_pos/features/users/presentation/widgets/deactivate_user_sheet.dart';
-import 'package:amana_pos/features/users/presentation/widgets/edit_user_sheet.dart';
-import 'package:amana_pos/utilities/global_snackbar.dart';
+import 'package:amana_pos/features/users/presentation/widgets/user_actions.dart';
+import 'package:amana_pos/features/users/presentation/widgets/user_format.dart';
+import 'package:amana_pos/features/users/presentation/widgets/user_pickers.dart';
+import 'package:amana_pos/features/users/presentation/widgets/user_row.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
-import 'package:amana_pos/utilities/extension.dart';
-import 'package:amana_pos/widgets/directional_icon.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'dart:ui' as ui;
 import 'package:amana_pos/theme/phosphor_icons.dart';
+import 'package:amana_pos/widgets/app_form_group.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/widgets/pressable.dart';
+import 'package:flutter/cupertino.dart' show CupertinoSwitch;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class UserDetailScreen extends StatelessWidget {
-  const UserDetailScreen({
-    super.key,
-    required this.user,
-  });
-
   final UserData user;
+
+  const UserDetailScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<UserBloc, UserState, UserData?>(
-      selector: (state) {
-        final userId = user.id?.trim();
-        if (userId == null || userId.isEmpty) return null;
+    final colors = context.appColors;
+    final tr = context.tr;
 
-        for (final item in state.userList) {
-          if (item.id == userId) return item;
-        }
+    // Live from the bloc, falling back to the user the screen was opened with.
+    final live =
+        context.select<UserBloc, UserData?>((bloc) {
+          for (final u in bloc.state.userList) {
+            if (u.id == user.id) return u;
+          }
+          return null;
+        }) ??
+        user;
 
-        return null;
-      },
-      builder: (context, data) {
-        final currentUser = data ?? user;
-
-        return Scaffold(
-          backgroundColor: context.appColors.background,
-          body: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _UserAppBar(user: currentUser),
-              SliverPadding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s4,
-                  AppDims.s6,
+    return Scaffold(
+      backgroundColor: colors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _NavBar(backLabel: tr.tmTitle),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-                sliver: SliverList.list(
+                padding: EdgeInsets.fromLTRB(
+                  AppDims.s4,
+                  6,
+                  AppDims.s4,
+                  MediaQuery.viewPaddingOf(context).bottom + 24,
+                ),
+                child: _Body(user: live),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Body extends StatelessWidget {
+  final UserData user;
+  const _Body({required this.user});
+
+  Future<void> _pickRole(BuildContext context) async {
+    final id = user.id;
+    if (id == null) return;
+    final current = user.isManager ? 'manager' : 'cashier';
+    final picked = await showRolePicker(context, current: current);
+    if (picked == null || picked == current || !context.mounted) return;
+    await runUserSubmit(
+      context,
+      OnUpdateUser(userId: id, role: picked),
+      successMessage: context.tr.tmUpdated,
+    );
+  }
+
+  Future<void> _pickBranch(BuildContext context) async {
+    final id = user.id;
+    final shops = activeShops(context);
+    if (id == null || shops.isEmpty) return;
+    final current = user.defaultShopId;
+    final picked = await showBranchPicker(
+      context,
+      shops: shops,
+      current: current,
+    );
+    if (picked == null || picked == current || !context.mounted) return;
+    await runUserSubmit(
+      context,
+      OnUpdateUser(userId: id, shopId: picked),
+      successMessage: context.tr.tmUpdated,
+    );
+  }
+
+  Future<void> _toggleActive(BuildContext context, bool on) async {
+    if (on) {
+      await reactivateUser(context, user);
+    } else {
+      await confirmDeactivateUser(context, user);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+    final multiShop = hasMultipleShops(context);
+    final shops = activeShops(context);
+    final last = user.lastLogin;
+    final joined = user.joinedAt;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Column(
+          children: [
+            UserAvatar(user: user, size: 84),
+            const SizedBox(height: 14),
+            Text(
+              user.displayName,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 26,
+                height: 31 / 26,
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              formatUserPhone(user.phone),
+              textDirection: TextDirection.ltr,
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.3,
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        AppFormGroup(
+          children: [
+            _KvRow(
+              label: tr.tmRole,
+              value: userRoleLabel(context, user.role),
+              onTap: () => _pickRole(context),
+            ),
+            if (multiShop)
+              _KvRow(
+                label: tr.tmBranch,
+                value: shopName(shops, user.defaultShopId) ?? '-',
+                onTap: () => _pickBranch(context),
+              ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        AppFormGroup(
+          children: [
+            _KvRow(
+              label: tr.tmLastSignIn,
+              value: last != null
+                  ? userLastSignInLong(context, last)
+                  : tr.tmNever,
+            ),
+            if (joined != null)
+              _KvRow(label: tr.tmJoined, value: userJoined(context, joined)),
+          ],
+        ),
+        const SizedBox(height: 22),
+        AppFormGroup(
+          footer: tr.tmCanSignInFoot,
+          children: [
+            _KvRow(
+              label: tr.tmCanSignIn,
+              trailing: CupertinoSwitch(
+                value: user.isActiveUser,
+                activeTrackColor: colors.primary,
+                onChanged: (v) {
+                  HapticFeedback.selectionClick();
+                  _toggleActive(context, v);
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Label on the start side, value (or [trailing]) on the end side.
+class _KvRow extends StatelessWidget {
+  final String label;
+  final String? value;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _KvRow({required this.label, this.value, this.trailing, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    final row = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 50),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 17,
+                height: 1.3,
+                color: colors.textPrimary,
+              ),
+            ),
+            const SizedBox(width: AppDims.s3),
+            Expanded(
+              child: trailing != null
+                  ? Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: trailing,
+                    )
+                  : Text(
+                      value ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 1.3,
+                        color: colors.textSecondary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: AppDims.s2),
+              DirectionalIcon(
+                icon: PhosphorIconsRegular.caretRight,
+                size: 18,
+                color: colors.borderStrong,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
+    if (onTap == null) return row;
+    return Pressable(onTap: onTap, scale: 1, child: row);
+  }
+}
+
+class _NavBar extends StatelessWidget {
+  final String backLabel;
+  const _NavBar({required this.backLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return SizedBox(
+      height: 44,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            Pressable(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _SectionTitle(
-                      title: context.tr.userInfoTitle,
-                      subtitle: context.tr.userInfoSubtitle,
+                    const SizedBox(width: 4),
+                    DirectionalIcon(
+                      icon: PhosphorIconsRegular.caretLeft,
+                      size: 24,
+                      color: colors.primary,
                     ),
-                    const SizedBox(height: AppDims.s2),
-                    _InfoSection(user: currentUser),
-                    const SizedBox(height: AppDims.s5),
-                    _SectionTitle(
-                      title: context.tr.userActivityTitle,
-                      subtitle: context.tr.userActivitySubtitle,
+                    Text(
+                      backLabel,
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 1.3,
+                        color: colors.primary,
+                      ),
                     ),
-                    const SizedBox(height: AppDims.s2),
-                    _ActivitySection(user: currentUser),
-                    const SizedBox(height: AppDims.s5),
-                    const _SectionTitle(
-                      title: 'Security',
-                      subtitle: 'Manage this cashier\'s unlock PIN',
-                    ),
-                    const SizedBox(height: AppDims.s2),
-                    _SecuritySection(user: currentUser),
+                    const SizedBox(width: 8),
                   ],
                 ),
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _UserAppBar extends StatelessWidget {
-  const _UserAppBar({
-    required this.user,
-  });
-
-  final UserData user;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final isActive = user.isActive ?? false;
-    final roleColor = _roleColor(context, user.role);
-
-    final fullName = _safeText(
-      user.fullName,
-      context.tr.cashier,
-    );
-
-    return SliverAppBar(
-      expandedHeight: 235,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: colors.background,
-      surfaceTintColor: Colors.transparent,
-      automaticallyImplyLeading: false,
-      titleSpacing: 0,
-      title: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: AppDims.s4,
-        ),
-        child: Row(
-          children: [
-            _AppBarIconButton(
-              icon: PhosphorIconsRegular.caretLeft,
-              semanticLabel: context.tr.back,
-              flipInRtl: true,
-              onTap: () => Navigator.of(context).pop(),
-            ),
-            const Spacer(),
-            _AppBarIconButton(
-              icon: PhosphorIconsRegular.pencilSimpleLine,
-              semanticLabel: context.tr.edit,
-              onTap: () => showEditUserSheet(context, user: user),
-            ),
-            if (isActive) ...[
-              const SizedBox(width: AppDims.s2),
-              _AppBarIconButton(
-                icon: PhosphorIconsRegular.prohibit,
-                semanticLabel: context.tr.deactivateUser,
-                color: const Color(0xFFDC2626),
-                backgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.08),
-                borderColor: const Color(0xFFDC2626).withValues(alpha: 0.18),
-                onTap: () => showDeactivateUserSheet(context, user),
-              ),
-            ],
-          ],
-        ),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: ColoredBox(
-          color: colors.background,
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                AppDims.s4,
-                0,
-                AppDims.s4,
-                AppDims.s4,
-              ),
-              child: Align(
-                alignment: AlignmentDirectional.bottomCenter,
-                child: RepaintBoundary(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _Avatar(
-                        initials: user.fullName?.initials ?? '?',
-                        color: roleColor,
-                      ),
-                      const SizedBox(height: AppDims.s3),
-                      Text(
-                        fullName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bs200(context).copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: colors.textPrimary,
-                          height: 1.05,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: AppDims.s2),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: AppDims.s2,
-                        runSpacing: AppDims.s1,
-                        children: [
-                          _RoleBadge(role: user.role),
-                          _StatusBadge(active: isActive),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({
-    required this.initials,
-    required this.color,
-  });
-
-  final String initials;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: color.withValues(alpha: 0.24),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: 86,
-        height: 86,
-        child: Center(
-          child: Text(
-            initials,
-            style: AppTextStyles.bs100(context).copyWith(
-              fontWeight: FontWeight.w900,
-              color: color,
-              height: 1,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoSection extends StatelessWidget {
-  const _InfoSection({
-    required this.user,
-  });
-
-  final UserData user;
-
-  @override
-  Widget build(BuildContext context) {
-    final verified = user.isVerified ?? false;
-    final active = user.isActive ?? false;
-
-    return _Card(
-      children: [
-        _InfoRow(
-          icon: PhosphorIconsRegular.phone,
-          label: context.tr.userDetailPhone,
-          value: _safeText(user.phone, '—'),
-          forceValueLtr: true,
-        ),
-        _InfoRow(
-          icon: PhosphorIconsRegular.identificationCard,
-          label: context.tr.userDetailRole,
-          value: _localizedRole(context, user.role),
-        ),
-        _InfoRow(
-          icon: verified
-              ? PhosphorIconsRegular.sealCheck
-              : PhosphorIconsRegular.xCircle,
-          label: context.tr.userDetailVerified,
-          value: verified ? context.tr.yes : context.tr.no,
-          valueColor: verified ? const Color(0xFF16A34A) : null,
-          iconColor: verified ? const Color(0xFF16A34A) : null,
-        ),
-        _InfoRow(
-          icon: PhosphorIconsRegular.record,
-          iconColor: active ? const Color(0xFF16A34A) : null,
-          label: context.tr.userDetailStatus,
-          value: active ? context.tr.active : context.tr.inactive,
-          valueColor: active ? const Color(0xFF16A34A) : null,
-          isLast: true,
-        ),
-      ],
-    );
-  }
-}
-
-class _ActivitySection extends StatelessWidget {
-  const _ActivitySection({
-    required this.user,
-  });
-
-  final UserData user;
-
-  @override
-  Widget build(BuildContext context) {
-    final lastLogin = _formatDate(context, user.lastLoginAt);
-    final joined = _formatDate(context, user.createdAt);
-
-    return _Card(
-      children: [
-        _InfoRow(
-          icon: PhosphorIconsRegular.signIn,
-          label: context.tr.userDetailLastLogin,
-          value: lastLogin ?? context.tr.never,
-          valueColor: lastLogin == null ? context.appColors.textHint : null,
-        ),
-        _InfoRow(
-          icon: PhosphorIconsRegular.calendarBlank,
-          label: context.tr.userDetailJoined,
-          value: joined ?? '—',
-          isLast: true,
-        ),
-      ],
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: AppTextStyles.bs100(context).copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w900,
-            height: 1.05,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: AppTextStyles.sm200(context).copyWith(
-            color: colors.textSecondary,
-            fontWeight: FontWeight.w700,
-            height: 1.35,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SecuritySection extends StatelessWidget {
-  const _SecuritySection({required this.user});
-
-  final UserData user;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final userId = user.id?.trim() ?? '';
-
-    return _Card(
-      children: [
-        _ActionRow(
-          icon: PhosphorIconsRegular.lockKey,
-          label: 'Change PIN',
-          onTap: userId.isEmpty
-              ? null
-              : () => showCashierPinSheet(context, userId: userId),
-        ),
-        _ActionRow(
-          icon: PhosphorIconsRegular.prohibit,
-          label: 'Disable PIN',
-          iconColor: colors.danger,
-          isLast: true,
-          onTap: userId.isEmpty ? null : () => _confirmDisable(context, userId),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _confirmDisable(BuildContext context, String userId) async {
-    final userBloc = context.read<UserBloc>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Disable PIN?'),
-        content: const Text(
-            'This cashier will no longer have a PIN until you set a new one.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Disable')),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    userBloc.add(OnDisableCashierPin(userId));
-    GlobalSnackBar.show(message: 'PIN disabled.', isInfo: true);
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.iconColor,
-    this.isLast = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final Color? iconColor;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppDims.rLg),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.symmetric(
-              horizontal: AppDims.s4,
-              vertical: AppDims.s3,
-            ),
-            child: Row(
-              children: [
-                _InfoIcon(icon: icon, iconColor: iconColor),
-                const SizedBox(width: AppDims.s3),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: AppTextStyles.bs100(context).copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                ),
-                Icon(PhosphorIconsRegular.caretRight,
-                    size: 18, color: colors.textHint),
-              ],
-            ),
-          ),
-        ),
-        if (!isLast)
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: AppDims.s4 + 34 + AppDims.s3,
-            endIndent: AppDims.s4,
-            color: colors.border,
-          ),
-      ],
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({
-    required this.children,
-  });
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return RepaintBoundary(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(AppDims.rLg),
-          border: Border.all(color: colors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.025),
-              blurRadius: 14,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          children: children,
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.iconColor,
-    this.valueColor,
-    this.forceValueLtr = false,
-    this.isLast = false,
-  });
-
-  final IconData icon;
-  final Color? iconColor;
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final bool forceValueLtr;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    final valueWidget = Text(
-      value,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.end,
-      style: AppTextStyles.bs100(context).copyWith(
-        fontWeight: FontWeight.w900,
-        color: valueColor ?? colors.textPrimary,
-      ),
-    );
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: AppDims.s4,
-            vertical: AppDims.s3,
-          ),
-          child: Row(
-            children: [
-              _InfoIcon(
-                icon: icon,
-                iconColor: iconColor,
-              ),
-              const SizedBox(width: AppDims.s3),
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppTextStyles.bs100(context).copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.textSecondary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppDims.s3),
-              Flexible(
-                child: forceValueLtr
-                    ? Directionality(
-                  textDirection: ui.TextDirection.ltr,
-                  child: valueWidget,
-                )
-                    : valueWidget,
-              ),
-            ],
-          ),
-        ),
-        if (!isLast)
-          Divider(
-            height: 1,
-            thickness: 1,
-            indent: AppDims.s4 + 34 + AppDims.s3,
-            endIndent: AppDims.s4,
-            color: colors.border,
-          ),
-      ],
-    );
-  }
-}
-
-class _InfoIcon extends StatelessWidget {
-  const _InfoIcon({
-    required this.icon,
-    this.iconColor,
-  });
-
-  final IconData icon;
-  final Color? iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final color = iconColor ?? colors.primary;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(AppDims.rSm),
-      ),
-      child: SizedBox(
-        width: 34,
-        height: 34,
-        child: Icon(
-          icon,
-          size: 17,
-          color: iconColor ?? colors.textHint,
-        ),
-      ),
-    );
-  }
-}
-
-class _RoleBadge extends StatelessWidget {
-  const _RoleBadge({
-    this.role,
-  });
-
-  final String? role;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalizedRole = role?.toLowerCase().trim();
-
-    if (normalizedRole == null || normalizedRole.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final color = _roleColor(context, normalizedRole);
-
-    return _Badge(
-      label: _localizedRole(context, normalizedRole),
-      color: color,
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({
-    required this.active,
-  });
-
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final color = active ? const Color(0xFF16A34A) : colors.textHint;
-
-    return _Badge(
-      label: active ? context.tr.active : context.tr.inactive,
-      color: color,
-      showDot: true,
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    required this.color,
-    this.showDot = false,
-  });
-
-  final String label;
-  final Color color;
-  final bool showDot;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withValues(alpha: 0.20),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: AppDims.s2,
-          vertical: 5,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (showDot) ...[
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-                child: const SizedBox(width: 6, height: 6),
-              ),
-              const SizedBox(width: 5),
-            ],
-            Text(
-              label,
-              style: AppTextStyles.sm200(context).copyWith(
-                fontWeight: FontWeight.w900,
-                color: color,
-                height: 1,
-              ),
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class _AppBarIconButton extends StatelessWidget {
-  const _AppBarIconButton({
-    required this.icon,
-    required this.onTap,
-    required this.semanticLabel,
-    this.color,
-    this.backgroundColor,
-    this.borderColor,
-    this.flipInRtl = false,
-  });
-
-  final IconData icon;
-  final Color? color;
-  final Color? backgroundColor;
-  final Color? borderColor;
-  final bool flipInRtl;
-  final String semanticLabel;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Semantics(
-      button: true,
-      label: semanticLabel,
-      child: Material(
-        color: backgroundColor ?? colors.surface,
-        borderRadius: BorderRadius.circular(AppDims.rMd),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppDims.rMd),
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppDims.rMd),
-              border: Border.all(
-                color: borderColor ?? colors.border,
-              ),
-            ),
-            child: DirectionalIcon(
-              icon: icon,
-              size: 20,
-              color: color ?? colors.textPrimary,
-              flipInRtl: flipInRtl,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-String _safeText(String? value, String fallback) {
-  final text = value?.trim();
-  if (text == null || text.isEmpty) return fallback;
-  return text;
-}
-
-String _localizedRole(BuildContext context, String? role) {
-  return switch (role?.toLowerCase().trim()) {
-    'admin' => context.tr.admin,
-    'manager' => context.tr.manager,
-    'cashier' => context.tr.cashier,
-    _ => '—',
-  };
-}
-
-String? _formatDate(BuildContext context, String? iso) {
-  final value = iso?.trim();
-  if (value == null || value.isEmpty) return null;
-
-  try {
-    final date = DateTime.parse(value).toLocal();
-    final locale = Localizations.localeOf(context).toLanguageTag();
-
-    return DateFormat.yMMMd(locale).add_Hm().format(date);
-  } catch (_) {
-    return value;
-  }
-}
-
-Color _roleColor(BuildContext context, String? role) {
-  return switch (role?.toLowerCase().trim()) {
-    'admin' => const Color(0xFF8B5CF6),
-    'manager' => const Color(0xFF0EA5E9),
-    'cashier' => const Color(0xFF0D9488),
-    _ => context.appColors.textHint,
-  };
 }

@@ -115,11 +115,17 @@ class AppFormRow extends StatelessWidget {
             if (label != null) ...[
               ConstrainedBox(
                 constraints: BoxConstraints(minWidth: labelWidth),
-                child: Text(
-                  label!,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: TextStyle(fontSize: 17, color: colors.textPrimary),
+                child: Padding(
+                  // Top-aligned rows (multi-line fields) pad their field by 14.
+                  padding: EdgeInsets.only(
+                    top: align == CrossAxisAlignment.start ? 14 : 0,
+                  ),
+                  child: Text(
+                    label!,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(fontSize: 17, color: colors.textPrimary),
+                  ),
                 ),
               ),
               const SizedBox(width: AppDims.s2),

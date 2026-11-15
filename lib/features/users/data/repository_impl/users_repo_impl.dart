@@ -11,7 +11,7 @@ class UsersRepoImpl extends UsersRepository {
   Future<Either<String?, UserResponseDto>> getUsers() {
     return requestHandler.handleGetRequest(
       'api/v1/users/',
-          (data) => UserResponseDto.fromJson(data as Map<String, dynamic>),
+      (data) => UserResponseDto.fromJson(data as Map<String, dynamic>),
     );
   }
 
@@ -20,47 +20,37 @@ class UsersRepoImpl extends UsersRepository {
     required String phone,
     required String fullName,
     required String role,
-    required String pin,
+    String? shopId,
   }) {
-    // POST returns the created user object — parse it as UserData
     return requestHandler.handlePostRequest(
       'api/v1/users/',
-          (data) => UserData.fromJson(data as Map<String, dynamic>),
-      data: {'phone': phone, 'full_name': fullName, 'role': role, 'pin': pin},
+      (data) => UserData.fromJson(data as Map<String, dynamic>),
+      data: {
+        'phone': phone,
+        'full_name': fullName,
+        'role': role,
+        if (shopId != null && shopId.isNotEmpty) 'default_shop_id': shopId,
+      },
     );
   }
 
   @override
-  Future<Either<String?, bool>> setCashierPin({
+  Future<Either<String?, bool>> updateUser({
     required String userId,
-    required String pin,
+    String? fullName,
+    String? role,
+    bool? isActive,
+    String? shopId,
   }) {
     return requestHandler.handlePatchRequest(
       'api/v1/users/$userId/',
-          (_) => true,
-      data: {'pin': pin},
-    );
-  }
-
-  @override
-  Future<Either<String?, bool>> disableCashierPin(String userId) {
-    return requestHandler.handlePatchRequest(
-      'api/v1/users/$userId/',
-          (_) => true,
-      data: {'pin': null},
-    );
-  }
-
-  @override
-  Future<Either<String?, bool>> editUser({
-    required String userId,
-    required String fullName,
-    required String role,
-  }) {
-    return requestHandler.handlePatchRequest(
-      'api/v1/users/$userId/',
-          (_) => true,
-      data: {'full_name': fullName, 'role': role},
+      (_) => true,
+      data: {
+        'full_name': ?fullName,
+        'role': ?role,
+        'is_active': ?isActive,
+        'default_shop_id': ?shopId,
+      },
     );
   }
 
@@ -68,19 +58,7 @@ class UsersRepoImpl extends UsersRepository {
   Future<Either<String?, bool>> deactivateUser(String userId) {
     return requestHandler.handleDeleteRequest(
       'api/v1/users/$userId/',
-          (_) => true,
-    );
-  }
-
-  @override
-  Future<Either<String?, bool>> assignShop({
-    required String  userId,
-    required String? shopId,
-  }) {
-    return requestHandler.handlePatchRequest(
-      'api/v1/users/$userId/',
-          (_) => true,
-      data: {'default_shop_id': shopId},
+      (_) => true,
     );
   }
 }
