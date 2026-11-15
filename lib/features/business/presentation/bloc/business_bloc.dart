@@ -199,23 +199,29 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           state.copyWith(
             submitStatus: BusinessSubmitStatus.success,
             businessList: state.businessList?.map((b) {
-              return b.id == event.businessId
-                  ? BusinessData(
-                      id: b.id,
-                      name: b.name,
-                      slug: b.slug,
-                      owner: b.owner,
-                      logo: b.logo,
-                      address: b.address,
-                      phone: b.phone,
-                      email: b.email,
-                      isActive: false,
-                      shopCount: b.shopCount,
-                      shops: b.shops,
-                      createdAt: b.createdAt,
-                      updatedAt: b.updatedAt,
-                    )
-                  : b;
+              if (b.id != event.businessId) return b;
+              return BusinessData(
+                id: b.id,
+                name: b.name,
+                address: b.address,
+                phone: b.phone,
+                email: b.email,
+                slug: b.slug,
+                businessType: b.businessType,
+                owner: b.owner,
+                logo: b.logo,
+                taxEnabled: b.taxEnabled,
+                taxName: b.taxName,
+                taxRate: b.taxRate,
+                taxInclusive: b.taxInclusive,
+                activeSubscription: b.activeSubscription,
+                isActive: false,
+                shopCount: b.shopCount,
+                counts: b.counts,
+                shops: b.shops,
+                createdAt: b.createdAt,
+                updatedAt: b.updatedAt,
+              );
             }).toList(),
           ),
         ),
@@ -249,6 +255,10 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           address: event.address,
           phone: event.phone,
           email: event.email,
+          taxEnabled: event.taxEnabled,
+          taxName: event.taxName,
+          taxRate: event.taxRate,
+          taxInclusive: event.taxInclusive,
         ),
       );
 
@@ -263,23 +273,29 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           state.copyWith(
             submitStatus: BusinessSubmitStatus.success,
             businessList: state.businessList?.map((b) {
-              return b.id == event.businessId
-                  ? BusinessData(
-                      id: b.id,
-                      name: event.name,
-                      address: event.address,
-                      phone: event.phone,
-                      email: event.email,
-                      slug: b.slug,
-                      owner: b.owner,
-                      logo: b.logo,
-                      isActive: b.isActive,
-                      shopCount: b.shopCount,
-                      shops: b.shops,
-                      createdAt: b.createdAt,
-                      updatedAt: b.updatedAt,
-                    )
-                  : b;
+              if (b.id != event.businessId) return b;
+              return BusinessData(
+                id: b.id,
+                name: event.name,
+                address: event.address,
+                phone: event.phone,
+                email: event.email,
+                slug: b.slug,
+                businessType: b.businessType,
+                owner: b.owner,
+                logo: b.logo,
+                taxEnabled: event.taxEnabled ?? b.taxEnabled,
+                taxName: event.taxName ?? b.taxName,
+                taxRate: event.taxRate?.toString() ?? b.taxRate,
+                taxInclusive: event.taxInclusive ?? b.taxInclusive,
+                activeSubscription: b.activeSubscription,
+                isActive: b.isActive,
+                shopCount: b.shopCount,
+                counts: b.counts,
+                shops: b.shops,
+                createdAt: b.createdAt,
+                updatedAt: b.updatedAt,
+              );
             }).toList(),
           ),
         ),
@@ -377,6 +393,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           name: event.name,
           address: event.address,
           phone: event.phone,
+          isActive: event.isActive,
         ),
       );
 
@@ -396,11 +413,18 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
                 id: b.id,
                 name: b.name,
                 slug: b.slug,
+                businessType: b.businessType,
                 owner: b.owner,
                 logo: b.logo,
                 address: b.address,
                 phone: b.phone,
                 email: b.email,
+                taxEnabled: b.taxEnabled,
+                taxName: b.taxName,
+                taxRate: b.taxRate,
+                taxInclusive: b.taxInclusive,
+                activeSubscription: b.activeSubscription,
+                counts: b.counts,
                 isActive: b.isActive,
                 shopCount: b.shopCount,
                 createdAt: b.createdAt,
@@ -413,7 +437,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
                     name: event.name,
                     address: event.address,
                     phone: event.phone,
-                    isActive: s.isActive,
+                    isActive: event.isActive ?? s.isActive,
                     createdAt: s.createdAt,
                     updatedAt: s.updatedAt,
                   );

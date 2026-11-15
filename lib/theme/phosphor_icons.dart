@@ -7,6 +7,10 @@ abstract final class PhosphorIconsRegular {
   PhosphorIconsRegular._();
 
   static const IconData archive = IconData(0xe00c, fontFamily: 'Phosphor');
+  static const IconData bank = IconData(0xe0b4, fontFamily: 'Phosphor');
+  static const IconData headset = IconData(0xe584, fontFamily: 'Phosphor');
+  static const IconData key = IconData(0xe2d6, fontFamily: 'Phosphor');
+  static const IconData scanSmiley = IconData(0xebb4, fontFamily: 'Phosphor');
   static const IconData arrowClockwise = IconData(
     0xe036,
     fontFamily: 'Phosphor',
@@ -27,7 +31,10 @@ abstract final class PhosphorIconsRegular {
   static const IconData bell = IconData(0xe0ce, fontFamily: 'Phosphor');
   static const IconData bellRinging = IconData(0xe5e8, fontFamily: 'Phosphor');
   static const IconData bluetooth = IconData(0xe0da, fontFamily: 'Phosphor');
-  static const IconData bluetoothSlash = IconData(0xe0de, fontFamily: 'Phosphor');
+  static const IconData bluetoothSlash = IconData(
+    0xe0de,
+    fontFamily: 'Phosphor',
+  );
   static const IconData broom = IconData(0xec54, fontFamily: 'Phosphor');
   static const IconData buildings = IconData(0xe102, fontFamily: 'Phosphor');
   static const IconData calendarBlank = IconData(

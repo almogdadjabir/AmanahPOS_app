@@ -1,21 +1,22 @@
 import 'dart:async';
 
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/features/category/presentation/widgets/category_states.dart';
 import 'package:amana_pos/features/notification/data/models/notification_item.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
-import 'package:amana_pos/features/notification/presentation/widgets/notification_empty_view.dart';
-import 'package:amana_pos/features/notification/presentation/widgets/notification_error_view.dart';
+import 'package:amana_pos/features/notification/presentation/notification_details_sheet.dart';
 import 'package:amana_pos/features/notification/presentation/widgets/notification_skeleton.dart';
 import 'package:amana_pos/features/notification/presentation/widgets/notification_tile.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
+import 'package:amana_pos/widgets/app_large_title.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/widgets/pressable.dart';
+import 'package:flutter/cupertino.dart' show CupertinoSliverRefreshControl;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -48,20 +49,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _onScroll() {
-    if (!_scrollCtrl.hasClients) return;
-    if (_loadMoreLock) return;
+    if (!_scrollCtrl.hasClients || _loadMoreLock) return;
 
     final state = context.read<NotificationBloc>().state;
-
     if (!state.hasMore) return;
     if (state.status == NotificationStatus.loading) return;
     if (state.status == NotificationStatus.loadingMore) return;
     if (state.notifications.isEmpty) return;
 
     final position = _scrollCtrl.position;
-    final shouldLoadMore = position.pixels >= position.maxScrollExtent - 260;
-
-    if (!shouldLoadMore) return;
+    if (position.pixels < position.maxScrollExtent - 260) return;
 
     _loadMoreLock = true;
     context.read<NotificationBloc>().add(const OnLoadMoreNotifications());
@@ -73,327 +70,228 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _refresh() async {
-    context.read<NotificationBloc>().add(
-      const OnNotificationInitial(force: true),
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    final bloc = context.read<NotificationBloc>();
+    bloc.add(const OnNotificationInitial(force: true));
+    try {
+      await bloc.stream
+          .firstWhere(
+            (s) =>
+                s.status == NotificationStatus.success ||
+                s.status == NotificationStatus.failure,
+          )
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // Timed out: let the control settle, current data stays on screen.
+    }
+  }
+
+  void _open(NotificationItem item) {
+    if (!item.isRead) {
+      context.read<NotificationBloc>().add(OnMarkNotificationRead(item.id));
+    }
+    showNotificationDetailsSheet(context, item: item);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom + 24;
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: _buildAppBar(context, colors),
-      body: BlocBuilder<NotificationBloc, NotificationState>(
-        buildWhen: (prev, curr) =>
-        prev.status != curr.status ||
-            prev.notifications != curr.notifications ||
-            prev.hasMore != curr.hasMore,
-        builder: (context, state) {
-          if (state.status == NotificationStatus.loading ||
-              state.status == NotificationStatus.initial) {
-            return const NotificationSkeleton();
-          }
-
-          if (state.status == NotificationStatus.failure &&
-              state.notifications.isEmpty) {
-            return NotificationErrorView(
-              message: state.error ?? context.tr.somethingWentWrong,
-              onRetry: () => context.read<NotificationBloc>().add(
-                const OnNotificationInitial(force: true),
-              ),
-            );
-          }
-
-          if (state.notifications.isEmpty) {
-            return const NotificationEmptyView();
-          }
-
-          return RefreshIndicator(
-            color: colors.primary,
-            onRefresh: _refresh,
-            child: ListView.separated(
-              controller: _scrollCtrl,
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              padding: const EdgeInsets.fromLTRB(
-                AppDims.s4,
-                AppDims.s3,
-                AppDims.s4,
-                120,
-              ),
-              itemCount:
-              state.notifications.length + (state.hasMore ? 1 : 0),
-              separatorBuilder: (_, __) =>
-              const SizedBox(height: AppDims.s2),
-              itemBuilder: (context, index) {
-                // Load-more spinner
-                if (index >= state.notifications.length) {
-                  return Padding(
-                    padding:
-                    const EdgeInsets.symmetric(vertical: AppDims.s5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colors.textHint,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          context.tr.loadingMore,
-                          style: AppTextStyles.bs200(context).copyWith(
-                            color: colors.textHint,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final item = state.notifications[index];
-
-                // Section date header
-                final showHeader = index == 0 ||
-                    !_isSameDay(
-                      state.notifications[index - 1].createdAt,
-                      item.createdAt,
-                    );
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (showHeader) ...[
-                      if (index != 0) const SizedBox(height: AppDims.s2),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 2,
-                          bottom: AppDims.s2,
-                          top: AppDims.s1,
-                        ),
-                        child: Text(
-                          _sectionLabel(item.createdAt),
-                          style: AppTextStyles.bs100(context).copyWith(
-                            color: colors.textHint,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const _NavBar(),
+            Expanded(
+              child: BlocBuilder<NotificationBloc, NotificationState>(
+                buildWhen: (prev, curr) =>
+                    prev.status != curr.status ||
+                    prev.notifications != curr.notifications ||
+                    prev.hasMore != curr.hasMore,
+                builder: (context, state) => CustomScrollView(
+                  controller: _scrollCtrl,
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  slivers: [
+                    CupertinoSliverRefreshControl(onRefresh: _refresh),
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppDims.s4,
+                        0,
+                        AppDims.s4,
+                        bottomInset,
                       ),
-                    ],
-                    _swipeableTile(context, item, index),
-                  ],
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// The notification row. Unread rows get a swipe-to-mark-read gesture
-  /// (swipe right → fires [OnMarkNotificationRead] and springs back; the row
-  /// is not removed, it just becomes "read").
-  Widget _swipeableTile(
-      BuildContext context,
-      NotificationItem item,
-      int index,
-      ) {
-    final colors = context.appColors;
-
-    final tile = NotificationTile(
-      key: ValueKey('tile-${item.id}'),
-      item: item,
-      onTap: () {
-        if (!item.isRead) {
-          context.read<NotificationBloc>().add(
-            OnMarkNotificationRead(item.id),
-          );
-        }
-        showNotificationDetailsSheet(context, item: item);
-      },
-    ).mAnimate().fadeIn(
-      delay: Duration(milliseconds: 24 + (index % 6) * 18),
-      duration: 220.ms,
-    ).slideY(
-      begin: 0.025,
-      end: 0,
-      duration: 220.ms,
-      curve: Curves.easeOutCubic,
-    );
-
-    // Read rows have nothing to mark — render the tile as-is.
-    if (item.isRead) return tile;
-
-    return Dismissible(
-      key: ValueKey('dismiss-${item.id}'),
-      direction: DismissDirection.startToEnd,
-      confirmDismiss: (_) async {
-        context.read<NotificationBloc>().add(
-          OnMarkNotificationRead(item.id),
-        );
-        // Keep the row in place; it simply becomes "read".
-        return false;
-      },
-      background: Container(
-        alignment: AlignmentDirectional.centerStart,
-        padding: const EdgeInsetsDirectional.only(start: 22),
-        decoration: BoxDecoration(
-          color: colors.success.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppDims.rLg),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(PhosphorIconsRegular.checkCircle, size: 18, color: colors.success),
-            const SizedBox(width: 6),
-            Text(
-              'Mark read',
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.success,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-      child: tile,
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(
-      BuildContext context, AppThemeColors colors) {
-    return AppBar(
-      elevation: 0,
-      toolbarHeight: 64,
-      backgroundColor: colors.background,
-      surfaceTintColor: Colors.transparent,
-      automaticallyImplyLeading: false,
-      titleSpacing: 0,
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(0.5),
-        child: Divider(
-          height: 0.5,
-          thickness: 0.5,
-          color: colors.border.withValues(alpha: 0.6),
-        ),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
-        child: Row(
-          children: [
-            // Back button — pill style
-            Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-              child: InkWell(
-                onTap: () => Navigator.of(context).pop(),
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: colors.border.withValues(alpha: 0.6),
-                      width: 0.5,
+                      sliver: SliverToBoxAdapter(child: _content(state)),
                     ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: DirectionalIcon(
-                    icon: PhosphorIconsRegular.caretLeft,
-                    size: 18,
-                    color: colors.textPrimary,
-                  ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: AppDims.s3),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Title + unread chip
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    context.tr.notificationsTitle,
-                    style: AppTextStyles.bs500(context).copyWith(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  BlocBuilder<NotificationBloc, NotificationState>(
-                    buildWhen: (prev, curr) =>
-                    prev.unreadCount != curr.unreadCount,
-                    builder: (context, state) {
-                      if (state.unreadCount == 0) {
-                        return const SizedBox.shrink();
-                      }
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: colors.danger.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: colors.danger.withValues(alpha: 0.20),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Text(
-                          '${state.unreadCount} new',
-                          style: AppTextStyles.bs100(context).copyWith(
-                            color: colors.danger,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+  Widget _content(NotificationState state) {
+    final tr = context.tr;
+    final colors = context.appColors;
+    final title = AppLargeTitle(title: tr.nfTitle);
+
+    final loading =
+        state.status == NotificationStatus.initial ||
+        state.status == NotificationStatus.loading;
+    if (loading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [title, const NotificationSkeleton()],
+      );
+    }
+
+    if (state.status == NotificationStatus.failure &&
+        state.notifications.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          title,
+          CategoryStateCard(
+            icon: PhosphorIconsRegular.wifiSlash,
+            tone: CategoryStateTone.danger,
+            title: tr.nfErrorTitle,
+            body: tr.nfErrorBody,
+            actionLabel: tr.retry,
+            secondaryAction: true,
+            onAction: () => context.read<NotificationBloc>().add(
+              const OnNotificationInitial(force: true),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (state.notifications.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          title,
+          _EmptyCard(title: tr.nfEmptyTitle, body: tr.nfEmptyBody),
+        ],
+      );
+    }
+
+    final now = DateTime.now();
+    bool isToday(DateTime? d) {
+      if (d == null) return false;
+      final l = d.toLocal();
+      return l.year == now.year && l.month == now.month && l.day == now.day;
+    }
+
+    final today = state.notifications.where((n) => isToday(n.createdAt));
+    final earlier = state.notifications.where((n) => !isToday(n.createdAt));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        title,
+        if (today.isNotEmpty) ...[
+          _SectionLabel(tr.nfToday),
+          _Group(items: today.toList(), onOpen: _open),
+        ],
+        if (earlier.isNotEmpty) ...[
+          _SectionLabel(tr.nfEarlier),
+          _Group(items: earlier.toList(), onOpen: _open),
+        ],
+        if (state.hasMore)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppDims.s5),
+            child: Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: colors.textHint,
+                ),
               ),
             ),
+          ),
+      ],
+    );
+  }
+}
 
-            // Mark all read — only when there are unread items
+class _NavBar extends StatelessWidget {
+  const _NavBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+
+    return SizedBox(
+      height: 44,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            Pressable(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 4),
+                    DirectionalIcon(
+                      icon: PhosphorIconsRegular.caretLeft,
+                      size: 24,
+                      color: colors.primary,
+                    ),
+                    Text(
+                      tr.back,
+                      style: TextStyle(fontSize: 17, color: colors.primary),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+              ),
+            ),
+            const Spacer(),
             BlocBuilder<NotificationBloc, NotificationState>(
-              buildWhen: (prev, curr) =>
-              prev.unreadCount != curr.unreadCount ||
-                  prev.notifications != curr.notifications,
+              buildWhen: (p, c) =>
+                  p.notifications != c.notifications ||
+                  p.unreadCount != c.unreadCount,
               builder: (context, state) {
-                final hasUnread = state.unreadCount > 0 ||
-                    state.notifications.any((item) => !item.isRead);
-
-                if (!hasUnread) return const SizedBox.shrink();
-
-                return GestureDetector(
-                  onTap: () => context.read<NotificationBloc>().add(
-                    const OnMarkAllNotificationsRead(),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        PhosphorIconsRegular.checkCircle,
-                        size: 16,
-                        color: colors.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        context.tr.markAllRead,
-                        style: AppTextStyles.bs200(context).copyWith(
-                          color: colors.primary,
-                          fontWeight: FontWeight.w600,
+                final enabled =
+                    state.unreadCount > 0 ||
+                    state.notifications.any((n) => !n.isRead);
+                return Pressable(
+                  onTap: enabled
+                      ? () {
+                          HapticFeedback.selectionClick();
+                          context.read<NotificationBloc>().add(
+                            const OnMarkAllNotificationsRead(),
+                          );
+                        }
+                      : null,
+                  child: SizedBox(
+                    height: 44,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Center(
+                        child: Text(
+                          tr.nfMarkAllRead,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: enabled ? colors.primary : colors.disabled,
+                          ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 );
               },
@@ -403,23 +301,124 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
     );
   }
+}
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel(this.label);
 
-  bool _isSameDay(DateTime? a, DateTime? b) {
-    if (a == null || b == null) return false;
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 22, 20, 7),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge!.copyWith(color: colors.textHint),
+      ),
+    );
   }
+}
 
-  String _sectionLabel(DateTime? date) {
-    if (date == null) return 'Earlier';
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final d = DateTime(date.year, date.month, date.day);
-    final diff = today.difference(d).inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Yesterday';
-    if (diff < 7) return '${diff} days ago';
-    return '${date.day}/${date.month}/${date.year}';
+class _Group extends StatelessWidget {
+  final List<NotificationItem> items;
+  final ValueChanged<NotificationItem> onOpen;
+
+  const _Group({required this.items, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: AppDims.borderLg,
+        border: Border.all(color: colors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: AppDims.borderLg,
+        child: Column(
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  height: 0.5,
+                  thickness: 0.5,
+                  indent: AppDims.s4 + 40 + AppDims.s3,
+                  color: colors.border,
+                ),
+              NotificationRow(
+                key: ValueKey(items[i].id),
+                item: items[i],
+                onTap: () => onOpen(items[i]),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyCard extends StatelessWidget {
+  final String title;
+  final String body;
+
+  const _EmptyCard({required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+
+    return SizedBox(
+      width: double.infinity,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: AppDims.borderLg,
+          border: Border.all(color: colors.border),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(28, 34, 28, 30),
+          child: Column(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(
+                  PhosphorIconsRegular.bell,
+                  size: 30,
+                  color: colors.primary,
+                ),
+              ),
+              const SizedBox(height: AppDims.s4),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: text.titleLarge!.copyWith(color: colors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                body,
+                textAlign: TextAlign.center,
+                style: text.bodyMedium!.copyWith(
+                  fontSize: 15,
+                  height: 1.4,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

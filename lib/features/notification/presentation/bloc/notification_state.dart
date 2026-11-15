@@ -1,7 +1,14 @@
 part of 'notification_bloc.dart';
 
 enum NotificationStatus { initial, loading, loadingMore, success, failure }
-enum NotificationUnreadCountStatus { initial, loading, loadingMore, success, failure }
+
+enum NotificationUnreadCountStatus {
+  initial,
+  loading,
+  loadingMore,
+  success,
+  failure,
+}
 
 class NotificationState extends Equatable {
   final NotificationStatus status;
@@ -48,12 +55,12 @@ class NotificationState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        notifications,
-        unreadCount,
-        currentPage,
-        hasMore,
-        error,
-        unreadCountStatus,
-      ];
+    status,
+    notifications,
+    unreadCount,
+    currentPage,
+    hasMore,
+    error,
+    unreadCountStatus,
+  ];
 }

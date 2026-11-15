@@ -6769,6 +6769,822 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Settings'**
   String get prnOpenSettings;
+
+  /// No description provided for @mrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get mrTitle;
+
+  /// No description provided for @mrManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get mrManage;
+
+  /// No description provided for @mrCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get mrCustomers;
+
+  /// No description provided for @mrCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get mrCategories;
+
+  /// No description provided for @mrSalesHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get mrSalesHistory;
+
+  /// No description provided for @mrReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns'**
+  String get mrReturns;
+
+  /// No description provided for @mrReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get mrReports;
+
+  /// No description provided for @mrTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get mrTeam;
+
+  /// No description provided for @mrBusinessGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get mrBusinessGroup;
+
+  /// No description provided for @mrBusinessRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get mrBusinessRow;
+
+  /// No description provided for @mrBankak.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak account'**
+  String get mrBankak;
+
+  /// No description provided for @mrBankakSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get mrBankakSetUp;
+
+  /// No description provided for @mrThisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get mrThisDevice;
+
+  /// No description provided for @mrPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt printer'**
+  String get mrPrinter;
+
+  /// No description provided for @mrPrinterConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get mrPrinterConnected;
+
+  /// No description provided for @mrPrinterNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get mrPrinterNotConnected;
+
+  /// No description provided for @mrPrinterNotSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up'**
+  String get mrPrinterNotSetUp;
+
+  /// No description provided for @mrSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get mrSync;
+
+  /// No description provided for @mrSyncUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get mrSyncUpToDate;
+
+  /// No description provided for @mrSyncWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} waiting'**
+  String mrSyncWaiting(int count);
+
+  /// No description provided for @mrPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get mrPreferences;
+
+  /// No description provided for @mrLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get mrLanguage;
+
+  /// No description provided for @mrAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get mrAppearance;
+
+  /// No description provided for @mrThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get mrThemeSystem;
+
+  /// No description provided for @mrThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get mrThemeLight;
+
+  /// No description provided for @mrThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get mrThemeDark;
+
+  /// No description provided for @mrAnimations.
+  ///
+  /// In en, this message translates to:
+  /// **'Animations'**
+  String get mrAnimations;
+
+  /// No description provided for @mrAnimAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get mrAnimAuto;
+
+  /// No description provided for @mrAnimAutoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your device setting.'**
+  String get mrAnimAutoHint;
+
+  /// No description provided for @mrAnimOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on'**
+  String get mrAnimOn;
+
+  /// No description provided for @mrAnimOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get mrAnimOff;
+
+  /// No description provided for @mrSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get mrSecurity;
+
+  /// No description provided for @mrFaceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID'**
+  String get mrFaceId;
+
+  /// No description provided for @mrFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get mrFingerprint;
+
+  /// No description provided for @mrBiometricFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with {method} instead of typing your PIN.'**
+  String mrBiometricFoot(String method);
+
+  /// No description provided for @mrChangePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get mrChangePin;
+
+  /// No description provided for @mrLockNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock now'**
+  String get mrLockNow;
+
+  /// No description provided for @mrSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get mrSupport;
+
+  /// No description provided for @mrContactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get mrContactSupport;
+
+  /// No description provided for @mrWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get mrWhatsApp;
+
+  /// No description provided for @mrSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get mrSignOut;
+
+  /// No description provided for @mrVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'AmanaPOS {version}'**
+  String mrVersion(String version);
+
+  /// No description provided for @mrPinOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off PIN on this device'**
+  String get mrPinOff;
+
+  /// No description provided for @mrPinOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off PIN?'**
+  String get mrPinOffTitle;
+
+  /// No description provided for @mrPinOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will sign in with a code sent to your phone next time. Face ID turns off too.'**
+  String get mrPinOffBody;
+
+  /// No description provided for @mrPinOffAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off PIN'**
+  String get mrPinOffAction;
+
+  /// No description provided for @mrPinOffDone.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN turned off.'**
+  String get mrPinOffDone;
+
+  /// No description provided for @mrSignOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of AmanaPOS?'**
+  String get mrSignOutTitle;
+
+  /// No description provided for @mrSignOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales that have not synced yet will be lost. Sync first if you can.'**
+  String get mrSignOutBody;
+
+  /// No description provided for @mrRoleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get mrRoleOwner;
+
+  /// No description provided for @mrRoleManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get mrRoleManager;
+
+  /// No description provided for @mrRoleCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get mrRoleCashier;
+
+  /// No description provided for @prfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get prfTitle;
+
+  /// No description provided for @prfFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get prfFullName;
+
+  /// No description provided for @prfEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get prfEmail;
+
+  /// No description provided for @prfPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get prfPhone;
+
+  /// No description provided for @prfRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get prfRole;
+
+  /// No description provided for @prfPhoneFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone number is how you sign in, so it cannot be changed here.'**
+  String get prfPhoneFoot;
+
+  /// No description provided for @bkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak account'**
+  String get bkTitle;
+
+  /// No description provided for @bkAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account number'**
+  String get bkAccountNumber;
+
+  /// No description provided for @bkAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get bkAccountName;
+
+  /// No description provided for @bkFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers who pay with Bankak are asked to send money to this account. The name comes from Bankak after you save.'**
+  String get bkFoot;
+
+  /// No description provided for @bkRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove account'**
+  String get bkRemove;
+
+  /// No description provided for @bsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get bsTitle;
+
+  /// No description provided for @bsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Business name'**
+  String get bsName;
+
+  /// No description provided for @bsPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get bsPhone;
+
+  /// No description provided for @bsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get bsEmail;
+
+  /// No description provided for @bsAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get bsAddress;
+
+  /// No description provided for @bsShops.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get bsShops;
+
+  /// No description provided for @bsShopsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 shop} other{{count} shops}}'**
+  String bsShopsCount(int count);
+
+  /// No description provided for @bsTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get bsTax;
+
+  /// No description provided for @bsChargeTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge tax on sales'**
+  String get bsChargeTax;
+
+  /// No description provided for @bsTaxName.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax name'**
+  String get bsTaxName;
+
+  /// No description provided for @bsTaxRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get bsTaxRate;
+
+  /// No description provided for @bsTaxInclusive.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices already include tax'**
+  String get bsTaxInclusive;
+
+  /// No description provided for @bsTaxFootOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied to every sale at all shops. Receipts show the tax line.'**
+  String get bsTaxFootOff;
+
+  /// No description provided for @bsTaxFootOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: tax is added on top of the price at checkout. On: the tax is taken out of the price you set.'**
+  String get bsTaxFootOn;
+
+  /// No description provided for @bsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Business saved.'**
+  String get bsSaved;
+
+  /// No description provided for @bsTaxRateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a rate from 0 to 100.'**
+  String get bsTaxRateInvalid;
+
+  /// No description provided for @shInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get shInactive;
+
+  /// No description provided for @shAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add shop'**
+  String get shAdd;
+
+  /// No description provided for @shNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New shop'**
+  String get shNew;
+
+  /// No description provided for @shEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit shop'**
+  String get shEdit;
+
+  /// No description provided for @shName.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop name'**
+  String get shName;
+
+  /// No description provided for @shAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get shAddress;
+
+  /// No description provided for @shPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get shPhone;
+
+  /// No description provided for @shOpenForSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Open for sales'**
+  String get shOpenForSales;
+
+  /// No description provided for @shOpenFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off to hide this shop from selling and from your cashiers. Its sales stay in history.'**
+  String get shOpenFoot;
+
+  /// No description provided for @shSwipeDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get shSwipeDeactivate;
+
+  /// No description provided for @shSwipeReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get shSwipeReactivate;
+
+  /// No description provided for @shSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to deactivate or reactivate.'**
+  String get shSwipeHint;
+
+  /// No description provided for @shDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate {name}?'**
+  String shDeactivateTitle(String name);
+
+  /// No description provided for @shDeactivateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashiers there will not be able to sell until you turn it back on. Its sales stay in history.'**
+  String get shDeactivateBody;
+
+  /// No description provided for @shDeactivateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get shDeactivateAction;
+
+  /// No description provided for @shSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop saved.'**
+  String get shSaved;
+
+  /// No description provided for @shAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop added.'**
+  String get shAdded;
+
+  /// No description provided for @nfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get nfTitle;
+
+  /// No description provided for @nfMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get nfMarkAllRead;
+
+  /// No description provided for @nfToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get nfToday;
+
+  /// No description provided for @nfEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get nfEarlier;
+
+  /// No description provided for @nfEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are all caught up'**
+  String get nfEmptyTitle;
+
+  /// No description provided for @nfEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription, stock and account news show up here.'**
+  String get nfEmptyBody;
+
+  /// No description provided for @nfErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications'**
+  String get nfErrorTitle;
+
+  /// No description provided for @nfErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get nfErrorBody;
+
+  /// No description provided for @nfDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get nfDetailTitle;
+
+  /// No description provided for @syTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get syTitle;
+
+  /// No description provided for @syWaitingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{sale waiting} other{sales waiting}}'**
+  String syWaitingLabel(int count);
+
+  /// No description provided for @syAllDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is synced'**
+  String get syAllDoneTitle;
+
+  /// No description provided for @syAllDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales are sent as soon as you are online.'**
+  String get syAllDoneBody;
+
+  /// No description provided for @sySyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get sySyncNow;
+
+  /// No description provided for @sySyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get sySyncing;
+
+  /// No description provided for @syLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced {time}'**
+  String syLastSynced(String time);
+
+  /// No description provided for @syNeverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get syNeverSynced;
+
+  /// No description provided for @syOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Sales are saved on this phone and send when you are back online.'**
+  String get syOffline;
+
+  /// No description provided for @syWaitingHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get syWaitingHeader;
+
+  /// No description provided for @syPillFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get syPillFailed;
+
+  /// No description provided for @syPillWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get syPillWaiting;
+
+  /// No description provided for @syItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String syItemsCount(int count);
+
+  /// No description provided for @sySwipeRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get sySwipeRetry;
+
+  /// No description provided for @sySwipeDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get sySwipeDelete;
+
+  /// No description provided for @syFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed sales stay here until you retry or delete them.'**
+  String get syFoot;
+
+  /// No description provided for @syDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this sale?'**
+  String get syDeleteTitle;
+
+  /// No description provided for @syDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It has not reached the server. Deleting removes it for good and the stock is not deducted.'**
+  String get syDeleteBody;
+
+  /// No description provided for @syDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete sale'**
+  String get syDeleteAction;
+
+  /// No description provided for @syFailedFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not accept this sale.'**
+  String get syFailedFallback;
+
+  /// No description provided for @obCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your business'**
+  String get obCreateTitle;
+
+  /// No description provided for @obCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the name customers see on receipts. You can change it later.'**
+  String get obCreateBody;
+
+  /// No description provided for @obCreateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create business'**
+  String get obCreateAction;
+
+  /// No description provided for @obCreateFoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Next you will add your first shop. Tax and team can wait.'**
+  String get obCreateFoot;
+
+  /// No description provided for @obExpiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan has ended'**
+  String get obExpiredTitle;
+
+  /// No description provided for @obExpiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Renew to keep selling. Your products, sales and customers are safe.'**
+  String get obExpiredBody;
+
+  /// No description provided for @obExpiredAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us to renew'**
+  String get obExpiredAction;
+
+  /// No description provided for @obExpiredSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get obExpiredSignOut;
+
+  /// No description provided for @shpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get shpTitle;
+
+  /// No description provided for @shpEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No shops yet'**
+  String get shpEmptyTitle;
+
+  /// No description provided for @shpEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A shop is where you sell. Add your first one to start.'**
+  String get shpEmptyBody;
 }
 
 class _AppLocalizationsDelegate

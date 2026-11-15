@@ -3688,4 +3688,461 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prnOpenSettings => 'Open Settings';
+
+  @override
+  String get mrTitle => 'More';
+
+  @override
+  String get mrManage => 'Manage';
+
+  @override
+  String get mrCustomers => 'Customers';
+
+  @override
+  String get mrCategories => 'Categories';
+
+  @override
+  String get mrSalesHistory => 'Sales history';
+
+  @override
+  String get mrReturns => 'Returns';
+
+  @override
+  String get mrReports => 'Reports';
+
+  @override
+  String get mrTeam => 'Team';
+
+  @override
+  String get mrBusinessGroup => 'Business';
+
+  @override
+  String get mrBusinessRow => 'Business';
+
+  @override
+  String get mrBankak => 'Bankak account';
+
+  @override
+  String get mrBankakSetUp => 'Set up';
+
+  @override
+  String get mrThisDevice => 'This device';
+
+  @override
+  String get mrPrinter => 'Receipt printer';
+
+  @override
+  String get mrPrinterConnected => 'Connected';
+
+  @override
+  String get mrPrinterNotConnected => 'Not connected';
+
+  @override
+  String get mrPrinterNotSetUp => 'Not set up';
+
+  @override
+  String get mrSync => 'Sync';
+
+  @override
+  String get mrSyncUpToDate => 'Up to date';
+
+  @override
+  String mrSyncWaiting(int count) {
+    return '$count waiting';
+  }
+
+  @override
+  String get mrPreferences => 'Preferences';
+
+  @override
+  String get mrLanguage => 'Language';
+
+  @override
+  String get mrAppearance => 'Appearance';
+
+  @override
+  String get mrThemeSystem => 'System';
+
+  @override
+  String get mrThemeLight => 'Light';
+
+  @override
+  String get mrThemeDark => 'Dark';
+
+  @override
+  String get mrAnimations => 'Animations';
+
+  @override
+  String get mrAnimAuto => 'Automatic';
+
+  @override
+  String get mrAnimAutoHint => 'Follows your device setting.';
+
+  @override
+  String get mrAnimOn => 'Always on';
+
+  @override
+  String get mrAnimOff => 'Off';
+
+  @override
+  String get mrSecurity => 'Security';
+
+  @override
+  String get mrFaceId => 'Face ID';
+
+  @override
+  String get mrFingerprint => 'Fingerprint';
+
+  @override
+  String mrBiometricFoot(String method) {
+    return 'Unlock with $method instead of typing your PIN.';
+  }
+
+  @override
+  String get mrChangePin => 'Change PIN';
+
+  @override
+  String get mrLockNow => 'Lock now';
+
+  @override
+  String get mrSupport => 'Support';
+
+  @override
+  String get mrContactSupport => 'Contact support';
+
+  @override
+  String get mrWhatsApp => 'WhatsApp';
+
+  @override
+  String get mrSignOut => 'Sign out';
+
+  @override
+  String mrVersion(String version) {
+    return 'AmanaPOS $version';
+  }
+
+  @override
+  String get mrPinOff => 'Turn off PIN on this device';
+
+  @override
+  String get mrPinOffTitle => 'Turn off PIN?';
+
+  @override
+  String get mrPinOffBody =>
+      'You will sign in with a code sent to your phone next time. Face ID turns off too.';
+
+  @override
+  String get mrPinOffAction => 'Turn off PIN';
+
+  @override
+  String get mrPinOffDone => 'PIN turned off.';
+
+  @override
+  String get mrSignOutTitle => 'Sign out of AmanaPOS?';
+
+  @override
+  String get mrSignOutBody =>
+      'Sales that have not synced yet will be lost. Sync first if you can.';
+
+  @override
+  String get mrRoleOwner => 'Owner';
+
+  @override
+  String get mrRoleManager => 'Manager';
+
+  @override
+  String get mrRoleCashier => 'Cashier';
+
+  @override
+  String get prfTitle => 'Profile';
+
+  @override
+  String get prfFullName => 'Full name';
+
+  @override
+  String get prfEmail => 'Email';
+
+  @override
+  String get prfPhone => 'Phone';
+
+  @override
+  String get prfRole => 'Role';
+
+  @override
+  String get prfPhoneFoot =>
+      'Your phone number is how you sign in, so it cannot be changed here.';
+
+  @override
+  String get bkTitle => 'Bankak account';
+
+  @override
+  String get bkAccountNumber => 'Account number';
+
+  @override
+  String get bkAccountName => 'Account name';
+
+  @override
+  String get bkFoot =>
+      'Customers who pay with Bankak are asked to send money to this account. The name comes from Bankak after you save.';
+
+  @override
+  String get bkRemove => 'Remove account';
+
+  @override
+  String get bsTitle => 'Business';
+
+  @override
+  String get bsName => 'Business name';
+
+  @override
+  String get bsPhone => 'Phone';
+
+  @override
+  String get bsEmail => 'Email';
+
+  @override
+  String get bsAddress => 'Address';
+
+  @override
+  String get bsShops => 'Shops';
+
+  @override
+  String bsShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count shops',
+      one: '1 shop',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bsTax => 'Tax';
+
+  @override
+  String get bsChargeTax => 'Charge tax on sales';
+
+  @override
+  String get bsTaxName => 'Tax name';
+
+  @override
+  String get bsTaxRate => 'Rate';
+
+  @override
+  String get bsTaxInclusive => 'Prices already include tax';
+
+  @override
+  String get bsTaxFootOff =>
+      'Applied to every sale at all shops. Receipts show the tax line.';
+
+  @override
+  String get bsTaxFootOn =>
+      'Off: tax is added on top of the price at checkout. On: the tax is taken out of the price you set.';
+
+  @override
+  String get bsSaved => 'Business saved.';
+
+  @override
+  String get bsTaxRateInvalid => 'Enter a rate from 0 to 100.';
+
+  @override
+  String get shInactive => 'Inactive';
+
+  @override
+  String get shAdd => 'Add shop';
+
+  @override
+  String get shNew => 'New shop';
+
+  @override
+  String get shEdit => 'Edit shop';
+
+  @override
+  String get shName => 'Shop name';
+
+  @override
+  String get shAddress => 'Address';
+
+  @override
+  String get shPhone => 'Phone';
+
+  @override
+  String get shOpenForSales => 'Open for sales';
+
+  @override
+  String get shOpenFoot =>
+      'Turn off to hide this shop from selling and from your cashiers. Its sales stay in history.';
+
+  @override
+  String get shSwipeDeactivate => 'Deactivate';
+
+  @override
+  String get shSwipeReactivate => 'Reactivate';
+
+  @override
+  String get shSwipeHint => 'Swipe to deactivate or reactivate.';
+
+  @override
+  String shDeactivateTitle(String name) {
+    return 'Deactivate $name?';
+  }
+
+  @override
+  String get shDeactivateBody =>
+      'Cashiers there will not be able to sell until you turn it back on. Its sales stay in history.';
+
+  @override
+  String get shDeactivateAction => 'Deactivate';
+
+  @override
+  String get shSaved => 'Shop saved.';
+
+  @override
+  String get shAdded => 'Shop added.';
+
+  @override
+  String get nfTitle => 'Notifications';
+
+  @override
+  String get nfMarkAllRead => 'Mark all read';
+
+  @override
+  String get nfToday => 'Today';
+
+  @override
+  String get nfEarlier => 'Earlier';
+
+  @override
+  String get nfEmptyTitle => 'You are all caught up';
+
+  @override
+  String get nfEmptyBody =>
+      'Subscription, stock and account news show up here.';
+
+  @override
+  String get nfErrorTitle => 'Could not load notifications';
+
+  @override
+  String get nfErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get nfDetailTitle => 'Notification';
+
+  @override
+  String get syTitle => 'Sync';
+
+  @override
+  String syWaitingLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'sales waiting',
+      one: 'sale waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syAllDoneTitle => 'Everything is synced';
+
+  @override
+  String get syAllDoneBody => 'Sales are sent as soon as you are online.';
+
+  @override
+  String get sySyncNow => 'Sync now';
+
+  @override
+  String get sySyncing => 'Syncing…';
+
+  @override
+  String syLastSynced(String time) {
+    return 'Last synced $time';
+  }
+
+  @override
+  String get syNeverSynced => 'Not synced yet';
+
+  @override
+  String get syOffline =>
+      'You are offline. Sales are saved on this phone and send when you are back online.';
+
+  @override
+  String get syWaitingHeader => 'Waiting';
+
+  @override
+  String get syPillFailed => 'Failed';
+
+  @override
+  String get syPillWaiting => 'Waiting';
+
+  @override
+  String syItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sySwipeRetry => 'Retry';
+
+  @override
+  String get sySwipeDelete => 'Delete';
+
+  @override
+  String get syFoot => 'Failed sales stay here until you retry or delete them.';
+
+  @override
+  String get syDeleteTitle => 'Delete this sale?';
+
+  @override
+  String get syDeleteBody =>
+      'It has not reached the server. Deleting removes it for good and the stock is not deducted.';
+
+  @override
+  String get syDeleteAction => 'Delete sale';
+
+  @override
+  String get syFailedFallback => 'The server did not accept this sale.';
+
+  @override
+  String get obCreateTitle => 'Create your business';
+
+  @override
+  String get obCreateBody =>
+      'This is the name customers see on receipts. You can change it later.';
+
+  @override
+  String get obCreateAction => 'Create business';
+
+  @override
+  String get obCreateFoot =>
+      'Next you will add your first shop. Tax and team can wait.';
+
+  @override
+  String get obExpiredTitle => 'Your plan has ended';
+
+  @override
+  String get obExpiredBody =>
+      'Renew to keep selling. Your products, sales and customers are safe.';
+
+  @override
+  String get obExpiredAction => 'Contact us to renew';
+
+  @override
+  String get obExpiredSignOut => 'Sign out';
+
+  @override
+  String get shpTitle => 'Shops';
+
+  @override
+  String get shpEmptyTitle => 'No shops yet';
+
+  @override
+  String get shpEmptyBody =>
+      'A shop is where you sell. Add your first one to start.';
 }

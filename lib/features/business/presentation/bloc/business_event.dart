@@ -16,6 +16,10 @@ class OnEditBusiness extends BusinessEvent {
   final String? address;
   final String? phone;
   final String? email;
+  final bool? taxEnabled;
+  final String? taxName;
+  final double? taxRate;
+  final bool? taxInclusive;
 
   const OnEditBusiness({
     required this.businessId,
@@ -23,10 +27,24 @@ class OnEditBusiness extends BusinessEvent {
     this.address,
     this.phone,
     this.email,
+    this.taxEnabled,
+    this.taxName,
+    this.taxRate,
+    this.taxInclusive,
   });
 
   @override
-  List<Object?> get props => [businessId, name, address, phone, email];
+  List<Object?> get props => [
+    businessId,
+    name,
+    address,
+    phone,
+    email,
+    taxEnabled,
+    taxName,
+    taxRate,
+    taxInclusive,
+  ];
 }
 
 class OnAddBusiness extends BusinessEvent {
@@ -77,6 +95,7 @@ class OnEditShop extends BusinessEvent {
   final String name;
   final String? address;
   final String? phone;
+  final bool? isActive;
 
   const OnEditShop({
     required this.businessId,
@@ -84,10 +103,18 @@ class OnEditShop extends BusinessEvent {
     required this.name,
     this.address,
     this.phone,
+    this.isActive,
   });
 
   @override
-  List<Object?> get props => [businessId, shopId, name, address, phone];
+  List<Object?> get props => [
+    businessId,
+    shopId,
+    name,
+    address,
+    phone,
+    isActive,
+  ];
 }
 
 class OnBusinessReset extends BusinessEvent {

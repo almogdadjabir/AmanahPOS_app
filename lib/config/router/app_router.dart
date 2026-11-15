@@ -4,10 +4,12 @@ import 'package:amana_pos/barcode_scanner/presentation/screens/barcode_scanner_s
 import 'package:amana_pos/config/providers/feature_bloc_providers.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
-import 'package:amana_pos/features/business/presentation/business_detail_screen.dart';
+import 'package:amana_pos/features/business/presentation/business_settings_screen.dart';
 import 'package:amana_pos/features/devices/presentation/printer_settings_screen.dart';
-import 'package:amana_pos/features/business/presentation/shop_detail_screen.dart';
-import 'package:amana_pos/features/business/presentation/shop_management_screen.dart';
+import 'package:amana_pos/features/business/presentation/shop_form_screen.dart';
+import 'package:amana_pos/features/settings/presentation/profile_screen.dart';
+import 'package:amana_pos/features/settings/presentation/bankak_screen.dart';
+import 'package:amana_pos/features/business/presentation/shops_screen.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 import 'package:amana_pos/features/login/presentation/login_screen.dart';
 import 'package:amana_pos/features/pin/presentation/bloc/pin_bloc.dart';
@@ -65,39 +67,30 @@ class AppRouter {
       case RouteStrings.mainScreen:
         return _fadeRoute(const MainScreen(), settings);
       case RouteStrings.businessDetailScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final BusinessData businessData = args?['businessData'] as BusinessData;
-        return _buildRoute(
-          BusinessDetailScreen(business: businessData),
-          settings,
-        );
-      case RouteStrings.shopDetailScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final String businessId = args?['businessId'] as String;
-        final ShopData shop = args?['shop'] as ShopData;
-
-        return _buildRoute(
-          ShopDetailScreen(businessId: businessId, shop: shop),
-          settings,
-        );
-      case RouteStrings.userDetailScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final UserData user = args?['user'] as UserData;
-
-        return _buildRoute(UserDetailScreen(user: user), settings);
-      case RouteStrings.productScreen:
-        return _materialOrInstant(ProductsScreen(isWithAppbar: true), settings);
-
-      case RouteStrings.cashiersScreen:
-        return _materialOrInstant(
-          const UsersScreen(isWithAppbar: true),
-          settings,
-        );
+        return _materialOrInstant(const BusinessSettingsScreen(), settings);
 
       case RouteStrings.shopManagementScreen:
+        return _materialOrInstant(const ShopsScreen(), settings);
+
+      case RouteStrings.shopFormScreen:
         final args = settings.arguments as Map<String, dynamic>;
         return _materialOrInstant(
-          ShopManagementScreen(business: args['businessData'] as BusinessData),
+          ShopFormScreen(
+            businessId: args['businessId'] as String,
+            shop: args['shop'] as ShopData?,
+          ),
+          settings,
+        );
+
+      case RouteStrings.profileScreen:
+        return _materialOrInstant(
+          FeatureBlocProviders.settings(child: const ProfileScreen()),
+          settings,
+        );
+
+      case RouteStrings.bankakScreen:
+        return _materialOrInstant(
+          FeatureBlocProviders.settings(child: const BankakScreen()),
           settings,
         );
 

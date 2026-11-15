@@ -1,15 +1,24 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/features/category/presentation/widgets/category_states.dart';
 import 'package:amana_pos/features/pos/data/model/offline/offline_sale_dto.dart';
+import 'package:amana_pos/features/sales_history/presentation/widgets/sale_format.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
-import 'package:amana_pos/features/sync/presentation/widgets/sync_app_bar.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
+import 'package:amana_pos/widgets/app_button.dart';
+import 'package:amana_pos/widgets/app_confirm_sheet.dart';
+import 'package:amana_pos/widgets/app_large_title.dart';
+import 'package:amana_pos/widgets/app_swipe_actions.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
+import 'package:amana_pos/widgets/pressable.dart';
+import 'package:amana_pos/widgets/shimmer.dart';
+import 'package:flutter/cupertino.dart' show CupertinoSliverRefreshControl;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PendingSyncScreen extends StatefulWidget {
   const PendingSyncScreen({super.key});
@@ -25,687 +34,648 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
     context.read<PendingSyncBloc>().add(const OnPendingSyncLoad());
   }
 
+  Future<void> _refresh() async {
+    final bloc = context.read<PendingSyncBloc>();
+    bloc.add(const OnPendingSyncLoad());
+    try {
+      await bloc.stream
+          .firstWhere(
+            (s) =>
+                s.status == PendingSyncStatus.loaded ||
+                s.status == PendingSyncStatus.error,
+          )
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // Timed out: let the control settle.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom + 24;
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: BlocBuilder<PendingSyncBloc, PendingSyncState>(
-        builder: (context, state) {
-          return NestedScrollView(
-            headerSliverBuilder: (context, _) => [
-              SyncAppBar(state: state),
-            ],
-            body: _buildBody(context, state),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildBody(BuildContext context, PendingSyncState state) {
-    if (state.isLoading) return const _LoadingView();
-
-    if (state.status == PendingSyncStatus.error && state.sales.isEmpty) {
-      return _ErrorView(
-        message: state.errorMessage ?? 'Failed to load pending sales.',
-        onRetry: () =>
-            context.read<PendingSyncBloc>().add(const OnPendingSyncLoad()),
-      );
-    }
-
-    if (state.sales.isEmpty) return const _EmptyView();
-
-    return RefreshIndicator(
-      color: context.appColors.primary,
-      onRefresh: () async =>
-          context.read<PendingSyncBloc>().add(const OnPendingSyncLoad()),
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(
-            AppDims.s4, AppDims.s3, AppDims.s4, 120),
-        itemCount: state.sales.length,
-        itemBuilder: (context, i) => _SaleCard(
-          sale: state.sales[i],
-          index: i,
-          isSyncing: state.isSyncing,
-        ),
-      ),
-    );
-  }
-}
-
-class _SaleCard extends StatefulWidget {
-  final OfflineSaleDto sale;
-  final int index;
-  final bool isSyncing;
-
-  const _SaleCard({
-    required this.sale,
-    required this.index,
-    required this.isSyncing,
-  });
-
-  @override
-  State<_SaleCard> createState() => _SaleCardState();
-}
-
-class _SaleCardState extends State<_SaleCard> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final sale = widget.sale;
-    final statusInfo = _statusInfo(sale.status);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDims.s3),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(AppDims.rLg),
-          border: Border.all(color: colors.border.withValues(alpha: 0.6)),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Left status border
-              Container(
-                width: 4,
-                color: statusInfo.color,
-              ),
-
-              // Card content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header row
-                    InkWell(
-                      onTap: () => setState(() => _expanded = !_expanded),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            AppDims.s3, AppDims.s3, AppDims.s3, AppDims.s3),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                _StatusChip(statusInfo: statusInfo),
-                                const Spacer(),
-                                Text(
-                                  _relativeTime(sale.createdAt),
-                                  style: AppTextStyles.sm200(context).copyWith(
-                                    color: colors.textHint,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: AppDims.s2),
-                                Icon(
-                                  _expanded
-                                      ? PhosphorIconsRegular.caretUp
-                                      : PhosphorIconsRegular.caretDown,
-                                  size: 18,
-                                  color: colors.textHint,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppDims.s2),
-
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '#${sale.clientSaleId.length > 8 ? sale.clientSaleId.substring(0, 8).toUpperCase() : sale.clientSaleId.toUpperCase()}',
-                                        style: AppTextStyles.sm200(context)
-                                            .copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          color: colors.textSecondary,
-                                          fontFeatures: const [
-                                            FontFeature.tabularFigures()
-                                          ],
-                                          letterSpacing: 1.0,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          _PaymentChip(
-                                              method: sale.paymentMethod),
-                                          const SizedBox(width: AppDims.s2),
-                                          Text(
-                                            '${sale.items.length} ${sale.items.length == 1 ? 'item' : 'items'}',
-                                            style:
-                                                AppTextStyles.sm200(context).copyWith(
-                                              color: colors.textHint,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  double.tryParse(sale.total)
-                                          ?.toStringAsFixed(2) ??
-                                      sale.total,
-                                  style: AppTextStyles.bs300(context).copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    color: colors.textPrimary,
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures()
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const _NavBar(),
+            Expanded(
+              child: BlocBuilder<PendingSyncBloc, PendingSyncState>(
+                builder: (context, state) => CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  slivers: [
+                    CupertinoSliverRefreshControl(onRefresh: _refresh),
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppDims.s4,
+                        0,
+                        AppDims.s4,
+                        bottomInset,
                       ),
+                      sliver: SliverToBoxAdapter(child: _content(state)),
                     ),
-
-                    // Error message + delete button for failed sales
-                    if (sale.status == 'failed') ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            AppDims.s3, 0, AppDims.s3, 0),
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(
-                              AppDims.s3, AppDims.s2, AppDims.s2, AppDims.s2),
-                          decoration: BoxDecoration(
-                            color: colors.dangerContainer,
-                            borderRadius: BorderRadius.circular(AppDims.rSm),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 1),
-                                child: Icon(PhosphorIconsRegular.warningCircle,
-                                    size: 14, color: colors.danger),
-                              ),
-                              const SizedBox(width: AppDims.s2),
-                              Expanded(
-                                child: Text(
-                                  sale.errorMessage ??
-                                      'This sale failed to sync.',
-                                  style: AppTextStyles.sm200(context).copyWith(
-                                    color: colors.danger,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: AppDims.s2),
-                              GestureDetector(
-                                onTap: () => _confirmDelete(context, sale),
-                                child: Tooltip(
-                                  message: 'Discard this sale',
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: colors.danger
-                                          .withValues(alpha: 0.12),
-                                      borderRadius:
-                                          BorderRadius.circular(AppDims.rSm),
-                                    ),
-                                    child: Icon(PhosphorIconsRegular.trash,
-                                        size: 16, color: colors.danger),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppDims.s3),
-                    ],
-
-                    // Expanded items
-                    if (_expanded) ...[
-                      Divider(
-                          height: 1,
-                          thickness: 0.5,
-                          color: colors.border.withValues(alpha: 0.6),
-                          indent: AppDims.s3),
-                      ..._buildItems(context, sale),
-                      _buildTotalsRow(context, sale),
-                    ],
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      )
-          .mAnimate(delay: Duration(milliseconds: widget.index * 50))
-          .fadeIn(duration: 280.ms)
-          .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic),
+      ),
     );
   }
 
-  List<Widget> _buildItems(BuildContext context, OfflineSaleDto sale) {
+  Widget _content(PendingSyncState state) {
+    final tr = context.tr;
+    final title = AppLargeTitle(title: tr.syTitle);
+
+    if (state.isLoading || state.status == PendingSyncStatus.initial) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [title, const _HeaderSkeleton()],
+      );
+    }
+
+    if (state.status == PendingSyncStatus.error && state.sales.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          title,
+          CategoryStateCard(
+            icon: PhosphorIconsRegular.wifiSlash,
+            tone: CategoryStateTone.danger,
+            title: tr.somethingWentWrong,
+            body: tr.nfErrorBody,
+            actionLabel: tr.retry,
+            secondaryAction: true,
+            onAction: () =>
+                context.read<PendingSyncBloc>().add(const OnPendingSyncLoad()),
+          ),
+        ],
+      );
+    }
+
+    return BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
+      bloc: getIt<OfflineStatusBloc>(),
+      buildWhen: (p, c) =>
+          p.connectionStatus != c.connectionStatus ||
+          p.lastSalesSyncAt != c.lastSalesSyncAt,
+      builder: (context, offline) {
+        final sales = state.sales;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            title,
+            if (offline.isOffline && sales.isNotEmpty) ...[
+              _OfflineBanner(text: tr.syOffline),
+              const SizedBox(height: 12),
+            ],
+            _Header(
+              count: sales.length,
+              syncing: state.isSyncing,
+              offline: offline.isOffline,
+              lastSyncedAt: offline.lastSalesSyncAt,
+            ),
+            if (sales.isNotEmpty) ...[
+              _SectionLabel(tr.syWaitingHeader),
+              _SalesGroup(sales: sales),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
+                child: Text(
+                  tr.syFoot,
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontSize: 13,
+                    height: 18 / 13,
+                    color: context.appColors.textHint,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _NavBar extends StatelessWidget {
+  const _NavBar();
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.appColors;
-    return sale.items.map((item) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(
-            AppDims.s3, AppDims.s2, AppDims.s3, 0),
+
+    return SizedBox(
+      height: 44,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: colors.textHint,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: AppDims.s2),
-            Expanded(
-              child: Text(
-                item.productName,
-                style: AppTextStyles.sm300(context).copyWith(
-                  color: colors.textSecondary,
-                  fontWeight: FontWeight.w600,
+            Pressable(
+              onTap: () => Navigator.of(context).maybePop(),
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 4),
+                    DirectionalIcon(
+                      icon: PhosphorIconsRegular.caretLeft,
+                      size: 24,
+                      color: colors.primary,
+                    ),
+                    Text(
+                      context.tr.back,
+                      style: TextStyle(fontSize: 17, color: colors.primary),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: AppDims.s2),
-            Text(
-              '×${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity}',
-              style: AppTextStyles.sm200(context).copyWith(
-                color: colors.textHint,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: AppDims.s3),
-            Text(
-              double.tryParse(item.lineTotal)?.toStringAsFixed(2) ??
-                  item.lineTotal,
-              style: AppTextStyles.sm300(context).copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ],
         ),
-      );
-    }).toList();
-  }
-
-  Widget _buildTotalsRow(BuildContext context, OfflineSaleDto sale) {
-    final colors = context.appColors;
-    final discount = double.tryParse(sale.discountAmount) ?? 0;
-    final tax = double.tryParse(sale.taxAmount) ?? 0;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppDims.s3, AppDims.s3, AppDims.s3, AppDims.s3),
-      child: Column(
-        children: [
-          Divider(
-              height: 1,
-              thickness: 0.5,
-              color: colors.border.withValues(alpha: 0.6)),
-          const SizedBox(height: AppDims.s2),
-          if (discount > 0)
-            _TotalLine(
-                label: 'Discount',
-                value: '-${discount.toStringAsFixed(2)}',
-                color: colors.success,
-                context: context),
-          if (tax > 0)
-            _TotalLine(
-                label: 'Tax',
-                value: tax.toStringAsFixed(2),
-                color: colors.textSecondary,
-                context: context),
-          _TotalLine(
-              label: 'Total',
-              value: double.tryParse(sale.total)?.toStringAsFixed(2) ??
-                  sale.total,
-              color: colors.textPrimary,
-              bold: true,
-              context: context),
-        ],
       ),
     );
-  }
-
-  _StatusInfo _statusInfo(String? status) {
-    switch (status) {
-      case 'failed':
-        return _StatusInfo(
-          label: 'Failed',
-          color: const Color(0xFFEF4444),
-          icon: PhosphorIconsRegular.warningCircle,
-        );
-      case 'syncing':
-        return _StatusInfo(
-          label: 'Syncing',
-          color: const Color(0xFF2563EB),
-          icon: PhosphorIconsRegular.arrowsClockwise,
-        );
-      default:
-        return _StatusInfo(
-          label: 'Pending',
-          color: const Color(0xFFF59E0B),
-          icon: PhosphorIconsRegular.clock,
-        );
-    }
-  }
-
-  Future<void> _confirmDelete(
-      BuildContext context, OfflineSaleDto sale) async {
-    final colors = context.appColors;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDims.rXl)),
-        title: Text(
-          'Discard this sale?',
-          style: AppTextStyles.bs300(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: colors.textPrimary,
-          ),
-        ),
-        content: Text(
-          'This sale failed to sync and cannot be recovered. '
-          'It will be permanently deleted and will NOT be sent to the server.',
-          style: AppTextStyles.sm300(context).copyWith(
-            color: colors.textSecondary,
-            fontWeight: FontWeight.w600,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Cancel',
-                style: AppTextStyles.bs100(context)
-                    .copyWith(color: colors.textSecondary)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.danger,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDims.rMd)),
-            ),
-            child: Text('Discard',
-                style: AppTextStyles.bs100(context)
-                    .copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      context
-          .read<PendingSyncBloc>()
-          .add(OnPendingSyncDeleteSale(sale.clientSaleId));
-    }
-  }
-
-  String _relativeTime(DateTime dt) {
-    final diff = DateTime.now().difference(dt.toLocal());
-    if (diff.inSeconds < 60) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return DateFormat('MMM d, HH:mm').format(dt.toLocal());
   }
 }
 
-class _TotalLine extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  final bool bold;
-  final BuildContext context;
+BoxDecoration _cardDecoration(AppThemeColors colors) => BoxDecoration(
+  color: colors.surface,
+  borderRadius: AppDims.borderLg,
+  border: Border.all(color: colors.border),
+);
 
-  const _TotalLine({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.context,
-    this.bold = false,
+class _OfflineBanner extends StatelessWidget {
+  final String text;
+  const _OfflineBanner({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.warningContainer,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Icon(
+                PhosphorIconsRegular.wifiSlash,
+                size: 20,
+                color: colors.warning,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 15,
+                  height: 20 / 15,
+                  color: colors.warning,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  final int count;
+  final bool syncing;
+  final bool offline;
+  final DateTime? lastSyncedAt;
+
+  const _Header({
+    required this.count,
+    required this.syncing,
+    required this.offline,
+    required this.lastSyncedAt,
   });
 
   @override
-  Widget build(BuildContext _) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.sm300(context).copyWith(
-              color: context.appColors.textHint,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: AppTextStyles.sm300(context).copyWith(
-              color: color,
-              fontWeight: bold ? FontWeight.w900 : FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Status + Payment chips ──────────────────────────────────────────────────
-
-class _StatusInfo {
-  final String label;
-  final Color color;
-  final IconData icon;
-  const _StatusInfo(
-      {required this.label, required this.color, required this.icon});
-}
-
-class _StatusChip extends StatelessWidget {
-  final _StatusInfo statusInfo;
-  const _StatusChip({required this.statusInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: statusInfo.color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: statusInfo.color.withValues(alpha: 0.28)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(statusInfo.icon, size: 12, color: statusInfo.color),
-          const SizedBox(width: 4),
-          Text(
-            statusInfo.label,
-            style: AppTextStyles.sm200(context).copyWith(
-              fontWeight: FontWeight.w800,
-              color: statusInfo.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PaymentChip extends StatelessWidget {
-  final String method;
-  const _PaymentChip({required this.method});
-
-  @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final label = method.toLowerCase() == 'cash' ? 'Cash' : 'Card';
-    final icon = method.toLowerCase() == 'cash'
-        ? PhosphorIconsRegular.money
-        : PhosphorIconsRegular.creditCard;
+    final text = Theme.of(context).textTheme;
+    final tr = context.tr;
+    final clear = count == 0;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: colors.surfaceSoft,
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: colors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 11, color: colors.textHint),
-          const SizedBox(width: 3),
-          Text(
-            label,
-            style: AppTextStyles.sm200(context).copyWith(
-              fontWeight: FontWeight.w700,
-              color: colors.textSecondary,
-            ),
-          ),
-        ],
-      ),
+    final last = Text(
+      lastSyncedAt != null
+          ? tr.syLastSynced(saleWhen(context, lastSyncedAt!))
+          : tr.syNeverSynced,
+      textAlign: TextAlign.center,
+      style: text.bodySmall!.copyWith(fontSize: 13, color: colors.textHint),
     );
-  }
-}
 
-// ─── Empty / Loading / Error states ──────────────────────────────────────────
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: colors.successContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(PhosphorIconsRegular.checkCircle,
-                size: 36, color: colors.success),
-          ),
-          const SizedBox(height: AppDims.s4),
-          Text(
-            'All synced!',
-            style: AppTextStyles.bs300(context).copyWith(
-              fontWeight: FontWeight.w900,
-              color: colors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: AppDims.s2),
-          Text(
-            'No pending sales waiting to sync.',
-            style: AppTextStyles.bs100(context).copyWith(
-              color: colors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ).mAnimate().fadeIn(duration: 360.ms).scale(
-            begin: const Offset(0.92, 0.92),
-            end: const Offset(1, 1),
-            curve: Curves.easeOutBack,
-          ),
-    );
-  }
-}
-
-class _LoadingView extends StatelessWidget {
-  const _LoadingView();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return ListView.builder(
-      padding:
-          const EdgeInsets.fromLTRB(AppDims.s4, AppDims.s3, AppDims.s4, 0),
-      itemCount: 4,
-      itemBuilder: (_, i) => Padding(
-        padding: const EdgeInsets.only(bottom: AppDims.s3),
-        child: Container(
-          height: 110,
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(AppDims.rLg),
-            border: Border.all(color: colors.border.withValues(alpha: 0.4)),
-          ),
-        )
-            .mAnimate(onPlay: (c) => c.repeat())
-            .shimmer(duration: 1200.ms, color: colors.border.withValues(alpha: 0.3)),
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Center(
+    return DecoratedBox(
+      decoration: _cardDecoration(colors),
       child: Padding(
-        padding: const EdgeInsets.all(AppDims.s6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.textHint),
-            const SizedBox(height: AppDims.s4),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bs100(context).copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+        child: clear
+            ? Column(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: colors.successContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      PhosphorIconsRegular.check,
+                      size: 32,
+                      color: colors.success,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    tr.syAllDoneTitle,
+                    textAlign: TextAlign.center,
+                    style: text.titleLarge!.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    tr.syAllDoneBody,
+                    textAlign: TextAlign.center,
+                    style: text.bodyMedium!.copyWith(
+                      fontSize: 15,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  last,
+                ],
+              )
+            : Column(
+                children: [
+                  Text(
+                    '$count',
+                    style: text.displayLarge!.copyWith(
+                      fontSize: 56,
+                      height: 58 / 56,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -1.7,
+                      color: colors.textPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  Text(
+                    tr.syWaitingLabel(count),
+                    style: text.bodyMedium!.copyWith(
+                      fontSize: 15,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  AppButton(
+                    label: syncing ? tr.sySyncing : tr.sySyncNow,
+                    width: double.infinity,
+                    isLoading: syncing,
+                    prefixIcon: syncing
+                        ? null
+                        : const Icon(
+                            PhosphorIconsRegular.arrowsClockwise,
+                            size: 20,
+                          ),
+                    onPressed: (syncing || offline)
+                        ? null
+                        : () {
+                            HapticFeedback.selectionClick();
+                            context.read<PendingSyncBloc>().add(
+                              const OnPendingSyncRetryAll(),
+                            );
+                          },
+                  ),
+                  const SizedBox(height: 10),
+                  last,
+                ],
               ),
-            ),
-            const SizedBox(height: AppDims.s4),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
-              label: const Text('Try again'),
-              style: FilledButton.styleFrom(
-                backgroundColor: colors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDims.rMd),
+      ),
+    );
+  }
+}
+
+class _HeaderSkeleton extends StatelessWidget {
+  const _HeaderSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return AppSkeleton(
+      child: DecoratedBox(
+        decoration: _cardDecoration(colors),
+        child: const Padding(
+          padding: EdgeInsets.fromLTRB(16, 18, 16, 16),
+          child: Column(
+            children: [
+              Shimmer(width: 80, height: 50, radius: 10),
+              SizedBox(height: 10),
+              Shimmer(width: 150, height: 14, radius: 6),
+              SizedBox(height: 16),
+              Shimmer(width: double.infinity, height: 48, radius: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 22, 20, 7),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge!.copyWith(color: colors.textHint),
+      ),
+    );
+  }
+}
+
+class _SalesGroup extends StatefulWidget {
+  final List<OfflineSaleDto> sales;
+  const _SalesGroup({required this.sales});
+
+  @override
+  State<_SalesGroup> createState() => _SalesGroupState();
+}
+
+class _SalesGroupState extends State<_SalesGroup> {
+  final Set<String> _open = {};
+
+  Future<void> _delete(OfflineSaleDto sale) async {
+    final tr = context.tr;
+    final bloc = context.read<PendingSyncBloc>();
+    final ok = await showAppConfirmSheet(
+      context,
+      title: tr.syDeleteTitle,
+      message: tr.syDeleteBody,
+      confirmLabel: tr.syDeleteAction,
+    );
+    if (ok) bloc.add(OnPendingSyncDeleteSale(sale.clientSaleId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+    final sales = widget.sales;
+
+    return DecoratedBox(
+      decoration: _cardDecoration(colors),
+      child: ClipRRect(
+        borderRadius: AppDims.borderLg,
+        child: Column(
+          children: [
+            for (var i = 0; i < sales.length; i++) ...[
+              if (i > 0)
+                Divider(
+                  height: 0.5,
+                  thickness: 0.5,
+                  indent: AppDims.s4 + 44 + AppDims.s3,
+                  color: colors.border,
+                ),
+              AppSwipeActions(
+                key: ValueKey(sales[i].clientSaleId),
+                actions: [
+                  if (sales[i].status == 'failed')
+                    AppSwipeAction(
+                      label: tr.sySwipeRetry,
+                      icon: PhosphorIconsRegular.arrowsClockwise,
+                      color: colors.primary,
+                      onTap: () => context.read<PendingSyncBloc>().add(
+                        const OnPendingSyncRetryAll(),
+                      ),
+                    ),
+                  AppSwipeAction(
+                    label: tr.sySwipeDelete,
+                    icon: PhosphorIconsRegular.trash,
+                    color: colors.danger,
+                    onTap: () => _delete(sales[i]),
+                  ),
+                ],
+                child: _SaleRow(
+                  sale: sales[i],
+                  expanded: _open.contains(sales[i].clientSaleId),
+                  onTap: () => setState(() {
+                    final id = sales[i].clientSaleId;
+                    if (!_open.remove(id)) _open.add(id);
+                  }),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SaleRow extends StatelessWidget {
+  final OfflineSaleDto sale;
+  final bool expanded;
+  final VoidCallback onTap;
+
+  const _SaleRow({
+    required this.sale,
+    required this.expanded,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+    final tr = context.tr;
+    final failed = sale.status == 'failed';
+    final id = sale.clientSaleId;
+    final short = (id.length > 8 ? id.substring(0, 8) : id).toUpperCase();
+    final reason = sale.errorMessage?.trim().isNotEmpty == true
+        ? sale.errorMessage!.trim()
+        : tr.syFailedFallback;
+    final total = double.tryParse(sale.total) ?? 0;
+
+    return Column(
+      children: [
+        Pressable(
+          onTap: onTap,
+          scale: 1,
+          child: ColoredBox(
+            color: colors.surface,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 60),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDims.s4,
+                  vertical: AppDims.s2,
+                ),
+                child: Row(
+                  children: [
+                    SalePaymentTile(method: sale.paymentMethod),
+                    const SizedBox(width: AppDims.s3),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\u2066#$short\u2069 · ${tr.syItemsCount(sale.items.length)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.bodyLarge!.copyWith(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 1),
+                            child: Text(
+                              failed
+                                  ? reason
+                                  : saleWhen(context, sale.createdAt),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: text.bodySmall!.copyWith(
+                                fontSize: 13,
+                                color: failed ? colors.danger : colors.textHint,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppDims.s2),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(
+                            saleNumber(total),
+                            style: text.bodyLarge!.copyWith(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        _StatusPill(failed: failed),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
+        ),
+        if (expanded)
+          ColoredBox(
+            color: colors.surfaceSoft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDims.s4,
+                vertical: 10,
+              ),
+              child: Column(
+                children: [
+                  for (final item in sale.items)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${item.productName} × ${saleQty(item.quantity)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: text.bodyMedium!.copyWith(
+                                fontSize: 14,
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              saleNumber(double.tryParse(item.lineTotal) ?? 0),
+                              style: text.bodyMedium!.copyWith(
+                                fontSize: 14,
+                                color: colors.textSecondary,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final bool failed;
+  const _StatusPill({required this.failed});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+    final (bg, fg) = failed
+        ? (colors.dangerContainer, colors.danger)
+        : (colors.warningContainer, colors.warning);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Text(
+          failed ? tr.syPillFailed : tr.syPillWaiting,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
         ),
       ),
     );

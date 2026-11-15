@@ -3636,4 +3636,463 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get prnOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get mrTitle => 'المزيد';
+
+  @override
+  String get mrManage => 'الإدارة';
+
+  @override
+  String get mrCustomers => 'العملاء';
+
+  @override
+  String get mrCategories => 'التصنيفات';
+
+  @override
+  String get mrSalesHistory => 'سجل المبيعات';
+
+  @override
+  String get mrReturns => 'المرتجعات';
+
+  @override
+  String get mrReports => 'التقارير';
+
+  @override
+  String get mrTeam => 'الفريق';
+
+  @override
+  String get mrBusinessGroup => 'النشاط';
+
+  @override
+  String get mrBusinessRow => 'النشاط';
+
+  @override
+  String get mrBankak => 'حساب بنكك';
+
+  @override
+  String get mrBankakSetUp => 'إعداد';
+
+  @override
+  String get mrThisDevice => 'هذا الجهاز';
+
+  @override
+  String get mrPrinter => 'طابعة الإيصالات';
+
+  @override
+  String get mrPrinterConnected => 'متصلة';
+
+  @override
+  String get mrPrinterNotConnected => 'غير متصلة';
+
+  @override
+  String get mrPrinterNotSetUp => 'غير معدّة';
+
+  @override
+  String get mrSync => 'المزامنة';
+
+  @override
+  String get mrSyncUpToDate => 'محدّث';
+
+  @override
+  String mrSyncWaiting(int count) {
+    return '$count بالانتظار';
+  }
+
+  @override
+  String get mrPreferences => 'التفضيلات';
+
+  @override
+  String get mrLanguage => 'اللغة';
+
+  @override
+  String get mrAppearance => 'المظهر';
+
+  @override
+  String get mrThemeSystem => 'النظام';
+
+  @override
+  String get mrThemeLight => 'فاتح';
+
+  @override
+  String get mrThemeDark => 'داكن';
+
+  @override
+  String get mrAnimations => 'الحركة';
+
+  @override
+  String get mrAnimAuto => 'تلقائي';
+
+  @override
+  String get mrAnimAutoHint => 'يتبع إعداد جهازك.';
+
+  @override
+  String get mrAnimOn => 'دائمًا';
+
+  @override
+  String get mrAnimOff => 'إيقاف';
+
+  @override
+  String get mrSecurity => 'الأمان';
+
+  @override
+  String get mrFaceId => 'Face ID';
+
+  @override
+  String get mrFingerprint => 'البصمة';
+
+  @override
+  String mrBiometricFoot(String method) {
+    return 'افتح التطبيق بـ $method بدل كتابة الرقم السري.';
+  }
+
+  @override
+  String get mrChangePin => 'تغيير الرقم السري';
+
+  @override
+  String get mrLockNow => 'قفل الآن';
+
+  @override
+  String get mrSupport => 'الدعم';
+
+  @override
+  String get mrContactSupport => 'تواصل مع الدعم';
+
+  @override
+  String get mrWhatsApp => 'واتساب';
+
+  @override
+  String get mrSignOut => 'تسجيل الخروج';
+
+  @override
+  String mrVersion(String version) {
+    return 'أمانة $version';
+  }
+
+  @override
+  String get mrPinOff => 'إيقاف الرقم السري على هذا الجهاز';
+
+  @override
+  String get mrPinOffTitle => 'إيقاف الرقم السري؟';
+
+  @override
+  String get mrPinOffBody =>
+      'ستسجل الدخول برمز يصل إلى هاتفك في المرة القادمة. يتوقف Face ID أيضًا.';
+
+  @override
+  String get mrPinOffAction => 'إيقاف الرقم السري';
+
+  @override
+  String get mrPinOffDone => 'تم إيقاف الرقم السري.';
+
+  @override
+  String get mrSignOutTitle => 'تسجيل الخروج من أمانة؟';
+
+  @override
+  String get mrSignOutBody =>
+      'المبيعات التي لم تتم مزامنتها ستضيع. زامن أولًا إن أمكن.';
+
+  @override
+  String get mrRoleOwner => 'المالك';
+
+  @override
+  String get mrRoleManager => 'مدير';
+
+  @override
+  String get mrRoleCashier => 'كاشير';
+
+  @override
+  String get prfTitle => 'الملف الشخصي';
+
+  @override
+  String get prfFullName => 'الاسم الكامل';
+
+  @override
+  String get prfEmail => 'البريد';
+
+  @override
+  String get prfPhone => 'الهاتف';
+
+  @override
+  String get prfRole => 'الدور';
+
+  @override
+  String get prfPhoneFoot =>
+      'رقم هاتفك هو طريقة دخولك، لذلك لا يمكن تغييره من هنا.';
+
+  @override
+  String get bkTitle => 'حساب بنكك';
+
+  @override
+  String get bkAccountNumber => 'رقم الحساب';
+
+  @override
+  String get bkAccountName => 'اسم الحساب';
+
+  @override
+  String get bkFoot =>
+      'يُطلب من العملاء الذين يدفعون ببنكك التحويل إلى هذا الحساب. يأتي الاسم من بنكك بعد الحفظ.';
+
+  @override
+  String get bkRemove => 'إزالة الحساب';
+
+  @override
+  String get bsTitle => 'النشاط';
+
+  @override
+  String get bsName => 'اسم النشاط';
+
+  @override
+  String get bsPhone => 'الهاتف';
+
+  @override
+  String get bsEmail => 'البريد';
+
+  @override
+  String get bsAddress => 'العنوان';
+
+  @override
+  String get bsShops => 'المتاجر';
+
+  @override
+  String bsShopsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count متجرًا',
+      few: '$count متاجر',
+      two: 'متجران',
+      one: 'متجر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bsTax => 'الضريبة';
+
+  @override
+  String get bsChargeTax => 'احتساب ضريبة على المبيعات';
+
+  @override
+  String get bsTaxName => 'اسم الضريبة';
+
+  @override
+  String get bsTaxRate => 'النسبة';
+
+  @override
+  String get bsTaxInclusive => 'الأسعار تشمل الضريبة';
+
+  @override
+  String get bsTaxFootOff =>
+      'تُطبق على كل عملية بيع في جميع المتاجر. تظهر الضريبة في الإيصال.';
+
+  @override
+  String get bsTaxFootOn =>
+      'إيقاف: تُضاف الضريبة فوق السعر عند الدفع. تشغيل: تُخصم الضريبة من السعر الذي حددته.';
+
+  @override
+  String get bsSaved => 'تم حفظ النشاط.';
+
+  @override
+  String get bsTaxRateInvalid => 'أدخل نسبة من 0 إلى 100.';
+
+  @override
+  String get shInactive => 'غير نشط';
+
+  @override
+  String get shAdd => 'إضافة متجر';
+
+  @override
+  String get shNew => 'متجر جديد';
+
+  @override
+  String get shEdit => 'تعديل المتجر';
+
+  @override
+  String get shName => 'اسم المتجر';
+
+  @override
+  String get shAddress => 'العنوان';
+
+  @override
+  String get shPhone => 'الهاتف';
+
+  @override
+  String get shOpenForSales => 'مفتوح للبيع';
+
+  @override
+  String get shOpenFoot =>
+      'أوقفه لإخفاء المتجر عن البيع وعن الكاشير. تبقى مبيعاته في السجل.';
+
+  @override
+  String get shSwipeDeactivate => 'إيقاف';
+
+  @override
+  String get shSwipeReactivate => 'إعادة تفعيل';
+
+  @override
+  String get shSwipeHint => 'اسحب للإيقاف أو إعادة التفعيل.';
+
+  @override
+  String shDeactivateTitle(String name) {
+    return 'إيقاف $name؟';
+  }
+
+  @override
+  String get shDeactivateBody =>
+      'لن يتمكن الكاشير هناك من البيع حتى تعيد تفعيله. تبقى مبيعاته في السجل.';
+
+  @override
+  String get shDeactivateAction => 'إيقاف';
+
+  @override
+  String get shSaved => 'تم حفظ المتجر.';
+
+  @override
+  String get shAdded => 'تمت إضافة المتجر.';
+
+  @override
+  String get nfTitle => 'الإشعارات';
+
+  @override
+  String get nfMarkAllRead => 'تحديد الكل كمقروء';
+
+  @override
+  String get nfToday => 'اليوم';
+
+  @override
+  String get nfEarlier => 'سابقًا';
+
+  @override
+  String get nfEmptyTitle => 'لا شيء جديد';
+
+  @override
+  String get nfEmptyBody => 'تظهر هنا أخبار الاشتراك والمخزون والحساب.';
+
+  @override
+  String get nfErrorTitle => 'تعذر تحميل الإشعارات';
+
+  @override
+  String get nfErrorBody => 'تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get nfDetailTitle => 'إشعار';
+
+  @override
+  String get syTitle => 'المزامنة';
+
+  @override
+  String syWaitingLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عمليات بيع بالانتظار',
+      one: 'عملية بيع بالانتظار',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syAllDoneTitle => 'كل شيء متزامن';
+
+  @override
+  String get syAllDoneBody => 'تُرسل المبيعات فور اتصالك بالإنترنت.';
+
+  @override
+  String get sySyncNow => 'زامن الآن';
+
+  @override
+  String get sySyncing => 'جارٍ المزامنة…';
+
+  @override
+  String syLastSynced(String time) {
+    return 'آخر مزامنة $time';
+  }
+
+  @override
+  String get syNeverSynced => 'لم تتم مزامنة بعد';
+
+  @override
+  String get syOffline =>
+      'أنت غير متصل. تُحفظ المبيعات على هذا الهاتف وتُرسل عند عودة الاتصال.';
+
+  @override
+  String get syWaitingHeader => 'بالانتظار';
+
+  @override
+  String get syPillFailed => 'فشلت';
+
+  @override
+  String get syPillWaiting => 'بالانتظار';
+
+  @override
+  String syItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتجًا',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sySwipeRetry => 'إعادة';
+
+  @override
+  String get sySwipeDelete => 'حذف';
+
+  @override
+  String get syFoot => 'تبقى العمليات الفاشلة هنا حتى تعيد المحاولة أو تحذفها.';
+
+  @override
+  String get syDeleteTitle => 'حذف عملية البيع هذه؟';
+
+  @override
+  String get syDeleteBody =>
+      'لم تصل إلى الخادم. الحذف نهائي ولن يُخصم المخزون.';
+
+  @override
+  String get syDeleteAction => 'حذف العملية';
+
+  @override
+  String get syFailedFallback => 'لم يقبل الخادم هذه العملية.';
+
+  @override
+  String get obCreateTitle => 'أنشئ نشاطك';
+
+  @override
+  String get obCreateBody =>
+      'هذا هو الاسم الذي يراه العملاء على الإيصالات. يمكنك تغييره لاحقًا.';
+
+  @override
+  String get obCreateAction => 'إنشاء النشاط';
+
+  @override
+  String get obCreateFoot =>
+      'بعد ذلك تضيف متجرك الأول. الضريبة والفريق يمكن أن ينتظرا.';
+
+  @override
+  String get obExpiredTitle => 'انتهت باقتك';
+
+  @override
+  String get obExpiredBody =>
+      'جدد لتواصل البيع. منتجاتك ومبيعاتك وعملاؤك بأمان.';
+
+  @override
+  String get obExpiredAction => 'تواصل معنا للتجديد';
+
+  @override
+  String get obExpiredSignOut => 'تسجيل الخروج';
+
+  @override
+  String get shpTitle => 'المتاجر';
+
+  @override
+  String get shpEmptyTitle => 'لا توجد متاجر بعد';
+
+  @override
+  String get shpEmptyBody => 'المتجر هو مكان البيع. أضف متجرك الأول للبدء.';
 }

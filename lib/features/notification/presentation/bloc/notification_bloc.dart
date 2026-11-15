@@ -17,10 +17,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   bool _isLoadingUnreadCount = false;
 
-  NotificationBloc({
-    required this.useCases,
-    required this.cacheStorage,
-  }) : super(NotificationState.initial()) {
+  NotificationBloc({required this.useCases, required this.cacheStorage})
+    : super(NotificationState.initial()) {
     on<OnNotificationInitial>(_onInit);
     on<OnLoadMoreNotifications>(_onLoadMore);
     on<OnMarkNotificationRead>(_onMarkRead);
@@ -34,7 +32,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(NotificationState.initial());
   }
 
-
   Future<void> _onInit(
     OnNotificationInitial event,
     Emitter<NotificationState> emit,
@@ -46,26 +43,24 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       return;
     }
 
-    emit(state.copyWith(
-      status: NotificationStatus.loading,
-      clearError: true,
-    ));
+    emit(state.copyWith(status: NotificationStatus.loading, clearError: true));
 
     final result = await useCases.getNotifications(page: 1);
 
     result.fold(
-      (error) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        error: error,
-      )),
+      (error) => emit(
+        state.copyWith(status: NotificationStatus.failure, error: error),
+      ),
       (response) {
-        emit(state.copyWith(
-          status: NotificationStatus.success,
-          notifications: response.results,
-          currentPage: 1,
-          hasMore: response.hasMore,
-          clearError: true,
-        ));
+        emit(
+          state.copyWith(
+            status: NotificationStatus.success,
+            notifications: response.results,
+            currentPage: 1,
+            hasMore: response.hasMore,
+            clearError: true,
+          ),
+        );
         add(const OnLoadUnreadCount());
       },
     );
@@ -84,19 +79,20 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     final result = await useCases.getNotifications(page: nextPage);
 
     result.fold(
-      (error) => emit(state.copyWith(
-        status: NotificationStatus.success,
-        error: error,
-      )),
+      (error) => emit(
+        state.copyWith(status: NotificationStatus.success, error: error),
+      ),
       (response) {
         if (!emit.isDone) {
-          emit(state.copyWith(
-            status: NotificationStatus.success,
-            notifications: [...state.notifications, ...response.results],
-            currentPage: nextPage,
-            hasMore: response.hasMore,
-            clearError: true,
-          ));
+          emit(
+            state.copyWith(
+              status: NotificationStatus.success,
+              notifications: [...state.notifications, ...response.results],
+              currentPage: nextPage,
+              hasMore: response.hasMore,
+              clearError: true,
+            ),
+          );
         }
       },
     );
@@ -106,8 +102,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     OnMarkNotificationRead event,
     Emitter<NotificationState> emit,
   ) async {
-    final wasUnread =
-        state.notifications.any((n) => n.id == event.id && !n.isRead);
+    final wasUnread = state.notifications.any(
+      (n) => n.id == event.id && !n.isRead,
+    );
     if (!wasUnread) return;
 
     final updated = state.notifications
@@ -116,23 +113,20 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
     final newCount = (state.unreadCount - 1).clamp(0, state.unreadCount);
 
-    emit(state.copyWith(
-      notifications: updated,
-      unreadCount: newCount,
-    ));
+    emit(state.copyWith(notifications: updated, unreadCount: newCount));
 
     unawaited(_persistCount(newCount));
 
     await useCases.markRead(event.id);
   }
 
-
   Future<void> _onMarkAllRead(
     OnMarkAllNotificationsRead event,
     Emitter<NotificationState> emit,
   ) async {
-    final updated =
-        state.notifications.map((n) => n.copyWith(isRead: true)).toList();
+    final updated = state.notifications
+        .map((n) => n.copyWith(isRead: true))
+        .toList();
 
     emit(state.copyWith(notifications: updated, unreadCount: 0));
 
@@ -148,8 +142,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     if (_isLoadingUnreadCount) return;
     _isLoadingUnreadCount = true;
     try {
-      if(state.unreadCountStatus == NotificationUnreadCountStatus.loading) return;
-      emit(state.copyWith(unreadCountStatus: NotificationUnreadCountStatus.loading));
+      if (state.unreadCountStatus == NotificationUnreadCountStatus.loading)
+        return;
+      emit(
+        state.copyWith(
+          unreadCountStatus: NotificationUnreadCountStatus.loading,
+        ),
+      );
 
       try {
         final raw = await cacheStorage.getValue(_kUnreadCountKey);
@@ -157,8 +156,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         if (cached != null && cached != state.unreadCount && !emit.isDone) {
           emit(state.copyWith(unreadCount: cached));
         }
-      } catch (_) {
-      }
+      } catch (_) {}
 
       final result = await useCases.getUnreadCount();
       result.fold(
@@ -176,7 +174,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       _isLoadingUnreadCount = false;
     }
   }
-
 
   Future<void> _persistCount(int count) async {
     try {
