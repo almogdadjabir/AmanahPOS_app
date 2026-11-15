@@ -7,6 +7,13 @@ abstract final class PhosphorIconsRegular {
   PhosphorIconsRegular._();
 
   static const IconData archive = IconData(0xe00c, fontFamily: 'Phosphor');
+  static const IconData addressBook = IconData(0xe6f8, fontFamily: 'Phosphor');
+  static const IconData circleHalf = IconData(0xe18c, fontFamily: 'Phosphor');
+  static const IconData cloudCheck = IconData(0xe1b0, fontFamily: 'Phosphor');
+  static const IconData gearSix = IconData(0xe272, fontFamily: 'Phosphor');
+  static const IconData lockSimple = IconData(0xe308, fontFamily: 'Phosphor');
+  static const IconData translate = IconData(0xe4a2, fontFamily: 'Phosphor');
+  static const IconData usersThree = IconData(0xe68e, fontFamily: 'Phosphor');
   static const IconData bank = IconData(0xe0b4, fontFamily: 'Phosphor');
   static const IconData headset = IconData(0xe584, fontFamily: 'Phosphor');
   static const IconData key = IconData(0xe2d6, fontFamily: 'Phosphor');
@@ -200,6 +207,12 @@ abstract final class PhosphorIconsRegular {
 
 abstract final class PhosphorIconsFill {
   PhosphorIconsFill._();
+
+  static const IconData cashRegister = IconData(
+    0xed80,
+    fontFamily: 'PhosphorFill',
+  );
+  static const IconData tag = IconData(0xe478, fontFamily: 'PhosphorFill');
 
   static const IconData checkCircle = IconData(
     0xe184,

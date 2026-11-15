@@ -7855,6 +7855,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} pending'**
   String poPendingCount(int count);
+
+  /// No description provided for @mrSalesReturns.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales & returns'**
+  String get mrSalesReturns;
+
+  /// No description provided for @mrSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get mrSettings;
+
+  /// No description provided for @mrTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get mrTheme;
 }
 
 class _AppLocalizationsDelegate

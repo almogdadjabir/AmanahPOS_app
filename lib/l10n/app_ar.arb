@@ -1519,5 +1519,8 @@
   "poSynced": "تمت المزامنة",
   "poReady": "جاهز",
   "poPendingWaiting": "{count, plural, zero{لا مبيعات تنتظر المزامنة} one{بيع واحد ينتظر المزامنة} two{بيعان ينتظران المزامنة} few{{count} مبيعات تنتظر المزامنة} many{{count} بيعًا ينتظر المزامنة} other{{count} بيع ينتظر المزامنة}}",
-  "poPendingCount": "{count} معلّق"
+  "poPendingCount": "{count} معلّق",
+  "mrSalesReturns": "المبيعات والمرتجعات",
+  "mrSettings": "الإعدادات",
+  "mrTheme": "السمة"
 }

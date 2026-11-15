@@ -141,7 +141,7 @@ class _UsersScreenState extends State<UsersScreen> {
         children: [
           AppLargeTitle(title: tr.tmTitle),
           UserStateCard(
-            icon: PhosphorIconsRegular.users,
+            icon: PhosphorIconsRegular.usersThree,
             title: tr.tmEmptyTitle,
             body: tr.tmEmptyBody,
             actionLabel: tr.tmEmptyAction,

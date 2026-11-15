@@ -19,7 +19,11 @@ class BottomNav extends StatelessWidget {
           prev.permissions != curr.permissions,
       builder: (context, state) {
         final isPremium = state.permissions.canUseInventoryInboundReceiving;
-        final tabs = buildTabs(context, state.permissions, isPremium: isPremium);
+        final tabs = buildTabs(
+          context,
+          state.permissions,
+          isPremium: isPremium,
+        );
         if (tabs.isEmpty) return const SizedBox.shrink();
         return NavShell(tabs: tabs, state: state);
       },
@@ -34,101 +38,69 @@ class BottomNav extends StatelessWidget {
     final tr = context.tr;
     final tabs = <NavTab>[];
 
-    if (perms.isOwner) {
-      if (perms.canAccessBusiness) {
-        tabs.add(NavTab(
+    // One fixed order for every role: Home (owner only), Sell, Products,
+    // Stock, More. Roles and business types only remove tabs, they never
+    // reorder them, so a tab is always where the hand expects it.
+    if (perms.isOwner && perms.canAccessBusiness) {
+      tabs.add(
+        NavTab(
           feature: AppFeature.business,
           icon: PhosphorIconsRegular.house,
           activeIcon: PhosphorIconsFill.house,
           label: tr.navHome,
-        ));
-      }
-
-      if (perms.canAccessProducts) {
-        tabs.add(NavTab(
-          feature: AppFeature.products,
-          icon: PhosphorIconsRegular.shoppingBag,
-          activeIcon: PhosphorIconsFill.shoppingBag,
-          label: tr.navProducts,
-        ));
-      }
-
-      tabs.add(NavTab(
-        feature: AppFeature.pos,
-        icon: PhosphorIconsRegular.shoppingCart,
-        activeIcon: PhosphorIconsFill.shoppingCart,
-        label: tr.navSell,
-      ));
-
-      if (perms.canAccessInventory) {
-        tabs.add(NavTab(
-          feature: AppFeature.inventory,
-          icon: PhosphorIconsRegular.package,
-          activeIcon: PhosphorIconsFill.package,
-          label: tr.navInventory,
-          showPremiumIndicator: isPremium,
-        ));
-      } else {
-        tabs.add(NavTab(
-          feature: AppFeature.users,
-          icon: PhosphorIconsRegular.userPlus,
-          activeIcon: PhosphorIconsFill.userPlus,
-          label: tr.navCashiers,
-        ));
-      }
-
-      tabs.add(NavTab(
-        feature: null,
-        icon: PhosphorIconsRegular.dotsThree,
-        activeIcon: PhosphorIconsRegular.dotsThree,
-        label: tr.navMore,
-        isMore: true,
-      ));
-    } else {
-      if (perms.canAccessProducts) {
-        tabs.add(NavTab(
-          feature: AppFeature.products,
-          icon: PhosphorIconsRegular.shoppingBag,
-          activeIcon: PhosphorIconsFill.shoppingBag,
-          label: tr.navProducts,
-        ));
-      }
-
-      if (perms.canAccessInventory) {
-        tabs.add(NavTab(
-          feature: AppFeature.inventory,
-          icon: PhosphorIconsRegular.package,
-          activeIcon: PhosphorIconsFill.package,
-          label: tr.navInventory,
-          showPremiumIndicator: isPremium,
-        ));
-      }
-
-      tabs.add(NavTab(
-        feature: AppFeature.pos,
-        icon: PhosphorIconsRegular.shoppingCart,
-        activeIcon: PhosphorIconsFill.shoppingCart,
-        label: tr.navSell,
-      ));
-
-      final directFeatures = tabs
-          .where((t) => !t.isMore && t.feature != null)
-          .map((t) => t.feature!)
-          .toSet();
-
-      final hasMore = AppFeature.values.any(
-        (f) => perms.allows(f) && !directFeatures.contains(f),
+        ),
       );
+    }
 
-      if (hasMore) {
-        tabs.add(NavTab(
+    tabs.add(
+      NavTab(
+        feature: AppFeature.pos,
+        icon: PhosphorIconsRegular.cashRegister,
+        activeIcon: PhosphorIconsFill.cashRegister,
+        label: tr.navSell,
+      ),
+    );
+
+    if (perms.canAccessProducts) {
+      tabs.add(
+        NavTab(
+          feature: AppFeature.products,
+          icon: PhosphorIconsRegular.tag,
+          activeIcon: PhosphorIconsFill.tag,
+          label: tr.navProducts,
+        ),
+      );
+    }
+
+    if (perms.canAccessInventory) {
+      tabs.add(
+        NavTab(
+          feature: AppFeature.inventory,
+          icon: PhosphorIconsRegular.package,
+          activeIcon: PhosphorIconsFill.package,
+          label: tr.navInventory,
+          showPremiumIndicator: isPremium,
+        ),
+      );
+    }
+
+    final directFeatures = tabs.map((t) => t.feature).toSet();
+    final hasMore =
+        perms.isOwner ||
+        AppFeature.values.any(
+          (f) => perms.allows(f) && !directFeatures.contains(f),
+        );
+
+    if (hasMore) {
+      tabs.add(
+        NavTab(
           feature: null,
           icon: PhosphorIconsRegular.dotsThree,
           activeIcon: PhosphorIconsRegular.dotsThree,
           label: tr.navMore,
           isMore: true,
-        ));
-      }
+        ),
+      );
     }
 
     return tabs;

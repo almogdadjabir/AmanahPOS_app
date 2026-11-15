@@ -1626,5 +1626,8 @@
   "poPendingWaiting": "{count, plural, one{1 sale waiting to sync} other{{count} sales waiting to sync}}",
   "@poPendingWaiting": {"placeholders": {"count": {"type": "int"}}},
   "poPendingCount": "{count} pending",
-  "@poPendingCount": {"placeholders": {"count": {"type": "int"}}}
+  "@poPendingCount": {"placeholders": {"count": {"type": "int"}}},
+  "mrSalesReturns": "Sales & returns",
+  "mrSettings": "Settings",
+  "mrTheme": "Theme"
 }

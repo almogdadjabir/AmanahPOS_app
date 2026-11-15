@@ -4,7 +4,6 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/business/presentation/widgets/home/home_card.dart';
-import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
@@ -13,7 +12,7 @@ import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Shops, Products, Cashiers, Sales history, Reports as an iOS grouped list.
+/// Shops, Team, Sales history, Reports as an iOS grouped list.
 class HomeManageGroup extends StatelessWidget {
   final BusinessData data;
 
@@ -21,7 +20,6 @@ class HomeManageGroup extends StatelessWidget {
 
   // Fixed tile fills: white glyphs stay readable in light and dark.
   static const _teal = AppColors.primary;
-  static const _indigo = AppColors.card;
   static const _amber = AppColors.manageAmber;
   static const _slate = AppColors.slate600;
 
@@ -30,12 +28,8 @@ class HomeManageGroup extends StatelessWidget {
     final tr = context.tr;
     final counts = data.counts;
     // Server counts when present; loaded lists only as a fallback.
-    final loadedProducts = context.select(
-      (ProductBloc b) => b.state.products.length,
-    );
     final loadedUsers = context.select((UserBloc b) => b.state.userList.length);
     final shops = counts?.shopsActive ?? data.shopCount ?? 0;
-    final products = counts?.productsActive ?? loadedProducts;
     final users = counts?.usersActive ?? loadedUsers;
     final nav = Navigator.of(context);
     final canSeeReports = context.select<AuthBloc, bool>(
@@ -61,15 +55,7 @@ class HomeManageGroup extends StatelessWidget {
               ),
               const HomeHairline(indent: 60),
               _ManageRow(
-                icon: PhosphorIconsRegular.package,
-                fill: _indigo,
-                title: tr.navProducts,
-                value: tr.homeProductsCount(products),
-                onTap: () => nav.pushNamed(RouteStrings.productScreen),
-              ),
-              const HomeHairline(indent: 60),
-              _ManageRow(
-                icon: PhosphorIconsRegular.users,
+                icon: PhosphorIconsRegular.usersThree,
                 fill: _amber,
                 title: tr.settingsCashiers,
                 value: tr.homeUsersCount(users),

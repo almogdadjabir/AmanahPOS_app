@@ -4272,4 +4272,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String poPendingCount(int count) {
     return '$count معلّق';
   }
+
+  @override
+  String get mrSalesReturns => 'المبيعات والمرتجعات';
+
+  @override
+  String get mrSettings => 'الإعدادات';
+
+  @override
+  String get mrTheme => 'السمة';
 }

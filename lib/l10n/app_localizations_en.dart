@@ -4314,4 +4314,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String poPendingCount(int count) {
     return '$count pending';
   }
+
+  @override
+  String get mrSalesReturns => 'Sales & returns';
+
+  @override
+  String get mrSettings => 'Settings';
+
+  @override
+  String get mrTheme => 'Theme';
 }

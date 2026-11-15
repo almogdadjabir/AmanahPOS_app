@@ -25,6 +25,7 @@ import 'package:amana_pos/features/returns/presentation/return_items_screen.dart
 import 'package:amana_pos/features/sales_history/presentation/reports_screen.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
 import 'package:amana_pos/features/sales_history/presentation/sales_history_screen.dart';
+import 'package:amana_pos/features/settings/presentation/app_settings_screen.dart';
 import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
 import 'package:amana_pos/features/inventory/presentation/expiry_alerts_screen.dart';
@@ -116,6 +117,12 @@ class AppRouter {
       case RouteStrings.settingsScreen:
         return _materialOrInstant(
           FeatureBlocProviders.settings(child: const SettingsScreen()),
+          settings,
+        );
+
+      case RouteStrings.appSettingsScreen:
+        return _materialOrInstant(
+          FeatureBlocProviders.settings(child: const AppSettingsScreen()),
           settings,
         );
 

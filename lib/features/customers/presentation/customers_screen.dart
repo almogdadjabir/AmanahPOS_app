@@ -161,13 +161,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
         );
       } else if (state.filter == CustomerActiveFilter.inactive) {
         body = CustomerStateCard(
-          icon: PhosphorIconsRegular.users,
+          icon: PhosphorIconsRegular.addressBook,
           title: tr.customersEmptyInactive,
           body: tr.customersEmptyInactiveMsg,
         );
       } else {
         body = CustomerStateCard(
-          icon: PhosphorIconsRegular.users,
+          icon: PhosphorIconsRegular.addressBook,
           title: tr.cuEmptyTitle,
           body: tr.cuEmptyBody,
           actionLabel: tr.cuEmptyAction,
