@@ -23,14 +23,18 @@ class MoreFooter extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          AppDims.s4, AppDims.s3, AppDims.s4, AppDims.s4),
+        AppDims.s4,
+        AppDims.s3,
+        AppDims.s4,
+        AppDims.s4,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
             bloc: getIt<OfflineStatusBloc>(),
             buildWhen: (prev, curr) =>
-            prev.connectionStatus != curr.connectionStatus ||
+                prev.connectionStatus != curr.connectionStatus ||
                 prev.bootstrapStatus != curr.bootstrapStatus ||
                 prev.salesSyncStatus != curr.salesSyncStatus ||
                 prev.pendingSalesCount != curr.pendingSalesCount,
@@ -86,24 +90,32 @@ class MoreFooter extends StatelessWidget {
                           child: OutlinedButton.icon(
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.of(context).pushNamed(
-                                  RouteStrings.pendingSyncScreen);
+                              Navigator.of(
+                                context,
+                              ).pushNamed(RouteStrings.pendingSyncScreen);
                             },
-                            icon: const Icon(PhosphorIconsRegular.receipt,
-                                size: 15),
+                            icon: const Icon(
+                              PhosphorIconsRegular.receipt,
+                              size: 15,
+                            ),
                             label: Text(
-                              context.tr.viewPendingCount(state.pendingSalesCount),
-                              style: AppTextStyles.sm300(context).copyWith(
-                                fontWeight: FontWeight.w800,
+                              context.tr.viewPendingCount(
+                                state.pendingSalesCount,
                               ),
+                              style: AppTextStyles.sm300(
+                                context,
+                              ).copyWith(fontWeight: FontWeight.w800),
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFF59E0B),
                               side: const BorderSide(
-                                  color: Color(0xFFF59E0B), width: 1.2),
+                                color: Color(0xFFF59E0B),
+                                width: 1.2,
+                              ),
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(AppDims.rMd),
+                                borderRadius: BorderRadius.circular(
+                                  AppDims.rMd,
+                                ),
                               ),
                               minimumSize: const Size(0, 40),
                             ),
@@ -114,32 +126,37 @@ class MoreFooter extends StatelessWidget {
                           onPressed: state.isBusy
                               ? null
                               : () {
-                            Navigator.of(context).pop();
-                            getIt<OfflineStatusBloc>().add(
-                              const OnOfflineStatusSyncSalesRequested(),
-                            );
-                          },
+                                  Navigator.of(context).pop();
+                                  getIt<OfflineStatusBloc>().add(
+                                    const OnOfflineStatusSyncSalesRequested(),
+                                  );
+                                },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: colors.primary,
                             side: BorderSide(
-                                color: colors.primary.withValues(alpha: 0.4)),
+                              color: colors.primary.withValues(alpha: 0.4),
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppDims.rMd),
                             ),
                             minimumSize: const Size(0, 40),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: AppDims.s3),
+                              horizontal: AppDims.s3,
+                            ),
                           ),
                           child: state.isBusy
                               ? SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colors.primary,
-                            ),
-                          )
-                              : const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colors.primary,
+                                  ),
+                                )
+                              : const Icon(
+                                  PhosphorIconsRegular.arrowsClockwise,
+                                  size: 18,
+                                ),
                         ),
                       ],
                     ),
@@ -153,13 +170,16 @@ class MoreFooter extends StatelessWidget {
 
           OutlinedButton.icon(
             onPressed: () => _confirmLogout(context),
-            icon: const Icon(PhosphorIconsRegular.signOut, size: 18, color: _red),
+            icon: const Icon(
+              PhosphorIconsRegular.signOut,
+              size: 18,
+              color: _red,
+            ),
             label: Text(
               'Sign out',
-              style: AppTextStyles.bs200(context).copyWith(
-                fontWeight: FontWeight.w800,
-                color: _red,
-              ),
+              style: AppTextStyles.bs200(
+                context,
+              ).copyWith(fontWeight: FontWeight.w800, color: _red),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: _red,
@@ -173,8 +193,8 @@ class MoreFooter extends StatelessWidget {
           const SizedBox(height: AppDims.s1),
 
           _DebugRow(
-            onCleared: () => getIt<OfflineStatusBloc>()
-                .add(const OnOfflineStatusStarted()),
+            onCleared: () =>
+                getIt<OfflineStatusBloc>().add(const OnOfflineStatusStarted()),
           ),
         ],
       ),
@@ -183,7 +203,8 @@ class MoreFooter extends StatelessWidget {
 
   Color _syncColor(BuildContext context, OfflineStatusState state) {
     final colors = context.appColors;
-    if (state.isOffline && state.canUseAppOffline) return const Color(0xFFF59E0B);
+    if (state.isOffline && state.canUseAppOffline)
+      return const Color(0xFFF59E0B);
     if (state.isOffline && !state.canUseAppOffline) return colors.danger;
     if (state.hasFailure) return colors.danger;
     if (state.pendingSalesCount > 0) return const Color(0xFFF59E0B);
@@ -207,8 +228,6 @@ class MoreFooter extends StatelessWidget {
   }
 }
 
-
-
 class _DebugRow extends StatelessWidget {
   final VoidCallback onCleared;
   const _DebugRow({required this.onCleared});
@@ -221,31 +240,28 @@ class _DebugRow extends StatelessWidget {
       onTap: () => _confirmClear(context),
       child: Row(
         children: [
-          Icon(PhosphorIconsRegular.broom,
-              size: 14, color: colors.textHint),
+          Icon(PhosphorIconsRegular.broom, size: 14, color: colors.textHint),
           const SizedBox(width: 7),
           Expanded(
             child: Text(
               'Clear local data — debug only',
-              style: AppTextStyles.bs100(context).copyWith(
-                color:      colors.textHint,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTextStyles.bs100(
+                context,
+              ).copyWith(color: colors.textHint, fontWeight: FontWeight.w700),
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 7, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
-              color:        colors.surfaceSoft,
+              color: colors.surfaceSoft,
               borderRadius: BorderRadius.circular(4),
-              border:       Border.all(color: colors.border),
+              border: Border.all(color: colors.border),
             ),
             child: Text(
               'DEBUG',
               style: AppTextStyles.bs100(context).copyWith(
-                color:         colors.textHint,
-                fontWeight:    FontWeight.w900,
+                color: colors.textHint,
+                fontWeight: FontWeight.w900,
                 letterSpacing: 0.8,
               ),
             ),
@@ -256,22 +272,23 @@ class _DebugRow extends StatelessWidget {
   }
 
   Future<void> _confirmClear(BuildContext context) async {
-    final colors    = context.appColors;
+    final colors = context.appColors;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDims.rLg)),
-        title:   const Text('Clear local data?'),
+          borderRadius: BorderRadius.circular(AppDims.rLg),
+        ),
+        title: const Text('Clear local data?'),
         content: const Text(
           'Deletes all cached data and pending offline sales. '
-              'For testing only.',
+          'For testing only.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child:     const Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -290,18 +307,17 @@ class _DebugRow extends StatelessWidget {
       await getIt<OfflineDb>().clearAllLocalOfflineData();
       onCleared();
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Local data cleared.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Local data cleared.')));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed: $e')));
     }
   }
 }
-
 
 class _LogoutDialog extends StatelessWidget {
   const _LogoutDialog();
@@ -328,7 +344,11 @@ class _LogoutDialog extends StatelessWidget {
                 color: red.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(AppDims.rLg),
               ),
-              child: const Icon(PhosphorIconsRegular.signOut, size: 26, color: red),
+              child: const Icon(
+                PhosphorIconsRegular.signOut,
+                size: 26,
+                color: red,
+              ),
             ),
             const SizedBox(height: AppDims.s4),
             Text(
@@ -341,7 +361,7 @@ class _LogoutDialog extends StatelessWidget {
             const SizedBox(height: AppDims.s2),
             Text(
               'Make sure all your sales are synced before signing out. '
-                  'Offline sales that have not synced will be lost.',
+              'Offline sales that have not synced will be lost.',
               textAlign: TextAlign.center,
               style: AppTextStyles.bs300(context).copyWith(
                 color: colors.textSecondary,

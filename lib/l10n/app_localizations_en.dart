@@ -2312,4 +2312,155 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get posNoteHint => 'What is it for?';
+
+  @override
+  String get signInTitle => 'Sign in';
+
+  @override
+  String get signInSubtitle =>
+      'Enter your mobile number. We\'ll text you a 6-digit code.';
+
+  @override
+  String get signInInvalidNumber =>
+      'Enter a valid mobile number, for example 912 345 678.';
+
+  @override
+  String get signInNeedAccess =>
+      'Need access or want to register? Contact AmanaPOS support.';
+
+  @override
+  String get countryTitle => 'Country';
+
+  @override
+  String get countrySudan => 'Sudan';
+
+  @override
+  String get countryUae => 'UAE';
+
+  @override
+  String get codeTitle => 'Enter code';
+
+  @override
+  String codeSentTo(String phone) {
+    return 'We sent a 6-digit code to $phone.';
+  }
+
+  @override
+  String get codeWrongNumber => 'Wrong number?';
+
+  @override
+  String codeResendIn(String time) {
+    return 'Resend code in $time';
+  }
+
+  @override
+  String get codeVerifying => 'Verifying…';
+
+  @override
+  String get codeVerified => 'Verified';
+
+  @override
+  String get pinCreateTitle => 'Create a PIN';
+
+  @override
+  String get pinCreateSubtitle => 'You\'ll use it to unlock AmanaPOS.';
+
+  @override
+  String get pinConfirmTitle => 'Confirm your PIN';
+
+  @override
+  String get pinConfirmSubtitle => 'Enter it once more.';
+
+  @override
+  String get pinEnterTitle => 'Enter your PIN';
+
+  @override
+  String pinWelcomeBack(String name) {
+    return 'Welcome back, $name';
+  }
+
+  @override
+  String get pinMismatch => 'PINs don\'t match. Start again.';
+
+  @override
+  String get pinWrong => 'Wrong PIN. Try again.';
+
+  @override
+  String get pinTaken => 'This PIN is already in use. Choose another.';
+
+  @override
+  String get pinUnavailable => 'Something went wrong. Try again.';
+
+  @override
+  String pinNotYou(String name) {
+    return 'Not $name?';
+  }
+
+  @override
+  String get pinUseDifferentAccount => 'Use a different account';
+
+  @override
+  String get pinForgot => 'Forgot your PIN?';
+
+  @override
+  String get pinLockedTitle => 'Too many attempts';
+
+  @override
+  String pinLockedSubtitle(String time) {
+    return 'Try again in $time.';
+  }
+
+  @override
+  String get pinCurrentTitle => 'Enter current PIN';
+
+  @override
+  String get pinCurrentSubtitle =>
+      'Confirm it\'s you before changing your PIN.';
+
+  @override
+  String get pinNewTitle => 'New PIN';
+
+  @override
+  String get pinNewSubtitle => 'Choose a new 4-digit PIN.';
+
+  @override
+  String get pinConfirmNewTitle => 'Confirm new PIN';
+
+  @override
+  String get pinUpdated => 'PIN updated.';
+
+  @override
+  String get pinBiometricFace => 'Face ID';
+
+  @override
+  String get pinBiometricFingerprint => 'Fingerprint';
+
+  @override
+  String get pinBiometricGeneric => 'Biometrics';
+
+  @override
+  String get pinBiometricReason => 'Unlock AmanaPOS';
+
+  @override
+  String pinBiometricEnableTitle(String method) {
+    return 'Use $method to unlock?';
+  }
+
+  @override
+  String get pinBiometricEnableBody =>
+      'Unlock AmanaPOS in a glance. Your PIN still works any time.';
+
+  @override
+  String pinBiometricEnable(String method) {
+    return 'Turn on $method';
+  }
+
+  @override
+  String get pinBiometricNotNow => 'Not now';
+
+  @override
+  String get menuLock => 'Lock';
+
+  @override
+  String get commonLoading => 'Loading';
 }

@@ -14,7 +14,12 @@ class PinVaultService {
   Future<Map<String, dynamic>> _read() async {
     final raw = await _cache.getObject(_key);
     if (raw is Map) return raw.cast<String, dynamic>();
-    return {'version': 1, 'lockedUntil': null, 'failedAttempts': 0, 'users': []};
+    return {
+      'version': 1,
+      'lockedUntil': null,
+      'failedAttempts': 0,
+      'users': [],
+    };
   }
 
   Future<void> _write(Map<String, dynamic> vault) async {
@@ -23,7 +28,9 @@ class PinVaultService {
 
   List<PinUserRecord> _users(Map<String, dynamic> vault) =>
       ((vault['users'] as List?) ?? const [])
-          .map((e) => PinUserRecord.fromJson((e as Map).cast<String, dynamic>()))
+          .map(
+            (e) => PinUserRecord.fromJson((e as Map).cast<String, dynamic>()),
+          )
           .toList();
 
   Future<bool> hasAnyEnrolled() async => _users(await _read()).isNotEmpty;
@@ -52,7 +59,9 @@ class PinVaultService {
     for (var i = 0; i < users.length; i++) {
       final u = users[i];
       if (PinHasher.hashPin(pin, u.pinSalt) == u.pinHash) {
-        final updated = u.copyWith(lastUnlockAt: DateTime.now().toIso8601String());
+        final updated = u.copyWith(
+          lastUnlockAt: DateTime.now().toIso8601String(),
+        );
         users[i] = updated;
         vault['users'] = users.map((e) => e.toJson()).toList();
         vault['failedAttempts'] = 0;
@@ -64,6 +73,26 @@ class PinVaultService {
     return null;
   }
 
+  Future<List<PinUserRecord>> allUsers() async => _users(await _read());
+
+  /// Unlocks [userId] after the device biometric succeeded: same bookkeeping
+  /// as a correct PIN (stamps the unlock, clears failed attempts).
+  Future<PinUserRecord?> unlockUser(String userId) async {
+    final vault = await _read();
+    final users = _users(vault);
+    final i = users.indexWhere((u) => u.userId == userId);
+    if (i < 0) return null;
+    final updated = users[i].copyWith(
+      lastUnlockAt: DateTime.now().toIso8601String(),
+    );
+    users[i] = updated;
+    vault['users'] = users.map((e) => e.toJson()).toList();
+    vault['failedAttempts'] = 0;
+    vault['lockedUntil'] = null;
+    await _write(vault);
+    return updated;
+  }
+
   Future<void> recordFailedAttempt() async {
     final vault = await _read();
     final attempts = ((vault['failedAttempts'] as int?) ?? 0) + 1;
@@ -71,8 +100,9 @@ class PinVaultService {
     if (attempts % 5 == 0) {
       final idx = (attempts ~/ 5) - 1;
       final secs = _escalation[idx.clamp(0, _escalation.length - 1)];
-      vault['lockedUntil'] =
-          DateTime.now().add(Duration(seconds: secs)).toIso8601String();
+      vault['lockedUntil'] = DateTime.now()
+          .add(Duration(seconds: secs))
+          .toIso8601String();
     }
     await _write(vault);
   }

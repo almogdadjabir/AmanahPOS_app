@@ -13,19 +13,13 @@ class SplashState extends Equatable {
   final SplashStatus status;
   final String? errorMessage;
 
-  const SplashState({
-    this.status = SplashStatus.initial,
-    this.errorMessage,
-  });
+  const SplashState({this.status = SplashStatus.initial, this.errorMessage});
 
   const SplashState.initial()
-      : status = SplashStatus.initial,
-        errorMessage = null;
+    : status = SplashStatus.initial,
+      errorMessage = null;
 
-  SplashState copyWith({
-    SplashStatus? status,
-    String? errorMessage,
-  }) {
+  SplashState copyWith({SplashStatus? status, String? errorMessage}) {
     return SplashState(
       status: status ?? this.status,
       errorMessage: errorMessage,
@@ -33,8 +27,5 @@ class SplashState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-    status,
-    errorMessage,
-  ];
+  List<Object?> get props => [status, errorMessage];
 }

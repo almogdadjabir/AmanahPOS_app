@@ -48,47 +48,44 @@ class AppRouter {
     switch (settings.name) {
       case RouteStrings.splash:
         return _buildRoute(
-          FeatureBlocProviders.splash(
-            child: const SplashScreen(),
-          ),
+          FeatureBlocProviders.splash(child: const SplashScreen()),
           settings,
         );
       case RouteStrings.login:
-        return _buildRoute(
-          FeatureBlocProviders.login(
-            child: const LoginScreen(),
-          ),
+        return _fadeRoute(
+          FeatureBlocProviders.login(child: const LoginScreen()),
           settings,
         );
       case RouteStrings.registration:
         return _buildRoute(
-          FeatureBlocProviders.registration(
-            child: const RegistrationScreen(),
-          ),
+          FeatureBlocProviders.registration(child: const RegistrationScreen()),
           settings,
         );
       case RouteStrings.mainScreen:
-        return _buildRoute(const MainScreen(), settings);
+        return _fadeRoute(const MainScreen(), settings);
       case RouteStrings.businessDetailScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final BusinessData businessData = args?['businessData'] as BusinessData;
-        return _buildRoute(BusinessDetailScreen(business: businessData), settings);
+        return _buildRoute(
+          BusinessDetailScreen(business: businessData),
+          settings,
+        );
       case RouteStrings.shopDetailScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final String businessId = args?['businessId'] as String;
         final ShopData shop = args?['shop'] as ShopData;
 
-        return _buildRoute(ShopDetailScreen(businessId: businessId, shop: shop), settings);
+        return _buildRoute(
+          ShopDetailScreen(businessId: businessId, shop: shop),
+          settings,
+        );
       case RouteStrings.userDetailScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final UserData user = args?['user'] as UserData;
 
         return _buildRoute(UserDetailScreen(user: user), settings);
       case RouteStrings.productScreen:
-        return _materialOrInstant(
-          ProductsScreen(isWithAppbar: true),
-          settings,
-        );
+        return _materialOrInstant(ProductsScreen(isWithAppbar: true), settings);
 
       case RouteStrings.cashiersScreen:
         return _materialOrInstant(
@@ -99,9 +96,7 @@ class AppRouter {
       case RouteStrings.shopManagementScreen:
         final args = settings.arguments as Map<String, dynamic>;
         return _materialOrInstant(
-          ShopManagementScreen(
-            business: args['businessData'] as BusinessData,
-          ),
+          ShopManagementScreen(business: args['businessData'] as BusinessData),
           settings,
         );
 
@@ -109,26 +104,19 @@ class AppRouter {
         final args = settings.arguments as Map<String, dynamic>;
         return _materialOrInstant(
           FeatureBlocProviders.inventory(
-            child: ProductDetailScreen(
-              product: args['product'] as ProductData,
-            ),
+            child: ProductDetailScreen(product: args['product'] as ProductData),
           ),
           settings,
         );
 
       case RouteStrings.settingsScreen:
         return _materialOrInstant(
-          FeatureBlocProviders.settings(
-            child: const SettingsScreen(),
-          ),
+          FeatureBlocProviders.settings(child: const SettingsScreen()),
           settings,
         );
 
       case RouteStrings.notificationsScreen:
-        return _materialOrInstant(
-          const NotificationsScreen(),
-          settings,
-        );
+        return _materialOrInstant(const NotificationsScreen(), settings);
 
       case RouteStrings.barcodeScannerScreen:
         // Typed so callers can `pushNamed<String>` and receive the code.
@@ -141,9 +129,7 @@ class AppRouter {
 
       case RouteStrings.expiryAlertsScreen:
         return _materialOrInstant(
-          FeatureBlocProviders.expiryAlerts(
-            child: const ExpiryAlertsScreen(),
-          ),
+          FeatureBlocProviders.expiryAlerts(child: const ExpiryAlertsScreen()),
           settings,
         );
 
@@ -158,9 +144,7 @@ class AppRouter {
 
       case RouteStrings.salesHistoryScreen:
         return _buildRoute(
-          FeatureBlocProviders.salesHistory(
-            child: const SalesHistoryScreen(),
-          ),
+          FeatureBlocProviders.salesHistory(child: const SalesHistoryScreen()),
           settings,
         );
 
@@ -169,7 +153,7 @@ class AppRouter {
 
       case RouteStrings.pinSetupScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        return _buildRoute(
+        return _fadeRoute(
           FeatureBlocProviders.pinSetup(
             user: args['user'] as User,
             tokens: args['tokens'] as EnrollTokens,
@@ -179,8 +163,16 @@ class AppRouter {
         );
 
       case RouteStrings.pinUnlockScreen:
-        return _buildRoute(
-          FeatureBlocProviders.pinUnlock(child: const PinUnlockScreen()),
+        return _fadeRoute(
+          FeatureBlocProviders.pinUnlock(
+            child: PinUnlockScreen(
+              autoBiometric:
+                  (settings.arguments
+                          as Map<String, dynamic>?)?['autoBiometric']
+                      as bool? ??
+                  true,
+            ),
+          ),
           settings,
         );
 
@@ -230,6 +222,24 @@ class AppRouter {
     return MaterialPageRoute<T>(builder: (_) => child, settings: settings);
   }
 
+  /// Cross-dissolve for screens that replace the whole stack (launch, sign-in,
+  /// PIN, home). iOS never slides a root screen in. The duration lets the
+  /// shared mark Hero finish its flight from the splash.
+  PageRoute _fadeRoute(Widget child, RouteSettings settings) {
+    if (!Motion.on) return _instantRoute(child, settings);
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            child: child,
+          ),
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 250),
+    );
+  }
+
   PageRoute _buildRoute(Widget child, RouteSettings settings) {
     if (!Motion.on) {
       return _instantRoute(child, settings);
@@ -252,7 +262,10 @@ class AppRouter {
         const end = Offset.zero;
         const curve = Curves.easeInOut;
 
-        final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
         final offsetAnimation = animation.drive(tween);
 
         return SlideTransition(position: offsetAnimation, child: child);
@@ -260,7 +273,6 @@ class AppRouter {
       transitionDuration: _defaultTransitionDuration,
     );
   }
-
 }
 
 class SlidePageRoute extends PageRoute {

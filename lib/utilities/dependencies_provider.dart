@@ -17,6 +17,7 @@ import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/sync/sync_manager.dart';
 import 'package:amana_pos/features/dashboard/data/datasources/dashboard_local_data_source.dart';
+import 'package:amana_pos/features/pin/data/biometric_unlock_service.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/features/devices/data/datasources/ble_printer_channel.dart';
 import 'package:amana_pos/features/devices/data/datasources/bluetooth_printer_channel.dart';
@@ -83,6 +84,12 @@ class DependenciesProvider {
     getIt.registerLazySingleton<CacheStorage>(() => CacheStorage());
     getIt.registerLazySingleton<PinVaultService>(
       () => PinVaultService(getIt<CacheStorage>()),
+    );
+    getIt.registerLazySingleton<BiometricUnlockService>(
+      () => BiometricUnlockService(
+        cache: getIt<CacheStorage>(),
+        vault: getIt<PinVaultService>(),
+      ),
     );
     getIt.registerLazySingleton<AppRouter>(() => AppRouter());
 

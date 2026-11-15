@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nile Ledger light background (#F6F4EF). Keep in sync with
+         LaunchScreen.storyboard (SplashBackground) and the Flutter splash. -->
+    <color name="splash_background">#F6F4EF</color>
+</resources>

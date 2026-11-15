@@ -79,6 +79,10 @@ abstract final class PhosphorIconsRegular {
   static const IconData eye = IconData(0xe220, fontFamily: 'Phosphor');
   static const IconData eyeSlash = IconData(0xe224, fontFamily: 'Phosphor');
   static const IconData fileText = IconData(0xe23a, fontFamily: 'Phosphor');
+  static const IconData fingerprintSimple = IconData(
+    0xe240,
+    fontFamily: 'Phosphor',
+  );
   static const IconData gear = IconData(0xe270, fontFamily: 'Phosphor');
   static const IconData gift = IconData(0xe276, fontFamily: 'Phosphor');
   static const IconData globe = IconData(0xe288, fontFamily: 'Phosphor');

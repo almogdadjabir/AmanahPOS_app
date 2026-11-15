@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -42,8 +43,9 @@ class _OTPInputSquareState extends State<OTPInputSquare>
 
   // Horizontal shake offset: sine wave over animation progress
   double get _shakeOffset =>
-      sin(_shakeController.value * pi * 5) * 10 *
-          (1 - _shakeController.value); // dampens toward end
+      sin(_shakeController.value * pi * 5) *
+      10 *
+      (1 - _shakeController.value); // dampens toward end
 
   @override
   void initState() {
@@ -52,6 +54,8 @@ class _OTPInputSquareState extends State<OTPInputSquare>
     _lastReported = widget.state;
     _focusNode = FocusNode();
     _controller.addListener(_onInput);
+    _controller.addListener(_rebuild);
+    _focusNode.addListener(_rebuild);
 
     _shakeController = AnimationController(
       vsync: this,
@@ -69,7 +73,11 @@ class _OTPInputSquareState extends State<OTPInputSquare>
 
     // ── Shake only when error first appears, never when clearing ──
     if (!oldWidget.hasError && widget.hasError) {
-      _shakeController.forward(from: 0);
+      HapticFeedback.heavyImpact();
+      if (Motion.on) _shakeController.forward(from: 0);
+    }
+    if (!oldWidget.isOTPMatched && widget.isOTPMatched) {
+      HapticFeedback.mediumImpact();
     }
 
     if (oldWidget.state == widget.state) return;
@@ -104,6 +112,10 @@ class _OTPInputSquareState extends State<OTPInputSquare>
     super.dispose();
   }
 
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
   void _onInput() {
     if (!mounted) return;
 
@@ -111,6 +123,7 @@ class _OTPInputSquareState extends State<OTPInputSquare>
     if (text.length < _otpLength) _completed = false;
 
     if (text != _lastReported) {
+      if (text.length > _lastReported.length) HapticFeedback.selectionClick();
       _lastReported = text;
       widget.onChanged(text);
     }
@@ -131,23 +144,30 @@ class _OTPInputSquareState extends State<OTPInputSquare>
 
   @override
   Widget build(BuildContext context) {
-    return AutofillGroup(
-      child: AnimatedBuilder(
-        animation: _shakeController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(_shakeOffset, 0), // horizontal only, never rotates
-            child: child,
-          );
-        },
-        child: Stack(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_otpLength, (i) => _buildDigitBox(context, i)),
-            ),
-            _buildHiddenTextField(),
-          ],
+    // Digits always run left to right, in Arabic too.
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: AutofillGroup(
+        child: AnimatedBuilder(
+          animation: _shakeController,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(_shakeOffset, 0), // horizontal only, never rotates
+              child: child,
+            );
+          },
+          child: Stack(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _otpLength,
+                  (i) => _buildDigitBox(context, i),
+                ),
+              ),
+              _buildHiddenTextField(),
+            ],
+          ),
         ),
       ),
     );
@@ -176,51 +196,51 @@ class _OTPInputSquareState extends State<OTPInputSquare>
 
   Widget _buildDigitBox(BuildContext context, int index) {
     final colors = context.appColors;
-    final digit =
-    index < _controller.text.length ? _controller.text[index] : '';
-    final isFilled = digit.isNotEmpty;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final digit = index < _controller.text.length
+        ? _controller.text[index]
+        : '';
+    final isActive =
+        _focusNode.hasFocus &&
+        !widget.hasError &&
+        !widget.isOTPMatched &&
+        index == _controller.text.length.clamp(0, _otpLength - 1);
+
+    final Color border = widget.hasError
+        ? colors.danger
+        : isActive
+        ? colors.primary
+        : dark
+        ? colors.border
+        : Colors.transparent;
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: widget.is6Digit ? AppDims.s1 : AppDims.s2,
+        horizontal: widget.is6Digit ? 4 : AppDims.s2,
       ),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: Motion.duration(AppDims.medium),
         width: widget.is6Digit ? 46 : 56,
-        height: 60,
+        height: 58,
         decoration: BoxDecoration(
           color: _boxColor(colors),
           borderRadius: AppDims.borderMd,
-          border: Border.all(color: _borderColor(colors), width: 1.5),
-          boxShadow: isFilled && !widget.hasError && !widget.isOTPMatched
-              ? [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.12),
-              blurRadius: 0,
-              spreadRadius: 3,
-            ),
-          ]
-              : null,
+          border: Border.all(color: border, width: 1.5),
         ),
         alignment: Alignment.center,
         child: Text(
           digit,
           style: TextStyle(
             fontFamily: AppTextStyles.fontFamily,
-            fontSize: widget.is6Digit ? 22 : 26,
-            fontWeight: AppTextStyles.extraBold,
+            fontSize: 26,
+            height: 1,
+            fontWeight: AppTextStyles.semibold,
+            fontFeatures: AppTextStyles.tabularFigures,
             color: _textColor(colors),
           ),
         ),
       ),
     );
-  }
-
-  Color _borderColor(AppThemeColors colors) {
-    if (widget.hasError) return colors.danger;
-    if (widget.isOTPMatched) return colors.success;
-    if (widget.isLoading) return colors.primary;
-    return colors.border;
   }
 
   Color _boxColor(AppThemeColors colors) {

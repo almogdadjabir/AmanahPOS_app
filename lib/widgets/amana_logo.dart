@@ -18,12 +18,53 @@ class AmanaPosLogoMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox.square(
       dimension: size,
-      child: SvgPicture.asset(AppAssets.amanaMark, width: size, height: size),
+      child: SvgPicture.asset(
+        AppAssets.amanaMark,
+        width: size,
+        height: size,
+        colorMapper: dark
+            ? const _MarkColors.dark()
+            : const _MarkColors.light(),
+      ),
     );
   }
 }
+
+/// The two greens of the mark, swapped for the brighter pair on dark.
+/// The light pair is the file's own colours, so it needs no mapping.
+class _MarkColors extends ColorMapper {
+  const _MarkColors.light() : _dark = false;
+  const _MarkColors.dark() : _dark = true;
+
+  final bool _dark;
+
+  @override
+  Color substitute(
+    String? id,
+    String elementName,
+    String attributeName,
+    Color color,
+  ) {
+    if (!_dark) return color;
+    if (color == const Color(0xFF0A574E)) return const Color(0xFF4CC2B0);
+    if (color == const Color(0xFF04413C)) return const Color(0xFF2E8F81);
+    return color;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _MarkColors && other._dark == _dark;
+
+  @override
+  int get hashCode => _dark.hashCode;
+}
+
+/// Tag shared by the splash mark and the sign-in mark so the mark glides from
+/// the launch screen into its place on the next screen.
+const amanaMarkHeroTag = 'amana-mark';
 
 class AmanaPosLogo extends StatelessWidget {
   const AmanaPosLogo({
@@ -48,12 +89,7 @@ class AmanaPosLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // AmanaPosLogoMark(size: markSize),
-        SvgPicture.asset(
-          AppAssets.amanaMark,
-          width: markSize,
-          height: markSize,
-        ),
+        AmanaPosLogoMark(size: markSize),
         if (showArabicName) ...[
           SizedBox(width: gap),
           Text(

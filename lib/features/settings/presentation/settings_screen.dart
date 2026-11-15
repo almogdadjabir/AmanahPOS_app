@@ -38,12 +38,12 @@ class SettingsScreen extends StatelessWidget {
 
     return BlocListener<SettingsBloc, SettingsState>(
       listenWhen: (previous, current) =>
-      previous.submitStatus != current.submitStatus ||
+          previous.submitStatus != current.submitStatus ||
           previous.passwordStatus != current.passwordStatus,
       listener: _onSettingsStateChanged,
       child: BlocBuilder<AuthBloc, AuthState>(
         buildWhen: (previous, current) =>
-        previous.profile != current.profile ||
+            previous.profile != current.profile ||
             previous.authStatus != current.authStatus ||
             previous.defaultBusiness != current.defaultBusiness,
         builder: (context, authState) {
@@ -71,10 +71,7 @@ class SettingsScreen extends StatelessWidget {
 
     if (state.submitStatus == SettingsSubmitStatus.success) {
       Navigator.of(context).maybePop();
-      GlobalSnackBar.show(
-        message: tr.profileUpdatedSuccess,
-        isInfo: true,
-      );
+      GlobalSnackBar.show(message: tr.profileUpdatedSuccess, isInfo: true);
     }
 
     if (state.submitStatus == SettingsSubmitStatus.failure) {
@@ -87,10 +84,7 @@ class SettingsScreen extends StatelessWidget {
 
     if (state.passwordStatus == SettingsSubmitStatus.success) {
       Navigator.of(context).maybePop();
-      GlobalSnackBar.show(
-        message: tr.passwordUpdatedSuccess,
-        isInfo: true,
-      );
+      GlobalSnackBar.show(message: tr.passwordUpdatedSuccess, isInfo: true);
     }
 
     if (state.passwordStatus == SettingsSubmitStatus.failure) {
@@ -162,6 +156,9 @@ class _MobileSettingsScreen extends StatelessWidget {
               _SupportSection(),
               const SizedBox(height: AppDims.s6),
 
+              _LockButton(),
+              const SizedBox(height: AppDims.s2),
+
               _SignOutButton(),
               const SizedBox(height: AppDims.s6),
             ],
@@ -217,7 +214,9 @@ class _ManageSection extends StatelessWidget {
               title: tr.settingsSalesHistory,
               subtitle: tr.settingsSalesHistorySubtitle,
               onTap: () {
-                Navigator.of(context).pushNamed(RouteStrings.salesHistoryScreen);
+                Navigator.of(
+                  context,
+                ).pushNamed(RouteStrings.salesHistoryScreen);
               },
             ),
           ],
@@ -253,8 +252,9 @@ class _DevicesSection extends StatelessWidget {
                   trailing: printer != null && state.status.isConnected
                       ? tr.commonActive
                       : null,
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(RouteStrings.printerSettingsScreen),
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pushNamed(RouteStrings.printerSettingsScreen),
                 );
               },
             ),
@@ -269,10 +269,7 @@ class _AccountSection extends StatelessWidget {
   final User profile;
   final bool isOwner;
 
-  const _AccountSection({
-    required this.profile,
-    required this.isOwner,
-  });
+  const _AccountSection({required this.profile, required this.isOwner});
 
   @override
   Widget build(BuildContext context) {
@@ -345,14 +342,17 @@ Future<void> _confirmDisablePin(BuildContext context, String? userId) async {
     builder: (ctx) => AlertDialog(
       title: const Text('Disable PIN?'),
       content: const Text(
-          'You\'ll sign in with your phone number next time instead of a PIN.'),
+        'You\'ll sign in with your phone number next time instead of a PIN.',
+      ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel')),
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('Cancel'),
+        ),
         TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Disable')),
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text('Disable'),
+        ),
       ],
     ),
   );
@@ -389,9 +389,9 @@ class _AppearanceSection extends StatelessWidget {
         const SizedBox(height: AppDims.s4),
         Text(
           tr.settingsAnimations,
-          style: AppTextStyles.bs200(context).copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: AppTextStyles.bs200(
+            context,
+          ).copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: AppDims.s2),
         BlocSelector<ThemeBloc, ThemeState, AnimationPreference>(
@@ -405,18 +405,18 @@ class _AppearanceSection extends StatelessWidget {
                   selected: pref,
                   onSelected: (p) {
                     if (p == pref) return;
-                    context
-                        .read<ThemeBloc>()
-                        .add(OnAnimationsPreferenceChanged(p));
+                    context.read<ThemeBloc>().add(
+                      OnAnimationsPreferenceChanged(p),
+                    );
                   },
                 ),
                 if (pref == AnimationPreference.auto) ...[
                   const SizedBox(height: AppDims.s1),
                   Text(
                     tr.settingsAnimationsAutoSubtitle,
-                    style: AppTextStyles.bs100(context).copyWith(
-                      color: context.appColors.textSecondary,
-                    ),
+                    style: AppTextStyles.bs100(
+                      context,
+                    ).copyWith(color: context.appColors.textSecondary),
                   ),
                 ],
               ],
@@ -469,6 +469,38 @@ class _SupportSection extends StatelessWidget {
   }
 }
 
+/// Back to the PIN screen without signing out: the session stays on the
+/// device and the PIN (or Face ID) brings it back.
+class _LockButton extends StatelessWidget {
+  const _LockButton();
+
+  Future<void> _lock(BuildContext context) async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (!await getIt<PinVaultService>().hasAnyEnrolled()) return;
+    navigator.pushNamedAndRemoveUntil(
+      RouteStrings.pinUnlockScreen,
+      (route) => false,
+      arguments: {'autoBiometric': false},
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return TextButton.icon(
+      onPressed: () => _lock(context),
+      icon: Icon(PhosphorIconsRegular.lock, size: 18, color: colors.primary),
+      label: Text(
+        context.tr.menuLock,
+        style: AppTextStyles.bs200(
+          context,
+        ).copyWith(fontWeight: FontWeight.w800, color: colors.primary),
+      ),
+    );
+  }
+}
+
 class _SignOutButton extends StatelessWidget {
   const _SignOutButton();
 
@@ -479,17 +511,12 @@ class _SignOutButton extends StatelessWidget {
 
     return TextButton.icon(
       onPressed: () => confirmLogout(context),
-      icon: Icon(
-        PhosphorIconsRegular.signOut,
-        size: 18,
-        color: colors.danger,
-      ),
+      icon: Icon(PhosphorIconsRegular.signOut, size: 18, color: colors.danger),
       label: Text(
         tr.settingsSignOut,
-        style: AppTextStyles.bs200(context).copyWith(
-          fontWeight: FontWeight.w800,
-          color: colors.danger,
-        ),
+        style: AppTextStyles.bs200(
+          context,
+        ).copyWith(fontWeight: FontWeight.w800, color: colors.danger),
       ),
     );
   }

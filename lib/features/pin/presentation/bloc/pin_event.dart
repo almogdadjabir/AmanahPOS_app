@@ -20,3 +20,9 @@ class PinCleared extends PinEvent {
 class PinLockoutTicked extends PinEvent {
   const PinLockoutTicked();
 }
+
+/// The device biometric confirmed the person; unlock [userId] without a PIN.
+class PinBiometricUnlocked extends PinEvent {
+  final String userId;
+  const PinBiometricUnlocked(this.userId);
+}

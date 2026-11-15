@@ -1,11 +1,12 @@
 import 'dart:math';
 
+import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// The four PIN dots. Filled dots glow emerald — the same gesture as the
-/// splash progress beam, now driven by the person typing. Shakes once when an
-/// error first appears (mirrors the OTP field), never when clearing.
+/// The four passcode dots: rings that fill as digits are typed, red with a
+/// shake on a wrong PIN, brand colour on success. Always left to right.
 class PinDots extends StatefulWidget {
   const PinDots({
     super.key,
@@ -24,24 +25,21 @@ class PinDots extends StatefulWidget {
   State<PinDots> createState() => _PinDotsState();
 }
 
-class _PinDotsState extends State<PinDots>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _shake;
-
-  @override
-  void initState() {
-    super.initState();
-    _shake = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    );
-  }
+class _PinDotsState extends State<PinDots> with SingleTickerProviderStateMixin {
+  late final AnimationController _shake = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  );
 
   @override
   void didUpdateWidget(PinDots oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.hasError && !oldWidget.hasError) {
-      _shake.forward(from: 0);
+      HapticFeedback.heavyImpact();
+      if (Motion.on) _shake.forward(from: 0);
+    }
+    if (widget.success && !oldWidget.success) {
+      HapticFeedback.mediumImpact();
     }
   }
 
@@ -51,74 +49,76 @@ class _PinDotsState extends State<PinDots>
     super.dispose();
   }
 
-  double get _offset =>
-      sin(_shake.value * pi * 5) * 10 * (1 - _shake.value);
+  double get _offset => sin(_shake.value * pi * 5) * 8 * (1 - _shake.value);
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _shake,
-      builder: (context, child) =>
-          Transform.translate(offset: Offset(_offset, 0), child: child),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(widget.length, (i) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 11),
-            child: _Dot(
-              filled: i < widget.filledCount,
-              hasError: widget.hasError,
-              success: widget.success,
+    final colors = context.appColors;
+    final fill = widget.hasError
+        ? colors.danger
+        : widget.success
+        ? colors.primary
+        : colors.textPrimary;
+    final ring = widget.hasError
+        ? colors.danger
+        : widget.success
+        ? colors.primary
+        : colors.textSecondary;
+
+    return Semantics(
+      label: '${widget.filledCount}/${widget.length}',
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: AnimatedBuilder(
+          animation: _shake,
+          builder: (context, child) =>
+              Transform.translate(offset: Offset(_offset, 0), child: child),
+          child: SizedBox(
+            height: 16,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < widget.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 22),
+                  _Dot(
+                    filled:
+                        widget.hasError ||
+                        widget.success ||
+                        i < widget.filledCount,
+                    fill: fill,
+                    ring: ring,
+                  ),
+                ],
+              ],
             ),
-          );
-        }),
+          ),
+        ),
       ),
     );
   }
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({
-    required this.filled,
-    required this.hasError,
-    required this.success,
-  });
+  const _Dot({required this.filled, required this.fill, required this.ring});
 
   final bool filled;
-  final bool hasError;
-  final bool success;
+  final Color fill;
+  final Color ring;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final Color active =
-        hasError ? colors.danger : (success ? colors.success : colors.primary);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      width: filled ? 18 : 14,
-      height: filled ? 18 : 14,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: filled ? active : Colors.transparent,
-        border: filled
-            ? null
-            : Border.all(
-                color: hasError
-                    ? colors.danger.withValues(alpha: 0.6)
-                    : colors.border,
-                width: 1.5,
-              ),
-        boxShadow: filled
-            ? [
-                BoxShadow(
-                  color: active.withValues(alpha: 0.45),
-                  blurRadius: 10,
-                  spreadRadius: 0.5,
-                ),
-              ]
-            : null,
+    return AnimatedScale(
+      scale: filled ? 1.08 : 1,
+      duration: Motion.duration(const Duration(milliseconds: 120)),
+      child: AnimatedContainer(
+        duration: Motion.duration(const Duration(milliseconds: 120)),
+        width: 14,
+        height: 14,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: filled ? fill : Colors.transparent,
+          border: Border.all(color: filled ? fill : ring, width: 1.5),
+        ),
       ),
     );
   }

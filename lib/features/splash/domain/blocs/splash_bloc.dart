@@ -13,17 +13,15 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   final CacheStorage cacheStorage;
   final PinVaultService vault;
 
-  SplashBloc({
-    required this.cacheStorage,
-    required this.vault,
-  }) : super(const SplashState.initial()) {
+  SplashBloc({required this.cacheStorage, required this.vault})
+    : super(const SplashState.initial()) {
     on<SplashStarted>(_onSplashStarted);
   }
 
   Future<void> _onSplashStarted(
-      SplashStarted event,
-      Emitter<SplashState> emit,
-      ) async {
+    SplashStarted event,
+    Emitter<SplashState> emit,
+  ) async {
     emit(state.copyWith(status: SplashStatus.loading));
 
     try {

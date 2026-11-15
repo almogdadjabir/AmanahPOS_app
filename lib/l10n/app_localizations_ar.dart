@@ -2294,4 +2294,153 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posNoteHint => 'ما سبب هذا المبلغ؟';
+
+  @override
+  String get signInTitle => 'تسجيل الدخول';
+
+  @override
+  String get signInSubtitle =>
+      'أدخل رقم هاتفك المحمول. سنرسل لك رمزًا من 6 أرقام.';
+
+  @override
+  String get signInInvalidNumber => 'أدخل رقم هاتف صحيحًا، مثال 912 345 678.';
+
+  @override
+  String get signInNeedAccess =>
+      'تحتاج إلى صلاحية أو تريد التسجيل؟ تواصل مع دعم أمانة.';
+
+  @override
+  String get countryTitle => 'الدولة';
+
+  @override
+  String get countrySudan => 'السودان';
+
+  @override
+  String get countryUae => 'الإمارات';
+
+  @override
+  String get codeTitle => 'أدخل الرمز';
+
+  @override
+  String codeSentTo(String phone) {
+    return 'أرسلنا رمزًا من 6 أرقام إلى $phone.';
+  }
+
+  @override
+  String get codeWrongNumber => 'رقم خاطئ؟';
+
+  @override
+  String codeResendIn(String time) {
+    return 'إعادة الإرسال خلال $time';
+  }
+
+  @override
+  String get codeVerifying => 'جارٍ التحقق…';
+
+  @override
+  String get codeVerified => 'تم التحقق';
+
+  @override
+  String get pinCreateTitle => 'أنشئ رمز PIN';
+
+  @override
+  String get pinCreateSubtitle => 'ستستخدمه لفتح أمانة.';
+
+  @override
+  String get pinConfirmTitle => 'أكّد رمز PIN';
+
+  @override
+  String get pinConfirmSubtitle => 'أدخله مرة أخرى.';
+
+  @override
+  String get pinEnterTitle => 'أدخل رمز PIN';
+
+  @override
+  String pinWelcomeBack(String name) {
+    return 'مرحبًا بعودتك، $name';
+  }
+
+  @override
+  String get pinMismatch => 'الرمزان غير متطابقين. ابدأ من جديد.';
+
+  @override
+  String get pinWrong => 'رمز PIN خاطئ. حاول مرة أخرى.';
+
+  @override
+  String get pinTaken => 'رمز PIN هذا مستخدم بالفعل. اختر رمزًا آخر.';
+
+  @override
+  String get pinUnavailable => 'حدث خطأ. حاول مرة أخرى.';
+
+  @override
+  String pinNotYou(String name) {
+    return 'لست $name؟';
+  }
+
+  @override
+  String get pinUseDifferentAccount => 'استخدم حسابًا آخر';
+
+  @override
+  String get pinForgot => 'نسيت رمز PIN؟';
+
+  @override
+  String get pinLockedTitle => 'محاولات كثيرة';
+
+  @override
+  String pinLockedSubtitle(String time) {
+    return 'حاول مرة أخرى بعد $time.';
+  }
+
+  @override
+  String get pinCurrentTitle => 'أدخل رمز PIN الحالي';
+
+  @override
+  String get pinCurrentSubtitle => 'تأكد أنك أنت قبل تغيير رمز PIN.';
+
+  @override
+  String get pinNewTitle => 'رمز PIN جديد';
+
+  @override
+  String get pinNewSubtitle => 'اختر رمز PIN جديدًا من 4 أرقام.';
+
+  @override
+  String get pinConfirmNewTitle => 'أكّد رمز PIN الجديد';
+
+  @override
+  String get pinUpdated => 'تم تحديث رمز PIN.';
+
+  @override
+  String get pinBiometricFace => 'Face ID';
+
+  @override
+  String get pinBiometricFingerprint => 'بصمة الإصبع';
+
+  @override
+  String get pinBiometricGeneric => 'القياسات الحيوية';
+
+  @override
+  String get pinBiometricReason => 'افتح أمانة';
+
+  @override
+  String pinBiometricEnableTitle(String method) {
+    return 'استخدام $method للفتح؟';
+  }
+
+  @override
+  String get pinBiometricEnableBody =>
+      'افتح أمانة بنظرة واحدة. يبقى رمز PIN يعمل في أي وقت.';
+
+  @override
+  String pinBiometricEnable(String method) {
+    return 'تشغيل $method';
+  }
+
+  @override
+  String get pinBiometricNotNow => 'ليس الآن';
+
+  @override
+  String get menuLock => 'قفل';
+
+  @override
+  String get commonLoading => 'جارٍ التحميل';
 }

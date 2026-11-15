@@ -1,21 +1,17 @@
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
-import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
-import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
+import 'package:amana_pos/features/login/presentation/login_code_screen.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_form.dart';
-import 'package:amana_pos/features/login/presentation/widgets/login_otp.dart';
-import 'package:amana_pos/widgets/grid_painter.dart';
-import 'package:amana_pos/widgets/page_dots.dart';
-import 'package:amana_pos/theme/app_spacing.dart';
+import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/utilities/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:amana_pos/theme/phosphor_icons.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,129 +21,50 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  late PageController _pageController;
-
-  final pages = [
-    const LoginForm(),
-    const LoginOtp(),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
+  bool _codeOpen = false;
+  bool _completing = false;
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<LoginBloc, LoginState>(
+    return BlocListener<LoginBloc, LoginState>(
       listenWhen: (prev, curr) =>
           prev.status != curr.status || prev.loginStatus != curr.loginStatus,
-      listener: (context, state) => _handleLoginState(context, state),
-      builder: (context, state) {
-        final isOtp = state.loginStatus == LoginStatus.otp;
-
-        return Scaffold(
-          extendBodyBehindAppBar: true,
-          extendBody: true,
-          resizeToAvoidBottomInset: true,
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            backgroundColor: context.appColors.background,
-            title: Stack(
-              alignment: Alignment.center,
-              children: [
-                PageDots(currentPage: state.loginStatus.page),
-                Positioned.fill(
-                  child: ShaderMask(
-                    shaderCallback: (rect) {
-                      return RadialGradient(
-                        center: const Alignment(0.45, -0.65),
-                        radius: 0.95,
-                        colors: [
-                          context.appColors.textPrimary,
-                          Colors.transparent,
-                        ],
-                      ).createShader(rect);
-                    },
-                    blendMode: BlendMode.dstIn,
-                    child: CustomPaint(
-                      painter: GridPainter(
-                        color: context.appColors.primary.withValues(
-                          alpha: 0.04,
-                        ),
-                        spacing: 24,
-                      ),
-                    ),
-                  ),
-                ),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: AnimatedOpacity(
-                    opacity: isOtp ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
-                    child: AnimatedSlide(
-                      offset: isOtp ? Offset.zero : const Offset(-0.3, 0),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutCubic,
-                      child: IgnorePointer(
-                        ignoring: !isOtp,
-                        child: InkWell(
-                          onTap: () => context
-                              .read<LoginBloc>()
-                              .add(const OnResetEvent(isPhoneChange: true)),
-                          borderRadius: AppDims.borderSm,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: context.appColors.surfaceSoft,
-                              borderRadius: AppDims.borderSm,
-                              border:
-                                  Border.all(color: context.appColors.border),
-                            ),
-                            child: Icon(
-                              PhosphorIconsRegular.caretLeft,
-                              size: 18,
-                              color: context.appColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          body: SafeArea(
-            bottom: false,
-            child: PageView.builder(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: pages.length,
-              itemBuilder: (context, index) => pages[index],
-            ),
-          ),
-        );
-      },
+      listener: _handleLoginState,
+      child: Scaffold(
+        backgroundColor: context.appColors.background,
+        resizeToAvoidBottomInset: true,
+        body: const LoginForm(),
+      ),
     );
   }
 
   void _handleLoginState(BuildContext context, LoginState state) {
-    Utils.hideKeyboard(context);
+    // The code step is its own route so it gets the platform push + swipe back.
+    if (state.loginStatus == LoginStatus.otp && !_codeOpen) {
+      _codeOpen = true;
+      Utils.hideKeyboard(context);
+      final bloc = context.read<LoginBloc>();
+      Navigator.of(context)
+          .push(
+            CupertinoPageRoute<void>(
+              builder: (_) => BlocProvider.value(
+                value: bloc,
+                child: const LoginCodeScreen(),
+              ),
+            ),
+          )
+          .whenComplete(() => _codeOpen = false);
+      return;
+    }
+    if (state.loginStatus == LoginStatus.form && _codeOpen && !_completing) {
+      Navigator.of(context).maybePop();
+      return;
+    }
 
     if (state.status == PageStatus.failure &&
         state.responseError != null &&
         state.loginStatus != LoginStatus.otp) {
+      Utils.hideKeyboard(context);
       GlobalSnackBar.show(
         message: state.responseError!,
         isError: true,
@@ -156,61 +73,39 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+    if (state.loginStatus == LoginStatus.competed) {
+      _completing = true;
+      final navigator = Navigator.of(context);
+      final profile = state.loggedInUser;
+      () async {
+        final vault = getIt<PinVaultService>();
+        final cache = getIt<CacheStorage>();
+        final userId = profile?.id ?? '';
+        final alreadyEnrolled =
+            userId.isNotEmpty && await vault.isUserEnrolled(userId);
+        if (!mounted) return;
 
-      if (state.loginStatus == LoginStatus.competed) {
-        final navigator = Navigator.of(context);
-        final profile = state.loggedInUser;
-        () async {
-          final vault = getIt<PinVaultService>();
-          final cache = getIt<CacheStorage>();
-          final userId = profile?.id ?? '';
-          final alreadyEnrolled =
-              userId.isNotEmpty && await vault.isUserEnrolled(userId);
+        if (profile != null && !alreadyEnrolled) {
+          final access = await cache.read(Constants.authToken) ?? '';
+          final refresh = await cache.read(Constants.refreshToken) ?? '';
+          final tenantId = await cache.read(Constants.xTenantID) ?? '';
           if (!mounted) return;
-
-          if (profile != null && !alreadyEnrolled) {
-            final access = await cache.read(Constants.authToken) ?? '';
-            final refresh = await cache.read(Constants.refreshToken) ?? '';
-            final tenantId = await cache.read(Constants.xTenantID) ?? '';
-            if (!mounted) return;
-            navigator.pushNamedAndRemoveUntil(
-              RouteStrings.pinSetupScreen,
-              (route) => false,
-              arguments: {
-                'user': profile,
-                'tokens': (access: access, refresh: refresh, tenantId: tenantId),
-              },
-            );
-          } else {
-            navigator.pushNamedAndRemoveUntil(
-              RouteStrings.mainScreen,
-              (route) => false,
-            );
-          }
-        }();
-        context.read<LoginBloc>().add(const OnResetEvent());
-        return;
-      }
-
-      if (!_pageController.hasClients) return;
-
-      final targetPage = state.loginStatus.page;
-      final currentPage = _pageController.page?.round() ?? 0;
-
-      if (targetPage == currentPage) return;
-
-      if ((targetPage - currentPage).abs() > 1) {
-        SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
-        _pageController.jumpToPage(targetPage);
-      } else {
-        _pageController.animateToPage(
-          targetPage,
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
+          navigator.pushNamedAndRemoveUntil(
+            RouteStrings.pinSetupScreen,
+            (route) => false,
+            arguments: {
+              'user': profile,
+              'tokens': (access: access, refresh: refresh, tenantId: tenantId),
+            },
+          );
+        } else {
+          navigator.pushNamedAndRemoveUntil(
+            RouteStrings.mainScreen,
+            (route) => false,
+          );
+        }
+      }();
+      context.read<LoginBloc>().add(const OnResetEvent());
+    }
   }
 }

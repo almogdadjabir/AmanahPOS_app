@@ -30,9 +30,7 @@ class PinDigitsField extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.surfaceSoft,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: hasError ? colors.danger : colors.border,
-            ),
+            border: Border.all(color: hasError ? colors.danger : colors.border),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -46,14 +44,19 @@ class PinDigitsField extends StatelessWidget {
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(4),
               ],
-              style: AppTextStyles.bs400(context, color: colors.textPrimary)
-                  .copyWith(letterSpacing: 8, fontWeight: FontWeight.w800),
+              style: AppTextStyles.bs400(
+                context,
+                color: colors.textPrimary,
+              ).copyWith(letterSpacing: 8, fontWeight: FontWeight.w800),
               decoration: InputDecoration(
                 counterText: '',
                 border: InputBorder.none,
                 hintText: '••••',
-                prefixIcon: Icon(PhosphorIconsRegular.lockKey,
-                    size: 18, color: colors.textHint),
+                prefixIcon: Icon(
+                  PhosphorIconsRegular.lockKey,
+                  size: 18,
+                  color: colors.textHint,
+                ),
               ),
             ),
           ),
@@ -63,8 +66,10 @@ class PinDigitsField extends StatelessWidget {
           child: hasError
               ? Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(errorText!,
-                      style: AppTextStyles.sm200(context, color: colors.danger)),
+                  child: Text(
+                    errorText!,
+                    style: AppTextStyles.sm200(context, color: colors.danger),
+                  ),
                 )
               : const SizedBox.shrink(),
         ),

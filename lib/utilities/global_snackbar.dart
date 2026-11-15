@@ -2,395 +2,225 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:amana_pos/config/constants.dart';
-import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
-import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:amana_pos/theme/phosphor_icons.dart';
 
-enum SnackBarType {
-  success,
-  error,
-  warning,
-  info,
-}
-
+/// Ported from Baraka's GlobalSnackBar: a banner docked to the top edge that
+/// slides down, runs under the status bar, has 32pt bottom corners and a solid
+/// tone colour with white centred text. Tap to dismiss.
 class GlobalSnackBar {
+  GlobalSnackBar._();
+
   static bool _isTest = false;
-  static OverlayEntry? _currentOverlay;
-  static bool _isAnimating = false;
+  static OverlayEntry? _entry;
+  static Timer? _dismissTimer;
 
   static void enableTestMode() => _isTest = true;
 
+  /// Hard cap so a persistent (error) toast can never brick the UI.
+  static const Duration _autoDismissDuration = Duration(seconds: 3);
+  static const Duration _persistentMaxDuration = Duration(seconds: 8);
+
   static void showSuccess({
     required String message,
-    bool isTop = false,
     bool isAutoDismiss = true,
-  }) {
-    show(
-      message: message,
-      type: SnackBarType.success,
-      isTop: isTop,
-      isAutoDismiss: isAutoDismiss,
-    );
-  }
+  }) => show(message: message, isAutoDismiss: isAutoDismiss);
 
-  static void showError({
-    required String message,
-    bool isTop = false,
-    bool isAutoDismiss = true,
-  }) {
-    show(
-      message: message,
-      type: SnackBarType.error,
-      isTop: isTop,
-      isAutoDismiss: isAutoDismiss,
-    );
-  }
+  static void showError({required String message, bool isAutoDismiss = true}) =>
+      show(message: message, isError: true, isAutoDismiss: isAutoDismiss);
 
   static void showWarning({
     required String message,
-    bool isTop = false,
     bool isAutoDismiss = true,
-  }) {
-    show(
-      message: message,
-      type: SnackBarType.warning,
-      isTop: isTop,
-      isAutoDismiss: isAutoDismiss,
-    );
-  }
+  }) => show(message: message, isWarning: true, isAutoDismiss: isAutoDismiss);
 
-  static void showInfo({
-    required String message,
-    bool isTop = false,
-    bool isAutoDismiss = true,
-  }) {
-    show(
-      message: message,
-      type: SnackBarType.info,
-      isTop: isTop,
-      isAutoDismiss: isAutoDismiss,
-    );
-  }
+  static void showInfo({required String message, bool isAutoDismiss = true}) =>
+      show(message: message, isInfo: true, isAutoDismiss: isAutoDismiss);
 
   static void show({
     required String message,
-    SnackBarType type = SnackBarType.success,
     double? customTop,
-    bool isTop = false,
-    bool isAutoDismiss = true,
-
-    /// Old API compatibility
     bool isError = false,
+    bool isTop = false,
     bool isWarning = false,
     bool isInfo = false,
+    bool isAutoDismiss = true,
     bool showIcon = true,
   }) {
     if (_isTest) return;
 
-    final context = Constants.navigatorKey.currentContext;
-    Utils.hideKeyboard(context);
-
-    final resolvedType = _resolveType(
-      type: type,
-      isError: isError,
-      isWarning: isWarning,
-      isInfo: isInfo,
-    );
-
-    if (_isAnimating) {
-      Future<void>.delayed(const Duration(milliseconds: 250), () {
-        show(
-          message: message,
-          type: resolvedType,
-          customTop: customTop,
-          isTop: isTop,
-          isAutoDismiss: isAutoDismiss,
-          showIcon: showIcon,
-        );
-      });
-      return;
-    }
+    Utils.hideKeyboard(Constants.navigatorKey.currentContext);
 
     final overlayState = Constants.navigatorKey.currentState?.overlay;
     if (overlayState == null || !overlayState.mounted) return;
 
-    dismiss();
+    _hardRemove();
 
-    Future<void>.delayed(const Duration(milliseconds: 40), () {
-      if (!overlayState.mounted) return;
+    final entry = OverlayEntry(
+      builder: (context) => _SnackbarWidget(
+        message: message,
+        isError: isError,
+        isInfo: isInfo,
+        isWarning: isWarning,
+        onDismissed: dismiss,
+      ),
+    );
 
-      final overlay = OverlayEntry(
-        builder: (_) {
-          return _AppSnackBarOverlay(
-            message: message,
-            type: resolvedType,
-            customTop: customTop,
-            isTop: isTop,
-            isAutoDismiss: isAutoDismiss,
-            showIcon: showIcon,
-            onDismissed: () => _removeOverlay(_currentOverlay),
-          );
-        },
-      );
-
-      _currentOverlay = overlay;
-
-      try {
-        overlayState.insert(overlay);
-      } catch (error, stackTrace) {
-        log(
-          'Error inserting snackbar',
-          error: error,
-          stackTrace: stackTrace,
-        );
-        _currentOverlay = null;
-      }
-    });
-  }
-
-  static SnackBarType _resolveType({
-    required SnackBarType type,
-    required bool isError,
-    required bool isWarning,
-    required bool isInfo,
-  }) {
-    if (isError) return SnackBarType.error;
-    if (isWarning) return SnackBarType.warning;
-    if (isInfo) return SnackBarType.info;
-    return type;
-  }
-
-  static void dismiss() {
-    final overlay = _currentOverlay;
-    if (overlay == null) return;
-
-    _removeOverlay(overlay);
-  }
-
-  static void _removeOverlay(OverlayEntry? overlay) {
-    if (overlay == null) return;
-
-    _isAnimating = true;
+    _entry = entry;
 
     try {
-      if (overlay.mounted) {
-        overlay.remove();
-      }
-    } catch (error, stackTrace) {
-      log(
-        'Error removing snackbar overlay',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    } finally {
-      if (overlay == _currentOverlay) {
-        _currentOverlay = null;
-      }
+      overlayState.insert(entry);
+    } catch (e) {
+      log('Error inserting snackbar: $e');
+      _entry = null;
+      return;
+    }
 
-      Future<void>.delayed(const Duration(milliseconds: 80), () {
-        _isAnimating = false;
-      });
+    final ttl = isAutoDismiss ? _autoDismissDuration : _persistentMaxDuration;
+    _dismissTimer = Timer(ttl, _hardRemove);
+  }
+
+  static void dismiss() => _hardRemove();
+
+  static void _hardRemove() {
+    _dismissTimer?.cancel();
+    _dismissTimer = null;
+
+    final entry = _entry;
+    _entry = null;
+    if (entry == null) return;
+
+    try {
+      entry.remove();
+    } catch (e) {
+      log('Error removing snackbar: $e');
     }
   }
 }
 
-class _AppSnackBarOverlay extends StatefulWidget {
-  final String message;
-  final SnackBarType type;
-  final bool isTop;
-  final bool isAutoDismiss;
-  final bool showIcon;
-  final double? customTop;
-  final VoidCallback onDismissed;
+enum _Tone { negative, positive, warning, info }
 
-  const _AppSnackBarOverlay({
+class _SnackbarWidget extends StatefulWidget {
+  const _SnackbarWidget({
     required this.message,
-    required this.type,
-    required this.isTop,
-    required this.isAutoDismiss,
-    required this.showIcon,
+    required this.isError,
+    required this.isWarning,
+    required this.isInfo,
     required this.onDismissed,
-    this.customTop,
   });
 
+  final String message;
+  final bool isError;
+  final bool isWarning;
+  final bool isInfo;
+  final VoidCallback onDismissed;
+
   @override
-  State<_AppSnackBarOverlay> createState() => _AppSnackBarOverlayState();
+  State<_SnackbarWidget> createState() => _SnackbarWidgetState();
 }
 
-class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
+class _SnackbarWidgetState extends State<_SnackbarWidget>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<Offset> _slideAnimation;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
+  static const Duration _enter = Duration(milliseconds: 300);
 
-  Timer? _dismissTimer;
-  bool _isDismissed = false;
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _enter,
+  );
+  late final Animation<double> _progress = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOutCubic,
+  );
 
   @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 360),
-      reverseDuration: const Duration(milliseconds: 220),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(widget.isTop ? 0 : 0, widget.isTop ? -0.45 : 0.45),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      ),
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOut,
-        reverseCurve: Curves.easeIn,
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.96,
-      end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutBack,
-        reverseCurve: Curves.easeIn,
-      ),
-    );
-
-    _controller.forward();
-
-    if (widget.isAutoDismiss) {
-      _dismissTimer = Timer(const Duration(seconds: 3), _dismiss);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 1;
+    } else if (_controller.isDismissed) {
+      _controller.forward();
     }
   }
 
-  Future<void> _dismiss() async {
-    if (_isDismissed || !mounted) return;
-
-    _isDismissed = true;
-    _dismissTimer?.cancel();
-
-    try {
-      await _controller.reverse();
-      if (mounted) {
-        widget.onDismissed();
-      }
-    } catch (error, stackTrace) {
-      log(
-        'Error dismissing snackbar',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      widget.onDismissed();
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
+
+  _Tone get _tone {
+    if (widget.isError) return _Tone.negative;
+    if (widget.isWarning) return _Tone.warning;
+    if (widget.isInfo) return _Tone.info;
+    return _Tone.positive;
+  }
+
+  // Baraka design-system values: 600 tones on light, 500 on dark.
+  Color _background(bool dark) => switch (_tone) {
+    _Tone.negative => dark ? const Color(0xFFF43F5E) : const Color(0xFFE11D48),
+    _Tone.positive => dark ? const Color(0xFF22C55E) : const Color(0xFF16A34A),
+    _Tone.warning => dark ? const Color(0xFFF97316) : const Color(0xFFEA580C),
+    _Tone.info => dark ? const Color(0xFF3B82F6) : const Color(0xFF2563EB),
+  };
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final config = _SnackBarStyleConfig.fromType(colors, widget.type);
-
-    final double topPosition = widget.customTop ??
-        (widget.isTop
-            ? MediaQuery.paddingOf(context).top + 16
-            : 0);
-
-    final double bottomPosition = MediaQuery.paddingOf(context).bottom + 24;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final top = MediaQuery.paddingOf(context).top;
+    final topPadding = top + 8 > 72 ? top + 8 : 72.0;
 
     return Positioned(
-      top: widget.isTop ? topPosition : null,
-      bottom: widget.isTop ? null : bottomPosition,
-      left: AppDims.s4,
-      right: AppDims.s4,
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Material(
-                color: Colors.transparent,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _dismiss,
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minHeight: 58,
+      top: 0,
+      left: 0,
+      right: 0,
+      child: AnimatedBuilder(
+        animation: _progress,
+        builder: (context, child) => FractionalTranslation(
+          translation: Offset(0, _progress.value - 1),
+          child: child,
+        ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(32),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: dark ? const Color(0x33000000) : const Color(0x33999999),
+                offset: const Offset(0, 6),
+                blurRadius: 16,
+                spreadRadius: -4,
+              ),
+            ],
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Semantics(
+              container: true,
+              liveRegion: true,
+              child: GestureDetector(
+                onTap: widget.onDismissed,
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.fromLTRB(24, topPadding, 24, 16),
+                  decoration: BoxDecoration(
+                    color: _background(dark),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(32),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDims.s4,
-                      vertical: AppDims.s3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: config.backgroundColor,
-                      borderRadius: AppDims.borderLg,
-                      border: Border.all(
-                        color: config.borderColor,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.shadow,
-                          blurRadius: 26,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        if (widget.showIcon) ...[
-                          _SnackBarIcon(config: config),
-                          const SizedBox(width: AppDims.s3),
-                        ],
-                        Expanded(
-                          child: Text(
-                            widget.message,
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: AppTextStyles.fontFamily,
-                              color: config.textColor,
-                              fontSize: 14,
-                              height: 1.35,
-                              fontWeight: AppTextStyles.semibold,
-                            ),
-                          ),
-                        ),
-                        if (!widget.isAutoDismiss) ...[
-                          const SizedBox(width: AppDims.s3),
-                          InkWell(
-                            onTap: _dismiss,
-                            borderRadius: AppDims.borderPill,
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(
-                                PhosphorIconsRegular.x,
-                                color: config.textColor,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                  ),
+                  child: Text(
+                    widget.message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      fontFamilyFallback: AppTextStyles.fontFallback,
+                      fontSize: 17,
+                      height: 20 / 17,
+                      letterSpacing: -0.41,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -400,102 +230,5 @@ class _AppSnackBarOverlayState extends State<_AppSnackBarOverlay>
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _dismissTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-}
-
-class _SnackBarIcon extends StatelessWidget {
-  final _SnackBarStyleConfig config;
-
-  const _SnackBarIcon({
-    required this.config,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 34,
-      height: 34,
-      decoration: BoxDecoration(
-        color: config.iconBackgroundColor,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        config.icon,
-        color: config.iconColor,
-        size: 19,
-      ),
-    );
-  }
-}
-
-class _SnackBarStyleConfig {
-  final Color backgroundColor;
-  final Color borderColor;
-  final Color textColor;
-  final Color iconBackgroundColor;
-  final Color iconColor;
-  final IconData icon;
-
-  const _SnackBarStyleConfig({
-    required this.backgroundColor,
-    required this.borderColor,
-    required this.textColor,
-    required this.iconBackgroundColor,
-    required this.iconColor,
-    required this.icon,
-  });
-
-  factory _SnackBarStyleConfig.fromType(
-      AppThemeColors colors,
-      SnackBarType type,
-      ) {
-    switch (type) {
-      case SnackBarType.success:
-        return _SnackBarStyleConfig(
-          backgroundColor: colors.successContainer,
-          borderColor: colors.success.withValues(alpha: 0.35),
-          textColor: colors.success,
-          iconBackgroundColor: colors.success.withValues(alpha: 0.14),
-          iconColor: colors.success,
-          icon: PhosphorIconsFill.checkCircle,
-        );
-
-      case SnackBarType.error:
-        return _SnackBarStyleConfig(
-          backgroundColor: colors.dangerContainer,
-          borderColor: colors.danger.withValues(alpha: 0.35),
-          textColor: colors.danger,
-          iconBackgroundColor: colors.danger.withValues(alpha: 0.14),
-          iconColor: colors.danger,
-          icon: PhosphorIconsFill.warningCircle,
-        );
-
-      case SnackBarType.warning:
-        return _SnackBarStyleConfig(
-          backgroundColor: colors.warningContainer,
-          borderColor: colors.warning.withValues(alpha: 0.40),
-          textColor: colors.warning,
-          iconBackgroundColor: colors.warning.withValues(alpha: 0.16),
-          iconColor: colors.warning,
-          icon: PhosphorIconsRegular.warning,
-        );
-
-      case SnackBarType.info:
-        return _SnackBarStyleConfig(
-          backgroundColor: colors.infoContainer,
-          borderColor: colors.info.withValues(alpha: 0.35),
-          textColor: colors.info,
-          iconBackgroundColor: colors.info.withValues(alpha: 0.14),
-          iconColor: colors.info,
-          icon: PhosphorIconsFill.info,
-        );
-    }
   }
 }

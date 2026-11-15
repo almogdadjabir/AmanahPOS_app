@@ -1,35 +1,46 @@
-import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:amana_pos/common/motion/motion_animate.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
-/// Shared layout for the PIN screens: a single centred column with the keypad
-/// in thumb reach. Hardware-keyboard digits and backspace are wired here too.
+/// Shared layout for the PIN screens: optional header (avatar or mark), title,
+/// one line of subtitle that turns into the error message, the dots, and the
+/// pad sitting in thumb reach. Hardware-keyboard digits and backspace work too.
 class PinScaffold extends StatefulWidget {
   const PinScaffold({
     super.key,
-    required this.brand,
     required this.title,
     required this.subtitle,
     required this.dots,
     required this.keypad,
     required this.onDigit,
     required this.onBackspace,
+    this.header,
     this.errorText,
+    this.subtitleIsError = false,
     this.footer,
+    this.onCancel,
+    this.cancelLabel,
   });
 
-  final Widget brand;
+  final Widget? header;
   final String title;
   final String subtitle;
   final Widget dots;
   final Widget keypad;
   final ValueChanged<String> onDigit;
   final VoidCallback onBackspace;
+
+  /// Replaces the subtitle, in the error colour, while non-null.
   final String? errorText;
+
+  /// Shows [subtitle] in the error colour (used for the lockout countdown).
+  final bool subtitleIsError;
   final Widget? footer;
+
+  /// Shows a Cancel text button at the top for screens opened on top of
+  /// another one (change PIN).
+  final VoidCallback? onCancel;
+  final String? cancelLabel;
 
   @override
   State<PinScaffold> createState() => _PinScaffoldState();
@@ -46,8 +57,7 @@ class _PinScaffoldState extends State<PinScaffold> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
-    final key = event.logicalKey;
-    if (key == LogicalKeyboardKey.backspace) {
+    if (event.logicalKey == LogicalKeyboardKey.backspace) {
       widget.onBackspace();
       return KeyEventResult.handled;
     }
@@ -62,6 +72,8 @@ class _PinScaffoldState extends State<PinScaffold> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+    final isError = widget.errorText != null || widget.subtitleIsError;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -69,79 +81,84 @@ class _PinScaffoldState extends State<PinScaffold> {
         focusNode: _focusNode,
         autofocus: true,
         onKeyEvent: _onKey,
-        child: SafeArea(child: _content(context)),
-      ),
-    );
-  }
-
-  Widget _content(BuildContext context) {
-    final colors = context.appColors;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 24,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    widget.brand,
-                    const SizedBox(height: 28),
-                    Text(
-                      widget.title,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bs700(
-                        context,
-                        color: colors.textPrimary,
-                      ).copyWith(fontWeight: FontWeight.w700),
-                    ).mAnimate(delay: 80.ms).fadeIn(duration: 320.ms),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.subtitle,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.sm300(
-                        context,
-                        color: colors.textSecondary,
-                      ),
-                    ).mAnimate(delay: 140.ms).fadeIn(duration: 320.ms),
-                    const SizedBox(height: 36),
-                    widget.dots,
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 20,
-                      child: AnimatedOpacity(
-                        opacity: widget.errorText == null ? 0 : 1,
-                        duration: const Duration(milliseconds: 180),
-                        child: Text(
-                          widget.errorText ?? '',
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        if (widget.onCancel != null)
+                          Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: TextButton(
+                              onPressed: widget.onCancel,
+                              child: Text(
+                                widget.cancelLabel ?? '',
+                                style: text.bodyLarge!.copyWith(
+                                  color: colors.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        SizedBox(
+                          height: widget.onCancel != null
+                              ? 2
+                              : widget.header == null
+                              ? 46
+                              : 34,
+                        ),
+                        if (widget.header != null) ...[
+                          widget.header!,
+                          const SizedBox(height: 18),
+                        ],
+                        Text(
+                          widget.title,
                           textAlign: TextAlign.center,
-                          style: AppTextStyles.sm200(
-                            context,
-                            color: colors.danger,
+                          style: text.headlineSmall,
+                        ),
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          height: 20,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 150),
+                            child: Text(
+                              widget.errorText ?? widget.subtitle,
+                              key: ValueKey(
+                                widget.errorText ?? widget.subtitle,
+                              ),
+                              textAlign: TextAlign.center,
+                              style: text.bodyMedium!.copyWith(
+                                fontSize: 15,
+                                height: 20 / 15,
+                                color: isError
+                                    ? colors.danger
+                                    : colors.textSecondary,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 30),
+                        widget.dots,
+                        const Spacer(),
+                        widget.keypad,
+                        SizedBox(
+                          height: 64,
+                          child: Center(child: widget.footer),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    widget.keypad,
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 44,
-                      child: widget.footer ?? const SizedBox.shrink(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

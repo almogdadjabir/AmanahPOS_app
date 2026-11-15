@@ -4405,6 +4405,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What is it for?'**
   String get posNoteHint;
+
+  /// No description provided for @signInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInTitle;
+
+  /// No description provided for @signInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your mobile number. We\'ll text you a 6-digit code.'**
+  String get signInSubtitle;
+
+  /// No description provided for @signInInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid mobile number, for example 912 345 678.'**
+  String get signInInvalidNumber;
+
+  /// No description provided for @signInNeedAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Need access or want to register? Contact AmanaPOS support.'**
+  String get signInNeedAccess;
+
+  /// No description provided for @countryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryTitle;
+
+  /// No description provided for @countrySudan.
+  ///
+  /// In en, this message translates to:
+  /// **'Sudan'**
+  String get countrySudan;
+
+  /// No description provided for @countryUae.
+  ///
+  /// In en, this message translates to:
+  /// **'UAE'**
+  String get countryUae;
+
+  /// No description provided for @codeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get codeTitle;
+
+  /// No description provided for @codeSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {phone}.'**
+  String codeSentTo(String phone);
+
+  /// No description provided for @codeWrongNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong number?'**
+  String get codeWrongNumber;
+
+  /// No description provided for @codeResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in {time}'**
+  String codeResendIn(String time);
+
+  /// No description provided for @codeVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying…'**
+  String get codeVerifying;
+
+  /// No description provided for @codeVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get codeVerified;
+
+  /// No description provided for @pinCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a PIN'**
+  String get pinCreateTitle;
+
+  /// No description provided for @pinCreateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll use it to unlock AmanaPOS.'**
+  String get pinCreateSubtitle;
+
+  /// No description provided for @pinConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your PIN'**
+  String get pinConfirmTitle;
+
+  /// No description provided for @pinConfirmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter it once more.'**
+  String get pinConfirmSubtitle;
+
+  /// No description provided for @pinEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN'**
+  String get pinEnterTitle;
+
+  /// No description provided for @pinWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back, {name}'**
+  String pinWelcomeBack(String name);
+
+  /// No description provided for @pinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'PINs don\'t match. Start again.'**
+  String get pinMismatch;
+
+  /// No description provided for @pinWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong PIN. Try again.'**
+  String get pinWrong;
+
+  /// No description provided for @pinTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This PIN is already in use. Choose another.'**
+  String get pinTaken;
+
+  /// No description provided for @pinUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get pinUnavailable;
+
+  /// No description provided for @pinNotYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Not {name}?'**
+  String pinNotYou(String name);
+
+  /// No description provided for @pinUseDifferentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different account'**
+  String get pinUseDifferentAccount;
+
+  /// No description provided for @pinForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your PIN?'**
+  String get pinForgot;
+
+  /// No description provided for @pinLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts'**
+  String get pinLockedTitle;
+
+  /// No description provided for @pinLockedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in {time}.'**
+  String pinLockedSubtitle(String time);
+
+  /// No description provided for @pinCurrentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter current PIN'**
+  String get pinCurrentTitle;
+
+  /// No description provided for @pinCurrentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you before changing your PIN.'**
+  String get pinCurrentSubtitle;
+
+  /// No description provided for @pinNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get pinNewTitle;
+
+  /// No description provided for @pinNewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new 4-digit PIN.'**
+  String get pinNewSubtitle;
+
+  /// No description provided for @pinConfirmNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new PIN'**
+  String get pinConfirmNewTitle;
+
+  /// No description provided for @pinUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN updated.'**
+  String get pinUpdated;
+
+  /// No description provided for @pinBiometricFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID'**
+  String get pinBiometricFace;
+
+  /// No description provided for @pinBiometricFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get pinBiometricFingerprint;
+
+  /// No description provided for @pinBiometricGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics'**
+  String get pinBiometricGeneric;
+
+  /// No description provided for @pinBiometricReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock AmanaPOS'**
+  String get pinBiometricReason;
+
+  /// No description provided for @pinBiometricEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {method} to unlock?'**
+  String pinBiometricEnableTitle(String method);
+
+  /// No description provided for @pinBiometricEnableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock AmanaPOS in a glance. Your PIN still works any time.'**
+  String get pinBiometricEnableBody;
+
+  /// No description provided for @pinBiometricEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on {method}'**
+  String pinBiometricEnable(String method);
+
+  /// No description provided for @pinBiometricNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get pinBiometricNotNow;
+
+  /// No description provided for @menuLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock'**
+  String get menuLock;
+
+  /// No description provided for @commonLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get commonLoading;
 }
 
 class _AppLocalizationsDelegate
