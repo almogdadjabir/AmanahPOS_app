@@ -1,3 +1,4 @@
+import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
@@ -19,10 +20,10 @@ class HomeManageGroup extends StatelessWidget {
   const HomeManageGroup({super.key, required this.data});
 
   // Fixed tile fills: white glyphs stay readable in light and dark.
-  static const _teal = Color(0xFF0F766E);
-  static const _indigo = Color(0xFF5B55D6);
-  static const _amber = Color(0xFFB26A00);
-  static const _slate = Color(0xFF58534A);
+  static const _teal = AppColors.primary;
+  static const _indigo = AppColors.card;
+  static const _amber = AppColors.manageAmber;
+  static const _slate = AppColors.slate600;
 
   @override
   Widget build(BuildContext context) {

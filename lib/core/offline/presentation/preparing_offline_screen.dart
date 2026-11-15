@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/footer_status.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_hero.dart';
@@ -7,8 +8,6 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreparingOfflineScreen {
@@ -22,7 +21,7 @@ class PreparingOfflineScreen {
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierLabel: 'Preparing Offline Mode',
+      barrierLabel: 'Preparing offline mode',
       useRootNavigator: true,
       transitionDuration: const Duration(milliseconds: 420),
       pageBuilder: (_, _, _) {
@@ -83,81 +82,57 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
             padding: const EdgeInsets.all(AppDims.s5),
             child: BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
               builder: (context, state) {
-                return Column(
-                  children: [
-                    const Spacer(),
+                return LayoutBuilder(
+                  builder: (context, constraints) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          children: [
+                            const Spacer(),
 
-                    const OfflineHero()
-                        .mAnimate()
-                        .fadeIn(duration: 420.ms)
-                        .scale(
-                          begin: const Offset(0.92, 0.92),
-                          end: const Offset(1, 1),
-                          curve: Curves.easeOutCubic,
+                            const OfflineHero(),
+
+                            const SizedBox(height: AppDims.s6),
+
+                            Text(
+                              context.tr.poTitle,
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.lg200(context).copyWith(
+                                color: colors.textPrimary,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+
+                            const SizedBox(height: AppDims.s2),
+
+                            Text(
+                              _description(context, state),
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.bs400(context).copyWith(
+                                color: colors.textSecondary,
+                                height: 1.45,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            const SizedBox(height: AppDims.s6),
+
+                            PreparationSteps(state: state),
+
+                            const Spacer(),
+
+                            FooterStatus(state: state),
+
+                            const SizedBox(height: AppDims.s2),
+                          ],
                         ),
-
-                    const SizedBox(height: AppDims.s6),
-
-                    Text(
-                          'Preparing Offline Mode',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.lg200(context).copyWith(
-                            color: colors.textPrimary,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                          ),
-                        )
-                        .mAnimate()
-                        .fadeIn(duration: 420.ms)
-                        .slideY(
-                          begin: 0.16,
-                          end: 0,
-                          curve: Curves.easeOutCubic,
-                        ),
-
-                    const SizedBox(height: AppDims.s2),
-
-                    Text(
-                          _description(state),
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bs400(context).copyWith(
-                            color: colors.textSecondary,
-                            height: 1.45,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        )
-                        .mAnimate()
-                        .fadeIn(delay: 90.ms, duration: 420.ms)
-                        .slideY(
-                          begin: 0.16,
-                          end: 0,
-                          curve: Curves.easeOutCubic,
-                        ),
-
-                    const SizedBox(height: AppDims.s6),
-
-                    PreparationSteps(state: state)
-                        .mAnimate()
-                        .fadeIn(delay: 180.ms, duration: 420.ms)
-                        .slideY(
-                          begin: 0.12,
-                          end: 0,
-                          curve: Curves.easeOutCubic,
-                        ),
-
-                    const Spacer(),
-
-                    FooterStatus(state: state)
-                        .mAnimate()
-                        .fadeIn(delay: 260.ms, duration: 420.ms)
-                        .slideY(
-                          begin: 0.22,
-                          end: 0,
-                          curve: Curves.easeOutCubic,
-                        ),
-
-                    const SizedBox(height: AppDims.s2),
-                  ],
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -167,24 +142,23 @@ class _PreparingOfflineDialogBody extends StatelessWidget {
     );
   }
 
-  String _description(OfflineStatusState state) {
+  String _description(BuildContext context, OfflineStatusState state) {
     if (state.connectionStatus == OfflineConnectionStatus.offline) {
-      return 'Internet is required only for the first setup. Please connect once so AmanaPOS can prepare your business for offline use.';
+      return context.tr.poDescOffline;
     }
 
     if (state.isBootstrapLoading) {
-      return 'Please keep the app open while we download your business data, products, categories, stock, and customers.';
+      return context.tr.poDescBootstrap;
     }
 
     if (state.isAssetsLoading) {
-      return 'Your business data is ready. We are updating product and category assets in the background.';
+      return context.tr.poDescAssets;
     }
 
     if (state.hasFailure) {
-      return state.errorMessage ??
-          'Something went wrong while preparing offline mode.';
+      return state.errorMessage ?? context.tr.poDescFailure;
     }
 
-    return 'Almost done. AmanaPOS is getting your workspace ready for poor internet and offline sales.';
+    return context.tr.poDescDefault;
   }
 }

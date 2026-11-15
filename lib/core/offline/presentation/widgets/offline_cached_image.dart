@@ -1,3 +1,4 @@
+import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'dart:io';
 
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
@@ -142,7 +143,7 @@ class _DefaultImagePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFE5E7EB),
+      color: context.appColors.surfaceSoft,
       alignment: Alignment.center,
       child: const SizedBox(
         width: 18,
@@ -158,13 +159,14 @@ class _DefaultImageFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
-      color: const Color(0xFFF3F4F6),
+      color: colors.surfaceSoft,
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         PhosphorIconsRegular.imageBroken,
         size: 22,
-        color: Color(0xFF9CA3AF),
+        color: colors.textHint,
       ),
     );
   }

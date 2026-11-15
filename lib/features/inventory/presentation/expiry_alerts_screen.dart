@@ -1,3 +1,4 @@
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/widgets/expiry_alert_card.dart';
@@ -40,10 +41,13 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(PhosphorIconsRegular.arrowLeft, color: colors.textPrimary),
+          icon: DirectionalIcon(
+            icon: PhosphorIconsRegular.arrowLeft,
+            color: colors.textPrimary,
+          ),
         ),
         title: Text(
-          'Expiry Alerts',
+          context.tr.exTitle,
           style: AppTextStyles.bs600(context).copyWith(
             fontWeight: FontWeight.w900,
             color: colors.textPrimary,
@@ -65,7 +69,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
           // ── Error ────────────────────────────────────────────────
           if (state.status == ExpiryStatus.failure) {
             return _ErrorView(
-              message: state.error ?? 'Failed to load expiry alerts.',
+              message: state.error ?? context.tr.exLoadFailed,
               onRetry: () => context
                   .read<ExpiryBloc>()
                   .add(const OnExpiryAlertsInitial()),
@@ -91,7 +95,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                   _SectionHeader(
                     label: context.tr.invExpiryExpired,
                     count: state.expired.length,
-                    color: const Color(0xFFDC2626),
+                    color: context.appColors.danger,
                     icon: PhosphorIconsRegular.warningCircle,
                   ),
                   SliverPadding(
@@ -102,17 +106,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                       separatorBuilder: (_, _) =>
                           const SizedBox(height: AppDims.s3),
                       itemBuilder: (context, i) {
-                        return ExpiryAlertCard(item: state.expired[i])
-                            .mAnimate(
-                              delay: Duration(milliseconds: i < 6 ? i * 40 : 0),
-                            )
-                            .fadeIn(duration: 220.ms)
-                            .slideY(
-                              begin: 0.04,
-                              end: 0,
-                              duration: 220.ms,
-                              curve: Curves.easeOut,
-                            );
+                        return ExpiryAlertCard(item: state.expired[i]);
                       },
                     ),
                   ),
@@ -123,7 +117,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                   _SectionHeader(
                     label: context.tr.invExpiryExpiringSoon,
                     count: state.expiringSoon.length,
-                    color: const Color(0xFFEA580C),
+                    color: context.appColors.warning,
                     icon: PhosphorIconsRegular.shieldWarning,
                   ),
                   SliverPadding(
@@ -134,19 +128,7 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                       separatorBuilder: (_, _) =>
                           const SizedBox(height: AppDims.s3),
                       itemBuilder: (context, i) {
-                        final offset = state.expired.length + i;
-                        return ExpiryAlertCard(item: state.expiringSoon[i])
-                            .mAnimate(
-                              delay: Duration(
-                                  milliseconds: offset < 8 ? offset * 40 : 0),
-                            )
-                            .fadeIn(duration: 220.ms)
-                            .slideY(
-                              begin: 0.04,
-                              end: 0,
-                              duration: 220.ms,
-                              curve: Curves.easeOut,
-                            );
+                        return ExpiryAlertCard(item: state.expiringSoon[i]);
                       },
                     ),
                   ),
@@ -275,7 +257,7 @@ class _EmptyView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppDims.s4),
                 Text(
-                  'No expiry alerts',
+                  context.tr.exEmptyTitle,
                   style: AppTextStyles.bs400(context).copyWith(
                     fontWeight: FontWeight.w900,
                     color: colors.textPrimary,
@@ -283,7 +265,7 @@ class _EmptyView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppDims.s2),
                 Text(
-                  'All products are within a safe expiry window.',
+                  context.tr.exEmptyBody,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bs200(context).copyWith(
                     color: colors.textSecondary,
@@ -293,7 +275,7 @@ class _EmptyView extends StatelessWidget {
                 ),
               ],
             ),
-          ).mAnimate().fadeIn(duration: 300.ms),
+          ),
         ],
       ),
     );

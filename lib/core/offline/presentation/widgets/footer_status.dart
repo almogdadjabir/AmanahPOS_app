@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -10,6 +11,31 @@ class FooterStatus extends StatelessWidget {
   const FooterStatus({super.key, required this.state});
 
   final OfflineStatusState state;
+
+  String _connection(BuildContext context) {
+    final tr = context.tr;
+    return switch (state.connectionStatus) {
+      OfflineConnectionStatus.online => tr.poOnline,
+      OfflineConnectionStatus.offline => tr.poOffline,
+      OfflineConnectionStatus.unknown => tr.poChecking,
+    };
+  }
+
+  String _status(BuildContext context) {
+    final tr = context.tr;
+    if (state.isBootstrapLoading) return tr.poUpdatingData;
+    if (state.isAssetsLoading) return tr.poUpdatingAssets;
+    if (state.isSalesSyncing) return tr.poSyncingSales;
+    if (state.pendingSalesCount > 0) {
+      return tr.poPendingCount(state.pendingSalesCount);
+    }
+    if (state.isOffline && state.canUseAppOffline) return tr.poOfflineReady;
+    if (state.hasFailure) return tr.poSyncFailed;
+    if (state.lastSalesSyncAt != null || state.lastBootstrapSyncAt != null) {
+      return tr.poSynced;
+    }
+    return tr.poReady;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +58,7 @@ class FooterStatus extends StatelessWidget {
                 );
               },
               icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
-              label: const Text('Try Again'),
+              label: Text(context.tr.poTryAgain),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
@@ -67,13 +93,13 @@ class FooterStatus extends StatelessWidget {
                   size: 17,
                   color:
                       state.connectionStatus == OfflineConnectionStatus.online
-                      ? const Color(0xFF16A34A)
-                      : const Color(0xFFF59E0B),
+                      ? colors.success
+                      : colors.warning,
                 ),
                 const SizedBox(width: AppDims.s2),
                 Flexible(
                   child: Text(
-                    '${state.connectionLabel} · ${state.statusLabel}',
+                    '${_connection(context)} · ${_status(context)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.bs200(context).copyWith(
@@ -87,7 +113,7 @@ class FooterStatus extends StatelessWidget {
           ),
         const SizedBox(height: AppDims.s3),
         Text(
-          'This setup is required only once. After that, AmanaPOS can keep working during poor internet.',
+          context.tr.poFooterNote,
           textAlign: TextAlign.center,
           style: AppTextStyles.bs200(context).copyWith(
             color: colors.textHint,

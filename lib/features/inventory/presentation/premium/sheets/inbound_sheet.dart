@@ -180,14 +180,14 @@ class _InboundSheetState extends State<_InboundSheet>
       listener: (context, state) {
         if (state.submitStatus == InboundSubmitStatus.success) {
           GlobalSnackBar.show(
-            message: 'Stock received successfully',
+            message: context.tr.ibReceived,
             isInfo: true,
           );
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
           _tabs.animateTo(1);
         } else if (state.submitStatus == InboundSubmitStatus.queued) {
           GlobalSnackBar.show(
-            message: 'Queued — will sync when online',
+            message: context.tr.ibQueued,
             isWarning: true,
           );
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
@@ -360,7 +360,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
     final shopId = _shopId();
     if (shopId == null || shopId.isEmpty) {
       GlobalSnackBar.show(
-        message: 'No shop found',
+        message: context.tr.posNoShopFound,
         isError: true,
       );
       return;
@@ -382,14 +382,14 @@ class _ReceiveFormState extends State<_ReceiveForm> {
 
     if (lineItems.isEmpty) {
       GlobalSnackBar.show(
-        message: 'Add at least one product',
+        message: context.tr.ibAddProduct,
         isError: true,
       );
       return;
     }
     if (_vendorId == null || _vendorId!.trim().isEmpty) {
       GlobalSnackBar.show(
-        message: 'Please select a vendor',
+        message: context.tr.ibSelectVendor,
         isError: true,
       );
       return;
@@ -429,7 +429,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
     final products = context.read<ProductBloc>().state.products;
     if (products.isEmpty) {
       GlobalSnackBar.show(
-        message: 'No products loaded',
+        message: context.tr.ibNoProducts,
         isError: true,
       );
       return;
@@ -476,9 +476,9 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                         if (vs.vendors.isEmpty) {
                           return TextFormField(
                             enabled: false,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Vendor *',
-                              hintText: 'No vendors available',
+                              hintText: context.tr.ibNoVendors,
                               prefixIcon: Icon(PhosphorIconsRegular.buildings),
                             ),
                             validator: (_) => 'Vendor is required',
@@ -520,9 +520,9 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                     TextFormField(
                       controller: _refCtrl,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Reference *',
-                        hintText: 'Invoice or PO number',
+                        hintText: context.tr.ibInvoiceHint,
                         prefixIcon: Icon(PhosphorIconsRegular.fileText),
                       ),
                       validator: (v) {
@@ -947,7 +947,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     autofocus: false,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
-                      hintText: 'Search by name, SKU, or barcode',
+                      hintText: context.tr.ibSearchHint,
                       prefixIcon: Icon(
                         PhosphorIconsRegular.magnifyingGlass,
                         color: colors.textSecondary,

@@ -6,7 +6,8 @@ import 'package:amana_pos/features/inventory/presentation/bloc/inventory_bloc.da
 import 'package:amana_pos/features/inventory/presentation/premium/sheets/expiry_report_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/sheets/inbound_sheet.dart';
 import 'package:amana_pos/features/inventory/presentation/premium/sheets/vendors_sheet.dart';
-import 'package:amana_pos/features/inventory/presentation/widgets/add_stock_product_sheet.dart';
+import 'package:amana_pos/features/inventory/presentation/update_stock_screen.dart';
+import 'package:amana_pos/features/products/presentation/widgets/option_picker_sheet.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/nav_shell.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/bloc/product_bloc.dart';
@@ -104,12 +105,32 @@ class _InventoryScreenState extends State<InventoryScreen> {
         .timeout(const Duration(seconds: 6), onTimeout: () => inventory.state);
   }
 
-  void _receive(bool premium) {
+  Future<void> _receive(bool premium) async {
     if (premium) {
       showInboundSheet(context);
-    } else {
-      showAddStockProductSheet(context);
+      return;
     }
+    final products = context
+        .read<ProductBloc>()
+        .state
+        .products
+        .where((p) => p.trackInventory == true)
+        .toList();
+    final picked = await showOptionPicker<ProductData>(
+      context,
+      title: context.tr.stReceive,
+      selected: null,
+      options: [
+        for (final p in products)
+          PickerOption(
+            value: p,
+            label: p.name ?? '',
+            hint: (p.sku ?? '').isEmpty ? null : p.sku,
+          ),
+      ],
+    );
+    if (picked == null || !mounted) return;
+    await openUpdateStock(context, product: picked);
   }
 
   ProductData _productFor(StockData row) {

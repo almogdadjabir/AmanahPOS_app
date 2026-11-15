@@ -27,8 +27,6 @@ import 'package:amana_pos/features/sales_history/data/models/sale_history_item.d
 import 'package:amana_pos/features/sales_history/presentation/sales_history_screen.dart';
 import 'package:amana_pos/features/settings/presentation/settings_screen.dart';
 import 'package:amana_pos/features/splash/presentation/splash_screen.dart';
-import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
-import 'package:amana_pos/features/users/presentation/user_detail_screen.dart';
 import 'package:amana_pos/features/inventory/presentation/expiry_alerts_screen.dart';
 import 'package:amana_pos/features/notification/presentation/notifications_screen.dart';
 import 'package:amana_pos/features/sync/presentation/pending_sync_screen.dart';
@@ -91,6 +89,18 @@ class AppRouter {
       case RouteStrings.bankakScreen:
         return _materialOrInstant(
           FeatureBlocProviders.settings(child: const BankakScreen()),
+          settings,
+        );
+
+      case RouteStrings.cashiersScreen:
+        return _materialOrInstant(
+          const UsersScreen(isWithAppbar: true),
+          settings,
+        );
+
+      case RouteStrings.productScreen:
+        return _materialOrInstant(
+          const ProductsScreen(isWithAppbar: true),
           settings,
         );
 
@@ -200,7 +210,10 @@ class AppRouter {
         );
 
       default:
-        return _buildRoute(const SplashScreen(), settings);
+        return _buildRoute(
+          FeatureBlocProviders.splash(child: const SplashScreen()),
+          settings,
+        );
     }
   }
 

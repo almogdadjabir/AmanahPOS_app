@@ -21,11 +21,11 @@ class HomeCard extends StatelessWidget {
         border: isDark ? Border.all(color: colors.border) : null,
         boxShadow: isDark
             ? null
-            : const [
+            : [
                 BoxShadow(
-                  color: Color(0x0F1C1A17),
+                  color: colors.shadow,
                   blurRadius: 2,
-                  offset: Offset(0, 1),
+                  offset: const Offset(0, 1),
                 ),
               ],
       ),

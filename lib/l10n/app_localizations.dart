@@ -7585,6 +7585,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A shop is where you sell. Add your first one to start.'**
   String get shpEmptyBody;
+
+  /// No description provided for @posBarcodeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No product found for barcode: {barcode}'**
+  String posBarcodeNotFound(String barcode);
+
+  /// No description provided for @ibReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock received successfully'**
+  String get ibReceived;
+
+  /// No description provided for @ibQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued — will sync when online'**
+  String get ibQueued;
+
+  /// No description provided for @ibAddProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one product'**
+  String get ibAddProduct;
+
+  /// No description provided for @ibSelectVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a vendor'**
+  String get ibSelectVendor;
+
+  /// No description provided for @ibNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products loaded'**
+  String get ibNoProducts;
+
+  /// No description provided for @ibNoVendors.
+  ///
+  /// In en, this message translates to:
+  /// **'No vendors available'**
+  String get ibNoVendors;
+
+  /// No description provided for @ibInvoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice or PO number'**
+  String get ibInvoiceHint;
+
+  /// No description provided for @ibSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, SKU, or barcode'**
+  String get ibSearchHint;
+
+  /// No description provided for @lsSwitchLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch location'**
+  String get lsSwitchLocation;
+
+  /// No description provided for @exTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry alerts'**
+  String get exTitle;
+
+  /// No description provided for @exLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load expiry alerts.'**
+  String get exLoadFailed;
+
+  /// No description provided for @exEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No expiry alerts'**
+  String get exEmptyTitle;
+
+  /// No description provided for @exEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All products are within a safe expiry window.'**
+  String get exEmptyBody;
+
+  /// No description provided for @exToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires today'**
+  String get exToday;
+
+  /// No description provided for @exExpiredAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Expired 1 day ago} other{Expired {count} days ago}}'**
+  String exExpiredAgo(int count);
+
+  /// No description provided for @exInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{In 1 day} other{In {count} days}}'**
+  String exInDays(int count);
+
+  /// No description provided for @poTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing offline mode'**
+  String get poTitle;
+
+  /// No description provided for @poDescOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet is required only for the first setup. Please connect once so AmanaPOS can prepare your business for offline use.'**
+  String get poDescOffline;
+
+  /// No description provided for @poDescBootstrap.
+  ///
+  /// In en, this message translates to:
+  /// **'Please keep the app open while we download your business data, products, categories, stock, and customers.'**
+  String get poDescBootstrap;
+
+  /// No description provided for @poDescAssets.
+  ///
+  /// In en, this message translates to:
+  /// **'Your business data is ready. We are updating product and category assets in the background.'**
+  String get poDescAssets;
+
+  /// No description provided for @poDescFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while preparing offline mode.'**
+  String get poDescFailure;
+
+  /// No description provided for @poDescDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost done. AmanaPOS is getting your workspace ready for poor internet and offline sales.'**
+  String get poDescDefault;
+
+  /// No description provided for @poStepBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business workspace'**
+  String get poStepBusiness;
+
+  /// No description provided for @poStepBusinessSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Business and shops'**
+  String get poStepBusinessSub;
+
+  /// No description provided for @poStepSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales data'**
+  String get poStepSales;
+
+  /// No description provided for @poStepSalesSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Products, categories, customers, and stock'**
+  String get poStepSalesSub;
+
+  /// No description provided for @poStepPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sales'**
+  String get poStepPending;
+
+  /// No description provided for @poPendingNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending sales'**
+  String get poPendingNone;
+
+  /// No description provided for @poStepAssets.
+  ///
+  /// In en, this message translates to:
+  /// **'Product assets'**
+  String get poStepAssets;
+
+  /// No description provided for @poStepAssetsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Images and thumbnails'**
+  String get poStepAssetsSub;
+
+  /// No description provided for @poFooterNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This setup is required only once. After that, AmanaPOS can keep working during poor internet.'**
+  String get poFooterNote;
+
+  /// No description provided for @poTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get poTryAgain;
+
+  /// No description provided for @poOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get poOnline;
+
+  /// No description provided for @poOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get poOffline;
+
+  /// No description provided for @poChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking'**
+  String get poChecking;
+
+  /// No description provided for @poUpdatingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating data'**
+  String get poUpdatingData;
+
+  /// No description provided for @poUpdatingAssets.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating assets'**
+  String get poUpdatingAssets;
+
+  /// No description provided for @poSyncingSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing sales'**
+  String get poSyncingSales;
+
+  /// No description provided for @poOfflineReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline ready'**
+  String get poOfflineReady;
+
+  /// No description provided for @poSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get poSyncFailed;
+
+  /// No description provided for @poSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get poSynced;
+
+  /// No description provided for @poReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get poReady;
+
+  /// No description provided for @poPendingWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 sale waiting to sync} other{{count} sales waiting to sync}}'**
+  String poPendingWaiting(int count);
+
+  /// No description provided for @poPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pending'**
+  String poPendingCount(int count);
 }
 
 class _AppLocalizationsDelegate

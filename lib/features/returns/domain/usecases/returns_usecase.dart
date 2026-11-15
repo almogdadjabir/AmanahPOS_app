@@ -1,7 +1,6 @@
 import 'package:amana_pos/features/returns/data/models/requests/refund_request_dto.dart';
 import 'package:amana_pos/features/returns/data/models/responses/refund_response_dto.dart';
 import 'package:amana_pos/features/returns/domain/repositories/returns_repository.dart';
-import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
 class ReturnsUseCase {
@@ -11,6 +10,5 @@ class ReturnsUseCase {
   Future<Either<String?, RefundResponseDto>> processRefund({
     required String saleId,
     required RefundRequestDto request,
-  }) =>
-      repository.processRefund(saleId: saleId, request: request);
+  }) => repository.processRefund(saleId: saleId, request: request);
 }

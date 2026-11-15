@@ -41,6 +41,11 @@ abstract final class AppColors {
   static const Color info = Color(0xFF2D5B88);
   static const Color infoLight = Color(0xFFE7EEF6);
 
+  // Fixed fills for white glyphs (readable in light and dark)
+  static const Color manageAmber = Color(0xFFB26A00);
+  static const Color swipeSlate = Color(0xFF475569);
+  static const Color whatsapp = Color(0xFF1FA855);
+
   // POS-specific
   static const Color sale = primary;
   static const Color refund = danger;

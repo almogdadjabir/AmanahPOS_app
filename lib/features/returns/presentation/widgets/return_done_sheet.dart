@@ -1,3 +1,4 @@
+import 'package:amana_pos/theme/app_colors.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/returns/data/models/responses/refund_response_dto.dart';
@@ -13,8 +14,6 @@ import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-const Color _whatsappGreen = Color(0xFF1FA855);
 
 /// "Return recorded": reference, amount, WhatsApp share, Done.
 /// Resolves when the sheet closes by any route; the caller then leaves.
@@ -181,7 +180,7 @@ class _ReturnDoneSheet extends StatelessWidget {
           _SheetButton(
             label: tr.rtShareWhatsApp,
             icon: PhosphorIconsRegular.whatsappLogo,
-            background: _whatsappGreen,
+            background: AppColors.whatsapp,
             foreground: Colors.white,
             onTap: () => _whatsapp(context),
           ),

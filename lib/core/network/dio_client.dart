@@ -5,8 +5,8 @@ import 'package:dio/io.dart';
 import 'package:amana_pos/config/environment/environment.dart';
 import 'package:flutter/foundation.dart';
 
-const _defaultConnectTimeout = Duration(minutes: 3);
-const _defaultReceiveTimeout = Duration(minutes: 3);
+const _defaultConnectTimeout = Duration(seconds: 30);
+const _defaultReceiveTimeout = Duration(seconds: 30);
 
 class DioClient {
   final String baseUrl;

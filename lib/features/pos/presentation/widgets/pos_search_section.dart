@@ -126,7 +126,7 @@ class PosSearchSection extends StatelessWidget {
 
     if (product == null) {
       GlobalSnackBar.show(
-        message: 'No product found for barcode: $cleanBarcode',
+        message: context.tr.posBarcodeNotFound(cleanBarcode),
         isError: true,
       );
       return;

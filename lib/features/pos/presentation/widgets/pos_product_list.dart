@@ -1,6 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
-import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
@@ -10,14 +9,11 @@ import 'package:amana_pos/theme/app_text_styles.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
 
 /// Inset grouped product list for the mobile Sell screen.
 class PosProductList extends StatelessWidget {
-  static const int _staggerLimit = 8;
-
   final List<ProductData> products;
 
   const PosProductList({super.key, required this.products});
@@ -57,12 +53,7 @@ class PosProductList extends StatelessWidget {
           ),
         );
 
-        if (index >= _staggerLimit) return row;
-
-        return row
-            .mAnimate(delay: Duration(milliseconds: 40 * index))
-            .fadeIn(duration: 280.ms, curve: AppDims.soft)
-            .slideY(begin: 0.06, end: 0, duration: 280.ms, curve: AppDims.soft);
+        return row;
       },
     );
   }

@@ -1,3 +1,4 @@
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
@@ -255,8 +256,8 @@ class _MonthHeader extends StatelessWidget {
                   child: SizedBox(
                     width: 32,
                     height: 32,
-                    child: Icon(
-                      PhosphorIconsRegular.caretLeft,
+                    child: DirectionalIcon(
+                      icon: PhosphorIconsRegular.caretLeft,
                       size: 20,
                       color: colors.primary,
                     ),
@@ -268,8 +269,8 @@ class _MonthHeader extends StatelessWidget {
                   child: SizedBox(
                     width: 32,
                     height: 32,
-                    child: Icon(
-                      PhosphorIconsRegular.caretRight,
+                    child: DirectionalIcon(
+                      icon: PhosphorIconsRegular.caretRight,
                       size: 20,
                       color: colors.primary,
                     ),

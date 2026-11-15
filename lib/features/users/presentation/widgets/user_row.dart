@@ -166,35 +166,42 @@ class _UserSwipeState extends State<UserSwipe>
         child: Stack(
           children: [
             Positioned.fill(
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: SizedBox(
-                  width: _width,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      _settle(false);
-                      a.onTap();
-                    },
-                    child: ColoredBox(
-                      color: a.color,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(a.icon, size: 22, color: Colors.white),
-                          const SizedBox(height: 3),
-                          Text(
-                            a.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              height: 1.3,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+              child: AnimatedBuilder(
+                animation: _ctrl,
+                // Paint the action only while the row is open, so it never
+                // peeks out at the rounded card corners.
+                builder: (context, child) =>
+                    _ctrl.value > 0 ? child! : const SizedBox.shrink(),
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: SizedBox(
+                    width: _width,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        _settle(false);
+                        a.onTap();
+                      },
+                      child: ColoredBox(
+                        color: a.color,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(a.icon, size: 22, color: Colors.white),
+                            const SizedBox(height: 3),
+                            Text(
+                              a.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                height: 1.3,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -1,6 +1,5 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
-import 'package:amana_pos/features/settings/data/models/set_password_request_dto.dart';
 import 'package:amana_pos/features/settings/data/models/update_profile_request_dto.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +16,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     required this.authBloc,
   }) : super(SettingsState.initial()) {
     on<OnUpdateProfile>(_updateProfile);
-    on<OnSetPassword>(_setPassword);
     // OnSettingsInitial removed — profile comes from AuthBloc
   }
 
@@ -55,36 +53,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       emit(state.copyWith(
         submitStatus: SettingsSubmitStatus.failure,
         submitError:  e.toString(),
-      ));
-    }
-  }
-
-  Future<void> _setPassword(
-      OnSetPassword         event,
-      Emitter<SettingsState> emit,
-      ) async {
-    emit(state.copyWith(
-      passwordStatus: SettingsSubmitStatus.loading,
-      passwordError:  null,
-    ));
-
-    try {
-      final response = await useCase.setPassword(event.dto);
-      final error    = response.getLeft().toNullable();
-
-      if (error != null) {
-        emit(state.copyWith(
-          passwordStatus: SettingsSubmitStatus.failure,
-          passwordError:  error,
-        ));
-        return;
-      }
-
-      emit(state.copyWith(passwordStatus: SettingsSubmitStatus.success));
-    } catch (e) {
-      emit(state.copyWith(
-        passwordStatus: SettingsSubmitStatus.failure,
-        passwordError:  e.toString(),
       ));
     }
   }

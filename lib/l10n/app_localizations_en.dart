@@ -4145,4 +4145,173 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shpEmptyBody =>
       'A shop is where you sell. Add your first one to start.';
+
+  @override
+  String posBarcodeNotFound(String barcode) {
+    return 'No product found for barcode: $barcode';
+  }
+
+  @override
+  String get ibReceived => 'Stock received successfully';
+
+  @override
+  String get ibQueued => 'Queued — will sync when online';
+
+  @override
+  String get ibAddProduct => 'Add at least one product';
+
+  @override
+  String get ibSelectVendor => 'Please select a vendor';
+
+  @override
+  String get ibNoProducts => 'No products loaded';
+
+  @override
+  String get ibNoVendors => 'No vendors available';
+
+  @override
+  String get ibInvoiceHint => 'Invoice or PO number';
+
+  @override
+  String get ibSearchHint => 'Search by name, SKU, or barcode';
+
+  @override
+  String get lsSwitchLocation => 'Switch location';
+
+  @override
+  String get exTitle => 'Expiry alerts';
+
+  @override
+  String get exLoadFailed => 'Failed to load expiry alerts.';
+
+  @override
+  String get exEmptyTitle => 'No expiry alerts';
+
+  @override
+  String get exEmptyBody => 'All products are within a safe expiry window.';
+
+  @override
+  String get exToday => 'Expires today';
+
+  @override
+  String exExpiredAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Expired $count days ago',
+      one: 'Expired 1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'In $count days',
+      one: 'In 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get poTitle => 'Preparing offline mode';
+
+  @override
+  String get poDescOffline =>
+      'Internet is required only for the first setup. Please connect once so AmanaPOS can prepare your business for offline use.';
+
+  @override
+  String get poDescBootstrap =>
+      'Please keep the app open while we download your business data, products, categories, stock, and customers.';
+
+  @override
+  String get poDescAssets =>
+      'Your business data is ready. We are updating product and category assets in the background.';
+
+  @override
+  String get poDescFailure =>
+      'Something went wrong while preparing offline mode.';
+
+  @override
+  String get poDescDefault =>
+      'Almost done. AmanaPOS is getting your workspace ready for poor internet and offline sales.';
+
+  @override
+  String get poStepBusiness => 'Business workspace';
+
+  @override
+  String get poStepBusinessSub => 'Business and shops';
+
+  @override
+  String get poStepSales => 'Sales data';
+
+  @override
+  String get poStepSalesSub => 'Products, categories, customers, and stock';
+
+  @override
+  String get poStepPending => 'Pending sales';
+
+  @override
+  String get poPendingNone => 'No pending sales';
+
+  @override
+  String get poStepAssets => 'Product assets';
+
+  @override
+  String get poStepAssetsSub => 'Images and thumbnails';
+
+  @override
+  String get poFooterNote =>
+      'This setup is required only once. After that, AmanaPOS can keep working during poor internet.';
+
+  @override
+  String get poTryAgain => 'Try again';
+
+  @override
+  String get poOnline => 'Online';
+
+  @override
+  String get poOffline => 'Offline';
+
+  @override
+  String get poChecking => 'Checking';
+
+  @override
+  String get poUpdatingData => 'Updating data';
+
+  @override
+  String get poUpdatingAssets => 'Updating assets';
+
+  @override
+  String get poSyncingSales => 'Syncing sales';
+
+  @override
+  String get poOfflineReady => 'Offline ready';
+
+  @override
+  String get poSyncFailed => 'Sync failed';
+
+  @override
+  String get poSynced => 'Synced';
+
+  @override
+  String get poReady => 'Ready';
+
+  @override
+  String poPendingWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sales waiting to sync',
+      one: '1 sale waiting to sync',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String poPendingCount(int count) {
+    return '$count pending';
+  }
 }

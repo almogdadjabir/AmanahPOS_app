@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/motion/motion.dart';
-import 'package:amana_pos/common/motion/motion_animate.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/cart/presentation/qty_stepper.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
@@ -18,7 +17,6 @@ import 'package:amana_pos/widgets/app_amount.dart';
 import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartLine extends StatelessWidget {
@@ -136,24 +134,16 @@ class CartLine extends StatelessWidget {
     );
 
     return RepaintBoundary(
-          child: productId == null
-              ? line
-              : Dismissible(
-                  key: ValueKey('cart-line-$productId'),
-                  direction: DismissDirection.endToStart,
-                  background: const _DeleteBackground(),
-                  onDismissed: (_) => _remove(context, productId, productName),
-                  child: ColoredBox(color: colors.surface, child: line),
-                ),
-        )
-        .mAnimate()
-        .fadeIn(duration: AppDims.medium, curve: AppDims.soft)
-        .slideY(
-          begin: 0.12,
-          end: 0,
-          duration: AppDims.slow,
-          curve: AppDims.soft,
-        );
+      child: productId == null
+          ? line
+          : Dismissible(
+              key: ValueKey('cart-line-$productId'),
+              direction: DismissDirection.endToStart,
+              background: const _DeleteBackground(),
+              onDismissed: (_) => _remove(context, productId, productName),
+              child: ColoredBox(color: colors.surface, child: line),
+            ),
+    );
   }
 }
 

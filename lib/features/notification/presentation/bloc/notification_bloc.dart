@@ -87,7 +87,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           emit(
             state.copyWith(
               status: NotificationStatus.success,
-              notifications: [...state.notifications, ...response.results],
+              notifications: [
+                ...state.notifications,
+                // New items arriving between pages shift the offset, so a page
+                // can repeat rows we already hold; keep ids unique.
+                ...response.results.where(
+                  (n) => !state.notifications.any((o) => o.id == n.id),
+                ),
+              ],
               currentPage: nextPage,
               hasMore: response.hasMore,
               clearError: true,

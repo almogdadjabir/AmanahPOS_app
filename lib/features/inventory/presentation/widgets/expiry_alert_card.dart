@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/expiry_alert_response_dto.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_text_styles.dart';
@@ -9,21 +10,18 @@ import 'package:amana_pos/theme/phosphor_icons.dart';
 class ExpiryAlertCard extends StatelessWidget {
   final ExpiryAlertData item;
 
-  const ExpiryAlertCard({
-    super.key,
-    required this.item,
-  });
+  const ExpiryAlertCard({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final expired = item.isExpiredSafe;
 
-    final statusColor = expired
-        ? const Color(0xFFDC2626)
-        : const Color(0xFFEA580C);
+    final statusColor = expired ? colors.danger : colors.warning;
 
-    final statusLabel = expired ? 'Expired' : 'Expiring Soon';
+    final statusLabel = expired
+        ? context.tr.invExpiryExpired
+        : context.tr.invExpiryExpiringSoon;
 
     final statusIcon = expired
         ? PhosphorIconsRegular.warningCircle
@@ -34,9 +32,7 @@ class ExpiryAlertCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppDims.rLg),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -48,11 +44,7 @@ class ExpiryAlertCard extends StatelessWidget {
               color: statusColor.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(AppDims.rMd),
             ),
-            child: Icon(
-              statusIcon,
-              color: statusColor,
-              size: 26,
-            ),
+            child: Icon(statusIcon, color: statusColor, size: 26),
           ),
 
           const SizedBox(width: AppDims.s3),
@@ -62,7 +54,7 @@ class ExpiryAlertCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName ?? 'Product',
+                  item.productName ?? context.tr.product,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bs600(context).copyWith(
@@ -99,13 +91,12 @@ class ExpiryAlertCard extends StatelessWidget {
                 ],
 
                 Text(
-                  _expiryLabel(),
+                  _expiryLabel(context),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bs200(context).copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: AppTextStyles.bs200(
+                    context,
+                  ).copyWith(color: statusColor, fontWeight: FontWeight.w800),
                 ),
 
                 const SizedBox(height: AppDims.s2),
@@ -121,10 +112,9 @@ class ExpiryAlertCard extends StatelessWidget {
                   ),
                   child: Text(
                     statusLabel,
-                    style: AppTextStyles.bs100(context).copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w900,
-                    ),
+                    style: AppTextStyles.bs100(
+                      context,
+                    ).copyWith(color: statusColor, fontWeight: FontWeight.w900),
                   ),
                 ),
               ],
@@ -146,11 +136,10 @@ class ExpiryAlertCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Qty',
-                style: AppTextStyles.bs200(context).copyWith(
-                  color: colors.textHint,
-                  fontWeight: FontWeight.w800,
-                ),
+                context.tr.qty,
+                style: AppTextStyles.bs200(
+                  context,
+                ).copyWith(color: colors.textHint, fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -159,7 +148,8 @@ class ExpiryAlertCard extends StatelessWidget {
     );
   }
 
-  String _expiryLabel() {
+  String _expiryLabel(BuildContext context) {
+    final tr = context.tr;
     final date = item.parsedExpiryDate;
     if (date == null) return item.expiryDate ?? '';
 
@@ -169,15 +159,14 @@ class ExpiryAlertCard extends StatelessWidget {
     if (days == null) return formatted;
 
     if (days < 0) {
-      final count = -days;
-      return '$formatted · Expired $count day${count == 1 ? '' : 's'} ago';
+      return '$formatted · ${tr.exExpiredAgo(-days)}';
     }
 
     if (days == 0) {
-      return '$formatted · Expires today';
+      return '$formatted · ${tr.exToday}';
     }
 
-    return '$formatted · In $days day${days == 1 ? '' : 's'}';
+    return '$formatted · ${tr.exInDays(days)}';
   }
 
   String _formatQty(double value) {

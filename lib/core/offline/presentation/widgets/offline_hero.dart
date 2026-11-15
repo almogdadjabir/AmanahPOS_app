@@ -68,7 +68,7 @@ class _OfflineHeroState extends State<OfflineHero>
             end: Alignment.bottomRight,
             colors: [
               colors.primary.withValues(alpha: 0.18),
-              const Color(0xFF0D9488).withValues(alpha: 0.10),
+              colors.primaryStrong.withValues(alpha: 0.10),
               colors.surfaceSoft,
             ],
           ),
@@ -93,7 +93,11 @@ class _OfflineHeroState extends State<OfflineHero>
                 border: Border.all(color: colors.border),
               ),
             ),
-            Icon(PhosphorIconsRegular.cloudArrowUp, size: 44, color: colors.primary),
+            Icon(
+              PhosphorIconsRegular.cloudArrowUp,
+              size: 44,
+              color: colors.primary,
+            ),
             Positioned(
               right: 26,
               bottom: 28,
@@ -101,7 +105,7 @@ class _OfflineHeroState extends State<OfflineHero>
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF16A34A),
+                  color: colors.success,
                   shape: BoxShape.circle,
                   border: Border.all(color: colors.surface, width: 3),
                 ),

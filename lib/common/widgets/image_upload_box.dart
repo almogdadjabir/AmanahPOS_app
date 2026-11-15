@@ -1,3 +1,4 @@
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'dart:io';
 
 import 'package:amana_pos/common/services/image/app_image_picker.dart';
@@ -318,7 +319,10 @@ class _ImageActionTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(PhosphorIconsRegular.caretRight, color: colors.textHint),
+              DirectionalIcon(
+                icon: PhosphorIconsRegular.caretRight,
+                color: colors.textHint,
+              ),
             ],
           ),
         ),

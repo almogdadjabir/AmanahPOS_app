@@ -2612,7 +2612,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get pcChipCategory => 'الفئة';
+  String get pcChipCategory => 'التصنيف';
 
   @override
   String get pcChipLow => 'مخزون منخفض';
@@ -2649,7 +2649,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pcErrorBody => 'تحقق من اتصالك وحاول مرة أخرى.';
 
   @override
-  String get pcAllCategories => 'كل الفئات';
+  String get pcAllCategories => 'كل التصنيفات';
 
   @override
   String get pcShowingSaved => 'عرض المنتجات المحفوظة';
@@ -2791,10 +2791,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pfDeleteProduct => 'حذف المنتج';
 
   @override
-  String get pfCategoryLockedNote => 'لا يمكن نقل المنتج إلى فئة أخرى.';
+  String get pfCategoryLockedNote => 'لا يمكن نقل المنتج إلى تصنيف آخر.';
 
   @override
-  String get pfCategoryNameHint => 'اسم الفئة';
+  String get pfCategoryNameHint => 'اسم التصنيف';
 
   @override
   String get pfGeneralHint => 'تُستخدم عند عدم الاختيار';
@@ -2824,34 +2824,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String ctCountTitle(String count) {
-    return '$count فئات';
+    return '$count تصنيفات';
   }
 
   @override
-  String get ctEmptyBody => 'أنشئ فئة لتجمع المنتجات وتجدها أسرع.';
+  String get ctEmptyBody => 'أنشئ تصنيفًا لتجمع المنتجات وتجدها أسرع.';
 
   @override
-  String get ctDelete => 'حذف الفئة';
+  String get ctDelete => 'حذف التصنيف';
 
   @override
-  String get ctDeleteNote => 'تبقى منتجاتها في الكتالوج بلا فئة.';
+  String get ctDeleteNote => 'تبقى منتجاتها في الكتالوج بلا تصنيف.';
 
   @override
   String ctInThis(String count) {
-    return '$count منتج في هذه الفئة';
+    return '$count منتج في هذا التصنيف';
   }
 
   @override
-  String get ctNoProducts => 'لا منتجات في هذه الفئة';
+  String get ctNoProducts => 'لا منتجات في هذا التصنيف';
 
   @override
-  String get ctNoProductsBody => 'المنتجات التي تضيفها هنا ستظهر في هذه الفئة.';
+  String get ctNoProductsBody =>
+      'المنتجات التي تضيفها هنا ستظهر في هذا التصنيف.';
 
   @override
-  String get ctDescHint => 'ما الذي يندرج تحت هذه الفئة';
+  String get ctDescHint => 'ما الذي يندرج تحت هذا التصنيف';
 
   @override
-  String get ctEnterName => 'أدخل اسم الفئة';
+  String get ctEnterName => 'أدخل اسم التصنيف';
 
   @override
   String get stReceive => 'استلام مخزون';
@@ -4095,4 +4096,180 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shpEmptyBody => 'المتجر هو مكان البيع. أضف متجرك الأول للبدء.';
+
+  @override
+  String posBarcodeNotFound(String barcode) {
+    return 'لا يوجد منتج بالباركود: $barcode';
+  }
+
+  @override
+  String get ibReceived => 'تم استلام المخزون بنجاح';
+
+  @override
+  String get ibQueued => 'في قائمة الانتظار — ستتم المزامنة عند الاتصال';
+
+  @override
+  String get ibAddProduct => 'أضف منتجًا واحدًا على الأقل';
+
+  @override
+  String get ibSelectVendor => 'اختر موردًا';
+
+  @override
+  String get ibNoProducts => 'لا توجد منتجات محمّلة';
+
+  @override
+  String get ibNoVendors => 'لا يوجد موردون';
+
+  @override
+  String get ibInvoiceHint => 'رقم الفاتورة أو أمر الشراء';
+
+  @override
+  String get ibSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
+
+  @override
+  String get lsSwitchLocation => 'تبديل الموقع';
+
+  @override
+  String get exTitle => 'تنبيهات الصلاحية';
+
+  @override
+  String get exLoadFailed => 'تعذّر تحميل تنبيهات الصلاحية.';
+
+  @override
+  String get exEmptyTitle => 'لا توجد تنبيهات صلاحية';
+
+  @override
+  String get exEmptyBody => 'جميع المنتجات ضمن فترة صلاحية آمنة.';
+
+  @override
+  String get exToday => 'تنتهي اليوم';
+
+  @override
+  String exExpiredAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'انتهت منذ $count يومًا',
+      few: 'انتهت منذ $count أيام',
+      two: 'انتهت منذ يومين',
+      one: 'انتهت منذ يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count يومًا',
+      few: 'خلال $count أيام',
+      two: 'خلال يومين',
+      one: 'خلال يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get poTitle => 'تجهيز وضع العمل دون اتصال';
+
+  @override
+  String get poDescOffline =>
+      'الإنترنت مطلوب للإعداد الأول فقط. اتصل مرة واحدة ليجهّز أمانة بوس نشاطك للعمل دون اتصال.';
+
+  @override
+  String get poDescBootstrap =>
+      'أبقِ التطبيق مفتوحًا ريثما ننزّل بيانات نشاطك ومنتجاتك وتصنيفاتك ومخزونك وعملائك.';
+
+  @override
+  String get poDescAssets =>
+      'بيانات نشاطك جاهزة. نحدّث صور المنتجات والتصنيفات في الخلفية.';
+
+  @override
+  String get poDescFailure => 'حدث خطأ أثناء تجهيز وضع العمل دون اتصال.';
+
+  @override
+  String get poDescDefault =>
+      'أوشكنا على الانتهاء. يجهّز أمانة بوس مساحة عملك للإنترنت الضعيف والبيع دون اتصال.';
+
+  @override
+  String get poStepBusiness => 'مساحة النشاط';
+
+  @override
+  String get poStepBusinessSub => 'النشاط والمتاجر';
+
+  @override
+  String get poStepSales => 'بيانات المبيعات';
+
+  @override
+  String get poStepSalesSub => 'المنتجات والتصنيفات والعملاء والمخزون';
+
+  @override
+  String get poStepPending => 'المبيعات المعلّقة';
+
+  @override
+  String get poPendingNone => 'لا توجد مبيعات معلّقة';
+
+  @override
+  String get poStepAssets => 'صور المنتجات';
+
+  @override
+  String get poStepAssetsSub => 'الصور والصور المصغّرة';
+
+  @override
+  String get poFooterNote =>
+      'هذا الإعداد مطلوب مرة واحدة فقط. بعدها يواصل أمانة بوس العمل مع الإنترنت الضعيف.';
+
+  @override
+  String get poTryAgain => 'حاول مرة أخرى';
+
+  @override
+  String get poOnline => 'متصل';
+
+  @override
+  String get poOffline => 'غير متصل';
+
+  @override
+  String get poChecking => 'جارٍ الفحص';
+
+  @override
+  String get poUpdatingData => 'تحديث البيانات';
+
+  @override
+  String get poUpdatingAssets => 'تحديث الصور';
+
+  @override
+  String get poSyncingSales => 'مزامنة المبيعات';
+
+  @override
+  String get poOfflineReady => 'جاهز دون اتصال';
+
+  @override
+  String get poSyncFailed => 'فشلت المزامنة';
+
+  @override
+  String get poSynced => 'تمت المزامنة';
+
+  @override
+  String get poReady => 'جاهز';
+
+  @override
+  String poPendingWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بيع ينتظر المزامنة',
+      many: '$count بيعًا ينتظر المزامنة',
+      few: '$count مبيعات تنتظر المزامنة',
+      two: 'بيعان ينتظران المزامنة',
+      one: 'بيع واحد ينتظر المزامنة',
+      zero: 'لا مبيعات تنتظر المزامنة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String poPendingCount(int count) {
+    return '$count معلّق';
+  }
 }

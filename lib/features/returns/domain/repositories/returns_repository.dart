@@ -1,6 +1,5 @@
 import 'package:amana_pos/features/returns/data/models/requests/refund_request_dto.dart';
 import 'package:amana_pos/features/returns/data/models/responses/refund_response_dto.dart';
-import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract class ReturnsRepository {

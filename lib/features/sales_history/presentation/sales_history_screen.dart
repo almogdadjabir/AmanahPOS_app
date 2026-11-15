@@ -1,3 +1,4 @@
+import 'package:amana_pos/theme/app_colors.dart';
 import 'dart:async';
 
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
@@ -167,7 +168,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
         label: tr.shSwipeReceipt,
         icon: PhosphorIconsRegular.receipt,
         // Fixed slate so the white glyph stays readable in light and dark.
-        color: const Color(0xFF475569),
+        color: AppColors.swipeSlate,
         onTap: () => _shareReceipt(sale),
       ),
     ];

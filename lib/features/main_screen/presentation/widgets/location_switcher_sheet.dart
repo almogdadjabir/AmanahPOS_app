@@ -29,7 +29,7 @@ class LocationSwitcherSheet extends StatelessWidget {
         [];
 
     return AppSheet(
-      title: 'Switch location',
+      title: context.tr.lsSwitchLocation,
       subtitle: business.name ?? 'Workspace',
       trailingAction: AppSheetAction(
         label: context.tr.done,
@@ -100,11 +100,7 @@ class _ShopRow extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(
-                PhosphorIconsRegular.check,
-                size: 20,
-                color: colors.primary,
-              ),
+              Icon(PhosphorIconsRegular.check, size: 20, color: colors.primary),
           ],
         ),
       ),
