@@ -110,7 +110,7 @@ class _BankakScreenState extends State<BankakScreen> {
         child: Column(
           children: [
             SettingsNavBar(
-              backLabel: tr.mrTitle,
+              backLabel: tr.mrSettings,
               actionLabel: tr.save,
               onAction: _canSave ? () => _submit(_ctrl.text.trim()) : null,
               saving: _saving,

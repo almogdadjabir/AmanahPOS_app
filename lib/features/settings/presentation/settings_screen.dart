@@ -5,7 +5,6 @@ import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dar
 import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
-import 'package:amana_pos/features/main_screen/data/app_feature.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_actions.dart';
 import 'package:amana_pos/features/settings/presentation/widgets/settings_widgets.dart';
@@ -124,7 +123,7 @@ class _MoreScreenState extends State<_MoreScreen> {
           tile: SettingsTile.teal,
           icon: PhosphorIconsRegular.addressBook,
           title: tr.mrCustomers,
-          onTap: () => selectMainFeature(context, AppFeature.customers),
+          onTap: () => nav.pushNamed(RouteStrings.customersScreen),
         ),
       if (perms.canAccessReports)
         SettingsRow(
@@ -138,7 +137,7 @@ class _MoreScreenState extends State<_MoreScreen> {
           tile: SettingsTile.indigo,
           icon: PhosphorIconsRegular.squaresFour,
           title: tr.mrCategories,
-          onTap: () => selectMainFeature(context, AppFeature.categories),
+          onTap: () => nav.pushNamed(RouteStrings.categoriesScreen),
         ),
       if (perms.canAccessUsers)
         SettingsRow(

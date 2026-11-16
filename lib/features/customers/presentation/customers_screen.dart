@@ -14,13 +14,17 @@ import 'package:amana_pos/theme/phosphor_icons.dart';
 import 'package:amana_pos/widgets/app_filter_chip.dart';
 import 'package:amana_pos/widgets/app_large_title.dart';
 import 'package:amana_pos/widgets/app_search_field.dart';
+import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/widgets/pressable.dart';
 import 'package:flutter/cupertino.dart' show CupertinoSliverRefreshControl;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CustomersScreen extends StatefulWidget {
-  const CustomersScreen({super.key});
+  /// True when pushed from More: shows Back and no tab bar underneath.
+  final bool isWithAppbar;
+
+  const CustomersScreen({super.key, this.isWithAppbar = false});
 
   @override
   State<CustomersScreen> createState() => _CustomersScreenState();
@@ -97,7 +101,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
       (b) => b.state.permissions.isCashier,
     );
     final bottomInset =
-        NavShell.contentHeight + MediaQuery.viewPaddingOf(context).bottom + 20;
+        (widget.isWithAppbar ? 0 : NavShell.contentHeight) +
+        MediaQuery.viewPaddingOf(context).bottom +
+        20;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -105,7 +111,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         bottom: false,
         child: Column(
           children: [
-            const _NavBar(),
+            _NavBar(showBack: widget.isWithAppbar),
             Expanded(
               child: BlocBuilder<CustomersBloc, CustomersState>(
                 builder: (context, state) =>
@@ -321,7 +327,8 @@ class _ChipsHeaderDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _NavBar extends StatelessWidget {
-  const _NavBar();
+  final bool showBack;
+  const _NavBar({required this.showBack});
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +340,29 @@ class _NavBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
+            if (showBack)
+              Pressable(
+                onTap: () => Navigator.of(context).maybePop(),
+                child: SizedBox(
+                  height: 44,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 4),
+                      DirectionalIcon(
+                        icon: PhosphorIconsRegular.caretLeft,
+                        size: 24,
+                        color: colors.primary,
+                      ),
+                      Text(
+                        context.tr.back,
+                        style: TextStyle(fontSize: 17, color: colors.primary),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+              ),
             const Spacer(),
             Pressable(
               onTap: () => openCustomerForm(context),

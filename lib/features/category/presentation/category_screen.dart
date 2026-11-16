@@ -16,7 +16,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CategoriesScreen extends StatefulWidget {
-  const CategoriesScreen({super.key});
+  /// True when pushed from More: Back pops, no tab bar underneath.
+  final bool isWithAppbar;
+
+  const CategoriesScreen({super.key, this.isWithAppbar = false});
 
   @override
   State<CategoriesScreen> createState() => _CategoriesScreenState();
@@ -53,7 +56,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final bottomInset =
-        NavShell.contentHeight + MediaQuery.viewPaddingOf(context).bottom + 20;
+        (widget.isWithAppbar ? 0 : NavShell.contentHeight) +
+        MediaQuery.viewPaddingOf(context).bottom +
+        20;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -61,7 +66,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         bottom: false,
         child: Column(
           children: [
-            const _NavBar(),
+            _NavBar(isWithAppbar: widget.isWithAppbar),
             Expanded(
               child: BlocBuilder<CategoryBloc, CategoryState>(
                 buildWhen: (prev, curr) =>
@@ -159,7 +164,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 }
 
 class _NavBar extends StatelessWidget {
-  const _NavBar();
+  final bool isWithAppbar;
+  const _NavBar({required this.isWithAppbar});
 
   @override
   Widget build(BuildContext context) {
@@ -172,10 +178,12 @@ class _NavBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            // Categories lives in the shell; the More menu is its parent.
             Pressable(
-              onTap: () =>
-                  Navigator.of(context).pushNamed(RouteStrings.settingsScreen),
+              onTap: () => isWithAppbar
+                  ? Navigator.of(context).maybePop()
+                  : Navigator.of(
+                      context,
+                    ).pushNamed(RouteStrings.settingsScreen),
               child: SizedBox(
                 height: 44,
                 child: Row(
@@ -188,7 +196,7 @@ class _NavBar extends StatelessWidget {
                       color: colors.primary,
                     ),
                     Text(
-                      tr.navMore,
+                      isWithAppbar ? tr.back : tr.navMore,
                       style: TextStyle(fontSize: 17, color: colors.primary),
                     ),
                     const SizedBox(width: 8),

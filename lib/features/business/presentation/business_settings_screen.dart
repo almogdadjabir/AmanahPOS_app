@@ -210,7 +210,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
         child: Column(
           children: [
             BizNavBar(
-              backLabel: tr.mrTitle,
+              backLabel: tr.mrSettings,
               trailing: BizNavText(
                 label: tr.save,
                 busy: _saving,
