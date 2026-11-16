@@ -1,0 +1,165 @@
+import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/sync/sync_state_store.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'support/test_db.dart';
+
+void main() {
+  late OfflineDb odb;
+  late DateTime clock;
+  late SyncStateStore store;
+
+  setUp(() async {
+    clock = DateTime.utc(2026, 1, 1, 12);
+    odb = await openTestDb();
+    store = SyncStateStore(odb, now: () => clock);
+  });
+
+  tearDown(() async => (await odb.database).close());
+
+  test('deviceId generated once and stable across store instances', () async {
+    final a = await store.deviceId();
+    expect(a, matches(RegExp(r'^[0-9a-f-]{36}$')));
+    expect(await store.deviceId(), a);
+    expect(await SyncStateStore(odb).deviceId(), a);
+  });
+
+  test('cursor roundtrip and rolls back with its transaction', () async {
+    expect(await store.cursor(), isNull);
+    final db = await odb.database;
+    await db.transaction((txn) => store.setCursor(txn, 'c1'));
+    expect(await store.cursor(), 'c1');
+    try {
+      await db.transaction((txn) async {
+        await store.setCursor(txn, 'c2');
+        throw StateError('boom');
+      });
+    } on StateError {
+      // expected
+    }
+    expect(await store.cursor(), 'c1');
+  });
+
+  test('clock skew, lastSyncedAt, capabilities roundtrip and clear', () async {
+    expect(await store.clockSkew(), isNull);
+    await store.setClockSkew(const Duration(hours: -3));
+    expect(await store.clockSkew(), const Duration(hours: -3));
+    final t = DateTime.utc(2026, 2, 3, 4, 5, 6);
+    await store.setLastSyncedAt(t);
+    expect(await store.lastSyncedAt(), t);
+    expect(await store.capabilities(), isEmpty);
+    await store.setCapabilities({'sales', 'stock'});
+    expect(await store.capabilities(), {'sales', 'stock'});
+    final id = await store.deviceId();
+    await store.clear();
+    expect(await store.clockSkew(), isNull);
+    expect(await store.lastSyncedAt(), isNull);
+    expect(await store.capabilities(), isEmpty);
+    expect(await store.deviceId(), id, reason: 'device id survives clear');
+  });
+
+  group('lock', () {
+    const ttl = Duration(seconds: 30);
+
+    test('racing holders: exactly one wins', () async {
+      final r = await Future.wait([
+        store.acquireLock('a', ttl),
+        store.acquireLock('b', ttl),
+        store.acquireLock('c', ttl),
+      ]);
+      expect(r.where((e) => e).length, 1);
+    });
+
+    test(
+      'same holder reacquires, other blocked until expiry takeover',
+      () async {
+        expect(await store.acquireLock('a', ttl), isTrue);
+        expect(await store.acquireLock('a', ttl), isTrue);
+        expect(await store.acquireLock('b', ttl), isFalse);
+        clock = clock.add(const Duration(seconds: 31));
+        expect(await store.acquireLock('b', ttl), isTrue);
+        expect(await store.renewLock('a', ttl), isFalse);
+      },
+    );
+
+    test(
+      'renew by non-holder or expired holder fails; holder extends',
+      () async {
+        await store.acquireLock('a', ttl);
+        expect(await store.renewLock('b', ttl), isFalse);
+        clock = clock.add(const Duration(seconds: 20));
+        expect(await store.renewLock('a', ttl), isTrue);
+        clock = clock.add(const Duration(seconds: 20));
+        expect(await store.acquireLock('b', ttl), isFalse);
+        clock = clock.add(const Duration(seconds: 11));
+        expect(await store.renewLock('a', ttl), isFalse);
+      },
+    );
+
+    test('release by non-holder is a no-op; by holder frees it', () async {
+      await store.acquireLock('a', ttl);
+      await store.releaseLock('b');
+      expect(await store.acquireLock('b', ttl), isFalse);
+      await store.releaseLock('a');
+      expect(await store.acquireLock('b', ttl), isTrue);
+    });
+
+    test('lock persists across new store over the same db', () async {
+      await store.acquireLock('a', ttl);
+      final other = SyncStateStore(odb, now: () => clock);
+      expect(await other.acquireLock('b', ttl), isFalse);
+      expect(await other.renewLock('a', ttl), isTrue);
+    });
+
+    test('clear does not drop the lock', () async {
+      await store.acquireLock('a', ttl);
+      await store.clear();
+      expect(await store.acquireLock('b', ttl), isFalse);
+    });
+  });
+
+  test('lock written by a clock ahead is treated as expired', () async {
+    const ttl = Duration(minutes: 2);
+    final realNow = clock;
+    clock = realNow.add(const Duration(days: 1));
+    expect(await store.acquireLock('a', ttl), isTrue);
+    clock = realNow;
+    expect(await store.renewLock('a', ttl), isFalse);
+    expect(await store.acquireLock('b', ttl), isTrue);
+    expect(await store.renewLock('b', ttl), isTrue);
+  });
+
+  test('repair flag roundtrip', () async {
+    expect(await store.repairNeeded(), isFalse);
+    await store.setRepairNeeded();
+    expect(await store.repairNeeded(), isTrue);
+    await store.clear(); // sync progress reset keeps the repair flag
+    expect(await store.repairNeeded(), isTrue);
+    await store.clearRepairNeeded();
+    expect(await store.repairNeeded(), isFalse);
+  });
+
+  test(
+    'deferred pull json roundtrips in a transaction and clear() drops it',
+    () async {
+      final db = await odb.database;
+      await db.transaction((t) => store.setDeferredPullJson(t, '{"a":1}'));
+      expect(await store.deferredPullJson(db), '{"a":1}');
+      await store.clear();
+      expect(await store.deferredPullJson(db), isNull);
+      await db.transaction((t) => store.setDeferredPullJson(t, '{}'));
+      await db.transaction((t) => store.setDeferredPullJson(t, null));
+      expect(await store.deferredPullJson(db), isNull);
+    },
+  );
+
+  test('small clock step back (within slack) keeps a live lock', () async {
+    const ttl = Duration(minutes: 2);
+    final realNow = clock;
+    clock = realNow.add(const Duration(seconds: 30));
+    expect(await store.acquireLock('a', ttl), isTrue);
+    clock = realNow;
+    expect(await store.acquireLock('b', ttl), isFalse);
+    expect(await store.renewLock('a', ttl), isTrue);
+  });
+}

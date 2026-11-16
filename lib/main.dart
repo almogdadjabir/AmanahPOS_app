@@ -6,6 +6,7 @@ import 'package:amana_pos/app.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/common/services/notifications/notification_service.dart';
+import 'package:amana_pos/core/sync/sync_flags.dart';
 import 'package:amana_pos/firebase_options.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -64,6 +65,12 @@ Future<void> main() async {
   }
 
   runApp(const App());
+
+  // Offline-first sync core: compiled out unless --dart-define=SYNC_ENGINE=true.
+  // Triggers start once AuthBloc reports a signed-in session with a business.
+  if (kSyncEngineEnabled) {
+    unawaited(DependenciesProvider.startSyncIfEnabled());
+  }
 
   if (_isMessagingSupported) {
     unawaited(_initializeFirebaseMessaging());

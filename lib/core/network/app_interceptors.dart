@@ -21,6 +21,16 @@ class AppInterceptors extends Interceptor {
 
   AppInterceptors(this._dio);
 
+  /// Read-only view of the main client's in-flight token refresh, so the
+  /// sync core can await it instead of racing it. Null when idle.
+  static Future<bool>? get refreshInFlight => _refreshTokenFuture;
+
+  /// The existing forced-logout path (tokens, PIN and Face ID cleared;
+  /// offline data and unsent sales KEPT; navigate to login). Exposed for the
+  /// sync session guard (flag-gated); existing callers are unchanged.
+  static Future<void> forceLogout() =>
+      AppInterceptors(getIt<Dio>())._triggerForcedLogout();
+
   @override
   void onRequest(
     RequestOptions options,

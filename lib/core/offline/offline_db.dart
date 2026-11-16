@@ -3,13 +3,19 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../sync/sync_schema.dart';
+
 class OfflineDb {
   OfflineDb._();
+
+  OfflineDb.forTesting(Database db) : _database = db;
 
   static final OfflineDb instance = OfflineDb._();
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 5;
+  static const int _dbVersion = 6;
+
+  static const int schemaVersion = _dbVersion;
 
   Database? _database;
 
@@ -23,19 +29,21 @@ class OfflineDb {
     _database = await openDatabase(
       path,
       version: _dbVersion,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-
-        // Do not run journal_mode=WAL here.
-        // On sqflite/iOS it can throw "not an error" during database open.
-        await db.execute('PRAGMA synchronous = NORMAL');
-        await db.execute('PRAGMA temp_store = MEMORY');
-      },
-      onCreate: _onCreate,
+      onConfigure: onConfigure,
+      onCreate: onCreate,
       onUpgrade: _onUpgrade,
     );
 
     return _database!;
+  }
+
+  static Future<void> onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+
+    // Do not run journal_mode=WAL here.
+    // On sqflite/iOS it can throw "not an error" during database open.
+    await db.execute('PRAGMA synchronous = NORMAL');
+    await db.execute('PRAGMA temp_store = MEMORY');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -54,9 +62,13 @@ class OfflineDb {
     if (oldVersion < 5) {
       await _migrateV5(db);
     }
+
+    if (oldVersion < 6) {
+      await SyncSchema.createAll(db);
+    }
   }
 
-  Future<void> _createPremiumTables(Database db) async {
+  static Future<void> _createPremiumTables(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS vendors (
         id TEXT PRIMARY KEY,
@@ -91,7 +103,7 @@ class OfflineDb {
     );
   }
 
-  Future<void> _createPendingInboundTables(Database db) async {
+  static Future<void> _createPendingInboundTables(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS pending_inbound_transactions (
         client_inbound_id TEXT PRIMARY KEY,
@@ -115,7 +127,7 @@ class OfflineDb {
     );
   }
 
-  Future<void> _createPerformanceIndexes(Database db) async {
+  static Future<void> _createPerformanceIndexes(Database db) async {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS idx_products_category_name ON products(category_id, name)',
     );
@@ -149,7 +161,7 @@ class OfflineDb {
     );
   }
 
-  Future<void> _migrateV5(Database db) async {
+  static Future<void> _migrateV5(Database db) async {
     // Add receipt_number to pending_sales so the history screen can display
     // it offline after a synced sale, without needing a network call.
     await db.execute('''
@@ -164,7 +176,7 @@ class OfflineDb {
     ''');
   }
 
-  Future<void> _onCreate(Database db, int version) async {
+  static Future<void> onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE sync_metadata (
         key TEXT PRIMARY KEY,
@@ -308,6 +320,8 @@ class OfflineDb {
     ''');
 
     await _createPerformanceIndexes(db);
+
+    await SyncSchema.createAll(db);
   }
 
   Future<int> countRows(String table) async {

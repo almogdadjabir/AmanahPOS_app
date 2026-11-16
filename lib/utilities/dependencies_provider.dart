@@ -16,6 +16,23 @@ import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/sync/sync_manager.dart';
+import 'package:amana_pos/common/services/device/device_info_service.dart';
+import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/core/sync/change_applier.dart';
+import 'package:amana_pos/core/sync/db_change_notifier.dart';
+import 'package:amana_pos/core/sync/local_writer.dart';
+import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
+import 'package:amana_pos/core/sync/reachability.dart';
+import 'package:amana_pos/core/sync/sync_coordinator.dart';
+import 'package:amana_pos/core/sync/sync_device_registrar.dart';
+import 'package:amana_pos/core/sync/sync_engine.dart';
+import 'package:amana_pos/core/sync/sync_flags.dart';
+import 'package:amana_pos/core/sync/sync_session_guard.dart';
+import 'package:amana_pos/core/sync/sync_state_store.dart';
+import 'package:amana_pos/core/sync/sync_token_refresher.dart';
+import 'package:amana_pos/core/sync/sync_triggers.dart';
+import 'package:amana_pos/core/sync/transport/http_sync_transport.dart';
+import 'package:amana_pos/core/sync/transport/sync_transport.dart';
 import 'package:amana_pos/features/dashboard/data/datasources/dashboard_local_data_source.dart';
 import 'package:amana_pos/features/pin/data/biometric_unlock_service.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
@@ -71,7 +88,11 @@ import 'package:amana_pos/features/users/data/repository_impl/users_repo_impl.da
 import 'package:amana_pos/features/users/domain/repositories/users_repository.dart';
 import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:developer' as developer;
+import 'dart:io' show Platform;
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
@@ -396,7 +417,188 @@ class DependenciesProvider {
       offlineStatusBloc: getIt<OfflineStatusBloc>(),
     ));
 
+    _registerSyncCore();
+  }
 
+  // ---------------------------------------------------------------- sync core
+  //
+  // Offline-first sync core (Phase 0). Every registration is LAZY: nothing
+  // here is constructed unless kSyncEngineEnabled (`--dart-define=
+  // SYNC_ENGINE=true`) and [startSyncIfEnabled] runs. With the flag off the
+  // app behaves exactly as before.
+
+  static const String syncDioName = 'syncDio';
+
+  static void _registerSyncCore() {
+    Future<String?> readAccessToken() =>
+        getIt<CacheStorage>().getValue(Constants.authToken);
+    Future<String?> readTenantId() =>
+        getIt<CacheStorage>().getValue(Constants.xTenantID);
+    Future<String?> readDeviceId() => getIt<SyncStateStore>().deviceId();
+
+    getIt.registerLazySingleton<DbChangeNotifier>(() => DbChangeNotifier());
+
+    getIt.registerLazySingleton<OutboxStore>(
+          () => OutboxStore(getIt<OfflineDb>()),
+    );
+
+    getIt.registerLazySingleton<LocalWriter>(
+          () => LocalWriter(
+        getIt<OfflineDb>(),
+        getIt<OutboxStore>(),
+        getIt<DbChangeNotifier>(),
+      ),
+    );
+
+    getIt.registerLazySingleton<SyncStateStore>(
+          () => SyncStateStore(getIt<OfflineDb>()),
+    );
+
+    // Same token / tenant storage as AppInterceptors; headers only (no
+    // refresh, retry or logout on the sync Dio).
+    getIt.registerLazySingleton<SyncTransport>(
+          () => HttpSyncTransport.create(
+        baseUrl: baseUrl,
+        readAccessToken: readAccessToken,
+        readTenantId: readTenantId,
+        readDeviceId: readDeviceId,
+      ),
+    );
+
+    getIt.registerLazySingleton<Dio>(
+          () => HttpSyncTransport.createDio(
+        baseUrl: baseUrl,
+        readAccessToken: readAccessToken,
+        readTenantId: readTenantId,
+        readDeviceId: readDeviceId,
+      ),
+      instanceName: syncDioName,
+    );
+
+    getIt.registerLazySingleton<ServerReachability>(
+          () => ServerReachability(getIt<SyncTransport>()),
+    );
+
+    // Empty in Phase 0: features register their appliers when they move on
+    // to the sync core.
+    getIt.registerLazySingleton<ChangeApplierRegistry>(
+          () => ChangeApplierRegistry(),
+    );
+
+    getIt.registerLazySingleton<SyncTokenRefresher>(
+          () => SyncTokenRefresher(
+        baseUrl: baseUrl,
+        storage: getIt<CacheStorage>(),
+        mainRefreshInFlight: () => AppInterceptors.refreshInFlight,
+        isLoggingOut: () => AppInterceptors.isLoggingOut,
+      ),
+    );
+
+    getIt.registerLazySingletonAsync<SyncEngine>(() async {
+      final refresher = getIt<SyncTokenRefresher>();
+      return SyncEngine(
+        db: getIt<OfflineDb>(),
+        transport: getIt<SyncTransport>(),
+        outbox: getIt<OutboxStore>(),
+        state: getIt<SyncStateStore>(),
+        reachability: getIt<ServerReachability>(),
+        appliers: getIt<ChangeApplierRegistry>(),
+        notifier: getIt<DbChangeNotifier>(),
+        appVersion: await _syncAppVersion(),
+        refreshToken: refresher.refresh,
+      );
+    });
+
+    getIt.registerLazySingletonAsync<SyncTriggers>(() async {
+      return SyncTriggers(
+        await getIt.getAsync<SyncEngine>(),
+        getIt<NetworkMonitor>(),
+        getIt<OutboxStore>(),
+        getIt<DbChangeNotifier>(),
+        canSync: _syncGate,
+      );
+    });
+
+    getIt.registerLazySingletonAsync<SyncSessionGuard>(() async {
+      return SyncSessionGuard((await getIt.getAsync<SyncEngine>()).status);
+    });
+
+    getIt.registerLazySingleton<SyncDeviceRegistrar>(
+          () => SyncDeviceRegistrar(
+        dio: getIt<Dio>(instanceName: syncDioName),
+        state: getIt<SyncStateStore>(),
+        capabilities: () async {
+          final ping = await getIt<ServerReachability>().check();
+          return ping?.capabilities ??
+              await getIt<SyncStateStore>().capabilities();
+        },
+        appVersion: _syncAppVersion,
+        platform: kIsWeb ? 'web' : Platform.operatingSystem,
+        name: kIsWeb
+            ? 'web'
+            : '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+        fcmToken: () => getIt<FcmTokenService>().getToken(),
+      ),
+    );
+
+    getIt.registerLazySingletonAsync<SyncCoordinator>(() async {
+      final auth = getIt<AuthBloc>();
+      return SyncCoordinator(
+        triggers: await getIt.getAsync<SyncTriggers>(),
+        guard: await getIt.getAsync<SyncSessionGuard>(),
+        registrar: getIt<SyncDeviceRegistrar>(),
+        outbox: getIt<OutboxStore>(),
+        state: getIt<SyncStateStore>(),
+        sessions: auth.stream.map(_syncSessionOf),
+        initialSession: _syncSessionOf(auth.state),
+        // Every session event (explicit refresh rejection, account disabled,
+        // device revoked) uses the app's existing forced-logout path: tokens
+        // + PIN/biometric cleared, offline data and the outbox KEPT.
+        onSessionEnded: (_) => AppInterceptors.forceLogout(),
+      );
+    });
+  }
+
+  /// Starts the sync core after login when the build enables it. With
+  /// kSyncEngineEnabled false this is a no-op and nothing is constructed.
+  static Future<void> startSyncIfEnabled() async {
+    if (!kSyncEngineEnabled) return;
+    try {
+      final coordinator = await getIt.getAsync<SyncCoordinator>();
+      await coordinator.attach();
+    } catch (e, st) {
+      developer.log(
+        'sync core failed to start',
+        name: 'DependenciesProvider',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  static SyncSession? _syncSessionOf(AuthState s) {
+    final userId = s.profile?.id;
+    final tenantId = s.defaultBusiness?.id;
+    if (!s.isLoggedIn || userId == null || tenantId == null) return null;
+    return SyncSession(userId: userId, tenantId: tenantId);
+  }
+
+  static Future<String> _syncAppVersion() async {
+    try {
+      return await DeviceInfoService.instance.getAppVersion();
+    } catch (_) {
+      return ''; // unparseable/empty never blocks sync (engine rule)
+    }
+  }
+
+  /// Runs before every trigger: a signed-in session and a server that
+  /// advertises the sync capabilities (unknown capability = legacy path).
+  static Future<bool> _syncGate() async {
+    final token = await getIt<CacheStorage>().getValue(Constants.authToken);
+    if (token == null || token.isEmpty) return false;
+    final ping = await getIt<ServerReachability>().check();
+    if (ping == null) return false;
+    return ping.capabilities.containsAll(kSyncRequiredCapabilities);
   }
 
   static T provide<T extends Object>() {
