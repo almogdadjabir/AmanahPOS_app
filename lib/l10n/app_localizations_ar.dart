@@ -4062,6 +4062,110 @@ class AppLocalizationsAr extends AppLocalizations {
   String get syFailedFallback => 'لم يقبل الخادم هذه العملية.';
 
   @override
+  String get syOxSyncing => 'جارٍ المزامنة';
+
+  @override
+  String get syOxServerUnreachable => 'الخادم غير متاح';
+
+  @override
+  String get syOxNeedsLogin => 'سجّل الدخول مجدداً للمزامنة';
+
+  @override
+  String get syOxAllSynced => 'تمت المزامنة';
+
+  @override
+  String get syOxStatePending => 'بالانتظار';
+
+  @override
+  String get syOxStateRejected => 'مرفوض';
+
+  @override
+  String get syOxStateBlocked => 'معلّق';
+
+  @override
+  String get syOxStateInflight => 'قيد الإرسال';
+
+  @override
+  String get syOxEntitySale => 'عملية بيع';
+
+  @override
+  String get syOxEntityStock => 'تعديل مخزون';
+
+  @override
+  String get syOxEntityInbound => 'استلام مخزون';
+
+  @override
+  String get syOxEntityOther => 'تغيير';
+
+  @override
+  String get syOxOtherAccount => 'حساب آخر';
+
+  @override
+  String get syOxRetry => 'إعادة المحاولة';
+
+  @override
+  String get syOxDiscard => 'تجاهل';
+
+  @override
+  String get syOxErrorFallback => 'لم يقبل الخادم هذا التغيير.';
+
+  @override
+  String get syOxDiscardSaleTitle => 'تجاهل عملية البيع؟';
+
+  @override
+  String get syOxDiscardSaleBody =>
+      'تبقى عملية البيع على هذا الهاتف مُعلَّمة كمرفوضة، ولن تُرسل إلى الخادم أبداً.';
+
+  @override
+  String get syOxDiscardRowTitle => 'تجاهل هذا التغيير؟';
+
+  @override
+  String get syOxDiscardRowBody => 'لن يُرسل إلى الخادم.';
+
+  @override
+  String get syOxDiscardOtherAction => 'تجاهل تغييرات الحساب الآخر';
+
+  @override
+  String get syOxDiscardOtherTitle => 'تجاهل تغييرات الحساب الآخر؟';
+
+  @override
+  String get syOxDiscardOtherBody =>
+      'سيُحذف من هذا الهاتف كل ما لم يتم مزامنته لذلك الحساب.';
+
+  @override
+  String get syOxLogoutTitle => 'تغييرات غير مُرسلة';
+
+  @override
+  String get syOxLogoutReview => 'مراجعة';
+
+  @override
+  String syOxWaitsBehind(String label) {
+    return 'بانتظار $label';
+  }
+
+  @override
+  String syOxUnsynced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غير مُزامنة',
+      one: '1 غير مُزامن',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syOxLogoutBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تغييرات لم تصل',
+      one: 'تغيير واحد لم يصل',
+    );
+    return '$_temp0 إلى الخادم. راجعها لإعادة المحاولة أو التجاهل قبل تسجيل الخروج.';
+  }
+
+  @override
   String get obCreateTitle => 'أنشئ نشاطك';
 
   @override
@@ -4281,4 +4385,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mrTheme => 'السمة';
+
+  @override
+  String get usExpiryNeedsConnection =>
+      'تتبّع تاريخ الانتهاء يحتاج إلى اتصال بالإنترنت';
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:amana_pos/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:equatable/equatable.dart';
@@ -19,19 +21,127 @@ class DashboardSummaryBloc
 
   int _requestVersion = 0;
 
-  DashboardSummaryBloc({
-    required this.getDashboardSummaryUseCase,
-  }) : super(const DashboardSummaryState()) {
+  /// Local-first mode (sync engine on): the summary comes from a reactive
+  /// SQLite stream. Data is emitted as it arrives, never behind a loading
+  /// or refreshing state.
+  StreamSubscription<DashboardSummary>? _localSub;
+  String? _localKey;
+  String? _localParams;
+  int _localGeneration = 0;
+
+  DashboardSummaryBloc({required this.getDashboardSummaryUseCase})
+    : super(const DashboardSummaryState()) {
     on<OnDashboardSummaryStarted>(_onStarted);
     on<OnDashboardSummaryRefreshRequested>(_onRefreshRequested);
     on<OnDashboardSummaryShopChanged>(_onShopChanged);
     on<OnDashboardSummaryReset>(_onReset);
+    on<_DashboardLocalSummaryReceived>(_onLocalReceived);
+    on<_DashboardLocalSummaryFailed>(_onLocalFailed);
+  }
+
+  @override
+  Future<void> close() async {
+    await _localSub?.cancel();
+    return super.close();
+  }
+
+  /// Subscribes to the local summary stream when the repository offers one.
+  /// Returns false when the dashboard uses the REST path. [restart] re-reads
+  /// "today" (refresh); otherwise an identical live subscription is kept.
+  bool _watchLocal({
+    required String? businessId,
+    required String? shopId,
+    required String? timezone,
+    required int topSellersLimit,
+    required bool restart,
+  }) {
+    final key = [
+      businessId ?? 'default_business',
+      shopId ?? 'all_shops',
+      timezone ?? 'default_timezone',
+      topSellersLimit,
+    ].join('|');
+    if (!restart && _localSub != null && _localParams == key) return true;
+
+    final stream = getDashboardSummaryUseCase.watch(
+      businessId: businessId,
+      shopId: shopId,
+      timezone: timezone,
+      topSellersLimit: topSellersLimit,
+    );
+    if (stream == null) return false;
+
+    _requestVersion++; // drop any in-flight REST response
+    _activeRequestKey = null;
+    _localSub?.cancel();
+    _localParams = key;
+    // Unique per subscription: values still queued from a replaced
+    // subscription (same params on refresh) are dropped.
+    final subKey = '$key#${++_localGeneration}';
+    _localKey = subKey;
+    _localSub = stream.listen(
+      (summary) => add(
+        _DashboardLocalSummaryReceived(
+          summary: summary,
+          key: subKey,
+          businessId: businessId,
+          shopId: shopId,
+          timezone: timezone,
+          topSellersLimit: topSellersLimit,
+        ),
+      ),
+      onError: (Object e) =>
+          add(_DashboardLocalSummaryFailed(message: e.toString(), key: subKey)),
+    );
+    return true;
+  }
+
+  void _onLocalReceived(
+    _DashboardLocalSummaryReceived event,
+    Emitter<DashboardSummaryState> emit,
+  ) {
+    if (event.key != _localKey) return; // stale subscription
+    emit(
+      state.copyWith(
+        status: DashboardSummaryStatus.success,
+        summary: event.summary,
+        businessId: event.businessId,
+        shopId: event.shopId,
+        timezone: event.timezone,
+        topSellersLimit: event.topSellersLimit,
+        errorMessage: null,
+      ),
+    );
+  }
+
+  void _onLocalFailed(
+    _DashboardLocalSummaryFailed event,
+    Emitter<DashboardSummaryState> emit,
+  ) {
+    if (event.key != _localKey) return;
+    debugPrint('[DashboardBloc] local summary failed: ${event.message}');
+    emit(
+      state.copyWith(
+        status: DashboardSummaryStatus.failure,
+        errorMessage: event.message,
+      ),
+    );
   }
 
   Future<void> _onStarted(
-      OnDashboardSummaryStarted event,
-      Emitter<DashboardSummaryState> emit,
-      ) async {
+    OnDashboardSummaryStarted event,
+    Emitter<DashboardSummaryState> emit,
+  ) async {
+    if (_watchLocal(
+      businessId: event.businessId,
+      shopId: event.shopId,
+      timezone: event.timezone,
+      topSellersLimit: event.topSellersLimit,
+      restart: event.forceRefresh,
+    )) {
+      return;
+    }
+
     final requestKey = _requestKey(
       businessId: event.businessId,
       shopId: event.shopId,
@@ -83,14 +193,24 @@ class DashboardSummaryBloc
   }
 
   Future<void> _onRefreshRequested(
-      OnDashboardSummaryRefreshRequested event,
-      Emitter<DashboardSummaryState> emit,
-      ) async {
+    OnDashboardSummaryRefreshRequested event,
+    Emitter<DashboardSummaryState> emit,
+  ) async {
     final businessId = event.businessId ?? state.businessId;
     final shopId = event.shopId ?? state.shopId;
     final date = event.date ?? state.date;
     final timezone = event.timezone ?? state.timezone;
     final topSellersLimit = event.topSellersLimit ?? state.topSellersLimit;
+
+    if (_watchLocal(
+      businessId: businessId,
+      shopId: shopId,
+      timezone: timezone,
+      topSellersLimit: topSellersLimit,
+      restart: true,
+    )) {
+      return;
+    }
 
     final requestKey = _requestKey(
       businessId: businessId,
@@ -138,9 +258,19 @@ class DashboardSummaryBloc
   }
 
   Future<void> _onShopChanged(
-      OnDashboardSummaryShopChanged event,
-      Emitter<DashboardSummaryState> emit,
-      ) async {
+    OnDashboardSummaryShopChanged event,
+    Emitter<DashboardSummaryState> emit,
+  ) async {
+    if (_watchLocal(
+      businessId: state.businessId,
+      shopId: event.shopId,
+      timezone: state.timezone,
+      topSellersLimit: state.topSellersLimit,
+      restart: false,
+    )) {
+      return;
+    }
+
     final requestKey = _requestKey(
       businessId: state.businessId,
       shopId: event.shopId,
@@ -189,10 +319,14 @@ class DashboardSummaryBloc
   }
 
   void _onReset(
-      OnDashboardSummaryReset event,
-      Emitter<DashboardSummaryState> emit,
-      ) {
+    OnDashboardSummaryReset event,
+    Emitter<DashboardSummaryState> emit,
+  ) {
     _requestVersion++;
+    _localSub?.cancel();
+    _localSub = null;
+    _localKey = null;
+    _localParams = null;
     _activeRequestKey = null;
     _lastSuccessRequestKey = null;
     _lastSuccessAt = null;
@@ -223,7 +357,7 @@ class DashboardSummaryBloc
       if (version != _requestVersion) {
         debugPrint(
           '[DashboardBloc] ignored stale response v$version. '
-              'latest=$_requestVersion key=$requestKey total=${summary.today.grossSalesAmount}',
+          'latest=$_requestVersion key=$requestKey total=${summary.today.grossSalesAmount}',
         );
         return;
       }
@@ -234,9 +368,9 @@ class DashboardSummaryBloc
 
       debugPrint(
         '[DashboardBloc] emit v$version key=$requestKey '
-            'total=${summary.today.grossSalesAmount} '
-            'source=${summary.source} '
-            'pending=${summary.includesLocalPendingSales}',
+        'total=${summary.today.grossSalesAmount} '
+        'source=${summary.source} '
+        'pending=${summary.includesLocalPendingSales}',
       );
 
       emit(
@@ -278,7 +412,8 @@ class DashboardSummaryBloc
   }
 
   bool _isSameRequestLoading(String requestKey) {
-    final isLoading = state.status == DashboardSummaryStatus.loading ||
+    final isLoading =
+        state.status == DashboardSummaryStatus.loading ||
         state.status == DashboardSummaryStatus.refreshing;
 
     return isLoading && _activeRequestKey == requestKey;

@@ -7,14 +7,18 @@ class StockResponseDto {
   final List<StockData>? results;
 
   const StockResponseDto({
-    this.count, this.totalPages, this.currentPage,
-    this.next, this.previous, this.results,
+    this.count,
+    this.totalPages,
+    this.currentPage,
+    this.next,
+    this.previous,
+    this.results,
   });
 
   factory StockResponseDto.fromJson(Map<String, dynamic> json) {
     return StockResponseDto(
       count: json['count'],
-      totalPages:  json['total_pages'],
+      totalPages: json['total_pages'],
       currentPage: json['current_page'],
       next: json['next'],
       previous: json['previous'],
@@ -44,9 +48,11 @@ class StockData {
   // ── Expiry fields (shop-only, nullable — old data won't have them) ──────
   /// ISO-8601 date-only string: "2025-06-15". Null if not tracked.
   final String? expiryDate;
-  final bool?   isExpired;
+  final bool? isExpired;
+
   /// Negative = already expired by that many days.
-  final int?    expiresInDays;
+  final int? expiresInDays;
+
   /// "expired" | "expiring_soon" | null
   final String? expiryStatus;
   final String? batchId;
@@ -88,12 +94,12 @@ class StockData {
       isOutOfStock: _parseBool(json['is_out_of_stock']),
       updatedAt: json['updated_at']?.toString(),
       // Expiry — safe: missing key returns null without crashing.
-      expiryDate:   json['expiry_date']?.toString(),
-      isExpired:    _parseBool(json['is_expired']),
+      expiryDate: json['expiry_date']?.toString(),
+      isExpired: _parseBool(json['is_expired']),
       expiresInDays: _parseInt(json['expires_in_days']),
       expiryStatus: json['expiry_status']?.toString(),
-      batchId:      json['batch_id']?.toString(),
-      batchNumber:  json['batch_number']?.toString(),
+      batchId: json['batch_id']?.toString(),
+      batchNumber: json['batch_number']?.toString(),
     );
   }
 
@@ -101,8 +107,7 @@ class StockData {
   bool get isExpiredSafe => isExpired ?? false;
 
   /// True when expiring soon but not yet expired.
-  bool get isExpiringSoon =>
-      !isExpiredSafe && expiryStatus == 'expiring_soon';
+  bool get isExpiringSoon => !isExpiredSafe && expiryStatus == 'expiring_soon';
 
   /// Parsed expiry date for display. Returns null if not set or unparseable.
   DateTime? get parsedExpiryDate {

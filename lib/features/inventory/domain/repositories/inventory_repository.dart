@@ -20,17 +20,33 @@ abstract class InventoryRepository {
     int pageSize = 20,
   });
 
-  Future<Either<String?, AddStockResponseDto>> addStock(AddStockRequestDto request);
-  Future<Either<String?, AddStockResponseDto>> adjustStock(AdjustStockRequestDto request);
+  Future<Either<String?, AddStockResponseDto>> addStock(
+    AddStockRequestDto request,
+  );
+  Future<Either<String?, AddStockResponseDto>> adjustStock(
+    AdjustStockRequestDto request,
+  );
   Future<Either<String?, bool>> transferStock(TransferStockRequestDto request);
-  Future<Either<String?, InboundResponseDto>> createInboundTransaction(CreateInboundRequestDto request);
+
+  /// Sync engine only: `stock.remove` of exactly [quantity].
+  Future<Either<String?, AddStockResponseDto>> removeStock({
+    required String productId,
+    required String shopId,
+    required String quantity,
+    String? reason,
+  });
+  Future<Either<String?, InboundResponseDto>> createInboundTransaction(
+    CreateInboundRequestDto request,
+  );
 
   Future<Either<String?, ExpiryAlertResponseDto>> getExpiryAlerts({
     int page = 1,
     int pageSize = 50,
   });
 
-  Future<Either<String?, PremiumSummaryData>> getPremiumSummary({String? shopId});
+  Future<Either<String?, PremiumSummaryData>> getPremiumSummary({
+    String? shopId,
+  });
 
   Future<Either<String?, InboundListResponseDto>> getInboundList({
     String? shopId,
@@ -45,8 +61,13 @@ abstract class InventoryRepository {
   });
 
   Future<Either<String?, VendorData>> getVendorById(String id);
-  Future<Either<String?, VendorData>> createVendor(CreateVendorRequestDto request);
-  Future<Either<String?, VendorData>> updateVendor(String id, UpdateVendorRequestDto request);
+  Future<Either<String?, VendorData>> createVendor(
+    CreateVendorRequestDto request,
+  );
+  Future<Either<String?, VendorData>> updateVendor(
+    String id,
+    UpdateVendorRequestDto request,
+  );
   Future<Either<String?, bool>> deleteVendor(String id);
 
   Future<Either<String?, VendorSummaryData>> getVendorSummary({

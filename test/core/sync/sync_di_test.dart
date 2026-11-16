@@ -7,12 +7,15 @@ import 'package:amana_pos/core/sync/sync_coordinator.dart';
 import 'package:amana_pos/core/sync/sync_device_registrar.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:amana_pos/core/sync/sync_flags.dart';
+import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/core/sync/sync_session_guard.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/core/sync/sync_token_refresher.dart';
 import 'package:amana_pos/core/sync/sync_triggers.dart';
 import 'package:amana_pos/core/sync/transport/http_sync_transport.dart';
 import 'package:amana_pos/core/sync/transport/sync_transport.dart';
+import 'package:amana_pos/features/inventory/domain/stock_service.dart';
+import 'package:amana_pos/features/pos/domain/sale_service.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,17 +29,34 @@ void main() {
   });
   tearDown(() => getIt.reset());
 
-  test('flag is off by default (no behaviour change)', () {
-    expect(kSyncEngineEnabled, isFalse);
+  test('flag is ON by default (kill switch: SYNC_ENGINE=false)', () {
+    expect(
+      kSyncEngineEnabled,
+      const bool.fromEnvironment('SYNC_ENGINE', defaultValue: true),
+    );
+    if (!const bool.hasEnvironment('SYNC_ENGINE')) {
+      expect(kSyncEngineEnabled, isTrue);
+    }
   });
 
-  test('startSyncIfEnabled constructs nothing when the flag is off', () async {
-    await DependenciesProvider.startSyncIfEnabled();
-    expect(getIt.checkLazySingletonInstanceExists<SyncEngine>(), isFalse);
-    expect(getIt.checkLazySingletonInstanceExists<SyncTriggers>(), isFalse);
-    expect(getIt.checkLazySingletonInstanceExists<SyncCoordinator>(), isFalse);
-    expect(getIt.checkLazySingletonInstanceExists<OutboxStore>(), isFalse);
-  });
+  test(
+    'kill switch: startSyncIfEnabled builds no engine; SyncScope follows the '
+    'session so local writes still reach the outbox',
+    () async {
+      await DependenciesProvider.startSyncIfEnabled();
+      expect(getIt.checkLazySingletonInstanceExists<SyncEngine>(), isFalse);
+      expect(getIt.checkLazySingletonInstanceExists<SyncTriggers>(), isFalse);
+      expect(
+        getIt.checkLazySingletonInstanceExists<SyncCoordinator>(),
+        isFalse,
+      );
+      // Signed out: no scope to enqueue under.
+      expect(SyncScope.current, isNull);
+    },
+    skip: kSyncEngineEnabled
+        ? 'only with --dart-define=SYNC_ENGINE=false'
+        : false,
+  );
 
   test('sync core registrations resolve (lazily, nothing started)', () async {
     expect(getIt<DbChangeNotifier>(), isA<DbChangeNotifier>());
@@ -50,7 +70,13 @@ void main() {
       reason: 'sync has its own Dio, never the app Dio with AppInterceptors',
     );
     expect(getIt<ServerReachability>(), isA<ServerReachability>());
-    expect(getIt<ChangeApplierRegistry>().all, isEmpty);
+    expect(getIt<ChangeApplierRegistry>().all.map((a) => a.entity), [
+      'stock',
+      'sale',
+      'inbound',
+    ]);
+    expect(getIt<SaleService>(), isA<SaleService>());
+    expect(getIt<StockService>(), isA<StockService>());
     expect(getIt<SyncTokenRefresher>(), isA<SyncTokenRefresher>());
     expect(getIt<SyncDeviceRegistrar>(), isA<SyncDeviceRegistrar>());
 

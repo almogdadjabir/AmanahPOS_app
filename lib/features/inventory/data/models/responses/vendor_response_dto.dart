@@ -77,7 +77,8 @@ class VendorListResponseDto {
     return VendorListResponseDto(
       count: (json['count'] as num?)?.toInt() ?? 0,
       totalPages: (json['total_pages'] as num?)?.toInt() ?? 1,
-      results: (json['results'] as List?)
+      results:
+          (json['results'] as List?)
               ?.whereType<Map<String, dynamic>>()
               .map(VendorData.fromJson)
               .toList() ??

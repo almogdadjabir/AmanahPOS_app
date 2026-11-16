@@ -1,6 +1,7 @@
 part of 'stock_levels_bloc.dart';
 
 enum StockLevelsStatus { initial, loading, loadingMore, success, failure }
+
 enum StockLevelsFilter { all, lowStock, outOfStock }
 
 class StockLevelsState extends Equatable {
@@ -39,8 +40,10 @@ class StockLevelsState extends Equatable {
       }).toList();
     }
     return switch (filter) {
-      StockLevelsFilter.lowStock => list.where((s) => s.isLowStock ?? false).toList(),
-      StockLevelsFilter.outOfStock => list.where((s) => s.isOutOfStock ?? false).toList(),
+      StockLevelsFilter.lowStock =>
+        list.where((s) => s.isLowStock ?? false).toList(),
+      StockLevelsFilter.outOfStock =>
+        list.where((s) => s.isOutOfStock ?? false).toList(),
       StockLevelsFilter.all => list,
     };
   }
@@ -64,10 +67,21 @@ class StockLevelsState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       lowStockOnly: lowStockOnly ?? this.lowStockOnly,
-      responseError: clearResponseError ? null : responseError ?? this.responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
     );
   }
 
   @override
-  List<Object?> get props => [status, items, filter, search, currentPage, totalPages, lowStockOnly, responseError];
+  List<Object?> get props => [
+    status,
+    items,
+    filter,
+    search,
+    currentPage,
+    totalPages,
+    lowStockOnly,
+    responseError,
+  ];
 }

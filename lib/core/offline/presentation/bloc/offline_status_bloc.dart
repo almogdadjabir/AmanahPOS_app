@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/offline_first_manager.dart';
-import 'package:amana_pos/core/sync/sync_manager.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,7 +13,10 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   final NetworkMonitor networkMonitor;
   final OfflineLocalCache localCache;
   final OfflineFirstManager offlineFirstManager;
-  final SyncManager syncManager;
+
+  /// Unsynced outbox rows (all scopes, rejected included). The sync engine
+  /// pushes them; this bloc only counts them (display + logout gate).
+  final Future<int> Function() outboxUnsyncedCount;
   int _logoutVersion = 0;
 
   StreamSubscription<bool>? _connectionSubscription;
@@ -23,7 +25,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
     required this.networkMonitor,
     required this.localCache,
     required this.offlineFirstManager,
-    required this.syncManager,
+    required this.outboxUnsyncedCount,
   }) : super(OfflineStatusState.initial()) {
     on<OnOfflineStatusStarted>(_onStarted);
     on<OnOfflineStatusRefreshRequested>(_onRefreshRequested);
@@ -39,7 +41,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
   ) async {
     final hasCache = await localCache.hasBootstrapCache();
     final isOnline = await networkMonitor.isOnline;
-    final pendingSalesCount = await syncManager.pendingSalesCount();
+    final pendingSalesCount = await outboxUnsyncedCount();
 
     emit(
       state.copyWith(
@@ -196,7 +198,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
     final isOnline = await networkMonitor.isOnline;
 
     if (!isOnline) {
-      final count = await syncManager.pendingSalesCount();
+      final count = await outboxUnsyncedCount();
 
       emit(
         state.copyWith(
@@ -215,9 +217,8 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
     );
 
     try {
-      await syncManager.syncPendingSales();
-
-      final count = await syncManager.pendingSalesCount();
+      // Pushing is the sync engine's job; refresh the unsynced count only.
+      final count = await outboxUnsyncedCount();
 
       emit(
         state.copyWith(
@@ -227,7 +228,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
         ),
       );
     } catch (e) {
-      final count = await syncManager.pendingSalesCount();
+      final count = await outboxUnsyncedCount();
 
       emit(
         state.copyWith(
@@ -265,11 +266,7 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
       if (!isOnline) return;
       if (version != _logoutVersion) return;
 
-      await syncManager.syncPendingSales();
-
-      if (version != _logoutVersion) return;
-
-      final count = await syncManager.pendingSalesCount();
+      final count = await outboxUnsyncedCount();
 
       if (version != _logoutVersion) return;
 
@@ -297,13 +294,12 @@ class OfflineStatusBloc extends Bloc<OfflineStatusEvent, OfflineStatusState> {
 
   /// Total unsynced (pending + syncing + failed) — for display.
   Future<int> get pendingOfflineSalesCount async {
-    return syncManager.pendingSalesCount();
+    return outboxUnsyncedCount();
   }
 
-  /// Only truly unsent sales (pending + syncing) — used to gate logout.
-  Future<int> get blockingPendingOfflineSalesCount async {
-    return syncManager.blockingPendingSalesCount();
-  }
+  /// Unsent work: every unsynced outbox row of any scope, rejected included.
+  /// Used to gate logout.
+  Future<int> get blockingPendingOfflineSalesCount => outboxUnsyncedCount();
 
   @override
   Future<void> close() async {

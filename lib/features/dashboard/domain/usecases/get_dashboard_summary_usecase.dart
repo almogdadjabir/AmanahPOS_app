@@ -4,9 +4,7 @@ import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repos
 class GetDashboardSummaryUseCase {
   final DashboardRepository repository;
 
-  const GetDashboardSummaryUseCase({
-    required this.repository,
-  });
+  const GetDashboardSummaryUseCase({required this.repository});
 
   Future<DashboardSummary> call({
     String? businessId,
@@ -23,6 +21,21 @@ class GetDashboardSummaryUseCase {
       timezone: timezone,
       topSellersLimit: topSellersLimit,
       forceRefresh: forceRefresh,
+    );
+  }
+
+  /// Local, reactive summary for today; null when the REST path is used.
+  Stream<DashboardSummary>? watch({
+    String? businessId,
+    String? shopId,
+    String? timezone,
+    int topSellersLimit = 5,
+  }) {
+    return repository.watchDashboardSummary(
+      businessId: businessId,
+      shopId: shopId,
+      timezone: timezone,
+      topSellersLimit: topSellersLimit,
     );
   }
 }

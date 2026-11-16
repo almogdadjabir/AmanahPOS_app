@@ -13,10 +13,13 @@ import 'support/test_db.dart';
 class _Adapter implements HttpClientAdapter {
   final requests = <RequestOptions>[];
   final bodies = <Map<String, dynamic>>[];
-  Future<ResponseBody> Function() reply = () async =>
-      ResponseBody.fromString('{"device_id":"x"}', 201, headers: {
-        Headers.contentTypeHeader: ['application/json'],
-      });
+  Future<ResponseBody> Function() reply = () async => ResponseBody.fromString(
+    '{"device_id":"x"}',
+    201,
+    headers: {
+      Headers.contentTypeHeader: ['application/json'],
+    },
+  );
 
   @override
   Future<ResponseBody> fetch(
@@ -74,8 +77,7 @@ void main() {
     );
   }
 
-  test('registers once with the contract body and sync auth headers',
-      () async {
+  test('registers once with the contract body and sync auth headers', () async {
     final r = make();
     expect(await r.registerIfNeeded(userKey: 'u1|t1'), isTrue);
     final deviceId = await state.deviceId();
@@ -98,15 +100,17 @@ void main() {
     expect(adapter.requests.length, 1);
   });
 
-  test('another login (user/tenant) or a new FCM token registers again',
-      () async {
-    await make().registerIfNeeded(userKey: 'u1|t1');
-    await make().registerIfNeeded(userKey: 'u2|t1');
-    expect(adapter.requests.length, 2);
-    fcm = 'fcm-token-2';
-    await make().registerIfNeeded(userKey: 'u2|t1');
-    expect(adapter.requests.length, 3);
-  });
+  test(
+    'another login (user/tenant) or a new FCM token registers again',
+    () async {
+      await make().registerIfNeeded(userKey: 'u1|t1');
+      await make().registerIfNeeded(userKey: 'u2|t1');
+      expect(adapter.requests.length, 2);
+      fcm = 'fcm-token-2';
+      await make().registerIfNeeded(userKey: 'u2|t1');
+      expect(adapter.requests.length, 3);
+    },
+  );
 
   test('no fcm token -> field omitted', () async {
     fcm = null;
@@ -136,9 +140,13 @@ void main() {
     expect(await make().registerIfNeeded(), isFalse);
     expect(await state.deviceRegistration(), isNull);
 
-    adapter.reply = () async => ResponseBody.fromString('{}', 200, headers: {
-      Headers.contentTypeHeader: ['application/json'],
-    });
+    adapter.reply = () async => ResponseBody.fromString(
+      '{}',
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
     expect(await make().registerIfNeeded(), isTrue);
     expect(adapter.requests.length, 3);
   });

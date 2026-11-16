@@ -2,14 +2,14 @@ enum Flavor { dev, prod }
 
 const String devBaseURL = String.fromEnvironment(
   'API_BASE',
-  defaultValue: 'http://192.168.1.169:8000/',
+  defaultValue: 'http://192.168.1.168:8000/',
 );
 
 /// Debug-only HTTP proxy (Proxyman listens on 9090). Pass
 /// `--dart-define=PROXY=` to turn it off.
 const String debugProxy = String.fromEnvironment(
   'PROXY',
-  defaultValue: '192.168.1.169:9090',
+  defaultValue: '192.168.1.168:9090',
 );
 const String prodBaseURL = 'https://api.amanapos.com/';
 

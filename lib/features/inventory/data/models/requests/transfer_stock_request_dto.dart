@@ -4,7 +4,12 @@ class TransferStockRequestDto {
   String? toShop;
   String? quantity;
 
-  TransferStockRequestDto({this.productId, this.fromShop, this.toShop, this.quantity});
+  TransferStockRequestDto({
+    this.productId,
+    this.fromShop,
+    this.toShop,
+    this.quantity,
+  });
 
   TransferStockRequestDto.fromJson(Map<String, dynamic> json) {
     productId = json['product'];

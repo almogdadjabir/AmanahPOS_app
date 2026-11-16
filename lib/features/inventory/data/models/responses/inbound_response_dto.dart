@@ -2,16 +2,15 @@ class InboundResponseDto {
   final bool success;
   final InboundTransactionData? data;
 
-  const InboundResponseDto({
-    required this.success,
-    this.data,
-  });
+  const InboundResponseDto({required this.success, this.data});
 
   factory InboundResponseDto.fromJson(Map<String, dynamic> json) {
     return InboundResponseDto(
       success: json['success'] == true,
       data: json['data'] is Map<String, dynamic>
-          ? InboundTransactionData.fromJson(json['data'] as Map<String, dynamic>)
+          ? InboundTransactionData.fromJson(
+              json['data'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
@@ -59,10 +58,12 @@ class InboundTransactionData {
       vendorName: (vendorObj?['name'] ?? json['vendor_name'])?.toString(),
       totalQuantity: json['total_quantity']?.toString(),
       createdByName: json['created_by_name']?.toString(),
-      itemCount: (json['item_count'] as num?)?.toInt() ??
+      itemCount:
+          (json['item_count'] as num?)?.toInt() ??
           (json['items_count'] as num?)?.toInt() ??
           ((json['items'] as List?)?.length ?? 0),
-      items: (json['items'] as List?)
+      items:
+          (json['items'] as List?)
               ?.whereType<Map<String, dynamic>>()
               .map(InboundTransactionItemData.fromJson)
               .toList() ??
@@ -144,7 +145,8 @@ class InboundListResponseDto {
     return InboundListResponseDto(
       count: (json['count'] as num?)?.toInt() ?? 0,
       totalPages: (json['total_pages'] as num?)?.toInt() ?? 1,
-      results: (json['results'] as List?)
+      results:
+          (json['results'] as List?)
               ?.whereType<Map<String, dynamic>>()
               .map(InboundTransactionData.fromJson)
               .toList() ??

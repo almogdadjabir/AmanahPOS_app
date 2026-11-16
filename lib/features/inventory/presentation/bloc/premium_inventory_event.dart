@@ -6,15 +6,18 @@ abstract class PremiumInventoryEvent extends Equatable {
 
 class OnPremiumInventoryStarted extends PremiumInventoryEvent {
   const OnPremiumInventoryStarted();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }
 
 class OnPremiumInventoryRefreshed extends PremiumInventoryEvent {
   const OnPremiumInventoryRefreshed();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }
 
 class OnPremiumInventoryReset extends PremiumInventoryEvent {
   const OnPremiumInventoryReset();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }

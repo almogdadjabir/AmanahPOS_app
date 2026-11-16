@@ -13,6 +13,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// What the Home summary area shows for a dashboard state.
+enum HomeSummaryView {
+  /// REST load with nothing cached yet.
+  skeleton,
+
+  /// Before the first value arrives (local data comes from SQLite within
+  /// milliseconds): show nothing rather than flashing "no sales yet".
+  awaitingFirstValue,
+
+  /// A real day without sales (or a failed load with nothing to show).
+  empty,
+  data,
+}
+
+HomeSummaryView homeSummaryViewOf(DashboardSummaryState state) {
+  final summary = state.summary;
+  if (summary == null) {
+    if (state.isLoading) return HomeSummaryView.skeleton;
+    if (state.status == DashboardSummaryStatus.initial) {
+      return HomeSummaryView.awaitingFirstValue;
+    }
+    return HomeSummaryView.empty;
+  }
+  if (summary.today.salesCount == 0 && summary.today.grossSalesAmount == 0) {
+    return HomeSummaryView.empty;
+  }
+  return HomeSummaryView.data;
+}
+
 /// Owner Home tab: today's numbers, payments, top sellers, manage, plan.
 class SingleBusinessWorkspace extends StatelessWidget {
   final BusinessData data;
@@ -34,11 +63,8 @@ class SingleBusinessWorkspace extends StatelessWidget {
             prev.status != curr.status || prev.summary != curr.summary,
         builder: (context, state) {
           final summary = state.summary;
-          final loading = state.isLoading && summary == null;
-          final isEmpty =
-              summary == null ||
-              (summary.today.salesCount == 0 &&
-                  summary.today.grossSalesAmount == 0);
+          final view = homeSummaryViewOf(state);
+          final loading = view == HomeSummaryView.skeleton;
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(
@@ -63,17 +89,26 @@ class SingleBusinessWorkspace extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     HomeHeader(summary: summary, loading: loading),
-                    if (loading)
-                      const HomeSkeleton()
-                    else ...[
-                      HomeTodayCard(summary: summary),
-                      if (isEmpty)
-                        const HomeEmptyCard()
-                      else ...[
-                        HomePaymentsCard(today: summary.today),
-                        HomeTopSellers(sellers: summary.topSellers),
-                      ],
-                    ],
+                    switch (view) {
+                      HomeSummaryView.skeleton => const HomeSkeleton(),
+                      HomeSummaryView.awaitingFirstValue =>
+                        const SizedBox.shrink(),
+                      HomeSummaryView.empty => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          HomeTodayCard(summary: summary),
+                          const HomeEmptyCard(),
+                        ],
+                      ),
+                      HomeSummaryView.data => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          HomeTodayCard(summary: summary),
+                          HomePaymentsCard(today: summary!.today),
+                          HomeTopSellers(sellers: summary.topSellers),
+                        ],
+                      ),
+                    },
                     HomeManageGroup(data: data),
                     HomePlanCard(data: data),
                   ]),

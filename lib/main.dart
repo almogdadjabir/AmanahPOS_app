@@ -6,6 +6,7 @@ import 'package:amana_pos/app.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/common/services/notifications/notification_service.dart';
+import 'package:amana_pos/core/sync/background/background_entry.dart';
 import 'package:amana_pos/core/sync/sync_flags.dart';
 import 'package:amana_pos/firebase_options.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
@@ -17,17 +18,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // kIsWeb is checked first to avoid dart:io Platform calls on web.
-bool get _isFirebaseSupported =>
-    kIsWeb || Platform.isAndroid || Platform.isIOS;
+bool get _isFirebaseSupported => kIsWeb || Platform.isAndroid || Platform.isIOS;
 
 bool get _isMessagingSupported =>
     kIsWeb || Platform.isAndroid || Platform.isIOS;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (kDebugMode) {
     log('[FCM][background] messageId=${message.messageId}');
@@ -66,10 +64,13 @@ Future<void> main() async {
 
   runApp(const App());
 
-  // Offline-first sync core: compiled out unless --dart-define=SYNC_ENGINE=true.
+  // Offline-first sync core (ON by default; kill switch:
+  // --dart-define=SYNC_ENGINE=false keeps local saves but stops syncing).
   // Triggers start once AuthBloc reports a signed-in session with a business.
+  unawaited(DependenciesProvider.startSyncIfEnabled());
   if (kSyncEngineEnabled) {
-    unawaited(DependenciesProvider.startSyncIfEnabled());
+    // OS background worker (periodic + one-off after backgrounded writes).
+    unawaited(BackgroundSync.initialize());
   }
 
   if (_isMessagingSupported) {
@@ -81,11 +82,12 @@ Future<void> _initializeFirebaseMessaging() async {
   try {
     await _requestNotificationPermission();
 
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
     final fcmService = DependenciesProvider.provide<FcmTokenService>();
     await fcmService.initialize();

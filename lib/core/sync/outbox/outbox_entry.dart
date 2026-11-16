@@ -19,6 +19,7 @@ class OutboxEntry {
     this.errorCode,
     this.errorMessage,
     this.leaseUntil,
+    this.scope = '',
   });
 
   int? seq;
@@ -41,6 +42,9 @@ class OutboxEntry {
   /// write the result of a row it still holds under this exact lease.
   DateTime? leaseUntil;
 
+  /// `userId|tenantId` that owns this row; only that session may push it.
+  String scope;
+
   /// Row map for insert. [createdAt] is required by the schema.
   Map<String, Object?> toRow({DateTime? createdAt}) => {
     if (seq != null) 'seq': seq,
@@ -57,6 +61,7 @@ class OutboxEntry {
     'next_attempt_at': nextAttemptAt?.toUtc().toIso8601String(),
     'error_code': errorCode,
     'error_message': errorMessage,
+    'scope': scope,
     'created_at': (createdAt ?? DateTime.now()).toUtc().toIso8601String(),
   };
 
@@ -82,5 +87,6 @@ class OutboxEntry {
     leaseUntil: r['lease_until'] == null
         ? null
         : DateTime.parse(r['lease_until'] as String).toUtc(),
+    scope: (r['scope'] as String?) ?? '',
   );
 }

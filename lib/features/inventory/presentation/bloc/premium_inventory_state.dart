@@ -48,13 +48,22 @@ class PremiumInventoryState extends Equatable {
       vendorSummary: vendorSummary ?? this.vendorSummary,
       recentInbound: recentInbound ?? this.recentInbound,
       isFromCache: isFromCache ?? this.isFromCache,
-      responseError: clearResponseError ? null : responseError ?? this.responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
     );
   }
 
   @override
   List<Object?> get props => [
-    status, premiumSummary, stockPage, lowStockItems,
-    expiryPreview, vendorSummary, recentInbound, isFromCache, responseError,
+    status,
+    premiumSummary,
+    stockPage,
+    lowStockItems,
+    expiryPreview,
+    vendorSummary,
+    recentInbound,
+    isFromCache,
+    responseError,
   ];
 }

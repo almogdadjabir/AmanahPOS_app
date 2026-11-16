@@ -5,14 +5,12 @@ import 'package:amana_pos/features/inventory/data/models/requests/add_stock_requ
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
-import 'package:amana_pos/features/inventory/data/offline/offline_inbound_queue.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/users/data/models/movement_type.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 
 part 'inventory_event.dart';
 part 'inventory_state.dart';
@@ -20,13 +18,16 @@ part 'inventory_state.dart';
 class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   final InventoryUseCase useCase;
   final OfflineLocalCache offlineLocalCache;
-  final OfflineInboundQueue offlineInboundQueue;
   final Future<bool> Function() isOnline;
+
+  // Add / remove / adjust / inbound are written locally by `StockService`
+  // (through the repository), which already updated local stock; transfer
+  // (REST) mirrors itself on the local base in the repository too. The bloc
+  // only reads back the exact local quantity.
 
   InventoryBloc({
     required this.useCase,
     required this.offlineLocalCache,
-    required this.offlineInboundQueue,
     required this.isOnline,
   }) : super(InventoryState.initial()) {
     on<OnInventoryInitial>(_init);
@@ -34,6 +35,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     on<OnInventoryFilterChanged>(_onFilterChanged);
     on<OnAddStock>(_addStock);
     on<OnAdjustStock>(_adjustStock);
+    on<OnRemoveStock>(_removeStock);
     on<OnTransferStock>(_transferStock);
     on<OnCreateInboundTransaction>(_createInboundTransaction);
     on<OnAcknowledgeInventorySubmit>(_acknowledgeSubmit);
@@ -45,9 +47,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<void> _init(
-      OnInventoryInitial event,
-      Emitter<InventoryState> emit,
-      ) async {
+    OnInventoryInitial event,
+    Emitter<InventoryState> emit,
+  ) async {
     if (state.status == InventoryStatus.loading) return;
 
     var emittedCachedData = false;
@@ -69,7 +71,8 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         ),
       );
     } else {
-      final fallbackStock = await offlineLocalCache.getStockFallbackFromProducts();
+      final fallbackStock = await offlineLocalCache
+          .getStockFallbackFromProducts();
 
       if (fallbackStock.isNotEmpty) {
         emittedCachedData = true;
@@ -98,8 +101,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       }
     }
 
-    final response =
-    await getIt<AppProgressCubit>().run(() => useCase.getStock(page: 1));
+    final response = await getIt<AppProgressCubit>().run(
+      () => useCase.getStock(page: 1),
+    );
     final error = response.getLeft().toNullable();
     final result = response.getRight().toNullable();
 
@@ -166,9 +170,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<void> _loadMore(
-      OnLoadMoreStock event,
-      Emitter<InventoryState> emit,
-      ) async {
+    OnLoadMoreStock event,
+    Emitter<InventoryState> emit,
+  ) async {
     if (state.isFromCache) return;
     if (!state.hasMorePages) return;
     if (state.status == InventoryStatus.loadingMore) return;
@@ -183,10 +187,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
 
       if (error != null) {
         emit(
-          state.copyWith(
-            status: InventoryStatus.failure,
-            responseError: error,
-          ),
+          state.copyWith(status: InventoryStatus.failure, responseError: error),
         );
         return;
       }
@@ -220,22 +221,34 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   void _onFilterChanged(
-      OnInventoryFilterChanged event,
-      Emitter<InventoryState> emit,
-      ) {
+    OnInventoryFilterChanged event,
+    Emitter<InventoryState> emit,
+  ) {
     emit(state.copyWith(filter: event.filter));
   }
 
-  Future<void> _addStock(
-      OnAddStock event,
-      Emitter<InventoryState> emit,
-      ) async {
+  Future<void> _addStock(OnAddStock event, Emitter<InventoryState> emit) async {
     emit(
       state.copyWith(
         submitStatus: InventorySubmitStatus.loading,
         clearSubmitError: true,
       ),
     );
+
+    final expiry = event.expiryDate?.trim();
+    if (expiry != null && expiry.isNotEmpty && !await isOnline()) {
+      // Expiry tracking needs the REST add (it creates the batch); nothing
+      // is written offline.
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            submitStatus: InventorySubmitStatus.failure,
+            expiryNeedsConnection: true,
+          ),
+        );
+      }
+      return;
+    }
 
     try {
       final payload = AddStockRequestDto(
@@ -260,37 +273,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         return;
       }
 
-      final currentQty = await offlineLocalCache.getStockQuantity(
-        productId: event.productId,
-        shopId: event.shopId,
-      );
-
-      final addedQty = double.tryParse(event.quantity.toString()) ?? 0;
-      final finalQty = currentQty + addedQty;
-
-      await offlineLocalCache.updateStockQuantity(
-        productId: event.productId,
-        shopId: event.shopId,
-        quantity: finalQty,
-      );
-
-      final updatedStockList = _upsertStockQuantity(
-        stockList: state.stockList,
-        productId: event.productId,
-        shopId: event.shopId,
-        quantity: finalQty,
-      );
-
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: InventorySubmitStatus.success,
-            status: InventoryStatus.success,
-            stockList: updatedStockList,
-            clearSubmitError: true,
-          ),
-        );
-      }
+      await _emitLocalStockSuccess(emit, event.productId, event.shopId);
     } catch (e) {
       if (!emit.isDone) {
         emit(
@@ -304,9 +287,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<void> _adjustStock(
-      OnAdjustStock event,
-      Emitter<InventoryState> emit,
-      ) async {
+    OnAdjustStock event,
+    Emitter<InventoryState> emit,
+  ) async {
     emit(
       state.copyWith(
         submitStatus: InventorySubmitStatus.loading,
@@ -335,31 +318,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         return;
       }
 
-      final finalQty = double.tryParse(event.newQuantity.toString()) ?? 0;
-
-      await offlineLocalCache.updateStockQuantity(
-        productId: event.productId,
-        shopId: event.shopId,
-        quantity: finalQty,
-      );
-
-      final updatedStockList = _upsertStockQuantity(
-        stockList: state.stockList,
-        productId: event.productId,
-        shopId: event.shopId,
-        quantity: finalQty,
-      );
-
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: InventorySubmitStatus.success,
-            status: InventoryStatus.success,
-            stockList: updatedStockList,
-            clearSubmitError: true,
-          ),
-        );
-      }
+      await _emitLocalStockSuccess(emit, event.productId, event.shopId);
     } catch (e) {
       if (!emit.isDone) {
         emit(
@@ -373,9 +332,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<void> _transferStock(
-      OnTransferStock event,
-      Emitter<InventoryState> emit,
-      ) async {
+    OnTransferStock event,
+    Emitter<InventoryState> emit,
+  ) async {
     emit(
       state.copyWith(
         submitStatus: InventorySubmitStatus.loading,
@@ -404,40 +363,25 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         return;
       }
 
-      final transferQty = double.tryParse(event.quantity.toString()) ?? 0;
-
-      final fromCurrentQty = await offlineLocalCache.getStockQuantity(
+      final fromQty = await offlineLocalCache.getStockQuantity(
         productId: event.productId,
         shopId: event.fromShopId,
       );
-
-      final toCurrentQty = await offlineLocalCache.getStockQuantity(
+      final toQty = await offlineLocalCache.getStockQuantity(
         productId: event.productId,
         shopId: event.toShopId,
       );
-
-      final fromFinalQty = fromCurrentQty - transferQty;
-      final toFinalQty = toCurrentQty + transferQty;
-
-      await offlineLocalCache.transferStockLocally(
-        productId: event.productId,
-        fromShopId: event.fromShopId,
-        toShopId: event.toShopId,
-        quantity: transferQty,
-      );
-
       var updatedStockList = _upsertStockQuantity(
         stockList: state.stockList,
         productId: event.productId,
         shopId: event.fromShopId,
-        quantity: fromFinalQty < 0 ? 0 : fromFinalQty,
+        quantity: fromQty,
       );
-
       updatedStockList = _upsertStockQuantity(
         stockList: updatedStockList,
         productId: event.productId,
         shopId: event.toShopId,
-        quantity: toFinalQty,
+        quantity: toQty,
       );
 
       if (!emit.isDone) {
@@ -462,12 +406,10 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     }
   }
 
-
-
   void _acknowledgeSubmit(
-      OnAcknowledgeInventorySubmit event,
-      Emitter<InventoryState> emit,
-      ) {
+    OnAcknowledgeInventorySubmit event,
+    Emitter<InventoryState> emit,
+  ) {
     emit(
       state.copyWith(
         submitStatus: InventorySubmitStatus.idle,
@@ -478,9 +420,9 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   }
 
   Future<void> _createInboundTransaction(
-      OnCreateInboundTransaction event,
-      Emitter<InventoryState> emit,
-      ) async {
+    OnCreateInboundTransaction event,
+    Emitter<InventoryState> emit,
+  ) async {
     if (state.submitStatus == InventorySubmitStatus.loading) return;
 
     emit(
@@ -490,13 +432,6 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         inboundQueuedOffline: false,
       ),
     );
-
-    final online = await isOnline();
-
-    if (!online) {
-      await _queueInboundOffline(event.request, emit);
-      return;
-    }
 
     try {
       final response = await useCase.createInboundTransaction(event.request);
@@ -511,8 +446,6 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         );
         return;
       }
-
-      await _applyInboundToLocalCache(event.request);
 
       emit(
         state.copyWith(
@@ -533,52 +466,78 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     }
   }
 
-  Future<void> _queueInboundOffline(
-      CreateInboundRequestDto request,
-      Emitter<InventoryState> emit,
-      ) async {
-    final clientInboundId = const Uuid().v4();
-
-    await offlineInboundQueue.enqueue(
-      clientInboundId: clientInboundId,
-      request: request,
-    );
-
-    await _applyInboundToLocalCache(request);
-
+  Future<void> _removeStock(
+    OnRemoveStock event,
+    Emitter<InventoryState> emit,
+  ) async {
     emit(
       state.copyWith(
-        submitStatus: InventorySubmitStatus.queued,
-        status: InventoryStatus.success,
-        stockList: await _updatedStockListAfterInbound(request),
+        submitStatus: InventorySubmitStatus.loading,
         clearSubmitError: true,
-        inboundQueuedOffline: true,
-        isFromCache: true,
+      ),
+    );
+    try {
+      final response = await useCase.removeStock(
+        productId: event.productId,
+        shopId: event.shopId,
+        quantity: event.quantity,
+        reason: event.reason,
+      );
+      final error = response.getLeft().toNullable();
+      if (error != null) {
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              submitStatus: InventorySubmitStatus.failure,
+              submitError: error,
+            ),
+          );
+        }
+        return;
+      }
+      await _emitLocalStockSuccess(emit, event.productId, event.shopId);
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            submitStatus: InventorySubmitStatus.failure,
+            submitError: friendlyError(e),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Stock was already written by StockService; show the exact local
+  /// quantity.
+  Future<void> _emitLocalStockSuccess(
+    Emitter<InventoryState> emit,
+    String productId,
+    String shopId,
+  ) async {
+    final qty = await offlineLocalCache.getStockQuantity(
+      productId: productId,
+      shopId: shopId,
+    );
+    if (emit.isDone) return;
+    emit(
+      state.copyWith(
+        submitStatus: InventorySubmitStatus.success,
+        status: InventoryStatus.success,
+        stockList: _upsertStockQuantity(
+          stockList: state.stockList,
+          productId: productId,
+          shopId: shopId,
+          quantity: qty,
+        ),
+        clearSubmitError: true,
       ),
     );
   }
 
-  Future<void> _applyInboundToLocalCache(CreateInboundRequestDto request) async {
-    for (final item in request.items) {
-      final currentQty = await offlineLocalCache.getStockQuantity(
-        productId: item.productId,
-        shopId: request.shopId,
-      );
-
-      final addedQty = double.tryParse(item.quantity) ?? 0;
-      final finalQty = currentQty + addedQty;
-
-      await offlineLocalCache.updateStockQuantity(
-        productId: item.productId,
-        shopId: request.shopId,
-        quantity: finalQty,
-      );
-    }
-  }
-
   Future<List<StockData>> _updatedStockListAfterInbound(
-      CreateInboundRequestDto request,
-      ) async {
+    CreateInboundRequestDto request,
+  ) async {
     var updated = state.stockList;
 
     for (final item in request.items) {

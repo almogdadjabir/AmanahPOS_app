@@ -17,7 +17,8 @@ class CreateVendorRequestDto {
     'name': name.trim(),
     if (phone != null && phone!.trim().isNotEmpty) 'phone': phone!.trim(),
     if (email != null && email!.trim().isNotEmpty) 'email': email!.trim(),
-    if (address != null && address!.trim().isNotEmpty) 'address': address!.trim(),
+    if (address != null && address!.trim().isNotEmpty)
+      'address': address!.trim(),
     if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
   };
 }

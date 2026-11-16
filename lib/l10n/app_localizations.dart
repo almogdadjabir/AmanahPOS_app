@@ -7520,6 +7520,174 @@ abstract class AppLocalizations {
   /// **'The server did not accept this sale.'**
   String get syFailedFallback;
 
+  /// No description provided for @syOxSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get syOxSyncing;
+
+  /// No description provided for @syOxServerUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Server unreachable'**
+  String get syOxServerUnreachable;
+
+  /// No description provided for @syOxNeedsLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again to sync'**
+  String get syOxNeedsLogin;
+
+  /// No description provided for @syOxAllSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'All synced'**
+  String get syOxAllSynced;
+
+  /// No description provided for @syOxStatePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get syOxStatePending;
+
+  /// No description provided for @syOxStateRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get syOxStateRejected;
+
+  /// No description provided for @syOxStateBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get syOxStateBlocked;
+
+  /// No description provided for @syOxStateInflight.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending'**
+  String get syOxStateInflight;
+
+  /// No description provided for @syOxEntitySale.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale'**
+  String get syOxEntitySale;
+
+  /// No description provided for @syOxEntityStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock change'**
+  String get syOxEntityStock;
+
+  /// No description provided for @syOxEntityInbound.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock received'**
+  String get syOxEntityInbound;
+
+  /// No description provided for @syOxEntityOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get syOxEntityOther;
+
+  /// No description provided for @syOxOtherAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Other account'**
+  String get syOxOtherAccount;
+
+  /// No description provided for @syOxRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get syOxRetry;
+
+  /// No description provided for @syOxDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get syOxDiscard;
+
+  /// No description provided for @syOxErrorFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not accept this change.'**
+  String get syOxErrorFallback;
+
+  /// No description provided for @syOxDiscardSaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this sale?'**
+  String get syOxDiscardSaleTitle;
+
+  /// No description provided for @syOxDiscardSaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The sale stays on this phone marked as rejected, but it will never be sent to the server.'**
+  String get syOxDiscardSaleBody;
+
+  /// No description provided for @syOxDiscardRowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this change?'**
+  String get syOxDiscardRowTitle;
+
+  /// No description provided for @syOxDiscardRowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It will not be sent to the server.'**
+  String get syOxDiscardRowBody;
+
+  /// No description provided for @syOxDiscardOtherAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard other account\'s changes'**
+  String get syOxDiscardOtherAction;
+
+  /// No description provided for @syOxDiscardOtherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard the other account\'s changes?'**
+  String get syOxDiscardOtherTitle;
+
+  /// No description provided for @syOxDiscardOtherBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything that account has not synced will be removed from this phone.'**
+  String get syOxDiscardOtherBody;
+
+  /// No description provided for @syOxLogoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsent changes'**
+  String get syOxLogoutTitle;
+
+  /// No description provided for @syOxLogoutReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get syOxLogoutReview;
+
+  /// No description provided for @syOxWaitsBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting behind {label}'**
+  String syOxWaitsBehind(String label);
+
+  /// No description provided for @syOxUnsynced.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 not synced} other{{count} not synced}}'**
+  String syOxUnsynced(int count);
+
+  /// No description provided for @syOxLogoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 change has} other{{count} changes have}} not reached the server. Review them to retry or discard before signing out.'**
+  String syOxLogoutBody(int count);
+
   /// No description provided for @obCreateTitle.
   ///
   /// In en, this message translates to:
@@ -7873,6 +8041,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Theme'**
   String get mrTheme;
+
+  /// No description provided for @usExpiryNeedsConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry tracking needs a connection'**
+  String get usExpiryNeedsConnection;
 }
 
 class _AppLocalizationsDelegate

@@ -30,6 +30,7 @@ class OutboxStore {
     required String op,
     required String entityId,
     required Map<String, dynamic> payload,
+    required String scope,
     String? dependsOnEntityId,
     int? baseVersion,
     DateTime? occurredAt,
@@ -38,8 +39,8 @@ class OutboxStore {
     if (dependsOnEntityId != null) {
       final open = await txn.rawQuery(
         "SELECT 1 FROM $_t WHERE entity_id = ? AND op = 'create' "
-        "AND status != 'done' LIMIT 1",
-        [dependsOnEntityId],
+        "AND status != 'done' AND scope = ? LIMIT 1",
+        [dependsOnEntityId, scope],
       );
       if (open.isNotEmpty) status = OutboxStatus.blocked;
     }
@@ -53,6 +54,7 @@ class OutboxStore {
       occurredAt: (occurredAt ?? _now()).toUtc(),
       payload: payload,
       status: status,
+      scope: scope,
     );
     entry.seq = await txn.insert(_t, entry.toRow(createdAt: _now()));
     return entry;
@@ -66,6 +68,7 @@ class OutboxStore {
   /// only come from a clock that moved backwards; such rows are treated as due
   /// so a wrong clock never wedges the queue.
   Future<List<OutboxEntry>> claimBatch({
+    required String scope,
     int limit = 100,
     Duration lease = const Duration(minutes: 2),
     Duration? maxRetryDelay,
@@ -84,12 +87,12 @@ class OutboxStore {
       while (claimedSeqs.length < limit) {
         // Lightweight scan: no payload_json, bounded window, paged by seq.
         final candidates = await txn.rawQuery(
-          "SELECT seq, entity_id FROM $_t INDEXED BY idx_outbox_status_seq "
-          "WHERE status = 'pending' AND seq > ? AND "
+          "SELECT seq, entity_id FROM $_t INDEXED BY idx_outbox_scope_status_seq "
+          "WHERE status = 'pending' AND scope = ? AND seq > ? AND "
           '(next_attempt_at IS NULL OR next_attempt_at <= ?'
           '${farIso == null ? '' : ' OR next_attempt_at > ?'}) '
           'ORDER BY seq ASC LIMIT ?',
-          [lastSeq, nowIso, ?farIso, window],
+          [scope, lastSeq, nowIso, ?farIso, window],
         );
         if (candidates.isEmpty) break;
         for (final row in candidates) {
@@ -99,8 +102,8 @@ class OutboxStore {
           // Uses idx_outbox_entity_seq (entity_id, seq).
           final blockers = await txn.rawQuery(
             "SELECT 1 FROM $_t WHERE entity_id = ? AND seq < ? "
-            "AND status != 'done' LIMIT 1",
-            [row['entity_id'], seq],
+            "AND status != 'done' AND scope = ? LIMIT 1",
+            [row['entity_id'], seq, scope],
           );
           if (blockers.isNotEmpty) continue;
           final n = await txn.update(
@@ -203,6 +206,10 @@ class OutboxStore {
     );
   }
 
+  /// Deliberately NOT scoped: an expired lease is a crashed-run artefact, and
+  /// returning any scope's row to `pending` is harmless (only a run under that
+  /// scope can claim it). Scoping it would strand another user's rows.
+  ///
   /// Returns inflight rows whose lease expired to `pending`. With [maxLease],
   /// a lease ending later than now + [maxLease] is impossible for a correct
   /// clock (the clock moved backwards) and is treated as expired too.
@@ -219,18 +226,27 @@ class OutboxStore {
     );
   }
 
-  Future<void> unblockDependents(DatabaseExecutor txn, String entityId) async {
+  /// Dependencies are resolved within one [scope] only (see enqueue).
+  Future<void> unblockDependents(
+    DatabaseExecutor txn,
+    String entityId, {
+    required String scope,
+  }) async {
     await txn.update(
       _t,
       {'status': 'pending'},
-      where: "status = 'blocked' AND depends_on_entity_id = ?",
-      whereArgs: [entityId],
+      where: "status = 'blocked' AND depends_on_entity_id = ? AND scope = ?",
+      whereArgs: [entityId, scope],
     );
   }
 
   /// Rejects dependents (blocked or pending) of [entityId], cascading to
   /// their own dependents.
-  Future<void> failDependents(DatabaseExecutor txn, String entityId) async {
+  Future<void> failDependents(
+    DatabaseExecutor txn,
+    String entityId, {
+    required String scope,
+  }) async {
     final queue = <String>[entityId];
     final seen = <String>{};
     while (queue.isNotEmpty) {
@@ -239,8 +255,10 @@ class OutboxStore {
       final rows = await txn.query(
         _t,
         columns: ['seq', 'entity_id'],
-        where: "depends_on_entity_id = ? AND status IN ('blocked','pending')",
-        whereArgs: [id],
+        where:
+            "depends_on_entity_id = ? AND scope = ? "
+            "AND status IN ('blocked','pending')",
+        whereArgs: [id, scope],
       );
       for (final r in rows) {
         await txn.update(
@@ -259,14 +277,17 @@ class OutboxStore {
     }
   }
 
-  Stream<int> watchPendingCount(DbChangeNotifier n) {
+  /// Live count of unconfirmed rows; with [scope] only that session's.
+  Stream<int> watchPendingCount(DbChangeNotifier n, {String? scope}) {
     return n.watch<int>(
       tables: {_t},
       query: () async {
         final db = await _db.database;
         final r = await db.rawQuery(
           "SELECT COUNT(*) AS c FROM $_t "
-          "WHERE status IN ('pending','inflight','blocked')",
+          "WHERE status IN ('pending','inflight','blocked')"
+          '${scope == null ? '' : ' AND scope = ?'}',
+          [?scope],
         );
         return (r.first['c'] as int?) ?? 0;
       },
@@ -276,22 +297,51 @@ class OutboxStore {
   /// Rows waiting to be pushed (`pending` only; inflight/blocked/rejected are
   /// excluded). Used by triggers to ignore outbox notifications that did not
   /// leave anything to push (e.g. the engine's own result writes).
-  Future<int> pendingCount() async {
+  Future<int> pendingCount({String? scope}) async {
     final db = await _db.database;
     final r = await db.rawQuery(
-      "SELECT COUNT(*) AS c FROM $_t WHERE status = 'pending'",
+      "SELECT COUNT(*) AS c FROM $_t WHERE status = 'pending'"
+      '${scope == null ? '' : ' AND scope = ?'}',
+      [?scope],
     );
     return (r.first['c'] as int?) ?? 0;
   }
 
   /// Every row the server has not confirmed (anything but `done`, including
   /// `rejected`, which is unsent user data). Zero means the outbox is empty.
-  Future<int> unsyncedCount() async {
+  ///
+  /// With [scope] only that session's rows are counted.
+  Future<int> unsyncedCount({String? scope}) async {
     final db = await _db.database;
     final r = await db.rawQuery(
-      "SELECT COUNT(*) AS c FROM $_t WHERE status != 'done'",
+      "SELECT COUNT(*) AS c FROM $_t WHERE status != 'done'"
+      '${scope == null ? '' : ' AND scope = ?'}',
+      [?scope],
     );
     return (r.first['c'] as int?) ?? 0;
+  }
+
+  /// Explicit, user-confirmed discard of one scope's unsynced rows (every
+  /// status except `done`). Never called by normal logout / business-switch
+  /// paths; the UI must confirm first. Returns the number of rows deleted.
+  Future<int> discardAll({required String scope}) async {
+    final db = await _db.database;
+    return db.delete(
+      _t,
+      where: "scope = ? AND status != 'done'",
+      whereArgs: [scope],
+    );
+  }
+
+  /// Every row the server has not confirmed, all scopes, oldest first.
+  Future<List<OutboxEntry>> listUnsynced() async {
+    final db = await _db.database;
+    final rows = await db.query(
+      _t,
+      where: "status != 'done'",
+      orderBy: 'seq ASC',
+    );
+    return rows.map(OutboxEntry.fromRow).toList();
   }
 
   Future<List<OutboxEntry>> rejected() async {
@@ -326,14 +376,15 @@ class OutboxStore {
     await db.transaction((txn) async {
       final rows = await txn.query(
         _t,
-        columns: ['entity_id'],
+        columns: ['entity_id', 'scope'],
         where: 'mutation_id = ?',
         whereArgs: [mutationId],
       );
       if (rows.isEmpty) return;
       final entityId = rows.first['entity_id'] as String;
+      final scope = rows.first['scope'] as String;
       await txn.delete(_t, where: 'mutation_id = ?', whereArgs: [mutationId]);
-      await failDependents(txn, entityId);
+      await failDependents(txn, entityId, scope: scope);
     });
   }
 

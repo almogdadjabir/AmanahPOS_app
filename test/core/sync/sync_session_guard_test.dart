@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amana_pos/core/sync/sync_engine.dart';
+import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/core/sync/sync_session_guard.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -45,8 +46,7 @@ void main() {
     });
   });
 
-  test('emits once per entry into a block; re-arms after leaving it',
-      () async {
+  test('emits once per entry into a block; re-arms after leaving it', () async {
     final ctrl = StreamController<SyncStatus>.broadcast(sync: true);
     final guard = SyncSessionGuard(ctrl.stream)..start();
     final got = <SyncSessionEvent>[];
@@ -76,5 +76,39 @@ void main() {
     expect(got.length, 3, reason: 'nothing after stop()');
     await guard.dispose();
     await ctrl.close();
+  });
+
+  group('stale run scope', () {
+    tearDown(() => SyncScope.current = null);
+
+    Future<List<SyncSessionEvent>> emit(
+      String runScope,
+      String? current,
+    ) async {
+      SyncScope.current = current;
+      final ctrl = StreamController<SyncStatus>.broadcast(sync: true);
+      final guard = SyncSessionGuard(ctrl.stream)..start();
+      final got = <SyncSessionEvent>[];
+      guard.events.listen(got.add);
+      ctrl.add(
+        SyncStatus(
+          phase: SyncPhase.blocked,
+          block: SyncBlockReason.accountDisabled,
+          scope: runScope,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await guard.dispose();
+      await ctrl.close();
+      return got;
+    }
+
+    test('run scoped A while current scope is B -> no event', () async {
+      expect(await emit('a|t', 'b|t'), isEmpty);
+    });
+
+    test('run scope equals current scope -> event fires', () async {
+      expect(await emit('a|t', 'a|t'), [SyncSessionEvent.accountDisabled]);
+    });
   });
 }

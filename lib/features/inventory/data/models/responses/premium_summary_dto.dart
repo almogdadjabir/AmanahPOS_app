@@ -31,23 +31,23 @@ class PremiumSummaryData {
       activeVendorsCount: (d['active_vendors_count'] as num?)?.toInt() ?? 0,
       inboundThisMonthCount:
           (d['inbound_this_month_count'] ?? d['inbound_this_month'] as num?)
-                  ?.toInt() ??
-              0,
+              ?.toInt() ??
+          0,
       receivedQuantityThisMonth:
           (d['received_quantity_this_month'] ?? d['units_received'])
-                  ?.toString() ??
-              '0',
+              ?.toString() ??
+          '0',
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'stock_items_count': stockItemsCount,
-        'low_stock_count': lowStockCount,
-        'out_of_stock_count': outOfStockCount,
-        'expiring_soon_count': expiringSoonCount,
-        'expired_count': expiredCount,
-        'active_vendors_count': activeVendorsCount,
-        'inbound_this_month_count': inboundThisMonthCount,
-        'received_quantity_this_month': receivedQuantityThisMonth,
-      };
+    'stock_items_count': stockItemsCount,
+    'low_stock_count': lowStockCount,
+    'out_of_stock_count': outOfStockCount,
+    'expiring_soon_count': expiringSoonCount,
+    'expired_count': expiredCount,
+    'active_vendors_count': activeVendorsCount,
+    'inbound_this_month_count': inboundThisMonthCount,
+    'received_quantity_this_month': receivedQuantityThisMonth,
+  };
 }

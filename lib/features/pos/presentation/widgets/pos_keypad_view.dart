@@ -68,7 +68,10 @@ class _PosKeypadViewState extends State<PosKeypadView>
 
   Future<void> _editNote() async {
     final tr = context.tr;
-    final controller = TextEditingController(text: _note);
+    // The sheet's TextField is rebuilt while the sheet animates closed, so the
+    // controller must live as long as the sheet widget (see _NoteField), not
+    // be disposed when showAppSheet's future completes.
+    var latest = _note;
     await showAppSheet<void>(
       context,
       builder: (sheetContext) => AppSheet(
@@ -85,21 +88,17 @@ class _PosKeypadViewState extends State<PosKeypadView>
             AppDims.s5,
             AppDims.s5,
           ),
-          child: TextField(
-            controller: controller,
-            autofocus: true,
-            maxLength: 120,
-            textInputAction: TextInputAction.done,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(hintText: tr.posNoteHint),
-            onSubmitted: (_) => Navigator.of(sheetContext).pop(),
+          child: _NoteField(
+            initial: _note,
+            hint: tr.posNoteHint,
+            onChanged: (value) => latest = value,
+            onSubmitted: () => Navigator.of(sheetContext).pop(),
           ),
         ),
       ),
     );
     if (!mounted) return;
-    setState(() => _note = controller.text.trim());
-    controller.dispose();
+    setState(() => _note = latest.trim());
   }
 
   void _add() {
@@ -345,6 +344,51 @@ class _NoteChip extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Owns the note's [TextEditingController] so it is disposed together with the
+/// sheet, after the closing animation, never while the field is still built.
+class _NoteField extends StatefulWidget {
+  const _NoteField({
+    required this.initial,
+    required this.hint,
+    required this.onChanged,
+    required this.onSubmitted,
+  });
+
+  final String initial;
+  final String hint;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onSubmitted;
+
+  @override
+  State<_NoteField> createState() => _NoteFieldState();
+}
+
+class _NoteFieldState extends State<_NoteField> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initial,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      autofocus: true,
+      maxLength: 120,
+      textInputAction: TextInputAction.done,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(hintText: widget.hint),
+      onChanged: widget.onChanged,
+      onSubmitted: (_) => widget.onSubmitted(),
     );
   }
 }

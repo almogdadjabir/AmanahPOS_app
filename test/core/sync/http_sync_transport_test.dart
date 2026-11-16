@@ -109,7 +109,7 @@ void main() {
 
     test('omits cursor when null, sends limit', () async {
       adapter.handler = (_) async => _json(200, pullOk);
-      final r = await transport.pull(limit: 200);
+      final r = await transport.pull(limit: 200, scope: 'u1|t1');
       expect(r.nextCursor, 'c2');
       expect(adapter.last!.options.path, 'api/v1/sync/pull/');
       expect(adapter.last!.options.queryParameters, {'limit': 200});
@@ -118,7 +118,7 @@ void main() {
 
     test('sends cursor when present', () async {
       adapter.handler = (_) async => _json(200, pullOk);
-      await transport.pull(cursor: 'abc');
+      await transport.pull(cursor: 'abc', scope: 'u1|t1');
       expect(adapter.last!.options.queryParameters, {
         'cursor': 'abc',
         'limit': 500,
@@ -140,6 +140,7 @@ void main() {
         deviceId: 'dev1',
         appVersion: '1.2.3',
         mutations: [entry(1)],
+        scope: 'u1|t1',
       );
       expect(r.results.single.mutationId, 'm1');
       final o = adapter.last!.options;
@@ -174,6 +175,7 @@ void main() {
         mutations: [
           entry(1, payload: {'name': arabic}),
         ],
+        scope: 'u1|t1',
       );
       final o = adapter.last!.options;
       expect(o.headers['Content-Encoding'], 'gzip');
@@ -231,7 +233,7 @@ void main() {
 
     test('413 -> tooLarge', () async {
       adapter.handler = (_) async => _json(413, {});
-      final e = await failing(() => transport.pull());
+      final e = await failing(() => transport.pull(scope: 'u1|t1'));
       expect(e.kind, SyncTransportKind.tooLarge);
     });
 
@@ -263,7 +265,7 @@ void main() {
 
     test('non-object 200 body -> malformed_response', () async {
       adapter.handler = (_) async => _json(200, [1, 2]);
-      final e = await failing(() => transport.pull());
+      final e = await failing(() => transport.pull(scope: 'u1|t1'));
       expect(e.code, 'malformed_response');
     });
 
@@ -343,7 +345,7 @@ void main() {
           'retry-after': ['7'],
         },
       );
-      final e = await failing(() => transport.pull());
+      final e = await failing(() => transport.pull(scope: 'u1|t1'));
       expect(e.kind, SyncTransportKind.server);
       expect(e.code, 'rate_limited');
       expect(e.retryAfterSeconds, 7);
@@ -351,7 +353,7 @@ void main() {
 
     test('other 4xx -> server/http_<status>', () async {
       adapter.handler = (_) async => _json(400, {});
-      final e = await failing(() => transport.pull());
+      final e = await failing(() => transport.pull(scope: 'u1|t1'));
       expect(e.kind, SyncTransportKind.server);
       expect(e.code, 'http_400');
     });
@@ -381,7 +383,7 @@ void main() {
         'has_more': false,
         'full_resync_required': false,
       });
-      await transport.pull(cursor: 'a+b/c=');
+      await transport.pull(cursor: 'a+b/c=', scope: 'u1|t1');
       final uri = adapter.last!.options.uri;
       expect(uri.queryParameters['cursor'], 'a+b/c=');
       expect(uri.query, contains('cursor=a%2Bb%2Fc%3D'));
@@ -423,14 +425,24 @@ void main() {
         calls++;
         return _json(401, {'code': 'token_expired'});
       };
+      final jwt =
+          '${base64Url.encode(utf8.encode('{}'))}.'
+          '${base64Url.encode(utf8.encode('{"user_id":"u1"}'))}.s';
       final t = make(
         token: () async {
           tokenReads++;
-          return 'tok';
+          return jwt;
         },
+        tenant: () async => 't1',
       );
+
       final e = await failing(
-        () => t.push(deviceId: 'd', appVersion: '1', mutations: [entry(1)]),
+        () => t.push(
+          deviceId: 'd',
+          appVersion: '1',
+          mutations: [entry(1)],
+          scope: 'u1|t1',
+        ),
       );
       expect(e.kind, SyncTransportKind.tokenExpired);
       expect(calls, 1);

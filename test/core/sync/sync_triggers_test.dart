@@ -19,6 +19,9 @@ class _FakeEngine implements SyncEngine {
   SyncStatus get current => cur;
 
   @override
+  void cancel() {}
+
+  @override
   Future<SyncOutcome> syncNow({SyncReason reason = SyncReason.manual}) async {
     calls.add(reason);
     if (runFor > Duration.zero) await Future<void>.delayed(runFor);
@@ -33,7 +36,7 @@ class _FakeOutbox implements OutboxStore {
   int pending = 1;
 
   @override
-  Future<int> pendingCount() async => pending;
+  Future<int> pendingCount({String? scope}) async => pending;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -220,7 +223,9 @@ void main() {
       t.onAppPaused();
       async.flushMicrotasks();
       notifier.notify({SyncTables.outbox});
-      async.elapse(const Duration(seconds: 5)); // afterWrite also alreadyRunning
+      async.elapse(
+        const Duration(seconds: 5),
+      ); // afterWrite also alreadyRunning
       expect(engine.calls, [SyncReason.resume, SyncReason.afterWrite]);
       engine.outcome = SyncOutcome.completed;
       async.elapse(const Duration(seconds: 100));
@@ -257,40 +262,42 @@ void main() {
     });
   });
 
-  test('connectivity regained bypasses a network backoff but not maintenance',
-      () {
-    fakeAsync((async) {
-      final t = started(async);
-      t.onAppPaused();
-      engine.outcome = SyncOutcome.backoff;
-      engine.cur = SyncStatus(
-        phase: SyncPhase.backoff,
-        block: SyncBlockReason.maintenance,
-        nextRetryAt: t0.add(const Duration(minutes: 10)),
-      );
-      t.syncNow();
-      async.flushMicrotasks();
-      network.ctrl.add(false);
-      network.ctrl.add(true);
-      async.flushMicrotasks();
-      expect(engine.calls, [SyncReason.manual], reason: 'maintenance wins');
+  test(
+    'connectivity regained bypasses a network backoff but not maintenance',
+    () {
+      fakeAsync((async) {
+        final t = started(async);
+        t.onAppPaused();
+        engine.outcome = SyncOutcome.backoff;
+        engine.cur = SyncStatus(
+          phase: SyncPhase.backoff,
+          block: SyncBlockReason.maintenance,
+          nextRetryAt: t0.add(const Duration(minutes: 10)),
+        );
+        t.syncNow();
+        async.flushMicrotasks();
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        async.flushMicrotasks();
+        expect(engine.calls, [SyncReason.manual], reason: 'maintenance wins');
 
-      engine.cur = SyncStatus(
-        phase: SyncPhase.backoff,
-        nextRetryAt: t0.add(const Duration(minutes: 10)),
-      );
-      t.syncNow();
-      async.flushMicrotasks();
-      network.ctrl.add(false);
-      network.ctrl.add(true);
-      async.flushMicrotasks();
-      expect(engine.calls, [
-        SyncReason.manual,
-        SyncReason.manual,
-        SyncReason.connectivity,
-      ]);
-    });
-  });
+        engine.cur = SyncStatus(
+          phase: SyncPhase.backoff,
+          nextRetryAt: t0.add(const Duration(minutes: 10)),
+        );
+        t.syncNow();
+        async.flushMicrotasks();
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        async.flushMicrotasks();
+        expect(engine.calls, [
+          SyncReason.manual,
+          SyncReason.manual,
+          SyncReason.connectivity,
+        ]);
+      });
+    },
+  );
 
   test('gate (session/capabilities) false -> engine never called', () {
     fakeAsync((async) {
@@ -321,6 +328,88 @@ void main() {
       t.syncNow().then((v) => after = v);
       async.flushMicrotasks();
       expect(after, SyncOutcome.completed);
+    });
+  });
+
+  group('background work hook', () {
+    late int requests;
+    SyncTriggers withHook(FakeAsync async, {Set<String> refresh = const {}}) {
+      requests = 0;
+      final t = SyncTriggers(
+        engine,
+        network,
+        outbox,
+        notifier,
+        now: () => t0.add(async.elapsed),
+        onBackgroundWork: () => requests++,
+        resumeRefreshTables: refresh,
+      )..start();
+      async.flushMicrotasks();
+      engine.calls.clear();
+      return t;
+    }
+
+    test('paused with pending rows requests the worker once', () {
+      fakeAsync((async) {
+        final t = withHook(async);
+        t.onAppPaused();
+        async.flushMicrotasks();
+        notifier.notify({SyncTables.outbox});
+        async.flushMicrotasks();
+        t.onAppPaused();
+        async.flushMicrotasks();
+        expect(requests, 1);
+      });
+    });
+
+    test('paused without pending rows requests nothing', () {
+      fakeAsync((async) {
+        outbox.pending = 0;
+        final t = withHook(async);
+        t.onAppPaused();
+        async.flushMicrotasks();
+        expect(requests, 0);
+      });
+    });
+
+    test('foreground writes never request the worker', () {
+      fakeAsync((async) {
+        withHook(async);
+        notifier.notify({SyncTables.outbox});
+        async.elapse(const Duration(seconds: 6));
+        expect(requests, 0);
+      });
+    });
+
+    test('a write while paused requests it; resume re-arms', () {
+      fakeAsync((async) {
+        outbox.pending = 0;
+        final t = withHook(async);
+        t.onAppPaused();
+        async.flushMicrotasks();
+        expect(requests, 0);
+        outbox.pending = 1;
+        notifier.notify({SyncTables.outbox});
+        async.flushMicrotasks();
+        expect(requests, 1);
+        t.onAppResumed();
+        async.flushMicrotasks();
+        t.onAppPaused();
+        async.flushMicrotasks();
+        expect(requests, 2);
+      });
+    });
+
+    test('resume notifies the refresh tables', () {
+      fakeAsync((async) {
+        final seen = <Set<String>>[];
+        notifier.changes.listen(seen.add);
+        final t = withHook(async, refresh: {'sales', 'stock'});
+        t.onAppPaused();
+        t.onAppResumed();
+        async.flushMicrotasks();
+        expect(seen, contains(equals({'sales', 'stock'})));
+      });
     });
   });
 }

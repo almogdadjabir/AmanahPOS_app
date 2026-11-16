@@ -80,5 +80,15 @@
 	</array>
     <key>NSCameraUsageDescription</key>
     <string>AmanaPOS needs camera access to scan product barcodes.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>amana.sync</string>
+		<string>amana.sync.processing</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

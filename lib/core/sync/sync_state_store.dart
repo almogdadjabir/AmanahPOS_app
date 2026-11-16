@@ -6,11 +6,35 @@ import 'sync_schema.dart';
 
 /// Key/value sync bookkeeping persisted in the `sync_state` table.
 class SyncStateStore {
-  SyncStateStore(this._db, {DateTime Function()? now, Uuid? uuid})
-    : _now = now ?? DateTime.now,
-      _uuid = uuid ?? const Uuid();
+  SyncStateStore(
+    this._db, {
+    DateTime Function()? now,
+    Uuid? uuid,
+    String? scope,
+  }) : _now = now ?? DateTime.now,
+       _uuid = uuid ?? const Uuid(),
+       _scope = scope;
 
   final OfflineDb _db;
+  final String? _scope;
+
+  /// A view of the same table whose cursor, deferred pull and repair flag
+  /// live under [scope] (`userId|tenantId`). `device_id` and `sync_lock`
+  /// stay global.
+  SyncStateStore forScope(String scope) =>
+      SyncStateStore(_db, now: _now, uuid: _uuid, scope: scope);
+
+  /// Scoped key. An unscoped store must never touch per-session progress.
+  String _k(String base) {
+    final scope = _scope;
+    if (scope == null) {
+      throw StateError(
+        'SyncStateStore: "$base" needs forScope(userId|tenantId)',
+      );
+    }
+    return '$base|$scope';
+  }
+
   final DateTime Function() _now;
   final Uuid _uuid;
 
@@ -23,6 +47,7 @@ class SyncStateStore {
   static const _kRepairNeeded = 'repair_needed';
   static const _kDeferredPull = 'deferred_pull';
   static const _kDeviceRegistration = 'device_registration';
+  static const _kLocalReceiptCounter = 'local_receipt_counter';
 
   Future<String?> _get(DatabaseExecutor e, String key) async {
     final rows = await e.query(
@@ -54,10 +79,20 @@ class SyncStateStore {
     });
   }
 
-  Future<String?> cursor() async => _get(await _db.database, _kCursor);
+  /// Increments and returns this device's local receipt counter (global,
+  /// survives logout and [clear]). Call inside the transaction that writes
+  /// the sale so a rolled-back sale never consumes a number.
+  Future<int> nextLocalReceiptCounter(DatabaseExecutor txn) async {
+    final current = int.tryParse(await _get(txn, _kLocalReceiptCounter) ?? '');
+    final next = (current ?? 0) + 1;
+    await _put(txn, _kLocalReceiptCounter, '$next');
+    return next;
+  }
+
+  Future<String?> cursor() async => _get(await _db.database, _k(_kCursor));
 
   Future<void> setCursor(DatabaseExecutor txn, String cursor) =>
-      _put(txn, _kCursor, cursor);
+      _put(txn, _k(_kCursor), cursor);
 
   Future<Duration?> clockSkew() async {
     final v = await _get(await _db.database, _kClockSkew);
@@ -87,19 +122,20 @@ class SyncStateStore {
     await _put(await _db.database, _kCapabilities, sorted.join(','));
   }
 
-  /// Clears sync progress (cursor, skew, last sync, capabilities). The device
-  /// id and the runner lock are deliberately kept.
+  /// Clears sync progress (this scope's cursor and deferred pull, plus skew,
+  /// last sync, capabilities). Another scope's keys, the device id and the
+  /// runner lock are deliberately kept.
   Future<void> clear() async {
     final db = await _db.database;
     await db.delete(
       SyncTables.syncState,
       where: 'key IN (?, ?, ?, ?, ?)',
       whereArgs: [
-        _kCursor,
+        _k(_kCursor),
         _kClockSkew,
         _kLastSyncedAt,
         _kCapabilities,
-        _kDeferredPull,
+        _k(_kDeferredPull),
       ],
     );
   }
@@ -119,17 +155,17 @@ class SyncStateStore {
 
   /// Sets the flag; pass [txn] to write it inside an open transaction.
   Future<void> setRepairNeeded([DatabaseExecutor? txn]) async =>
-      _put(txn ?? await _db.database, _kRepairNeeded, '1');
+      _put(txn ?? await _db.database, _k(_kRepairNeeded), '1');
 
   Future<bool> repairNeeded() async =>
-      await _get(await _db.database, _kRepairNeeded) == '1';
+      await _get(await _db.database, _k(_kRepairNeeded)) == '1';
 
   Future<void> clearRepairNeeded() async {
     final db = await _db.database;
     await db.delete(
       SyncTables.syncState,
       where: 'key = ?',
-      whereArgs: [_kRepairNeeded],
+      whereArgs: [_k(_kRepairNeeded)],
     );
   }
 
@@ -138,17 +174,17 @@ class SyncStateStore {
   /// Raw JSON (map of "entity|id" -> change JSON) or null. Read inside the
   /// pull page transaction.
   Future<String?> deferredPullJson(DatabaseExecutor txn) =>
-      _get(txn, _kDeferredPull);
+      _get(txn, _k(_kDeferredPull));
 
   Future<void> setDeferredPullJson(DatabaseExecutor txn, String? json) async {
     if (json == null) {
       await txn.delete(
         SyncTables.syncState,
         where: 'key = ?',
-        whereArgs: [_kDeferredPull],
+        whereArgs: [_k(_kDeferredPull)],
       );
     } else {
-      await _put(txn, _kDeferredPull, json);
+      await _put(txn, _k(_kDeferredPull), json);
     }
   }
 

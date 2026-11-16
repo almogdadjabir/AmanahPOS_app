@@ -11,6 +11,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:amana_pos/core/offline/models/offline_asset_manifest_dto.dart';
 import 'package:amana_pos/core/offline/models/offline_bootstrap_dto.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/sync/decimal3.dart';
+import 'package:amana_pos/features/inventory/data/local/stock_local_store.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
@@ -22,6 +24,14 @@ class OfflineLocalCache {
   OfflineLocalCache(this._db);
 
   final OfflineDb _db;
+  static const _stockStore = StockLocalStore();
+
+  /// Exact server base of a legacy stock DTO: the raw decimal string when it
+  /// parses, else the (already parsed) double.
+  static BigInt _baseUnits(StockData item) =>
+      Decimal3.tryParse(item.quantity) ??
+      Decimal3.tryParse(item.qty) ??
+      BigInt.zero;
 
   Future<bool> hasBootstrapCache() => _db.hasBootstrapCache();
 
@@ -93,7 +103,15 @@ class OfflineLocalCache {
         if (productId == null || productId.isEmpty) continue;
         if (shopId == null || shopId.isEmpty) continue;
 
-        final quantity = item.qty;
+        // Server quantity is the base; this device's unsent deltas stay on
+        // top (sync core: quantity = base + pending).
+        final base = _baseUnits(item);
+        final pending = await _stockStore.pendingDeltaUnits(
+          txn,
+          productId,
+          shopId,
+        );
+        final quantity = Decimal3.toDouble(base + pending);
         stockByProductId[productId] = quantity;
 
         final stockJson = _stockToJson(item);
@@ -107,6 +125,7 @@ class OfflineLocalCache {
             'product_id': productId,
             'shop_id': shopId,
             'quantity': quantity,
+            'base_quantity': Decimal3.format(base),
             'json': jsonEncode(stockJson),
             'updated_at': item.updatedAt,
           },
@@ -179,6 +198,7 @@ class OfflineLocalCache {
 
       await batch.commit(noResult: true);
     });
+    _db.notifyTablesChanged(const {OfflineConstants.shopsTable});
   }
 
   Future<void> saveAssetManifest(OfflineAssetManifestDto dto) async {
@@ -554,40 +574,6 @@ class OfflineLocalCache {
     return assetsDir;
   }
 
-  Future<void> updateProductStockLevel({
-    required String productId,
-    required double stockLevel,
-  }) async {
-    final db = await _db.database;
-
-    await db.transaction((txn) async {
-      final rows = await txn.query(
-        OfflineConstants.productsTable,
-        where: 'id = ?',
-        whereArgs: [productId],
-        limit: 1,
-      );
-
-      if (rows.isNotEmpty) {
-        final jsonRaw = rows.first['json'] as String;
-        final jsonMap = jsonDecode(jsonRaw) as Map<String, dynamic>;
-
-        jsonMap['stock_level'] = stockLevel;
-
-        await txn.update(
-          OfflineConstants.productsTable,
-          {
-            'stock_level': stockLevel,
-            'json': jsonEncode(jsonMap),
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          },
-          where: 'id = ?',
-          whereArgs: [productId],
-        );
-      }
-    });
-  }
-
   Future<void> saveProductsToCache(List<ProductData> products) async {
     final db = await _db.database;
 
@@ -679,7 +665,13 @@ class OfflineLocalCache {
         if (productId == null || productId.isEmpty) continue;
         if (shopId == null || shopId.isEmpty) continue;
 
-        double quantity = stock.qty;
+        final base = _baseUnits(stock);
+        final pending = await _stockStore.pendingDeltaUnits(
+          txn,
+          productId,
+          shopId,
+        );
+        final double quantity = Decimal3.toDouble(base + pending);
         final now = DateTime.now().toUtc().toIso8601String();
 
         final stockJson = _stockToJson(stock);
@@ -694,18 +686,15 @@ class OfflineLocalCache {
             'product_id': productId,
             'shop_id': shopId,
             'quantity': quantity,
+            'base_quantity': Decimal3.format(base),
             'json': jsonEncode(stockJson),
             'updated_at': stock.updatedAt ?? now,
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
-        await _updateProductStockInsideTxn(
-          txn: txn,
-          productId: productId,
-          quantity: quantity,
-          updatedAt: now,
-        );
+        // products.stock_level = sum over shops (never one shop's value).
+        await _stockStore.recompute(txn, productId, shopId);
       }
     });
   }
@@ -727,200 +716,6 @@ class OfflineLocalCache {
     if (rows.isEmpty) return 0;
 
     return (rows.first['quantity'] as num?)?.toDouble() ?? 0;
-  }
-
-  Future<void> updateStockQuantity({
-    required String productId,
-    required String shopId,
-    required double quantity,
-  }) async {
-    final db = await _db.database;
-    final safeQty = quantity < 0 ? 0.0 : quantity;
-    final now = DateTime.now().toUtc().toIso8601String();
-
-    await db.transaction((txn) async {
-      await _upsertStockQuantityInsideTxn(
-        txn: txn,
-        productId: productId,
-        shopId: shopId,
-        quantity: safeQty,
-        updatedAt: now,
-      );
-
-      await _updateProductStockInsideTxn(
-        txn: txn,
-        productId: productId,
-        quantity: safeQty,
-        updatedAt: now,
-      );
-    });
-  }
-
-  Future<void> deductStockQuantity({
-    required String productId,
-    required String shopId,
-    required double quantity,
-  }) async {
-    final db = await _db.database;
-    final now = DateTime.now().toUtc().toIso8601String();
-
-    await db.transaction((txn) async {
-      final rows = await txn.query(
-        OfflineConstants.stockTable,
-        columns: ['quantity'],
-        where: 'product_id = ? AND shop_id = ?',
-        whereArgs: [productId, shopId],
-        limit: 1,
-      );
-
-      final currentQty = rows.isEmpty
-          ? 0.0
-          : (rows.first['quantity'] as num?)?.toDouble() ?? 0.0;
-
-      final nextQty = currentQty - quantity;
-      final safeQty = nextQty < 0 ? 0.0 : nextQty;
-
-      await _upsertStockQuantityInsideTxn(
-        txn: txn,
-        productId: productId,
-        shopId: shopId,
-        quantity: safeQty,
-        updatedAt: now,
-      );
-
-      await _updateProductStockInsideTxn(
-        txn: txn,
-        productId: productId,
-        quantity: safeQty,
-        updatedAt: now,
-      );
-    });
-  }
-
-  Future<void> _upsertStockQuantityInsideTxn({
-    required Transaction txn,
-    required String productId,
-    required String shopId,
-    required double quantity,
-    required String updatedAt,
-  }) async {
-    final rows = await txn.query(
-      OfflineConstants.stockTable,
-      where: 'product_id = ? AND shop_id = ?',
-      whereArgs: [productId, shopId],
-      limit: 1,
-    );
-
-    if (rows.isEmpty) {
-      final stockJson = <String, dynamic>{
-        'id': '$productId-$shopId',
-        'product': productId,
-        'shop': shopId,
-        'quantity': quantity,
-        'is_low_stock': false,
-        'is_out_of_stock': quantity <= 0,
-        'updated_at': updatedAt,
-      };
-
-      await txn.insert(OfflineConstants.stockTable, {
-        'id': '$productId-$shopId',
-        'product_id': productId,
-        'shop_id': shopId,
-        'quantity': quantity,
-        'json': jsonEncode(stockJson),
-        'updated_at': updatedAt,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-
-      return;
-    }
-
-    final rawJson = rows.first['json']?.toString();
-    final jsonMap = rawJson == null || rawJson.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(rawJson) as Map<String, dynamic>;
-
-    jsonMap['product'] = jsonMap['product'] ?? productId;
-    jsonMap['shop'] = jsonMap['shop'] ?? shopId;
-    jsonMap['quantity'] = quantity;
-    jsonMap['is_out_of_stock'] = quantity <= 0;
-    jsonMap['updated_at'] = updatedAt;
-
-    await txn.update(
-      OfflineConstants.stockTable,
-      {
-        'quantity': quantity,
-        'json': jsonEncode(jsonMap),
-        'updated_at': updatedAt,
-      },
-      where: 'product_id = ? AND shop_id = ?',
-      whereArgs: [productId, shopId],
-    );
-  }
-
-  Future<void> _updateProductStockInsideTxn({
-    required Transaction txn,
-    required String productId,
-    required double quantity,
-    required String updatedAt,
-  }) async {
-    final productRows = await txn.query(
-      OfflineConstants.productsTable,
-      where: 'id = ?',
-      whereArgs: [productId],
-      limit: 1,
-    );
-
-    if (productRows.isEmpty) return;
-
-    final rawJson = productRows.first['json']?.toString();
-    final jsonMap = rawJson == null || rawJson.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(rawJson) as Map<String, dynamic>;
-
-    jsonMap['stock_level'] = quantity;
-
-    await txn.update(
-      OfflineConstants.productsTable,
-      {
-        'stock_level': quantity,
-        'json': jsonEncode(jsonMap),
-        'updated_at': updatedAt,
-      },
-      where: 'id = ?',
-      whereArgs: [productId],
-    );
-  }
-
-  Future<void> transferStockLocally({
-    required String productId,
-    required String fromShopId,
-    required String toShopId,
-    required double quantity,
-  }) async {
-    final fromQty = await getStockQuantity(
-      productId: productId,
-      shopId: fromShopId,
-    );
-
-    final toQty = await getStockQuantity(
-      productId: productId,
-      shopId: toShopId,
-    );
-
-    final nextFromQty = fromQty - quantity;
-    final nextToQty = toQty + quantity;
-
-    await updateStockQuantity(
-      productId: productId,
-      shopId: fromShopId,
-      quantity: nextFromQty < 0 ? 0 : nextFromQty,
-    );
-
-    await updateStockQuantity(
-      productId: productId,
-      shopId: toShopId,
-      quantity: nextToQty,
-    );
   }
 
   Future<void> saveBusinessesToCache(List<BusinessData> businesses) async {
@@ -958,6 +753,7 @@ class OfflineLocalCache {
         }
       }
     });
+    _db.notifyTablesChanged(const {OfflineConstants.shopsTable});
   }
 
   Future<void> clearAllOnLogout() async {
@@ -983,15 +779,13 @@ class OfflineLocalCache {
       await safeDeleteTable(txn, 'offline_assets');
       await safeDeleteTable(txn, 'sync_metadata');
 
-      // Safe to clear: the logout gate now only blocks on pending+syncing rows.
-      // Any remaining rows at this point are in 'failed' status and must be
-      // discarded — they reference shop/business data that is no longer valid.
-      await safeDeleteTable(txn, 'pending_sale_items');
-      await safeDeleteTable(txn, 'pending_sales');
+      // Unsynced data is never destroyed here: the sync outbox / sync_state
+      // are untouched (explicit discard is OutboxStore.discardAll).
       await safeDeleteTable(txn, OfflineConstants.vendorsTable);
       await safeDeleteTable(txn, OfflineConstants.premiumSummaryTable);
       await safeDeleteTable(txn, OfflineConstants.inboundTransactionsTable);
     });
+    _db.notifyTablesChanged(const {OfflineConstants.shopsTable});
 
     await _deleteOfflineAssetsDirectory();
   }
@@ -1074,7 +868,14 @@ class OfflineLocalCache {
   ) async {
     final db = await _db.database;
     await db.transaction((txn) async {
-      await txn.delete(OfflineConstants.inboundTransactionsTable);
+      // Keep local receipts not yet on the server (open inbound.create
+      // outbox row, sync engine path): the REST list cannot contain them.
+      await txn.delete(
+        OfflineConstants.inboundTransactionsTable,
+        where:
+            "id NOT IN (SELECT entity_id FROM outbox WHERE entity = 'inbound' "
+            "AND op = 'create' AND status != 'done')",
+      );
       for (final tx in transactions) {
         final id = tx.id;
         if (id == null || id.isEmpty) continue;

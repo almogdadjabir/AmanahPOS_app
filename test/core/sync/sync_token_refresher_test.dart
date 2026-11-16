@@ -88,16 +88,20 @@ void main() {
     adapter.reply = () async =>
         _json(200, {'access': 'new-access', 'refresh': 'new-refresh'});
     expect(await make().refresh(), RefreshOutcome.refreshed);
-    expect(adapter.paths.single,
-        'https://api.test/api-public/v1/auth/token/refresh/');
+    expect(
+      adapter.paths.single,
+      'https://api.test/api-public/v1/auth/token/refresh/',
+    );
     expect(adapter.requests.single, {'refresh': 'old-refresh'});
     expect(storage.values[Constants.authToken], 'new-access');
     expect(storage.values[Constants.refreshToken], 'new-refresh');
   });
 
   test('401 from the refresh endpoint -> rejected, nothing stored', () async {
-    adapter.reply = () async =>
-        _json(401, {'detail': 'Token is blacklisted', 'code': 'token_not_valid'});
+    adapter.reply = () async => _json(401, {
+      'detail': 'Token is blacklisted',
+      'code': 'token_not_valid',
+    });
     expect(await make().refresh(), RefreshOutcome.rejected);
     expect(storage.writes, isEmpty);
   });
@@ -105,7 +109,9 @@ void main() {
   test('400 token_not_valid -> rejected; other 400 -> transient', () async {
     adapter.reply = () async => _json(400, {'code': 'token_not_valid'});
     expect(await make().refresh(), RefreshOutcome.rejected);
-    adapter.reply = () async => _json(400, {'refresh': ['bad']});
+    adapter.reply = () async => _json(400, {
+      'refresh': ['bad'],
+    });
     expect(await make().refresh(), RefreshOutcome.transient);
     expect(storage.writes, isEmpty);
   });
@@ -163,20 +169,28 @@ void main() {
     expect(adapter.requests.last, {'refresh': 'r2'});
   });
 
-  test('reuses the main client in-flight refresh instead of racing it',
-      () async {
-    adapter.reply = () async => fail('must not call the network');
-    expect(await make(main: () => Future.value(true)).refresh(),
-        RefreshOutcome.refreshed);
-    // A failed main refresh is the main client's logout, not ours.
-    expect(await make(main: () => Future.value(false)).refresh(),
-        RefreshOutcome.transient);
-  });
+  test(
+    'reuses the main client in-flight refresh instead of racing it',
+    () async {
+      adapter.reply = () async => fail('must not call the network');
+      expect(
+        await make(main: () => Future.value(true)).refresh(),
+        RefreshOutcome.refreshed,
+      );
+      // A failed main refresh is the main client's logout, not ours.
+      expect(
+        await make(main: () => Future.value(false)).refresh(),
+        RefreshOutcome.transient,
+      );
+    },
+  );
 
   test('while the app is logging out -> transient, no request', () async {
     adapter.reply = () async => fail('must not call the network');
-    expect(await make(loggingOut: () => true).refresh(),
-        RefreshOutcome.transient);
+    expect(
+      await make(loggingOut: () => true).refresh(),
+      RefreshOutcome.transient,
+    );
   });
 
   test('a newer pair stored meanwhile is not overwritten', () async {

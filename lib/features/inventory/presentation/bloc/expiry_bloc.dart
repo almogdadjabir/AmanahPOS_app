@@ -24,19 +24,23 @@ class ExpiryBloc extends Bloc<ExpiryEvent, ExpiryState> {
     final result = await useCase.getExpiryAlerts();
 
     result.fold(
-      (error) => emit(state.copyWith(
-        status: ExpiryStatus.failure,
-        error: error ?? 'Failed to load expiry alerts',
-      )),
+      (error) => emit(
+        state.copyWith(
+          status: ExpiryStatus.failure,
+          error: error ?? 'Failed to load expiry alerts',
+        ),
+      ),
       (response) {
         if (!emit.isDone) {
-          emit(state.copyWith(
-            // API returns two separate lists; .all combines them
-            // with expired first so the screen shows critical items at top.
-            status: ExpiryStatus.success,
-            alerts: response.all,
-            clearError: true,
-          ));
+          emit(
+            state.copyWith(
+              // API returns two separate lists; .all combines them
+              // with expired first so the screen shows critical items at top.
+              status: ExpiryStatus.success,
+              alerts: response.all,
+              clearError: true,
+            ),
+          );
         }
       },
     );

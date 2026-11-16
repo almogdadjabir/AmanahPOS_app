@@ -24,15 +24,20 @@ class _CountingTransport implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) => inner.push(
     deviceId: deviceId,
     appVersion: appVersion,
     mutations: mutations,
+    scope: scope,
   );
 
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) =>
-      inner.pull(cursor: cursor, limit: limit);
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) => inner.pull(cursor: cursor, limit: limit, scope: scope);
 }
 
 void main() {
@@ -182,9 +187,13 @@ class _SlowTransport implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) => throw UnimplementedError();
 
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) =>
-      throw UnimplementedError();
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) => throw UnimplementedError();
 }

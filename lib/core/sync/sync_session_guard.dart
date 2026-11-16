@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'sync_engine.dart';
+import 'sync_scope.dart';
 
 /// Session-ending conditions reported by the sync engine.
 enum SyncSessionEvent {
@@ -24,9 +25,14 @@ enum SyncSessionEvent {
 /// `SyncCoordinator`): it signs the user out through the existing forced
 /// logout path and NEVER deletes outbox / sales rows.
 class SyncSessionGuard {
-  SyncSessionGuard(this._status);
+  /// [hasSession] tells whether someone is signed in. While it says no,
+  /// engine events are dropped: a run that was still winding down at logout
+  /// must not trigger a forced logout of nobody. Null = always signed in.
+  SyncSessionGuard(this._status, {bool Function()? hasSession})
+    : _hasSession = hasSession;
 
   final Stream<SyncStatus> _status;
+  final bool Function()? _hasSession;
   final _events = StreamController<SyncSessionEvent>.broadcast();
   StreamSubscription<SyncStatus>? _sub;
   SyncSessionEvent? _last;
@@ -45,6 +51,7 @@ class SyncSessionGuard {
       case SyncBlockReason.tokenExpired: // covered by needsLogin above
       case SyncBlockReason.appTooOld: // update prompt, not a logout
       case SyncBlockReason.maintenance:
+      case SyncBlockReason.noSession: // no one signed in: nothing to end
       case SyncBlockReason.none:
         return null;
     }
@@ -55,6 +62,11 @@ class SyncSessionGuard {
   }
 
   void _onStatus(SyncStatus s) {
+    if (_hasSession != null && !_hasSession()) return;
+    // A run of the previous session (its scope differs from the live one)
+    // must not end the new user's session.
+    final runScope = s.scope;
+    if (runScope != null && runScope != SyncScope.current) return;
     final e = map(s);
     if (e == null) {
       // Only an engine that left the blocked state re-arms the guard; an

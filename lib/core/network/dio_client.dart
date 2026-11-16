@@ -28,9 +28,9 @@ class DioClient {
                 return true;
               };
           // Config the client.
-          client.findProxy = (uri) {
-            return 'PROXY $debugProxy';
-          };
+          // client.findProxy = (uri) {
+          //   return 'PROXY $debugProxy';
+          // };
           return client;
         },
       );

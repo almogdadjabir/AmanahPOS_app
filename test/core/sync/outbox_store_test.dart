@@ -35,6 +35,7 @@ void main() {
       op: op,
       entityId: entityId,
       payload: payload ?? {'a': 1},
+      scope: 'u1|t1',
       dependsOnEntityId: dep,
     );
   }
@@ -59,7 +60,7 @@ void main() {
   test('arabic and 1.2MB payloads round-trip', () async {
     final big = 'x' * 1200000;
     await enq('e1', payload: {'name': 'قهوة سودانية', 'big': big});
-    final got = await store.claimBatch();
+    final got = await store.claimBatch(scope: 'u1|t1');
     expect(got.single.payload['name'], 'قهوة سودانية');
     expect(got.single.payload['big'], big);
   });
@@ -70,7 +71,7 @@ void main() {
       await enq('p1', op: 'create');
       final child = await enq('v1', op: 'create', dep: 'p1');
       expect(child.status, OutboxStatus.blocked);
-      await store.unblockDependents(db, 'p1');
+      await store.unblockDependents(db, 'p1', scope: 'u1|t1');
       expect(await statusOf(child.mutationId), 'pending');
     },
   );
@@ -86,7 +87,7 @@ void main() {
     await enq('p1', op: 'create');
     final c = await enq('v1', op: 'create', dep: 'p1');
     final g = await enq('x1', op: 'create', dep: 'v1');
-    await store.failDependents(db, 'p1');
+    await store.failDependents(db, 'p1', scope: 'u1|t1');
     final rej = await store.rejected();
     expect(
       rej.map((e) => e.mutationId),
@@ -97,9 +98,9 @@ void main() {
 
   test('claimBatch pages without repeats', () async {
     final es = [for (var i = 0; i < 5; i++) await enq('e$i')];
-    final first = await store.claimBatch(limit: 2);
-    final second = await store.claimBatch(limit: 2);
-    final third = await store.claimBatch(limit: 2);
+    final first = await store.claimBatch(scope: 'u1|t1', limit: 2);
+    final second = await store.claimBatch(scope: 'u1|t1', limit: 2);
+    final third = await store.claimBatch(scope: 'u1|t1', limit: 2);
     expect(first.map((e) => e.mutationId), [
       es[0].mutationId,
       es[1].mutationId,
@@ -110,7 +111,7 @@ void main() {
     ]);
     expect(third.map((e) => e.mutationId), [es[4].mutationId]);
     expect(first.every((e) => e.status == OutboxStatus.inflight), isTrue);
-    expect(await store.claimBatch(), isEmpty);
+    expect(await store.claimBatch(scope: 'u1|t1'), isEmpty);
   });
 
   test(
@@ -119,11 +120,11 @@ void main() {
       final u1 = await enq('e1');
       final u2 = await enq('e1');
       final other = await enq('e2');
-      final b1 = await store.claimBatch();
+      final b1 = await store.claimBatch(scope: 'u1|t1');
       expect(b1.map((e) => e.mutationId), [u1.mutationId, other.mutationId]);
-      expect(await store.claimBatch(), isEmpty);
+      expect(await store.claimBatch(scope: 'u1|t1'), isEmpty);
       await store.applyResult(db, u1.mutationId, status: OutboxStatus.done);
-      final b2 = await store.claimBatch();
+      final b2 = await store.claimBatch(scope: 'u1|t1');
       expect(b2.map((e) => e.mutationId), [u2.mutationId]);
     },
   );
@@ -131,26 +132,26 @@ void main() {
   test('rejected earlier mutation holds later same-entity mutations', () async {
     final u1 = await enq('e1');
     await enq('e1');
-    await store.claimBatch();
+    await store.claimBatch(scope: 'u1|t1');
     await store.applyResult(
       db,
       u1.mutationId,
       status: OutboxStatus.rejected,
       code: 'validation_error',
     );
-    expect(await store.claimBatch(), isEmpty);
+    expect(await store.claimBatch(scope: 'u1|t1'), isEmpty);
   });
 
   test('next_attempt_at in the future is not claimed until due', () async {
     final a = await enq('e1');
-    await store.claimBatch();
+    await store.claimBatch(scope: 'u1|t1');
     await store.scheduleRetry(
       a.mutationId,
       clock.add(const Duration(minutes: 5)),
     );
-    expect(await store.claimBatch(), isEmpty);
+    expect(await store.claimBatch(scope: 'u1|t1'), isEmpty);
     clock = clock.add(const Duration(minutes: 6));
-    final got = await store.claimBatch();
+    final got = await store.claimBatch(scope: 'u1|t1');
     expect(got.single.attempts, 1);
   });
 
@@ -158,7 +159,7 @@ void main() {
     'releaseExpiredLeases returns expired inflight rows to pending',
     () async {
       final a = await enq('e1');
-      await store.claimBatch(lease: const Duration(minutes: 2));
+      await store.claimBatch(scope: 'u1|t1', lease: const Duration(minutes: 2));
       expect(await store.releaseExpiredLeases(), 0);
       clock = clock.add(const Duration(minutes: 3));
       expect(await store.releaseExpiredLeases(), 1);
@@ -176,7 +177,7 @@ void main() {
       code: 'validation_error',
     );
     await store.retryRejected(a.mutationId);
-    final got = await store.claimBatch();
+    final got = await store.claimBatch(scope: 'u1|t1');
     expect(got.single.attempts, 0);
     expect(got.single.errorCode, isNull);
   });
@@ -226,23 +227,25 @@ void main() {
     expect(got, [0, 1]);
   });
 
-  test('pendingCount counts pending only; unsyncedCount everything but done',
-      () async {
-    expect(await store.pendingCount(), 0);
-    expect(await store.unsyncedCount(), 0);
-    final a = await enq('e1');
-    final b = await enq('e2');
-    await enq('e3');
-    await store.applyResult(db, a.mutationId, status: OutboxStatus.done);
-    await store.applyResult(
-      db,
-      b.mutationId,
-      status: OutboxStatus.rejected,
-      code: 'validation_error',
-    );
-    expect(await store.pendingCount(), 1);
-    expect(await store.unsyncedCount(), 2); // rejected is still unsent data
-  });
+  test(
+    'pendingCount counts pending only; unsyncedCount everything but done',
+    () async {
+      expect(await store.pendingCount(), 0);
+      expect(await store.unsyncedCount(), 0);
+      final a = await enq('e1');
+      final b = await enq('e2');
+      await enq('e3');
+      await store.applyResult(db, a.mutationId, status: OutboxStatus.done);
+      await store.applyResult(
+        db,
+        b.mutationId,
+        status: OutboxStatus.rejected,
+        code: 'validation_error',
+      );
+      expect(await store.pendingCount(), 1);
+      expect(await store.unsyncedCount(), 2); // rejected is still unsent data
+    },
+  );
 
   test('scheduleRetry does not resurrect done or rejected rows', () async {
     final a = await enq('e1');
@@ -266,8 +269,8 @@ void main() {
       all.add((await enq('e$i')).seq!);
     }
     final res = await Future.wait([
-      store.claimBatch(limit: 50),
-      store.claimBatch(limit: 50),
+      store.claimBatch(scope: 'u1|t1', limit: 50),
+      store.claimBatch(scope: 'u1|t1', limit: 50),
     ]);
     final s1 = res[0].map((e) => e.seq!).toSet();
     final s2 = res[1].map((e) => e.seq!).toSet();
@@ -284,6 +287,7 @@ void main() {
       op: 'update',
       entityId: 'z',
       payload: {},
+      scope: 'u1|t1',
     );
     expect(e.mutationId, 'fixed-id');
   });
@@ -295,7 +299,7 @@ void main() {
     }
     final free = await enq('free');
     await store.applyResult(db, first.mutationId, status: OutboxStatus.pending);
-    final got = await store.claimBatch(limit: 5);
+    final got = await store.claimBatch(scope: 'u1|t1', limit: 5);
     expect(got.map((e) => e.seq), [first.seq, free.seq]);
   });
 
@@ -304,11 +308,13 @@ void main() {
     () async {
       final a = await enq('e1');
       final first = (await store.claimBatch(
+        scope: 'u1|t1',
         lease: const Duration(minutes: 2),
       )).single;
       clock = clock.add(const Duration(minutes: 3));
       expect(await store.releaseExpiredLeases(), 1);
       final second = (await store.claimBatch(
+        scope: 'u1|t1',
         lease: const Duration(minutes: 2),
       )).single;
       expect(second.leaseUntil, isNot(first.leaseUntil));
@@ -365,7 +371,7 @@ void main() {
       final a = await enq('e1');
       final realNow = clock;
       clock = realNow.add(const Duration(seconds: 30));
-      await store.claimBatch(lease: const Duration(minutes: 2));
+      await store.claimBatch(scope: 'u1|t1', lease: const Duration(minutes: 2));
       clock = realNow;
       expect(
         await store.releaseExpiredLeases(maxLease: const Duration(minutes: 2)),
@@ -378,7 +384,10 @@ void main() {
       );
       clock = realNow;
       expect(
-        await store.claimBatch(maxRetryDelay: const Duration(hours: 1)),
+        await store.claimBatch(
+          scope: 'u1|t1',
+          maxRetryDelay: const Duration(hours: 1),
+        ),
         isEmpty,
       );
     },
@@ -390,14 +399,17 @@ void main() {
       final a = await enq('e1');
       final realNow = clock;
       clock = realNow.add(const Duration(days: 1));
-      await store.claimBatch(lease: const Duration(minutes: 2));
+      await store.claimBatch(scope: 'u1|t1', lease: const Duration(minutes: 2));
       clock = realNow;
       expect(await store.releaseExpiredLeases(), 0);
       expect(
         await store.releaseExpiredLeases(maxLease: const Duration(minutes: 2)),
         1,
       );
-      expect((await store.claimBatch()).single.mutationId, a.mutationId);
+      expect(
+        (await store.claimBatch(scope: 'u1|t1')).single.mutationId,
+        a.mutationId,
+      );
 
       clock = realNow.add(const Duration(days: 1));
       await store.scheduleRetry(
@@ -405,9 +417,10 @@ void main() {
         clock.add(const Duration(minutes: 5)),
       );
       clock = realNow;
-      expect(await store.claimBatch(), isEmpty);
+      expect(await store.claimBatch(scope: 'u1|t1'), isEmpty);
       expect(
         (await store.claimBatch(
+          scope: 'u1|t1',
           maxRetryDelay: const Duration(hours: 1),
         )).single.mutationId,
         a.mutationId,

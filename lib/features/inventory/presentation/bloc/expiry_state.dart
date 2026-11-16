@@ -3,9 +3,9 @@ part of 'expiry_bloc.dart';
 enum ExpiryStatus { initial, loading, success, failure }
 
 class ExpiryState extends Equatable {
-  final ExpiryStatus          status;
+  final ExpiryStatus status;
   final List<ExpiryAlertData> alerts;
-  final String?               error;
+  final String? error;
 
   const ExpiryState({
     this.status = ExpiryStatus.initial,
@@ -22,15 +22,15 @@ class ExpiryState extends Equatable {
       alerts.where((a) => a.isExpiringSoon).toList();
 
   ExpiryState copyWith({
-    ExpiryStatus?          status,
+    ExpiryStatus? status,
     List<ExpiryAlertData>? alerts,
-    String?                error,
-    bool                   clearError = false,
+    String? error,
+    bool clearError = false,
   }) {
     return ExpiryState(
       status: status ?? this.status,
       alerts: alerts ?? this.alerts,
-      error:  clearError ? null : error ?? this.error,
+      error: clearError ? null : error ?? this.error,
     );
   }
 

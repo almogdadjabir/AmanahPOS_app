@@ -16,8 +16,15 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
 
   Timer? _searchTimer;
 
-  SalesHistoryBloc({required SalesHistoryUseCase useCase})
-      : _useCase = useCase,
+  /// Selected POS shop, read on every page (sync engine on: the local list
+  /// is per shop like the Home dashboard). Null keeps the legacy request.
+  final String? Function()? _shopId;
+
+  SalesHistoryBloc({
+    required SalesHistoryUseCase useCase,
+    String? Function()? shopId,
+  })  : _useCase = useCase,
+        _shopId = shopId,
         super(SalesHistoryState.initial()) {
     on<SalesHistoryStarted>(_onStarted);
     on<SalesHistoryLoadMore>(_onLoadMore);
@@ -135,6 +142,7 @@ class SalesHistoryBloc extends Bloc<SalesHistoryEvent, SalesHistoryState> {
       page:     page,
       pageSize: _pageSize,
       search:   query.isEmpty ? null : query,
+      shopId: _shopId?.call(),
       status: f.status,
       paymentMethod: f.payment,
       dateFrom: range?.from,

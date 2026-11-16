@@ -1,6 +1,7 @@
 part of 'inbound_bloc.dart';
 
 enum InboundStatus { initial, loading, loadingMore, success, failure }
+
 enum InboundSubmitStatus { idle, loading, success, queued, failure }
 
 class InboundState extends Equatable {
@@ -49,7 +50,9 @@ class InboundState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       isFromCache: isFromCache ?? this.isFromCache,
-      responseError: clearResponseError ? null : responseError ?? this.responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: clearSubmitError ? null : submitError ?? this.submitError,
       queuedOffline: queuedOffline ?? this.queuedOffline,
@@ -58,7 +61,14 @@ class InboundState extends Equatable {
 
   @override
   List<Object?> get props => [
-    status, history, currentPage, totalPages, isFromCache,
-    responseError, submitStatus, submitError, queuedOffline,
+    status,
+    history,
+    currentPage,
+    totalPages,
+    isFromCache,
+    responseError,
+    submitStatus,
+    submitError,
+    queuedOffline,
   ];
 }

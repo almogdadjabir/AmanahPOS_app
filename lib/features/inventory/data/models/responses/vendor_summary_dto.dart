@@ -38,7 +38,8 @@ class VendorSummaryData {
     return VendorSummaryData(
       totalTransactions: (d['total_transactions'] as num?)?.toInt() ?? 0,
       totalQuantity: d['total_quantity']?.toString() ?? '0',
-      vendors: (d['vendors'] as List?)
+      vendors:
+          (d['vendors'] as List?)
               ?.whereType<Map<String, dynamic>>()
               .map(VendorSummaryItem.fromJson)
               .toList() ??
@@ -47,15 +48,17 @@ class VendorSummaryData {
   }
 
   Map<String, dynamic> toJson() => {
-        'total_transactions': totalTransactions,
-        'total_quantity': totalQuantity,
-        'vendors': vendors
-            .map((v) => {
-                  'vendor_id': v.vendorId,
-                  'vendor_name': v.vendorName,
-                  'transactions_count': v.transactionsCount,
-                  'total_quantity': v.totalQuantity,
-                })
-            .toList(),
-      };
+    'total_transactions': totalTransactions,
+    'total_quantity': totalQuantity,
+    'vendors': vendors
+        .map(
+          (v) => {
+            'vendor_id': v.vendorId,
+            'vendor_name': v.vendorName,
+            'transactions_count': v.transactionsCount,
+            'total_quantity': v.totalQuantity,
+          },
+        )
+        .toList(),
+  };
 }

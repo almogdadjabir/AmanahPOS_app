@@ -3,6 +3,7 @@ part of 'inventory_bloc.dart';
 enum InventoryStatus { initial, loading, loadingMore, success, failure }
 
 enum StockFilter { all, healthy, lowStock, outOfStock }
+
 enum InventorySubmitStatus { idle, loading, success, queued, failure }
 
 class InventoryState extends Equatable {
@@ -21,6 +22,11 @@ class InventoryState extends Equatable {
   /// True when stock came from SQLite cache.
   final bool isFromCache;
 
+  /// Sync engine on: an add with an expiry date needs the REST endpoint
+  /// (the sync contract cannot create a batch) and the device is offline.
+  /// The screen shows a localized message. Cleared with the submit error.
+  final bool expiryNeedsConnection;
+
   const InventoryState({
     this.status = InventoryStatus.initial,
     this.stockList = const [],
@@ -32,6 +38,7 @@ class InventoryState extends Equatable {
     this.submitError,
     this.inboundQueuedOffline = false,
     this.isFromCache = false,
+    this.expiryNeedsConnection = false,
   });
 
   factory InventoryState.initial() => const InventoryState();
@@ -44,8 +51,10 @@ class InventoryState extends Equatable {
       final isOut = s.isOutOfStock ?? false;
       return !isLow && !isOut;
     }).toList(),
-    StockFilter.lowStock => stockList.where((s) => s.isLowStock ?? false).toList(),
-    StockFilter.outOfStock => stockList.where((s) => s.isOutOfStock ?? false).toList(),
+    StockFilter.lowStock =>
+      stockList.where((s) => s.isLowStock ?? false).toList(),
+    StockFilter.outOfStock =>
+      stockList.where((s) => s.isOutOfStock ?? false).toList(),
     StockFilter.all => stockList,
   };
 
@@ -62,6 +71,7 @@ class InventoryState extends Equatable {
     bool clearSubmitError = false,
     bool? inboundQueuedOffline,
     bool? isFromCache,
+    bool? expiryNeedsConnection,
   }) {
     return InventoryState(
       status: status ?? this.status,
@@ -73,13 +83,15 @@ class InventoryState extends Equatable {
           ? null
           : responseError ?? this.responseError,
       submitStatus: submitStatus ?? this.submitStatus,
-      submitError: clearSubmitError
-          ? null
-          : submitError ?? this.submitError,
+      submitError: clearSubmitError ? null : submitError ?? this.submitError,
       inboundQueuedOffline: inboundQueuedOffline ?? this.inboundQueuedOffline,
       isFromCache: isFromCache ?? this.isFromCache,
+      expiryNeedsConnection:
+          expiryNeedsConnection ??
+          (clearSubmitError ? false : this.expiryNeedsConnection),
     );
   }
+
   @override
   List<Object?> get props => [
     status,
@@ -92,5 +104,6 @@ class InventoryState extends Equatable {
     submitError,
     inboundQueuedOffline,
     isFromCache,
+    expiryNeedsConnection,
   ];
 }

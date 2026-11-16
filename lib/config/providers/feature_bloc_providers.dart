@@ -9,7 +9,6 @@ import 'package:amana_pos/features/category/domain/usecases/category_usecase.dar
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
 import 'package:amana_pos/features/customers/presentation/bloc/customers_bloc.dart';
-import 'package:amana_pos/features/inventory/data/offline/offline_inbound_queue.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_report_bloc.dart';
@@ -28,6 +27,7 @@ import 'package:amana_pos/features/registration/domain/usecases/registration_use
 import 'package:amana_pos/features/registration/presentation/bloc/registration_bloc.dart';
 import 'package:amana_pos/features/returns/domain/usecases/returns_usecase.dart';
 import 'package:amana_pos/features/returns/presentation/bloc/returns_bloc.dart';
+import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/sales_history/domain/usecases/sales_history_usecase.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history_bloc.dart';
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_report_bloc.dart';
@@ -140,7 +140,6 @@ class FeatureBlocProviders {
           create: (_) => InventoryBloc(
             useCase: getIt<InventoryUseCase>(),
             offlineLocalCache: getIt<OfflineLocalCache>(),
-            offlineInboundQueue: getIt<OfflineInboundQueue>(),
             isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
           ),
         ),
@@ -165,7 +164,6 @@ class FeatureBlocProviders {
           create: (_) => InboundBloc(
             useCase: getIt<InventoryUseCase>(),
             offlineLocalCache: getIt<OfflineLocalCache>(),
-            offlineInboundQueue: getIt<OfflineInboundQueue>(),
             isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
           ),
         ),
@@ -217,8 +215,10 @@ class FeatureBlocProviders {
 
   static Widget salesHistory({required Widget child}) {
     return BlocProvider(
-      create: (_) => SalesHistoryBloc(
+      create: (context) => SalesHistoryBloc(
         useCase: getIt<SalesHistoryUseCase>(),
+        // The local list follows the selected POS shop.
+        shopId: () => context.read<PosBloc>().state.selectedShopId,
       ),
       child: child,
     );

@@ -27,6 +27,11 @@ import 'package:intl/intl.dart' show DateFormat;
 
 enum UpdateStockMode { add, remove, count, move }
 
+/// The quantity exactly as typed (comma accepted as the decimal separator),
+/// for the sync engine path: never rounded for display (`formatQty` keeps
+/// only 2 decimals). The service validates it (<= 3 decimals).
+String enteredQtyText(String raw) => raw.trim().replaceAll(',', '.');
+
 /// Opens the one Update stock screen for [product]. Uses the caller's
 /// [InventoryBloc] when there is one (so the caller refreshes), otherwise a
 /// fresh inventory scope.
@@ -296,7 +301,9 @@ class _UpdateStockScreenState extends State<UpdateStockScreen> {
     HapticFeedback.mediumImpact();
     final bloc = context.read<InventoryBloc>();
     final note = _noteCtrl.text.trim();
-    final qtyText = formatQty(q);
+    // Send what was typed (exact), never the display-rounded value.
+    final raw = enteredQtyText(_qtyCtrl.text);
+    final qtyText = raw;
 
     setState(() => _submitting = true);
 
@@ -315,12 +322,24 @@ class _UpdateStockScreenState extends State<UpdateStockScreen> {
           ),
         );
       case UpdateStockMode.remove:
+        // Remove exactly q (stock.remove), never "set to what the screen
+        // showed minus q": the shown quantity may be stale (e.g. POS sales).
+        bloc.add(
+          OnRemoveStock(
+            productId: productId,
+            shopId: shopId,
+            quantity: raw,
+            reason: note.isEmpty ? null : note,
+          ),
+        );
       case UpdateStockMode.count:
+        // Absolute count: the delta is taken from the local quantity inside
+        // the write transaction (StockService.adjustTo).
         bloc.add(
           OnAdjustStock(
             productId: productId,
             shopId: shopId,
-            newQuantity: formatQty(eval.after),
+            newQuantity: raw,
             notes: note.isEmpty ? null : note,
           ),
         );
@@ -360,7 +379,9 @@ class _UpdateStockScreenState extends State<UpdateStockScreen> {
     if (state.submitStatus == InventorySubmitStatus.failure) {
       setState(() => _submitting = false);
       GlobalSnackBar.show(
-        message: state.submitError ?? context.tr.somethingWentWrong,
+        message: state.expiryNeedsConnection
+            ? context.tr.usExpiryNeedsConnection
+            : state.submitError ?? context.tr.somethingWentWrong,
         isError: true,
         isAutoDismiss: false,
       );

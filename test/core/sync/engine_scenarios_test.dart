@@ -263,7 +263,7 @@ void main() {
           entity: 'sale',
           dependsOn: 'p1',
           payload: {
-            'shop_id': 'sh1',
+            'shop': 'sh1',
             'items': [
               {'product_id': 'p1', 'quantity': '1'},
             ],

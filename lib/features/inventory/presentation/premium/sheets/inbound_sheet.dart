@@ -66,9 +66,7 @@ class _InboundHistorySheet extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(24),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           children: [
@@ -107,9 +105,9 @@ class _InboundHistorySheet extends StatelessWidget {
                           'Review recent inbound stock receipts',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bs200(context).copyWith(
-                            color: colors.textSecondary,
-                          ),
+                          style: AppTextStyles.bs200(
+                            context,
+                          ).copyWith(color: colors.textSecondary),
                         ),
                       ],
                     ),
@@ -137,9 +135,7 @@ class _InboundHistorySheet extends StatelessWidget {
             ),
             const SizedBox(height: AppDims.s3),
             const Divider(height: 1),
-            const Expanded(
-              child: _HistoryTab(),
-            ),
+            const Expanded(child: _HistoryTab()),
           ],
         ),
       ),
@@ -179,17 +175,11 @@ class _InboundSheetState extends State<_InboundSheet>
       listenWhen: (p, c) => p.submitStatus != c.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == InboundSubmitStatus.success) {
-          GlobalSnackBar.show(
-            message: context.tr.ibReceived,
-            isInfo: true,
-          );
+          GlobalSnackBar.show(message: context.tr.ibReceived, isInfo: true);
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
           _tabs.animateTo(1);
         } else if (state.submitStatus == InboundSubmitStatus.queued) {
-          GlobalSnackBar.show(
-            message: context.tr.ibQueued,
-            isWarning: true,
-          );
+          GlobalSnackBar.show(message: context.tr.ibQueued, isWarning: true);
           context.read<InboundBloc>().add(const OnInboundAcknowledge());
           _tabs.animateTo(1);
         } else if (state.submitStatus == InboundSubmitStatus.failure) {
@@ -257,9 +247,9 @@ class _InboundSheetState extends State<_InboundSheet>
                                 'Receive stock and review receipt history',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.bs200(context).copyWith(
-                                  color: colors.textSecondary,
-                                ),
+                                style: AppTextStyles.bs200(
+                                  context,
+                                ).copyWith(color: colors.textSecondary),
                               ),
                             ],
                           ),
@@ -293,10 +283,7 @@ class _InboundSheetState extends State<_InboundSheet>
                   Expanded(
                     child: TabBarView(
                       controller: _tabs,
-                      children: const [
-                        _ReceiveForm(),
-                        _HistoryTab(),
-                      ],
+                      children: const [_ReceiveForm(), _HistoryTab()],
                     ),
                   ),
                 ],
@@ -359,10 +346,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final shopId = _shopId();
     if (shopId == null || shopId.isEmpty) {
-      GlobalSnackBar.show(
-        message: context.tr.posNoShopFound,
-        isError: true,
-      );
+      GlobalSnackBar.show(message: context.tr.posNoShopFound, isError: true);
       return;
     }
     final lineItems = _items
@@ -372,48 +356,42 @@ class _ReceiveFormState extends State<_ReceiveForm> {
             productId: i.product!.id ?? '',
             quantity: i.qty.text.trim(),
             unitCost: i.cost.text.trim().isEmpty ? null : i.cost.text.trim(),
-            expiryDate:
-                i.expiry.text.trim().isEmpty ? null : i.expiry.text.trim(),
-            batchNumber:
-                i.batch.text.trim().isEmpty ? null : i.batch.text.trim(),
+            expiryDate: i.expiry.text.trim().isEmpty
+                ? null
+                : i.expiry.text.trim(),
+            batchNumber: i.batch.text.trim().isEmpty
+                ? null
+                : i.batch.text.trim(),
           ),
         )
         .toList();
 
     if (lineItems.isEmpty) {
-      GlobalSnackBar.show(
-        message: context.tr.ibAddProduct,
-        isError: true,
-      );
+      GlobalSnackBar.show(message: context.tr.ibAddProduct, isError: true);
       return;
     }
     if (_vendorId == null || _vendorId!.trim().isEmpty) {
-      GlobalSnackBar.show(
-        message: context.tr.ibSelectVendor,
-        isError: true,
-      );
+      GlobalSnackBar.show(message: context.tr.ibSelectVendor, isError: true);
       return;
     }
 
     context.read<InboundBloc>().add(
-          OnInboundFormSubmit(
-            CreateInboundRequestDto(
-              shopId: shopId,
-              reference: _refCtrl.text.trim(),
-              notes:
-                  _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-              vendorId: _vendorId!,
-              items: lineItems,
-            ),
-          ),
-        );
+      OnInboundFormSubmit(
+        CreateInboundRequestDto(
+          shopId: shopId,
+          reference: _refCtrl.text.trim(),
+          notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+          vendorId: _vendorId!,
+          items: lineItems,
+        ),
+      ),
+    );
   }
 
   void _pickExpiry(int index) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate:
-          DateTime.now().add(const Duration(days: 90)),
+      initialDate: DateTime.now().add(const Duration(days: 90)),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
@@ -428,10 +406,7 @@ class _ReceiveFormState extends State<_ReceiveForm> {
   void _pickProduct(int index) async {
     final products = context.read<ProductBloc>().state.products;
     if (products.isEmpty) {
-      GlobalSnackBar.show(
-        message: context.tr.ibNoProducts,
-        isError: true,
-      );
+      GlobalSnackBar.show(message: context.tr.ibNoProducts, isError: true);
       return;
     }
     final picked = await showAdaptivePanel<ProductData>(
@@ -462,7 +437,8 @@ class _ReceiveFormState extends State<_ReceiveForm> {
             children: [
               Expanded(
                 child: ListView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.fromLTRB(
                     AppDims.s4,
                     AppDims.s4,
@@ -629,18 +605,18 @@ class _ReceiveFormState extends State<_ReceiveForm> {
                     onPressed: isLoading
                         ? null
                         : () {
-                      FocusScope.of(context).unfocus();
-                      _submit();
-                    },
+                            FocusScope.of(context).unfocus();
+                            _submit();
+                          },
                     icon: isLoading
                         ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Icon(PhosphorIconsRegular.package),
                     label: Text(
                       isLoading ? 'Submitting...' : 'Receive Stock',
@@ -705,17 +681,19 @@ class _LineItemCard extends StatelessWidget {
             children: [
               Text(
                 'Item ${index + 1}',
-                style: AppTextStyles.bs200(context).copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: goldDeep,
-                ),
+                style: AppTextStyles.bs200(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w700, color: goldDeep),
               ),
               const Spacer(),
               if (canRemove)
                 GestureDetector(
                   onTap: onRemove,
-                  child: Icon(PhosphorIconsRegular.trash,
-                      size: 18, color: colors.textSecondary),
+                  child: Icon(
+                    PhosphorIconsRegular.trash,
+                    size: 18,
+                    color: colors.textSecondary,
+                  ),
                 ),
             ],
           ),
@@ -725,18 +703,21 @@ class _LineItemCard extends StatelessWidget {
             onTap: onPickProduct,
             child: Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
                 color: colors.surface,
                 border: Border.all(
-                    color: colors.textSecondary.withValues(alpha: 0.25)),
+                  color: colors.textSecondary.withValues(alpha: 0.25),
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(PhosphorIconsRegular.shoppingBag,
-                      size: 18, color: colors.textSecondary),
+                  Icon(
+                    PhosphorIconsRegular.shoppingBag,
+                    size: 18,
+                    color: colors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -749,8 +730,11 @@ class _LineItemCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Icon(PhosphorIconsRegular.caretDown,
-                      size: 16, color: colors.textSecondary),
+                  Icon(
+                    PhosphorIconsRegular.caretDown,
+                    size: 16,
+                    color: colors.textSecondary,
+                  ),
                 ],
               ),
             ),
@@ -763,12 +747,14 @@ class _LineItemCard extends StatelessWidget {
                   controller: item.qty,
                   decoration: const InputDecoration(
                     labelText: 'Qty *',
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                   ],
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -780,12 +766,14 @@ class _LineItemCard extends StatelessWidget {
                   controller: item.cost,
                   decoration: const InputDecoration(
                     labelText: 'Cost',
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                   ],
                 ),
               ),
@@ -803,10 +791,14 @@ class _LineItemCard extends StatelessWidget {
                       decoration: const InputDecoration(
                         labelText: 'Expiry',
                         hintText: 'YYYY-MM-DD',
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        suffixIcon: Icon(PhosphorIconsRegular.calendarBlank,
-                            size: 18),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        suffixIcon: Icon(
+                          PhosphorIconsRegular.calendarBlank,
+                          size: 18,
+                        ),
                       ),
                     ),
                   ),
@@ -818,8 +810,10 @@ class _LineItemCard extends StatelessWidget {
                   controller: item.batch,
                   decoration: const InputDecoration(
                     labelText: 'Batch #',
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                 ),
               ),
@@ -956,16 +950,16 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                       suffixIcon: _searchCtrl.text.isEmpty
                           ? null
                           : IconButton(
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          _onSearchChanged('');
-                        },
-                        icon: Icon(
-                          PhosphorIconsRegular.xCircle,
-                          color: colors.textSecondary,
-                          size: 20,
-                        ),
-                      ),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                _onSearchChanged('');
+                              },
+                              icon: Icon(
+                                PhosphorIconsRegular.xCircle,
+                                color: colors.textSecondary,
+                                size: 20,
+                              ),
+                            ),
                       filled: true,
                       fillColor: colors.textSecondary.withValues(alpha: 0.06),
                       border: OutlineInputBorder(
@@ -994,9 +988,9 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                         _searchCtrl.text.trim().isEmpty
                             ? 'Showing ${_filtered.length} products'
                             : '${_filtered.length} results',
-                        style: AppTextStyles.bs100(context).copyWith(
-                          color: colors.textSecondary,
-                        ),
+                        style: AppTextStyles.bs100(
+                          context,
+                        ).copyWith(color: colors.textSecondary),
                       ),
                       const Spacer(),
                       if (widget.products.length > 80)
@@ -1016,100 +1010,111 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                 Expanded(
                   child: _filtered.isEmpty
                       ? Center(
-                    child: Text(
-                      'No products found',
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  )
+                          child: Text(
+                            'No products found',
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: 14,
+                            ),
+                          ),
+                        )
                       : ListView.separated(
-                    controller: scrollController,
-                    keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDims.s4,
-                      vertical: AppDims.s2,
-                    ),
-                    itemCount: _filtered.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) {
-                      final p = _filtered[i];
+                          controller: scrollController,
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppDims.s4,
+                            vertical: AppDims.s2,
+                          ),
+                          itemCount: _filtered.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 8),
+                          itemBuilder: (context, i) {
+                            final p = _filtered[i];
 
-                      return Material(
-                        color: colors.textSecondary.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(14),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () {
-                            FocusScope.of(context).unfocus();
-                            Navigator.pop(context, p);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: goldDeep.withValues(alpha: 0.10),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    PhosphorIconsRegular.shoppingBag,
-                                    color: goldDeep,
-                                    size: 19,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                            return Material(
+                              color: colors.textSecondary.withValues(
+                                alpha: 0.04,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () {
+                                  FocusScope.of(context).unfocus();
+                                  Navigator.pop(context, p);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
                                     children: [
-                                      Text(
-                                        p.name ?? 'Unnamed product',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTextStyles.bs300(context)
-                                            .copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          color: colors.textPrimary,
+                                      Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: goldDeep.withValues(
+                                            alpha: 0.10,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          PhosphorIconsRegular.shoppingBag,
+                                          color: goldDeep,
+                                          size: 19,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        [
-                                          if ((p.sku ?? '').isNotEmpty)
-                                            'SKU: ${p.sku}',
-                                          if ((p.barcode ?? '').isNotEmpty)
-                                            'Barcode: ${p.barcode}',
-                                        ].join(' · '),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTextStyles.bs100(context)
-                                            .copyWith(
-                                          color: colors.textSecondary,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              p.name ?? 'Unnamed product',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  AppTextStyles.bs300(
+                                                    context,
+                                                  ).copyWith(
+                                                    fontWeight: FontWeight.w800,
+                                                    color: colors.textPrimary,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              [
+                                                if ((p.sku ?? '').isNotEmpty)
+                                                  'SKU: ${p.sku}',
+                                                if ((p.barcode ?? '')
+                                                    .isNotEmpty)
+                                                  'Barcode: ${p.barcode}',
+                                              ].join(' · '),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  AppTextStyles.bs100(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: colors.textSecondary,
+                                                  ),
+                                            ),
+                                          ],
                                         ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      DirectionalIcon(
+                                        icon: PhosphorIconsRegular.caretRight,
+                                        size: 18,
+                                        color: colors.textSecondary,
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                DirectionalIcon(
-                                  icon: PhosphorIconsRegular.caretRight,
-                                  size: 18,
-                                  color: colors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
@@ -1150,9 +1155,11 @@ class _HistoryTabState extends State<_HistoryTab> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(PhosphorIconsRegular.package,
-                    size: 48,
-                    color: colors.textSecondary.withValues(alpha: 0.4)),
+                Icon(
+                  PhosphorIconsRegular.package,
+                  size: 48,
+                  color: colors.textSecondary.withValues(alpha: 0.4),
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'No inbound transactions yet',
@@ -1174,8 +1181,11 @@ class _HistoryTabState extends State<_HistoryTab> {
           child: ListView.separated(
             controller: _scrollController,
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDims.s4, vertical: AppDims.s2),
-            itemCount: state.history.length +
+              horizontal: AppDims.s4,
+              vertical: AppDims.s2,
+            ),
+            itemCount:
+                state.history.length +
                 (state.status == InboundStatus.loadingMore ? 1 : 0),
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) {
@@ -1201,33 +1211,30 @@ class _HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final date = tx.createdAt != null
-        ? tx.createdAt!.substring(0, 10)
-        : '';
+    final date = tx.createdAt != null ? tx.createdAt!.substring(0, 10) : '';
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(
         tx.reference ?? '—',
-        style: AppTextStyles.bs300(context).copyWith(
-          fontWeight: FontWeight.w700,
-          color: colors.textPrimary,
-        ),
+        style: AppTextStyles.bs300(
+          context,
+        ).copyWith(fontWeight: FontWeight.w700, color: colors.textPrimary),
       ),
       subtitle: Text(
         [
           if (tx.vendorName != null) tx.vendorName!,
           if (date.isNotEmpty) date,
         ].join(' · '),
-        style: AppTextStyles.bs200(context)
-            .copyWith(color: colors.textSecondary),
+        style: AppTextStyles.bs200(
+          context,
+        ).copyWith(color: colors.textSecondary),
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: goldDeep.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(6),
@@ -1244,8 +1251,9 @@ class _HistoryTile extends StatelessWidget {
           if (tx.totalQuantity != null)
             Text(
               'Qty: ${tx.totalQuantity}',
-              style: AppTextStyles.bs100(context)
-                  .copyWith(color: colors.textSecondary),
+              style: AppTextStyles.bs100(
+                context,
+              ).copyWith(color: colors.textSecondary),
             ),
         ],
       ),

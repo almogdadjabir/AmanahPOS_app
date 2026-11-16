@@ -48,10 +48,9 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
         ),
         title: Text(
           context.tr.exTitle,
-          style: AppTextStyles.bs600(context).copyWith(
-            fontWeight: FontWeight.w900,
-            color: colors.textPrimary,
-          ),
+          style: AppTextStyles.bs600(
+            context,
+          ).copyWith(fontWeight: FontWeight.w900, color: colors.textPrimary),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.5),
@@ -60,7 +59,6 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
       ),
       body: BlocBuilder<ExpiryBloc, ExpiryState>(
         builder: (context, state) {
-
           if (state.status == ExpiryStatus.loading ||
               state.status == ExpiryStatus.initial) {
             return _LoadingView();
@@ -70,9 +68,8 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
           if (state.status == ExpiryStatus.failure) {
             return _ErrorView(
               message: state.error ?? context.tr.exLoadFailed,
-              onRetry: () => context
-                  .read<ExpiryBloc>()
-                  .add(const OnExpiryAlertsInitial()),
+              onRetry: () =>
+                  context.read<ExpiryBloc>().add(const OnExpiryAlertsInitial()),
             );
           }
 
@@ -100,7 +97,11 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
-                        AppDims.s4, 0, AppDims.s4, AppDims.s2),
+                      AppDims.s4,
+                      0,
+                      AppDims.s4,
+                      AppDims.s2,
+                    ),
                     sliver: SliverList.separated(
                       itemCount: state.expired.length,
                       separatorBuilder: (_, _) =>
@@ -122,7 +123,11 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
-                        AppDims.s4, 0, AppDims.s4, AppDims.s6),
+                      AppDims.s4,
+                      0,
+                      AppDims.s4,
+                      AppDims.s6,
+                    ),
                     sliver: SliverList.separated(
                       itemCount: state.expiringSoon.length,
                       separatorBuilder: (_, _) =>
@@ -145,9 +150,9 @@ class _ExpiryAlertsScreenState extends State<ExpiryAlertsScreen> {
 // ── Section header ────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
-  final String  label;
-  final int     count;
-  final Color   color;
+  final String label;
+  final int count;
+  final Color color;
   final IconData icon;
 
   const _SectionHeader({
@@ -163,7 +168,11 @@ class _SectionHeader extends StatelessWidget {
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(
-          AppDims.s4, AppDims.s4, AppDims.s4, AppDims.s3),
+        AppDims.s4,
+        AppDims.s4,
+        AppDims.s4,
+        AppDims.s3,
+      ),
       sliver: SliverToBoxAdapter(
         child: Row(
           children: [
@@ -185,10 +194,9 @@ class _SectionHeader extends StatelessWidget {
               ),
               child: Text(
                 '$count',
-                style: AppTextStyles.bs200(context).copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: AppTextStyles.bs200(
+                  context,
+                ).copyWith(color: color, fontWeight: FontWeight.w900),
               ),
             ),
           ],
@@ -210,16 +218,20 @@ class _LoadingView extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 6,
       separatorBuilder: (_, _) => const SizedBox(height: AppDims.s3),
-      itemBuilder: (_, i) => Container(
-        height: 90,
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(AppDims.rLg),
-          border: Border.all(color: colors.border),
-        ),
-      ).mAnimate(delay: Duration(milliseconds: i * 40))
-          .shimmer(duration: 1200.ms,
-              color: colors.border.withValues(alpha: 0.6)),
+      itemBuilder: (_, i) =>
+          Container(
+                height: 90,
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(AppDims.rLg),
+                  border: Border.all(color: colors.border),
+                ),
+              )
+              .mAnimate(delay: Duration(milliseconds: i * 40))
+              .shimmer(
+                duration: 1200.ms,
+                color: colors.border.withValues(alpha: 0.6),
+              ),
     );
   }
 }
@@ -252,8 +264,11 @@ class _EmptyView extends StatelessWidget {
                     color: colors.primaryContainer,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(PhosphorIconsRegular.sealCheck,
-                      size: 34, color: colors.primary),
+                  child: Icon(
+                    PhosphorIconsRegular.sealCheck,
+                    size: 34,
+                    color: colors.primary,
+                  ),
                 ),
                 const SizedBox(height: AppDims.s4),
                 Text(
@@ -285,7 +300,7 @@ class _EmptyView extends StatelessWidget {
 // ── Error state ───────────────────────────────────────────────────────────────
 
 class _ErrorView extends StatelessWidget {
-  final String       message;
+  final String message;
   final VoidCallback onRetry;
   const _ErrorView({required this.message, required this.onRetry});
 
@@ -299,14 +314,18 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(PhosphorIconsRegular.wifiSlash, size: 44, color: colors.textHint),
+            Icon(
+              PhosphorIconsRegular.wifiSlash,
+              size: 44,
+              color: colors.textHint,
+            ),
             const SizedBox(height: AppDims.s4),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bs200(context).copyWith(
-                color: colors.textSecondary,
-              ),
+              style: AppTextStyles.bs200(
+                context,
+              ).copyWith(color: colors.textSecondary),
             ),
             const SizedBox(height: AppDims.s4),
             OutlinedButton.icon(
@@ -315,8 +334,7 @@ class _ErrorView extends StatelessWidget {
               label: Text(context.tr.retry),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.primary,
-                side:
-                    BorderSide(color: colors.primary.withValues(alpha: 0.4)),
+                side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
               ),
             ),
           ],

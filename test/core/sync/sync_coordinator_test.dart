@@ -46,7 +46,7 @@ class _Outbox implements OutboxStore {
   int unsynced = 0;
 
   @override
-  Future<int> unsyncedCount() async => unsynced;
+  Future<int> unsyncedCount({String? scope}) async => unsynced;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -54,6 +54,9 @@ class _Outbox implements OutboxStore {
 
 class _State implements SyncStateStore {
   int clears = 0;
+
+  @override
+  SyncStateStore forScope(String scope) => this;
 
   @override
   Future<void> clear() async => clears++;
@@ -124,17 +127,19 @@ void main() {
     expect(state.clears, 1);
   });
 
-  test('logout with unsynced rows keeps sync state (never deletes rows)',
-      () async {
-    outbox.unsynced = 3;
-    final c = make(initial: _a);
-    await c.attach(observeLifecycle: false);
-    sessions.add(null);
-    await settle();
-    await settle();
-    expect(triggers.log, ['start', 'stop']);
-    expect(state.clears, 0);
-  });
+  test(
+    'logout with unsynced rows keeps sync state (never deletes rows)',
+    () async {
+      outbox.unsynced = 3;
+      final c = make(initial: _a);
+      await c.attach(observeLifecycle: false);
+      sessions.add(null);
+      await settle();
+      await settle();
+      expect(triggers.log, ['start', 'stop']);
+      expect(state.clears, 0);
+    },
+  );
 
   test('user switch in the same tenant restarts without clearing; tenant '
       'change clears', () async {

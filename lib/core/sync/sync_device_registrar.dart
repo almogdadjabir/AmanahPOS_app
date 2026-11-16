@@ -74,7 +74,14 @@ class SyncDeviceRegistrar {
       final signature = sha256
           .convert(
             utf8.encode(
-              [userKey, deviceId, name, platform, appVersion, fcm ?? ''].join('|'),
+              [
+                userKey,
+                deviceId,
+                name,
+                platform,
+                appVersion,
+                fcm ?? '',
+              ].join('|'),
             ),
           )
           .toString();

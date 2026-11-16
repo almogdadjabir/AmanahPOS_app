@@ -12,7 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'premium_inventory_event.dart';
 part 'premium_inventory_state.dart';
 
-class PremiumInventoryBloc extends Bloc<PremiumInventoryEvent, PremiumInventoryState> {
+class PremiumInventoryBloc
+    extends Bloc<PremiumInventoryEvent, PremiumInventoryState> {
   final InventoryUseCase useCase;
   final OfflineLocalCache offlineLocalCache;
   final Future<bool> Function() isOnline;
@@ -46,26 +47,34 @@ class PremiumInventoryBloc extends Bloc<PremiumInventoryEvent, PremiumInventoryS
     final cachedInbound = cacheResults[2] as List;
     final cachedStock = cacheResults[3] as List;
 
-    final hasCache = cachedSummary != null ||
+    final hasCache =
+        cachedSummary != null ||
         cachedVendors.isNotEmpty ||
         cachedInbound.isNotEmpty ||
         cachedStock.isNotEmpty;
 
     if (hasCache) {
-      emit(state.copyWith(
-        status: PremiumInventoryStatus.success,
-        premiumSummary: cachedSummary,
-        recentInbound: List<InboundTransactionData>.from(cachedInbound),
-        stockPage: List<StockData>.from(cachedStock),
-        isFromCache: true,
-      ));
+      emit(
+        state.copyWith(
+          status: PremiumInventoryStatus.success,
+          premiumSummary: cachedSummary,
+          recentInbound: List<InboundTransactionData>.from(cachedInbound),
+          stockPage: List<StockData>.from(cachedStock),
+          isFromCache: true,
+        ),
+      );
     }
 
     // 2. Network refresh
     final online = await isOnline();
     if (!online) {
       if (!hasCache) {
-        emit(state.copyWith(status: PremiumInventoryStatus.failure, isFromCache: false));
+        emit(
+          state.copyWith(
+            status: PremiumInventoryStatus.failure,
+            isFromCache: false,
+          ),
+        );
       }
       return;
     }
@@ -73,12 +82,20 @@ class PremiumInventoryBloc extends Bloc<PremiumInventoryEvent, PremiumInventoryS
     try {
       final summaryResult = await useCase.getPremiumSummary();
       final vendorSummaryResult = await useCase.getVendorSummary();
-      final expiryResult = await useCase.getExpiryReport(status: 'expiring_soon');
+      final expiryResult = await useCase.getExpiryReport(
+        status: 'expiring_soon',
+      );
       final inboundResult = await useCase.getInboundList(pageSize: 50);
       final stockResult = await useCase.getStock(page: 1, pageSize: 20);
 
-      final summary = summaryResult.fold<PremiumSummaryData?>((_) => null, (v) => v);
-      final vendorSummary = vendorSummaryResult.fold<VendorSummaryData?>((_) => null, (v) => v);
+      final summary = summaryResult.fold<PremiumSummaryData?>(
+        (_) => null,
+        (v) => v,
+      );
+      final vendorSummary = vendorSummaryResult.fold<VendorSummaryData?>(
+        (_) => null,
+        (v) => v,
+      );
       final expiryItems = expiryResult.fold<List<ExpiryReportItem>>(
         (_) => <ExpiryReportItem>[],
         (v) => v.results,
@@ -99,30 +116,38 @@ class PremiumInventoryBloc extends Bloc<PremiumInventoryEvent, PremiumInventoryS
 
       // Save caches
       if (summary != null) await offlineLocalCache.savePremiumSummary(summary);
-      if (inboundTxns.isNotEmpty) await offlineLocalCache.saveInboundTransactions(inboundTxns);
+      if (inboundTxns.isNotEmpty)
+        await offlineLocalCache.saveInboundTransactions(inboundTxns);
 
-      emit(state.copyWith(
-        status: PremiumInventoryStatus.success,
-        premiumSummary: summary,
-        vendorSummary: vendorSummary,
-        expiryPreview: expiryItems.take(5).toList(),
-        recentInbound: inboundTxns,
-        stockPage: stockList,
-        lowStockItems: lowStock,
-        isFromCache: false,
-        clearResponseError: true,
-      ));
+      emit(
+        state.copyWith(
+          status: PremiumInventoryStatus.success,
+          premiumSummary: summary,
+          vendorSummary: vendorSummary,
+          expiryPreview: expiryItems.take(5).toList(),
+          recentInbound: inboundTxns,
+          stockPage: stockList,
+          lowStockItems: lowStock,
+          isFromCache: false,
+          clearResponseError: true,
+        ),
+      );
     } catch (e) {
       if (!hasCache) {
-        emit(state.copyWith(
-          status: PremiumInventoryStatus.failure,
-          responseError: e.toString(),
-        ));
+        emit(
+          state.copyWith(
+            status: PremiumInventoryStatus.failure,
+            responseError: e.toString(),
+          ),
+        );
       }
     }
   }
 
-  void _onReset(OnPremiumInventoryReset event, Emitter<PremiumInventoryState> emit) {
+  void _onReset(
+    OnPremiumInventoryReset event,
+    Emitter<PremiumInventoryState> emit,
+  ) {
     emit(PremiumInventoryState.initial());
   }
 }

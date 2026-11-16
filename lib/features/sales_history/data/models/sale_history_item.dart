@@ -30,7 +30,6 @@ enum SaleHistoryStatus {
   };
 }
 
-
 class SaleHistoryRefund {
   final String reference;
   final double total;
@@ -43,10 +42,10 @@ class SaleHistoryRefund {
   });
 
   factory SaleHistoryRefund.fromDto(SaleRefundDto dto) => SaleHistoryRefund(
-        reference: dto.reference,
-        total: double.tryParse(dto.total) ?? 0,
-        createdAt: dto.createdAt,
-      );
+    reference: dto.reference,
+    total: double.tryParse(dto.total) ?? 0,
+    createdAt: dto.createdAt,
+  );
 }
 
 class SaleHistoryLineItem {
@@ -85,17 +84,7 @@ class SaleHistoryLineItem {
     unitPrice: dto.unitPriceDouble,
     subtotal: dto.subtotalDouble,
   );
-
-  factory SaleHistoryLineItem.fromOfflineRow(Map<String, dynamic> row) =>
-      SaleHistoryLineItem(
-        productId: row['product_id']?.toString()  ?? '',
-        productName: row['product_name']?.toString() ?? 'Item',
-        quantity: (row['quantity']   as num?)?.toDouble() ?? 1,
-        unitPrice: double.tryParse(row['unit_price']?.toString() ?? '') ?? 0,
-        subtotal: double.tryParse(row['line_total']?.toString() ?? '') ?? 0,
-      );
 }
-
 
 class SaleHistoryItem {
   final String? id;
@@ -151,9 +140,9 @@ class SaleHistoryItem {
     this.refunds = const [],
   });
 
-
   factory SaleHistoryItem.fromDto(SaleDto dto) {
-    final total = _parseAmount(dto.netAmount) ?? _parseAmount(dto.totalAmount) ?? 0.0;
+    final total =
+        _parseAmount(dto.netAmount) ?? _parseAmount(dto.totalAmount) ?? 0.0;
 
     return SaleHistoryItem(
       id: dto.id,
@@ -182,37 +171,9 @@ class SaleHistoryItem {
     );
   }
 
-  factory SaleHistoryItem.fromOfflineRow(
-      Map<String, dynamic> row,
-      List<Map<String, dynamic>> itemRows,
-      ) =>
-      SaleHistoryItem(
-        id: row['server_sale_id']?.toString(),
-        clientSaleId: row['client_sale_id']?.toString() ?? '',
-        receiptNumber: row['receipt_number']?.toString(),
-        shopId: row['shop_id']?.toString(),
-        shopName: null,
-        customerId: row['customer_id']?.toString(),
-        customerName: null,
-        paymentMethod: row['payment_method']?.toString() ?? 'cash',
-        total: _parseAmount(row['total']?.toString()) ?? 0,
-        // Local preview stored at queue time; the server recomputes on sync.
-        // Note: pending_sales stores only tax_amount (no rate/inclusive), so
-        // pending sales show a plain "Tax" label until synced.
-        taxAmount: _parseAmount(row['tax_amount']?.toString()) ?? 0,
-        itemCount: itemRows.length,
-        status: SaleHistoryStatus.fromString(row['status']?.toString()),
-        createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
-        isOfflinePending: row['status'] != 'synced',
-        offlineErrorMessage: row['error_message']?.toString(),
-        items: itemRows.map(SaleHistoryLineItem.fromOfflineRow).toList(),
-      );
-
-
-  String get displayRef =>
-      (receiptNumber?.isNotEmpty == true)
-          ? receiptNumber!
-          : 'TMP-${clientSaleId.substring(0, clientSaleId.length.clamp(0, 8)).toUpperCase()}';
+  String get displayRef => (receiptNumber?.isNotEmpty == true)
+      ? receiptNumber!
+      : 'TMP-${clientSaleId.substring(0, clientSaleId.length.clamp(0, 8)).toUpperCase()}';
 
   String get paymentLabel => switch (paymentMethod) {
     'cash' => 'Cash',
@@ -231,7 +192,6 @@ class SaleHistoryItem {
           status == SaleHistoryStatus.partialRefund);
 
   double get refundedTotal => refunds.fold(0.0, (a, r) => a + r.total);
-
 
   SaleHistoryItem copyWith({SaleHistoryStatus? status}) => SaleHistoryItem(
     id: id,
@@ -259,7 +219,6 @@ class SaleHistoryItem {
     refunds: refunds,
   );
 
-
   /// Returns null instead of 0.0 so callers can chain fallbacks.
   static double? _parseAmount(String? raw) {
     if (raw == null || raw.isEmpty) return null;
@@ -267,7 +226,6 @@ class SaleHistoryItem {
     return (v == null || v == 0.0) ? null : v;
   }
 }
-
 
 class SalesHistoryPage {
   final List<SaleHistoryItem> items;

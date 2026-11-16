@@ -27,9 +27,21 @@ enum SyncBlockReason {
   accountDisabled,
   deviceRevoked,
   maintenance,
+
+  /// No signed-in scope (`userId|tenantId`): nothing may be pushed.
+  noSession,
 }
 
-enum SyncOutcome { completed, alreadyRunning, needsBootstrap, blocked, backoff }
+enum SyncOutcome {
+  completed,
+  alreadyRunning,
+  needsBootstrap,
+  blocked,
+  backoff,
+
+  /// [SyncEngine.cancel] stopped the run between batches/pages.
+  cancelled,
+}
 
 enum SyncReason {
   resume,
@@ -117,6 +129,7 @@ class SyncStatus {
     this.lastError,
     this.nextRetryAt,
     this.moreToPull = false,
+    this.scope,
   });
 
   final SyncPhase phase;
@@ -138,6 +151,10 @@ class SyncStatus {
   /// the server; another run should follow.
   final bool moreToPull;
 
+  /// Scope (`userId|tenantId`) of the run that produced this status; null
+  /// before any run. Lets consumers drop events of a stale run.
+  final String? scope;
+
   /// The refresh token was explicitly rejected: the UI should ask the user
   /// to sign in again. The engine itself never logs out.
   bool get needsLogin =>
@@ -155,6 +172,7 @@ class SyncStatus {
     Object? lastError = _keep,
     Object? nextRetryAt = _keep,
     bool? moreToPull,
+    String? scope,
   }) => SyncStatus(
     phase: phase ?? this.phase,
     block: block ?? this.block,
@@ -171,6 +189,7 @@ class SyncStatus {
         ? this.nextRetryAt
         : nextRetryAt as DateTime?,
     moreToPull: moreToPull ?? this.moreToPull,
+    scope: scope ?? this.scope,
   );
 
   @override
@@ -185,6 +204,8 @@ class _Blocked implements Exception {
 }
 
 class _LockLost implements Exception {}
+
+class _Cancelled implements Exception {}
 
 enum _Cleanup { none, retry, restore }
 
@@ -210,6 +231,8 @@ class SyncEngine {
     required SyncTransport transport,
     required OutboxStore outbox,
     required SyncStateStore state,
+    required String? Function() scopeProvider,
+    Future<String?> Function()? readSessionKey,
     required ServerReachability reachability,
     required ChangeApplierRegistry appliers,
     required DbChangeNotifier notifier,
@@ -227,6 +250,8 @@ class SyncEngine {
        _transport = transport,
        _outbox = outbox,
        _state = state,
+       _scopeProvider = scopeProvider,
+       _readSessionKey = readSessionKey,
        _reachability = reachability,
        _appliers = appliers,
        _notifier = notifier,
@@ -260,6 +285,15 @@ class SyncEngine {
   final SyncTransport _transport;
   final OutboxStore _outbox;
   final SyncStateStore _state;
+  final String? Function() _scopeProvider;
+
+  /// Live auth session key (`userId|tenantId`), like the transport's
+  /// interceptor reads it. [_scopeProvider] is the delayed published scope.
+  final Future<String?> Function()? _readSessionKey;
+
+  /// Scope and scoped state view of the run in progress (runs are serial).
+  String _scope = '';
+  late SyncStateStore _st = _state;
   final ServerReachability _reachability;
   final ChangeApplierRegistry _appliers;
   final DbChangeNotifier _notifier;
@@ -280,6 +314,7 @@ class SyncEngine {
   int _countsGen = 0;
 
   bool _running = false;
+  bool _cancelRequested = false;
   bool _rerun = false;
   bool _refreshAttempted = false;
   int _failures = 0;
@@ -292,6 +327,16 @@ class SyncEngine {
     await _notifierSub?.cancel();
     _notifierSub = null;
     if (!_statusCtrl.isClosed) await _statusCtrl.close();
+  }
+
+  /// Cooperative cancel of the run in progress: checked between push batches
+  /// and pull pages (and right after a batch was claimed, which then returns
+  /// to `pending` with no attempt bump). A response already received is still
+  /// written. Reset at the start of every run, so a later run is unaffected.
+  void cancel() => _cancelRequested = true;
+
+  void _checkCancelled() {
+    if (_cancelRequested) throw _Cancelled();
   }
 
   // ------------------------------------------------------------- entry
@@ -307,6 +352,7 @@ class SyncEngine {
     }
     _running = true;
     _rerun = false;
+    _cancelRequested = false;
     try {
       _refreshAttempted = false; // once per syncNow, across its cycles
       _pushLimit = pushBatchSize;
@@ -343,6 +389,9 @@ class SyncEngine {
       lockHeld = false;
       await _setPhase(SyncPhase.idle);
       return SyncOutcome.alreadyRunning;
+    } on _Cancelled {
+      await _setPhase(SyncPhase.idle);
+      return SyncOutcome.cancelled;
     } on _Blocked catch (b) {
       return _blocked(b.reason);
     } on SyncTransportException catch (e) {
@@ -362,9 +411,16 @@ class SyncEngine {
   }
 
   Future<SyncOutcome> _run(SyncReason reason) async {
+    final scope = _scopeProvider();
+    if (scope == null || scope.isEmpty) {
+      return _blocked(SyncBlockReason.noSession);
+    }
+    _scope = scope;
+    _st = _state.forScope(scope);
     _status = _status.copyWith(
       lastSyncedAt: await _state.lastSyncedAt(),
       lastError: null,
+      scope: scope,
     );
     await _setPhase(SyncPhase.pinging, block: SyncBlockReason.none);
 
@@ -397,8 +453,11 @@ class SyncEngine {
     // (4) push.
     await _setPhase(SyncPhase.pushing);
     while (true) {
+      _checkCancelled();
       await _ensureLock();
+      await _assertScope();
       final batch = await _outbox.claimBatch(
+        scope: scope,
         limit: _pushLimit,
         lease: _claimLease,
         maxRetryDelay: maxRowDelay,
@@ -410,7 +469,7 @@ class SyncEngine {
 
     // (5) pull. Without a cursor the device has never bootstrapped: pulling
     // from the start of the feed is not a substitute for the bootstrap.
-    var cursor = await _state.cursor();
+    var cursor = await _st.cursor();
     if ((cursor == null || cursor.isEmpty) && _requireBootstrapWhenNoCursor) {
       _failures = 0;
       await _setPhase(SyncPhase.idle, block: SyncBlockReason.none);
@@ -424,10 +483,13 @@ class SyncEngine {
         moreToPull = true;
         break;
       }
+      _checkCancelled();
       await _ensureLock();
+      await _assertScope();
       final sent = cursor;
       final page = await _authed(
-        () => _transport.pull(cursor: sent, limit: _pullPageSize),
+        () =>
+            _transport.pull(cursor: sent, limit: _pullPageSize, scope: _scope),
       );
       pages++;
       _reachability.reportSuccess();
@@ -437,6 +499,7 @@ class SyncEngine {
         await _setPhase(SyncPhase.idle);
         return SyncOutcome.needsBootstrap;
       }
+      await _assertScope();
       final touched = await _applyPage(page);
       if (touched.isNotEmpty) _notifier.notify(touched);
       cursor = page.nextCursor;
@@ -474,13 +537,13 @@ class SyncEngine {
   Future<Set<String>> _applyPage(PullResponse page) async {
     final touched = <String>{};
     await (await _db.database).transaction((txn) async {
-      final raw = await _state.deferredPullJson(txn);
+      final raw = await _st.deferredPullJson(txn);
       final deferred = _decodeDeferred(raw);
       // A corrupt blob decodes to null: drop it (rewrite) and flag repair,
       // so it is reported once rather than on every page.
       var dirty = deferred == null;
       final pending = deferred ?? <String, PullChange>{};
-      if (deferred == null) await _state.setRepairNeeded(txn);
+      if (deferred == null) await _st.setRepairNeeded(txn);
 
       for (final change in page.changes) {
         final applier = _appliers.of(change.entity);
@@ -526,8 +589,9 @@ class SyncEngine {
 
       final hook = _hooks.beforePullPageCommit;
       if (hook != null) await hook(page);
+      await _assertScope(); // throwing rolls the whole page back
       if (dirty) {
-        await _state.setDeferredPullJson(
+        await _st.setDeferredPullJson(
           txn,
           pending.isEmpty
               ? null
@@ -536,7 +600,7 @@ class SyncEngine {
                 }),
         );
       }
-      await _state.setCursor(txn, page.nextCursor);
+      await _st.setCursor(txn, page.nextCursor);
     });
     return touched;
   }
@@ -544,8 +608,8 @@ class SyncEngine {
   Future<bool> _hasLocalPending(Transaction txn, PullChange change) async {
     final rows = await txn.rawQuery(
       'SELECT 1 FROM ${SyncTables.outbox} WHERE entity = ? AND entity_id = ? '
-      "AND status IN ('pending','inflight','blocked') LIMIT 1",
-      [change.entity, change.id],
+      "AND scope = ? AND status IN ('pending','inflight','blocked') LIMIT 1",
+      [change.entity, change.id, _scope],
     );
     return rows.isNotEmpty;
   }
@@ -574,16 +638,20 @@ class SyncEngine {
     int? retryAfter;
     var written = false;
     try {
+      await _assertScope();
+      _checkCancelled(); // claimed rows go back untouched (restore)
       final resp = await _authed(
         () => _transport.push(
           deviceId: deviceId,
           appVersion: _appVersion,
           mutations: batch,
+          scope: _scope,
         ),
       );
       _reachability.reportSuccess();
       final beforeWrite = _hooks.beforeResultWrite;
       if (beforeWrite != null) await beforeWrite(batch, resp);
+      await _assertScope();
 
       // Match by mutation_id; ignore ids we did not send; first one wins.
       final sent = {for (final e in batch) e.mutationId};
@@ -625,7 +693,9 @@ class SyncEngine {
       if (e is CrashSimulation || e is _LockLost) {
         cleanup = _Cleanup.none;
       } else if (e is _Blocked ||
-          (e is SyncTransportException && _isHardBlock(e))) {
+          e is _Cancelled ||
+          (e is SyncTransportException &&
+              (_isHardBlock(e) || e.kind == SyncTransportKind.scopeChanged))) {
         cleanup = _Cleanup.restore;
       } else if (e is SyncTransportException &&
           e.kind == SyncTransportKind.tooLarge) {
@@ -689,7 +759,7 @@ class SyncEngine {
         await applier.onPushResult(txn, e, r);
         touched.addAll(applier.tables);
       }
-      await _outbox.failDependents(txn, e.entityId);
+      await _outbox.failDependents(txn, e.entityId, scope: e.scope);
       return true;
     }
     final n = await _outbox.applyResult(
@@ -704,7 +774,7 @@ class SyncEngine {
       await applier.onPushResult(txn, e, r);
       touched.addAll(applier.tables);
     }
-    await _outbox.unblockDependents(txn, e.entityId);
+    await _outbox.unblockDependents(txn, e.entityId, scope: e.scope);
     return true;
   }
 
@@ -742,7 +812,7 @@ class SyncEngine {
           progressed = true;
         }
         if (r != null && r.status != PushStatus.retry) {
-          await _state.setRepairNeeded();
+          await _st.setRepairNeeded();
         }
       } catch (err, st) {
         if (err is CrashSimulation) rethrow;
@@ -764,7 +834,7 @@ class SyncEngine {
         message: 'Mutation is too large for the server',
         leaseUntil: e.leaseUntil,
       );
-      if (n > 0) await _outbox.failDependents(txn, e.entityId);
+      if (n > 0) await _outbox.failDependents(txn, e.entityId, scope: e.scope);
     });
     _notifier.notify({SyncTables.outbox});
   }
@@ -835,6 +905,16 @@ class SyncEngine {
     throw _LockLost();
   }
 
+  /// Throws [SyncTransportKind.scopeChanged] when the signed-in scope is no
+  /// longer the one this run was started for. Nothing may be sent, applied
+  /// or committed under another session's credentials.
+  Future<void> _assertScope() async {
+    if (_scopeProvider() != _scope ||
+        (_readSessionKey != null && await _readSessionKey() != _scope)) {
+      throw SyncTransportException(kind: SyncTransportKind.scopeChanged);
+    }
+  }
+
   bool _isAuthExpiry(SyncTransportException e) =>
       e.kind == SyncTransportKind.tokenExpired ||
       e.kind == SyncTransportKind.unauthorized;
@@ -863,6 +943,7 @@ class SyncEngine {
       }
       switch (outcome) {
         case RefreshOutcome.refreshed:
+          await _assertScope(); // the refresh may have landed on another session
           return await call();
         case RefreshOutcome.rejected:
           throw _Blocked(SyncBlockReason.tokenExpired);
@@ -878,6 +959,8 @@ class SyncEngine {
         return _blocked(SyncBlockReason.accountDisabled);
       case SyncTransportKind.deviceRevoked:
         return _blocked(SyncBlockReason.deviceRevoked);
+      case SyncTransportKind.scopeChanged:
+        return _blocked(SyncBlockReason.noSession);
       case SyncTransportKind.maintenance:
         _status = _status.copyWith(serverReachable: true);
         return _enterBackoff(
@@ -932,7 +1015,7 @@ class SyncEngine {
   Future<void> _resetForBootstrap() async {
     final caps = await _state.capabilities();
     final skew = await _state.clockSkew();
-    await _state.clear(); // cursor, skew, last sync, capabilities, deferred
+    await _st.clear(); // cursor, skew, last sync, capabilities, deferred
     await _state.setCapabilities(caps);
     if (skew != null) await _state.setClockSkew(skew);
     _status = _status.copyWith(lastSyncedAt: null);
@@ -976,7 +1059,8 @@ class SyncEngine {
         "SUM(CASE WHEN status IN ('pending','inflight','blocked') "
         'THEN 1 ELSE 0 END) AS p, '
         "SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS r "
-        'FROM ${SyncTables.outbox}',
+        'FROM ${SyncTables.outbox} WHERE scope = ?',
+        [_scopeProvider() ?? ''],
       );
       if (gen == _countsGen) {
         _status = _status.copyWith(

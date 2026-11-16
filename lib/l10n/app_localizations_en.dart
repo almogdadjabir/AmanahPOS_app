@@ -4110,6 +4110,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syFailedFallback => 'The server did not accept this sale.';
 
   @override
+  String get syOxSyncing => 'Syncing';
+
+  @override
+  String get syOxServerUnreachable => 'Server unreachable';
+
+  @override
+  String get syOxNeedsLogin => 'Sign in again to sync';
+
+  @override
+  String get syOxAllSynced => 'All synced';
+
+  @override
+  String get syOxStatePending => 'Waiting';
+
+  @override
+  String get syOxStateRejected => 'Rejected';
+
+  @override
+  String get syOxStateBlocked => 'Blocked';
+
+  @override
+  String get syOxStateInflight => 'Sending';
+
+  @override
+  String get syOxEntitySale => 'Sale';
+
+  @override
+  String get syOxEntityStock => 'Stock change';
+
+  @override
+  String get syOxEntityInbound => 'Stock received';
+
+  @override
+  String get syOxEntityOther => 'Change';
+
+  @override
+  String get syOxOtherAccount => 'Other account';
+
+  @override
+  String get syOxRetry => 'Retry';
+
+  @override
+  String get syOxDiscard => 'Discard';
+
+  @override
+  String get syOxErrorFallback => 'The server did not accept this change.';
+
+  @override
+  String get syOxDiscardSaleTitle => 'Discard this sale?';
+
+  @override
+  String get syOxDiscardSaleBody =>
+      'The sale stays on this phone marked as rejected, but it will never be sent to the server.';
+
+  @override
+  String get syOxDiscardRowTitle => 'Discard this change?';
+
+  @override
+  String get syOxDiscardRowBody => 'It will not be sent to the server.';
+
+  @override
+  String get syOxDiscardOtherAction => 'Discard other account\'s changes';
+
+  @override
+  String get syOxDiscardOtherTitle => 'Discard the other account\'s changes?';
+
+  @override
+  String get syOxDiscardOtherBody =>
+      'Everything that account has not synced will be removed from this phone.';
+
+  @override
+  String get syOxLogoutTitle => 'Unsent changes';
+
+  @override
+  String get syOxLogoutReview => 'Review';
+
+  @override
+  String syOxWaitsBehind(String label) {
+    return 'Waiting behind $label';
+  }
+
+  @override
+  String syOxUnsynced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count not synced',
+      one: '1 not synced',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syOxLogoutBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes have',
+      one: '1 change has',
+    );
+    return '$_temp0 not reached the server. Review them to retry or discard before signing out.';
+  }
+
+  @override
   String get obCreateTitle => 'Create your business';
 
   @override
@@ -4323,4 +4427,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mrTheme => 'Theme';
+
+  @override
+  String get usExpiryNeedsConnection => 'Expiry tracking needs a connection';
 }

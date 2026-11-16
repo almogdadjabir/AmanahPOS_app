@@ -43,9 +43,9 @@ class _VendorsSheet extends StatelessWidget {
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
         if (state.submitStatus == VendorsSubmitStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.tr.invVendorSaved)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(context.tr.invVendorSaved)));
         } else if (state.submitStatus == VendorsSubmitStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -63,8 +63,9 @@ class _VendorsSheet extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
               color: colors.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
             ),
             child: Column(
               children: [
@@ -92,15 +93,18 @@ class _VendorsSheet extends StatelessWidget {
                       const Spacer(),
                       TextButton.icon(
                         onPressed: () => _addVendor(context),
-                        icon: const Icon(PhosphorIconsRegular.plusCircle,
-                            size: 18),
+                        icon: const Icon(
+                          PhosphorIconsRegular.plusCircle,
+                          size: 18,
+                        ),
                         label: Text(context.tr.add),
-                        style: TextButton.styleFrom(
-                            foregroundColor: goldDeep),
+                        style: TextButton.styleFrom(foregroundColor: goldDeep),
                       ),
                       IconButton(
-                        icon: Icon(PhosphorIconsRegular.xCircle,
-                            color: colors.textSecondary),
+                        icon: Icon(
+                          PhosphorIconsRegular.xCircle,
+                          color: colors.textSecondary,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -111,30 +115,34 @@ class _VendorsSheet extends StatelessWidget {
                   child: BlocBuilder<VendorsBloc, VendorsState>(
                     builder: (context, state) {
                       if (state.status == VendorsStatus.loading) {
-                        return const Center(
-                            child: CircularProgressIndicator());
+                        return const Center(child: CircularProgressIndicator());
                       }
                       if (state.vendors.isEmpty) {
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(PhosphorIconsRegular.storefront,
-                                  size: 48,
-                                  color: colors.textSecondary
-                                      .withValues(alpha: 0.4)),
+                              Icon(
+                                PhosphorIconsRegular.storefront,
+                                size: 48,
+                                color: colors.textSecondary.withValues(
+                                  alpha: 0.4,
+                                ),
+                              ),
                               const SizedBox(height: 12),
                               Text(
                                 'No vendors yet',
                                 style: TextStyle(
-                                    color: colors.textSecondary,
-                                    fontSize: 15),
+                                  color: colors.textSecondary,
+                                  fontSize: 15,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               TextButton(
                                 onPressed: () => _addVendor(context),
                                 style: TextButton.styleFrom(
-                                    foregroundColor: goldDeep),
+                                  foregroundColor: goldDeep,
+                                ),
                                 child: Text(context.tr.invAddFirstVendor),
                               ),
                             ],
@@ -145,15 +153,13 @@ class _VendorsSheet extends StatelessWidget {
                         controller: scrollController,
                         padding: const EdgeInsets.all(AppDims.s4),
                         itemCount: state.vendors.length,
-                        separatorBuilder: (_, i) =>
-                            const Divider(height: 1),
+                        separatorBuilder: (_, i) => const Divider(height: 1),
                         itemBuilder: (context, i) {
                           final vendor = state.vendors[i];
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
-                              backgroundColor:
-                                  goldDeep.withValues(alpha: 0.10),
+                              backgroundColor: goldDeep.withValues(alpha: 0.10),
                               child: Text(
                                 vendor.name.isNotEmpty
                                     ? vendor.name[0].toUpperCase()
@@ -174,9 +180,9 @@ class _VendorsSheet extends StatelessWidget {
                             subtitle: vendor.phone != null
                                 ? Text(
                                     vendor.phone!,
-                                    style: AppTextStyles.bs200(context)
-                                        .copyWith(
-                                            color: colors.textSecondary),
+                                    style: AppTextStyles.bs200(
+                                      context,
+                                    ).copyWith(color: colors.textSecondary),
                                   )
                                 : null,
                             trailing: PopupMenuButton<String>(
@@ -186,18 +192,18 @@ class _VendorsSheet extends StatelessWidget {
                                     context,
                                     builder: (_) => BlocProvider.value(
                                       value: context.read<VendorsBloc>(),
-                                      child: _VendorFormSheet(
-                                          existing: vendor),
+                                      child: _VendorFormSheet(existing: vendor),
                                     ),
                                   );
                                 } else if (value == 'deactivate') {
                                   context.read<VendorsBloc>().add(
-                                        OnVendorUpdate(
-                                          vendor.id,
-                                          const UpdateVendorRequestDto(
-                                              isActive: false),
-                                        ),
-                                      );
+                                    OnVendorUpdate(
+                                      vendor.id,
+                                      const UpdateVendorRequestDto(
+                                        isActive: false,
+                                      ),
+                                    ),
+                                  );
                                 }
                               },
                               itemBuilder: (_) => [
@@ -263,27 +269,27 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (widget.existing != null) {
       context.read<VendorsBloc>().add(
-            OnVendorUpdate(
-              widget.existing!.id,
-              UpdateVendorRequestDto(
-                name: _name.text.trim(),
-                phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-                email: _email.text.trim().isEmpty ? null : _email.text.trim(),
-                notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-              ),
-            ),
-          );
+        OnVendorUpdate(
+          widget.existing!.id,
+          UpdateVendorRequestDto(
+            name: _name.text.trim(),
+            phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+            email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+            notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          ),
+        ),
+      );
     } else {
       context.read<VendorsBloc>().add(
-            OnVendorCreate(
-              CreateVendorRequestDto(
-                name: _name.text.trim(),
-                phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-                email: _email.text.trim().isEmpty ? null : _email.text.trim(),
-                notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-              ),
-            ),
-          );
+        OnVendorCreate(
+          CreateVendorRequestDto(
+            name: _name.text.trim(),
+            phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+            email: _email.text.trim().isEmpty ? null : _email.text.trim(),
+            notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          ),
+        ),
+      );
     }
     Navigator.pop(context);
   }
@@ -293,14 +299,11 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
     final colors = context.appColors;
     final isEdit = widget.existing != null;
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Container(
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.all(AppDims.s4),
         child: Form(
@@ -357,7 +360,9 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
                   child: Text(
                     isEdit ? 'Save Changes' : 'Add Vendor',
                     style: const TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 15),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ),

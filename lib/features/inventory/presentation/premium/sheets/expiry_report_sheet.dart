@@ -56,8 +56,10 @@ class _ExpiryReportSheet extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: Icon(PhosphorIconsRegular.xCircle,
-                          color: colors.textSecondary),
+                      icon: Icon(
+                        PhosphorIconsRegular.xCircle,
+                        color: colors.textSecondary,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -95,17 +97,19 @@ class _ExpiryReportSheet extends StatelessWidget {
                       separatorBuilder: (_, i) => const Divider(height: 1),
                       itemBuilder: (context, i) {
                         final item = state.items[i];
-                        final chipColor =
-                            _chipColor(item.daysRemaining, item.isExpired);
+                        final chipColor = _chipColor(
+                          item.daysRemaining,
+                          item.isExpired,
+                        );
                         return Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: AppDims.s2),
+                            vertical: AppDims.s2,
+                          ),
                           child: Row(
                             children: [
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       item.productName,
@@ -113,35 +117,37 @@ class _ExpiryReportSheet extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: AppTextStyles.bs300(context)
                                           .copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: colors.textPrimary,
-                                      ),
+                                            fontWeight: FontWeight.w700,
+                                            color: colors.textPrimary,
+                                          ),
                                     ),
                                     if (item.batchNumber != null)
                                       Text(
                                         'Batch: ${item.batchNumber}',
-                                        style: AppTextStyles.bs200(context)
-                                            .copyWith(
-                                                color: colors.textSecondary),
+                                        style: AppTextStyles.bs200(
+                                          context,
+                                        ).copyWith(color: colors.textSecondary),
                                       ),
                                     Text(
                                       'Qty: ${item.quantity} · ${item.expiryDate}',
-                                      style: AppTextStyles.bs200(context)
-                                          .copyWith(
-                                              color: colors.textSecondary),
+                                      style: AppTextStyles.bs200(
+                                        context,
+                                      ).copyWith(color: colors.textSecondary),
                                     ),
                                   ],
                                 ),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
                                   color: chipColor.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                      color:
-                                          chipColor.withValues(alpha: 0.25)),
+                                    color: chipColor.withValues(alpha: 0.25),
+                                  ),
                                 ),
                                 child: Text(
                                   item.isExpired
@@ -179,7 +185,9 @@ class _FilterRow extends StatelessWidget {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(
-              horizontal: AppDims.s4, vertical: 8),
+            horizontal: AppDims.s4,
+            vertical: 8,
+          ),
           child: Row(
             children: ExpiryReportFilter.values.map((f) {
               final label = switch (f) {
@@ -193,10 +201,12 @@ class _FilterRow extends StatelessWidget {
                 child: FilterChip(
                   label: Text(label),
                   selected: isSelected,
-                  onSelected: (_) => context
-                      .read<ExpiryReportBloc>()
-                      .add(OnExpiryReportFilterChanged(f)),
-                  selectedColor: const Color(0xFFFCA5A5).withValues(alpha: 0.15),
+                  onSelected: (_) => context.read<ExpiryReportBloc>().add(
+                    OnExpiryReportFilterChanged(f),
+                  ),
+                  selectedColor: const Color(
+                    0xFFFCA5A5,
+                  ).withValues(alpha: 0.15),
                   checkmarkColor: const Color(0xFFFCA5A5),
                   labelStyle: TextStyle(
                     color: isSelected

@@ -102,6 +102,32 @@ void main() {
     },
   );
 
+  test('the selected shop (when provided) is passed with every page', () async {
+    await bloc.close();
+    var shop = 'shop-1';
+    bloc = SalesHistoryBloc(useCase: useCase, shopId: () => shop);
+    stub(page(const []));
+    bloc.add(const SalesHistoryStarted());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    shop = 'shop-2';
+    bloc.add(const SalesHistoryRefreshed());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    final shops = verify(
+      () => useCase.getSalesPage(
+        page: 1,
+        pageSize: any(named: 'pageSize'),
+        search: any(named: 'search'),
+        shopId: captureAny(named: 'shopId'),
+        status: any(named: 'status'),
+        paymentMethod: any(named: 'paymentMethod'),
+        dateFrom: any(named: 'dateFrom'),
+        dateTo: any(named: 'dateTo'),
+        onlyUnsynced: any(named: 'onlyUnsynced'),
+      ),
+    ).captured;
+    expect(shops, ['shop-1', 'shop-2']);
+  });
+
   test('the Not synced filter asks for unsynced sales only', () async {
     stub(page(const []));
     bloc.add(

@@ -9,12 +9,35 @@
 //    mutation's own `entity_id` on a non-create op.
 //  * catalog entities (category/product/customer/vendor/shop): create/update
 //    payload fields are merged into the row; product `barcode` is unique.
-//  * stock ops (`stock` entity): `product_id`, `shop_id`, `delta` (signed
-//    decimal string) for adjust/add/remove; `count` uses `counted_quantity`;
+//  * stock ops (`stock` entity, BE `stock_op`): `product_id`, `shop_id`,
+//    `delta` (decimal string); add needs delta > 0, remove applies
+//    -|delta|, adjust is signed; `count` uses `counted_quantity`;
 //    `transfer` uses `product_id`, `from_shop`, `to_shop`, `quantity`.
-//  * `sale.create`: `shop_id`, `items: [{product_id, quantity}]`,
-//    optional `customer_id`. `sale.refund`: `sale_id`,
-//    `items: [{product_id, quantity}]`. `sale.cancel`: entity_id is the sale.
+//    Result entity_id is the product id; `stock_after` lists the levels
+//    (3-decimal strings, "0" for a level that does not exist).
+//  * stock feed rows are `ser_stock` (`id` = StockLevel UUID, product_id,
+//    shop_id, quantity, updated_at), version 0 (StockLevel is unversioned).
+//  * `sale.create` mirrors BE `sale_create` + `create_sale(accept_always)`:
+//    OfflineSaleInputSerializer validation (items >= 1, quantity <= 3
+//    decimals and >= 0.001, prices <= 2 decimals), total = sum(price * qty
+//    - line discount), tax from the payload snapshot (half-up cents), net,
+//    `payments` must sum to net within 0.01 else `validation_error`,
+//    `items[].id` kept (reused id -> forbidden), stock decremented for
+//    tracked product lines only (custom lines never), negative stock
+//    accepted with `negative_stock`, `occurred_at` more than 7 days after
+//    server time -> `occurred_at_suspect` (created_at = server time),
+//    receipt `REC-YYYYMMDD-XXXXXXXX`. A sale id already known answers
+//    `applied` with no stock_after. Feed/table rows are `ser_sale` shaped
+//    (shop, customer, total_amount, net_amount, payments, items[].product,
+//    ...), version 0 (Sale is unversioned); push results carry no version.
+//    `sale.refund` (fake shape): `sale_id`, `items: [{product_id,
+//    quantity}]`. `sale.cancel`: entity_id is the sale.
+//  * `inbound.create` mirrors BE `inbound_create` (stock increment,
+//    `stock_after`, `ser_inbound` feed row, reference unique).
+//  * [strictCatalog] (off by default for legacy tests): UUID ids, unknown
+//    products/vendors rejected `not_found` for stock/inbound, unknown sale
+//    product -> `product_missing` and no stock movement. Off, an unknown
+//    product behaves like a tracked one.
 //  * merge semantic (BE_GAPS 10): an update with a stale `base_version` still
 //    applies and the result carries `merged: true` plus the final
 //    `server_state` (warnings stay free of 'merged').
@@ -27,7 +50,7 @@
 //  * fault knobs (down, failNextWith, latency, flakyRate, lostResponseRate,
 //    dropResponseAfterApply, clockSkew) are PER VIEW; minAppVersion,
 //    fullResyncRequired and capabilities are shared server state.
-//  * Other entities (inbound, user, notification, ...) are generic upserts.
+//  * Other entities (user, notification, ...) are generic upserts.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -69,12 +92,14 @@ class _Core {
   final feed = <PullChange>[];
   final applied = <String, PushResult>{};
   final stock = <String, BigInt>{};
-  final stockVersion = <String, int>{};
+  final stockIds = <String, String>{};
+  final saleItemIds = <String>{};
   final tombstones = <String, int>{};
   final rejectedCreates = <String>{};
   final refunded = <String, BigInt>{}; // sale|product -> refunded qty
   int seq = 0;
   int receiptCounter = 0;
+  bool strictCatalog = false;
 
   String? minAppVersion;
   bool fullResyncRequired = false;
@@ -171,7 +196,11 @@ class FakeSyncServer implements SyncTransport {
   }
 
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) async {
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) async {
     if (limit <= 0) throw ArgumentError.value(limit, 'limit', 'must be > 0');
     await _gate();
     if (_c.fullResyncRequired) {
@@ -198,6 +227,7 @@ class FakeSyncServer implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) async {
     await _gate();
     final order = List.generate(mutations.length, (i) => i)
@@ -291,7 +321,15 @@ class FakeSyncServer implements SyncTransport {
     final d = p['depends_on'];
     if (d is String) yield d;
     if (d is List) yield* d.whereType<String>();
-    for (final k in ['product_id', 'category_id', 'sale_id']) {
+    for (final k in [
+      'product_id',
+      'category_id',
+      'sale_id',
+      'customer',
+      'customer_id',
+      'shop',
+      'vendor_id',
+    ]) {
       final v = p[k];
       if (v is String) yield v;
     }
@@ -322,6 +360,8 @@ class FakeSyncServer implements SyncTransport {
         return _stockOp(e, device);
       case 'sale':
         return _saleOp(e, device);
+      case 'inbound' when e.op == 'create':
+        return _inboundCreate(e, device);
       default:
         return _rowOp(e, device);
     }
@@ -428,235 +468,787 @@ class FakeSyncServer implements SyncTransport {
     );
   }
 
-  /// Adds [delta] to the ledger, emits a stock change. Returns (seq, after).
-  int _addStock(
-    String product,
-    String shop,
-    BigInt delta,
-    String device,
-    List<StockAfter> after,
-    List<String> warnings,
-  ) {
+  // ------------------------------------------------------------ catalog
+
+  /// Mirrors the BE's catalog checks (apps/sync/handlers.py): with
+  /// [strictCatalog], stock ops / inbound on an unknown product are rejected
+  /// `not_found`, a sale line of an unknown product is accepted with a
+  /// `product_missing` warning and NO stock movement, ids must be UUIDs, and
+  /// an unknown sale customer warns `customer_missing`. Off (default, legacy
+  /// tests), unknown products behave like tracked ones.
+  bool get strictCatalog => _c.strictCatalog;
+  set strictCatalog(bool v) => _c.strictCatalog = v;
+
+  /// Server-side catalog row (what the bootstrap would have downloaded).
+  void seedProduct(
+    String id, {
+    String name = '',
+    String price = '0',
+    String? costPrice,
+    bool trackInventory = true,
+    bool isActive = true,
+  }) {
+    _c.tables.putIfAbsent('product', () => {})[id] = {
+      'id': id,
+      'version': 1,
+      'name': name,
+      'price': price,
+      'cost_price': costPrice,
+      'track_inventory': trackInventory,
+      'is_active': isActive,
+    };
+  }
+
+  void seedVendor(String id) =>
+      _c.tables.putIfAbsent('vendor', () => {})[id] = {'id': id, 'version': 1};
+
+  void seedCustomer(String id) =>
+      _c.tables.putIfAbsent('customer', () => {})[id] = {
+        'id': id,
+        'version': 1,
+      };
+
+  /// Existing StockLevel (bootstrap state, no feed row).
+  void seedStock(String productId, String shopId, String quantity) {
+    _c.stock['$productId|$shopId'] = _parseDec(quantity);
+    _stockId(productId, shopId);
+  }
+
+  /// StockLevel id of (product, shop), as the stock feed rows carry it.
+  String stockLevelId(String productId, String shopId) =>
+      _stockId(productId, shopId);
+
+  bool _productKnown(String id) =>
+      (_c.tables['product'] ?? const {}).containsKey(id);
+
+  // ------------------------------------------------------------ decimals
+
+  static final _decRe = RegExp(r'^[+-]?(\d+(\.\d*)?|\.\d+)$');
+
+  /// Decimal places of a wire decimal (DRF DecimalField counts trailing
+  /// zeros: '1.5000' has 4).
+  static int _places(Object? raw) {
+    final s = '$raw'.trim();
+    if (!_decRe.hasMatch(s)) throw FormatException('Bad decimal: $raw');
+    final i = s.indexOf('.');
+    return i < 0 ? 0 : s.length - i - 1;
+  }
+
+  /// DRF `DecimalField(decimal_places: dp)` + optional min value.
+  static BigInt _field(Object? raw, int dp, {BigInt? min}) {
+    if (raw is! String && raw is! num) throw FormatException('Bad: $raw');
+    if (_places(raw) > dp) throw FormatException('Too many decimals: $raw');
+    final v = _parseDec(raw);
+    if (min != null && v < min) throw FormatException('Too small: $raw');
+    return v;
+  }
+
+  /// round(num / den) half away from zero (Python ROUND_HALF_UP, Postgres
+  /// numeric rounding). [den] > 0.
+  static BigInt _divHalfUp(BigInt num, BigInt den) {
+    final neg = num.isNegative;
+    final a = num.abs();
+    var q = a ~/ den;
+    if ((a % den) * BigInt.two >= den) q += BigInt.one;
+    return neg ? -q : q;
+  }
+
+  /// Scale-6 units -> fixed string with [dp] decimals (half up), like a
+  /// Django DecimalField(decimal_places: dp) read back from Postgres.
+  static String _fixed(BigInt units6, int dp) {
+    final p = BigInt.from(10).pow(_scale - dp);
+    final r = _divHalfUp(units6, p);
+    final neg = r.isNegative;
+    final a = r.abs();
+    final base = BigInt.from(10).pow(dp);
+    final body = dp == 0
+        ? '$a'
+        : '${a ~/ base}.${(a % base).toString().padLeft(dp, '0')}';
+    return neg && a != BigInt.zero ? '-$body' : body;
+  }
+
+  static BigInt _cents6(BigInt cents) =>
+      cents * BigInt.from(10).pow(_scale - 2);
+
+  static final _uuidRe = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-'
+    r'[0-9a-fA-F]{12}$',
+  );
+
+  void _uuid(Object? v, String field) {
+    if (!_c.strictCatalog) return;
+    if (v is! String || !_uuidRe.hasMatch(v)) {
+      throw FormatException('$field is not a UUID: $v');
+    }
+  }
+
+  String _iso(DateTime t) => t.toUtc().toIso8601String();
+
+  // ------------------------------------------------------------ stock
+
+  /// BE `_stock_after`: sorted unique (product, shop); a missing StockLevel
+  /// reads "0", an existing one its 3-decimal DB value.
+  List<StockAfter> _stockAfter(Iterable<(String, String)> pairs) {
+    final keys = {for (final (p, s) in pairs) '$p|$s'}.toList()..sort();
+    return [
+      for (final k in keys)
+        StockAfter(
+          productId: k.substring(0, k.indexOf('|')),
+          shopId: k.substring(k.indexOf('|') + 1),
+          quantity: _c.stock.containsKey(k) ? _fixed(_c.stock[k]!, 3) : '0',
+        ),
+    ];
+  }
+
+  static List<String> _negativeWarning(List<StockAfter> after) => [
+    if (after.any((a) => _parseDec(a.quantity).isNegative)) 'negative_stock',
+  ];
+
+  /// Moves (product, shop) by [delta] (get_or_create the level first) and
+  /// emits a `ser_stock` change (StockLevel is unversioned: version 0).
+  /// Returns the change seq, or null when nothing was saved.
+  int? _moveStock(String product, String shop, BigInt delta, String device) {
     final k = '$product|$shop';
+    final created = !_c.stock.containsKey(k);
+    if (!created && delta == BigInt.zero) return null;
     final q = (_c.stock[k] ?? BigInt.zero) + delta;
     _c.stock[k] = q;
-    final v = (_c.stockVersion[k] ?? 0) + 1;
-    _c.stockVersion[k] = v;
-    if (q.isNegative && !warnings.contains('negative_stock')) {
-      warnings.add('negative_stock');
-    }
-    after.removeWhere((a) => a.productId == product && a.shopId == shop);
-    after.add(
-      StockAfter(productId: product, shopId: shop, quantity: _fmtDec(q)),
-    );
-    return _emit('stock', 'upsert', '$product:$shop', v, {
+    return _emit('stock', 'upsert', _stockId(product, shop), 0, {
+      'id': _stockId(product, shop),
       'product_id': product,
       'shop_id': shop,
-      'quantity': _fmtDec(q),
+      'quantity': _fixed(q, 3),
+      'updated_at': _iso(_serverTime),
     }, device);
   }
 
+  /// Stable StockLevel-style UUID per (product, shop), like the BE feed id.
+  String _stockId(String product, String shop) =>
+      _c.stockIds.putIfAbsent('$product|$shop', () {
+        final n = (_c.stockIds.length + 1).toRadixString(16).padLeft(12, '0');
+        return '5a0c0000-0000-4000-8000-$n';
+      });
+
+  /// BE `stock_op`: add (delta > 0), remove (-|delta|), adjust (signed),
+  /// count, transfer. Result `entity_id` is the PRODUCT id.
   PushResult _stockOp(OutboxEntry e, String device) {
     final p = e.payload;
-    final after = <StockAfter>[];
-    final warnings = <String>[];
     // Parse/validate everything before mutating anything.
-    late final List<(String, String, BigInt)> steps;
+    final String prod;
+    final List<(String, String, BigInt)> steps;
     try {
-      final prod = p['product_id'] as String;
+      prod = p['product_id'] as String;
+      _uuid(prod, 'product_id');
       switch (e.op) {
         case 'transfer':
           final q = _parseDec(p['quantity']);
-          steps = [
-            (prod, p['from_shop'] as String, -q),
-            (prod, p['to_shop'] as String, q),
-          ];
+          final from = p['from_shop'] as String;
+          final to = p['to_shop'] as String;
+          if (q <= BigInt.zero || from == to) {
+            return _reject(
+              e,
+              'validation_error',
+              'Transfer needs a positive quantity and two different shops.',
+            );
+          }
+          steps = [(prod, from, -q), (prod, to, q)];
         case 'count':
           final shop = p['shop_id'] as String;
           final cur = _c.stock['$prod|$shop'] ?? BigInt.zero;
           steps = [(prod, shop, _parseDec(p['counted_quantity']) - cur)];
+        case 'add' || 'remove' || 'adjust':
+          final shop = p['shop_id'] as String;
+          _uuid(shop, 'shop_id');
+          var d = _parseDec(p['delta']);
+          if (e.op == 'add' && d <= BigInt.zero) {
+            return _reject(
+              e,
+              'validation_error',
+              'add needs a positive delta.',
+            );
+          }
+          if (e.op == 'remove') d = -d.abs();
+          steps = [(prod, shop, d)];
         default:
-          steps = [(prod, p['shop_id'] as String, _parseDec(p['delta']))];
+          return _reject(
+            e,
+            'validation_error',
+            'Unsupported mutation stock.${e.op}.',
+          );
       }
     } catch (_) {
       return _reject(e, 'validation_error', 'Bad stock payload');
     }
+    if (_c.strictCatalog && !_productKnown(prod)) {
+      return _reject(e, 'not_found', 'Product not found.');
+    }
+    int? seq;
+    for (final (pr, shop, d) in steps) {
+      seq = _moveStock(pr, shop, d, device) ?? seq;
+    }
+    final after = _stockAfter([for (final (pr, s, _) in steps) (pr, s)]);
+    return PushResult(
+      mutationId: e.mutationId,
+      status: PushStatus.applied,
+      entityId: prod,
+      serverSeq: seq,
+      warnings: _negativeWarning(after),
+      stockAfter: after,
+    );
+  }
+
+  // ------------------------------------------------------------ sales
+
+  static const _paymentMethods = {
+    'cash',
+    'bankak',
+    'card',
+    'bank_transfer',
+    'mobile_wallet',
+    'loyalty_points',
+    'split',
+    'credit',
+  };
+
+  PushResult _saleOp(OutboxEntry e, String device) {
+    switch (e.op) {
+      case 'create':
+        return _saleCreate(e, device);
+      case 'refund':
+        return _saleRefund(e, device);
+      case 'cancel':
+        return _saleCancel(e, device);
+      default:
+        return _reject(e, 'validation_error', 'Unknown sale op ${e.op}');
+    }
+  }
+
+  /// BE `sale_create` + `create_sale(accept_always=True)`: never refused for
+  /// stock/product state; refused only for malformed input, a payments sum
+  /// off by more than 0.01 from the net, or reused line ids.
+  PushResult _saleCreate(OutboxEntry e, String device) {
+    final p = e.payload;
+    final table = _c.tables.putIfAbsent('sale', () => {});
+
+    // ---- OfflineSaleInputSerializer ----
+    final String shop;
+    final String method;
+    final BigInt saleDiscount;
+    final lines = <_SaleLineIn>[];
+    try {
+      _uuid(e.entityId, 'entity_id');
+      shop = p['shop'] as String;
+      _uuid(shop, 'shop');
+      method = (p['payment_method'] as String?) ?? 'cash';
+      if (!_paymentMethods.contains(method)) {
+        throw FormatException('payment_method $method');
+      }
+      saleDiscount = p['discount_amount'] == null
+          ? BigInt.zero
+          : _field(p['discount_amount'], 2);
+      final items = p['items'] as List;
+      if (items.isEmpty) throw const FormatException('items: min 1');
+      for (final raw in items) {
+        final it = Map<String, dynamic>.from(raw as Map);
+        final pid = it['product_id'];
+        if (pid != null) _uuid(pid, 'items.product_id');
+        if (it['id'] != null) _uuid(it['id'], 'items.id');
+        lines.add(
+          _SaleLineIn(
+            id: it['id'] as String?,
+            productId: pid as String?,
+            custom: it['custom'] == true,
+            note: (it['note'] as String?) ?? '',
+            quantity: _field(it['quantity'], 3, min: BigInt.from(1000)),
+            unitPrice: it['unit_price'] == null
+                ? null
+                : _field(it['unit_price'], 2, min: BigInt.zero),
+            discount: it['discount'] == null
+                ? BigInt.zero
+                : _field(it['discount'], 2),
+            unitCost: it['unit_cost'] == null
+                ? null
+                : _parseDec(it['unit_cost']),
+            productName: (it['product_name'] as String?) ?? '',
+          ),
+        );
+      }
+    } catch (err) {
+      return _reject(e, 'validation_error', 'Invalid sale: $err');
+    }
+
+    final existing = table[e.entityId];
+    if (existing != null) {
+      // Same sale already created under another mutation: idempotent,
+      // `applied` with no stock_after (BE handler early return).
+      return PushResult(
+        mutationId: e.mutationId,
+        status: PushStatus.applied,
+        entityId: e.entityId,
+        receiptNumber: existing['receipt_number'] as String?,
+      );
+    }
+
+    final warnings = <String>[];
+    final cust = p['customer'] ?? p['customer_id'];
+    var customer = cust is String ? cust : null;
+    if (customer != null &&
+        (_c.tombstones.containsKey('customer/$customer') ||
+            _c.rejectedCreates.contains(customer) ||
+            (_c.strictCatalog &&
+                !(_c.tables['customer'] ?? const {}).containsKey(customer)))) {
+      warnings.add('customer_missing');
+      customer = null;
+    }
+
+    final hasTax = ['tax_rate', 'tax_inclusive', 'tax_name'].any(p.containsKey);
+    final BigInt rate;
+    final bool inclusive;
+    try {
+      rate = hasTax ? _parseDec(p['tax_rate'] ?? '0') : BigInt.zero;
+    } catch (err) {
+      return _reject(e, 'validation_error', 'tax_rate: $err');
+    }
+    inclusive = hasTax && p['tax_inclusive'] == true;
+
+    final payments = <(String, BigInt)>[];
+    final rawPayments = p['payments'];
+    if (rawPayments is List && rawPayments.isNotEmpty) {
+      for (final part in rawPayments) {
+        final m = part as Map;
+        if (!_paymentMethods.contains(m['method'])) {
+          return _reject(e, 'validation_error', 'Unknown payment method.');
+        }
+        try {
+          payments.add((m['method'] as String, _parseDec(m['amount'])));
+        } catch (_) {
+          return _reject(e, 'validation_error', 'payments.amount');
+        }
+      }
+    }
+
+    final ids = [for (final l in lines) ?l.id];
+    if (ids.toSet().length != ids.length) {
+      return _reject(e, 'validation_error', 'Duplicate line ids.');
+    }
+    if (ids.any(_c.saleItemIds.contains)) {
+      return _reject(e, 'forbidden', 'Line id is not available.');
+    }
+
+    // ---- create_sale ----
+    final products = _c.tables['product'] ?? const {};
+    var total = BigInt.zero;
+    final out = <Map<String, dynamic>>[];
+    final moves = <(String, BigInt)>[];
+    for (final l in lines) {
+      if (l.custom || l.productId == null) {
+        if (!l.custom || l.unitPrice == null || l.unitPrice! <= BigInt.zero) {
+          return _reject(
+            e,
+            'validation_error',
+            'A custom amount needs a unit price greater than 0.',
+          );
+        }
+        final sub = l.unitPrice! * l.quantity ~/ _one - l.discount;
+        total += sub;
+        out.add(
+          _saleItemRow(
+            l,
+            '${e.entityId}-i${out.length}',
+            null,
+            '',
+            null,
+            l.unitPrice!,
+            sub,
+          ),
+        );
+        continue;
+      }
+      final prod = products[l.productId];
+      final phantom = prod == null && !_c.strictCatalog;
+      final price =
+          l.unitPrice ??
+          (prod == null ? BigInt.zero : _parseDec(prod['price'] ?? '0'));
+      final sub = price * l.quantity ~/ _one - l.discount;
+      total += sub;
+      if (prod == null && !phantom) {
+        warnings.add('product_missing');
+      } else if (prod != null && prod['is_active'] == false) {
+        warnings.add('product_inactive');
+      }
+      final cost =
+          l.unitCost ??
+          (prod?['cost_price'] == null ? null : _parseDec(prod!['cost_price']));
+      final name = prod != null ? '${prod['name'] ?? ''}' : l.productName;
+      out.add(
+        _saleItemRow(
+          l,
+          '${e.entityId}-i${out.length}',
+          prod == null && !phantom ? null : l.productId,
+          name,
+          cost,
+          price,
+          sub,
+        ),
+      );
+      if (prod == null && !phantom) continue; // no product: no stock
+      final tracked =
+          phantom ||
+          prod!['track_inventory'] != false ||
+          _c.stock.containsKey('${l.productId}|$shop');
+      if (tracked) moves.add((l.productId!, l.quantity));
+    }
+
+    final taxable = total - saleDiscount;
+    BigInt taxAmount;
+    BigInt net;
+    if (rate > BigInt.zero) {
+      final hundred = BigInt.from(100) * _one;
+      if (inclusive) {
+        // tax = taxable - taxable / (1 + rate/100), quantized half up.
+        taxAmount = _cents6(
+          _divHalfUp(
+            taxable * rate * BigInt.from(100),
+            (hundred + rate) * _one,
+          ),
+        );
+        net = _cents6(_divHalfUp(taxable * BigInt.from(100), _one));
+      } else {
+        taxAmount = _cents6(
+          _divHalfUp(taxable * rate * BigInt.from(100), hundred * _one),
+        );
+        net = _cents6(
+          _divHalfUp(
+            (taxable * hundred + taxable * rate) * BigInt.from(100),
+            hundred * _one,
+          ),
+        );
+      }
+    } else {
+      taxAmount = BigInt.zero;
+      net = taxable; // unquantized, like the BE
+    }
+
+    final paymentRows = <(String, BigInt)>[];
+    if (payments.isNotEmpty) {
+      final paid = payments.fold(BigInt.zero, (a, x) => a + x.$2);
+      if ((paid - net).abs() > _one ~/ BigInt.from(100)) {
+        return _reject(
+          e,
+          'validation_error',
+          'Payment parts (${_fmtDec(paid)}) do not add up to the sale total '
+              '(${_fmtDec(net)}).',
+        );
+      }
+      paymentRows.addAll(payments);
+    } else if (method != 'split') {
+      paymentRows.add((method, net));
+    }
+
+    final now = _serverTime;
+    final occurredRaw = p['occurred_at'];
+    final occurred = occurredRaw is String
+        ? DateTime.tryParse(occurredRaw)?.toUtc()
+        : null;
+    final suspect =
+        occurred != null && occurred.isAfter(now.add(const Duration(days: 7)));
+    if (suspect) warnings.add('occurred_at_suspect');
+    final createdAt = occurred != null && !suspect ? occurred : now;
+    final d = now;
+    final receipt =
+        'REC-${d.year}${'${d.month}'.padLeft(2, '0')}'
+        '${'${d.day}'.padLeft(2, '0')}-'
+        '${(++_c.receiptCounter).toRadixString(16).toUpperCase().padLeft(8, '0')}';
+
+    // Items in BE lock order (product id; custom lines first).
+    out.sort(
+      (a, b) => '${a['product'] ?? ''}'.compareTo('${b['product'] ?? ''}'),
+    );
+    for (final it in out) {
+      _c.saleItemIds.add(it['id'] as String);
+    }
+    final row = <String, dynamic>{
+      'id': e.entityId,
+      'shop': shop,
+      'cashier': p['cashier'],
+      'customer': customer,
+      'receipt_number': receipt,
+      'local_receipt_number': p['local_receipt_number'] ?? '',
+      'client_sale_id': e.entityId,
+      'device_id': p['device_id'] ?? device,
+      'total_amount': _fixed(total, 2),
+      'discount_amount': _fixed(saleDiscount, 2),
+      'tax_amount': _fixed(taxAmount, 2),
+      'tax_rate': _fixed(rate, 2),
+      'tax_inclusive': inclusive,
+      'tax_name': hasTax ? '${p['tax_name'] ?? ''}' : '',
+      'net_amount': _fixed(net, 2),
+      'payment_method': method,
+      'bankak_account_snapshot': '',
+      'status': 'completed',
+      'notes': p['notes'] ?? '',
+      'occurred_at': occurred == null ? null : _iso(occurred),
+      'received_at': _iso(now),
+      'occurred_at_suspect': suspect,
+      'created_at': _iso(createdAt),
+      'updated_at': _iso(now),
+      'refunded_amount': '0',
+      'payments': [
+        for (final (m, a) in paymentRows) {'method': m, 'amount': _fixed(a, 2)},
+      ],
+      'items': out,
+    };
+    table[e.entityId] = row;
+    var seq = _emit('sale', 'upsert', e.entityId, 0, row, device);
+    for (final (pid, q) in moves) {
+      seq = _moveStock(pid, shop, -q, device) ?? seq;
+    }
+    final after = _stockAfter([
+      for (final it in out)
+        if (it['product'] != null) (it['product'] as String, shop),
+    ]);
+    warnings.addAll(_negativeWarning(after));
+    return PushResult(
+      mutationId: e.mutationId,
+      status: PushStatus.applied,
+      entityId: e.entityId,
+      serverSeq: seq,
+      warnings: warnings.toSet().toList()..sort(),
+      stockAfter: after,
+      receiptNumber: receipt,
+    );
+  }
+
+  Map<String, dynamic> _saleItemRow(
+    _SaleLineIn l,
+    String fallbackId,
+    String? product,
+    String name,
+    BigInt? cost,
+    BigInt price,
+    BigInt sub,
+  ) => {
+    'id': l.id ?? fallbackId,
+    'product': product,
+    'product_name': name,
+    'is_custom': l.custom || l.productId == null,
+    'note': l.note.trim().length > 120
+        ? l.note.trim().substring(0, 120)
+        : l.note.trim(),
+    'quantity': _fixed(l.quantity, 3),
+    'unit_price': _fixed(price, 2),
+    'unit_cost': cost == null ? null : _fixed(cost, 2),
+    'discount': _fixed(l.discount, 2),
+    'subtotal': _fixed(sub, 2),
+    'returned_quantity': '0',
+  };
+
+  /// Fake refund (payload `sale_id`, `items: [{product_id, quantity}]`).
+  PushResult _saleRefund(OutboxEntry e, String device) {
+    final p = e.payload;
+    final table = _c.tables.putIfAbsent('sale', () => {});
+    final saleId = p['sale_id'];
+    final sale = saleId is String ? table[saleId] : null;
+    if (sale == null) {
+      return _reject(
+        e,
+        'dependency_pending',
+        'Sale not yet known',
+        status: PushStatus.retry,
+      );
+    }
+    final sold = <String, BigInt>{};
+    for (final it in (sale['items'] as List)) {
+      final m = it as Map;
+      final pid = m['product'];
+      if (pid is! String) continue;
+      sold[pid] = (sold[pid] ?? BigInt.zero) + _parseDec(m['quantity']);
+    }
+    final req = <String, BigInt>{};
+    for (final it in (p['items'] as List? ?? const [])) {
+      final m = it as Map;
+      req[m['product_id'] as String] =
+          (req[m['product_id']] ?? BigInt.zero) + _parseDec(m['quantity']);
+    }
+    for (final en in req.entries) {
+      final done = _c.refunded['$saleId|${en.key}'] ?? BigInt.zero;
+      if (done + en.value > (sold[en.key] ?? BigInt.zero)) {
+        return _reject(
+          e,
+          'refund_exceeds_sold',
+          'Refund exceeds sold',
+          state: Map<String, dynamic>.from(sale),
+        );
+      }
+    }
+    final shop = sale['shop'] as String;
     var seq = 0;
-    for (final (prod, shop, d) in steps) {
-      seq = _addStock(prod, shop, d, device, after, warnings);
+    for (final en in req.entries) {
+      _c.refunded['$saleId|${en.key}'] =
+          (_c.refunded['$saleId|${en.key}'] ?? BigInt.zero) + en.value;
+      seq = _moveStock(en.key, shop, en.value, device) ?? seq;
+    }
+    seq = _emit('sale', 'upsert', saleId as String, 0, sale, device);
+    final after = _stockAfter([for (final k in req.keys) (k, shop)]);
+    return PushResult(
+      mutationId: e.mutationId,
+      status: PushStatus.applied,
+      entityId: e.entityId,
+      serverSeq: seq,
+      warnings: _negativeWarning(after),
+      stockAfter: after,
+    );
+  }
+
+  PushResult _saleCancel(OutboxEntry e, String device) {
+    final table = _c.tables.putIfAbsent('sale', () => {});
+    final sale = table[e.entityId];
+    if (sale == null) {
+      return _reject(
+        e,
+        'dependency_pending',
+        'Sale not yet known',
+        status: PushStatus.retry,
+      );
+    }
+    final shop = sale['shop'] as String;
+    final pairs = <(String, String)>[];
+    if (sale['status'] != 'cancelled') {
+      for (final it in (sale['items'] as List)) {
+        final m = it as Map;
+        final pid = m['product'];
+        if (pid is! String) continue;
+        pairs.add((pid, shop));
+        _moveStock(pid, shop, _parseDec(m['quantity']), device);
+      }
+      sale['status'] = 'cancelled';
+      sale['updated_at'] = _iso(_serverTime);
+    }
+    final seq = _emit('sale', 'upsert', e.entityId, 0, sale, device);
+    final after = _stockAfter(pairs);
+    return PushResult(
+      mutationId: e.mutationId,
+      status: PushStatus.applied,
+      entityId: e.entityId,
+      serverSeq: seq,
+      warnings: _negativeWarning(after),
+      stockAfter: after,
+    );
+  }
+
+  // ------------------------------------------------------------ inbound
+
+  /// BE `inbound_create`: InboundReceiveSerializer payload (`shop_id`,
+  /// `reference`, `vendor_id`, `items: [{product_id, quantity, ...}]`);
+  /// the mutation `entity_id` is the InboundTransaction id. Raises stock per
+  /// line and answers `stock_after`; a known id answers `applied` with no
+  /// stock_after; a reused reference is `conflict_unique`.
+  PushResult _inboundCreate(OutboxEntry e, String device) {
+    final p = e.payload;
+    final table = _c.tables.putIfAbsent('inbound', () => {});
+    if (table.containsKey(e.entityId)) {
+      return PushResult(
+        mutationId: e.mutationId,
+        status: PushStatus.applied,
+        entityId: e.entityId,
+      );
+    }
+    final String shop;
+    final String reference;
+    final String vendor;
+    final lines = <(String, BigInt, Map<String, dynamic>)>[];
+    try {
+      _uuid(e.entityId, 'entity_id');
+      shop = p['shop_id'] as String;
+      reference = (p['reference'] as String).trim();
+      if (reference.isEmpty || reference.length > 255) {
+        throw const FormatException('reference');
+      }
+      vendor = p['vendor_id'] as String;
+      final items = p['items'] as List;
+      if (items.isEmpty) throw const FormatException('items: min 1');
+      for (final raw in items) {
+        final it = Map<String, dynamic>.from(raw as Map);
+        final pid = it['product_id'] as String;
+        _uuid(pid, 'items.product_id');
+        final q = _field(it['quantity'], 3);
+        if (q <= BigInt.zero) throw const FormatException('quantity <= 0');
+        lines.add((pid, q, it));
+      }
+    } catch (err) {
+      return _reject(e, 'validation_error', 'Invalid inbound: $err');
+    }
+    if (_c.strictCatalog &&
+        !(_c.tables['vendor'] ?? const {}).containsKey(vendor)) {
+      return _reject(e, 'not_found', 'Vendor not found.');
+    }
+    if (_c.strictCatalog) {
+      for (final (pid, _, _) in lines) {
+        if (!_productKnown(pid)) {
+          return _reject(e, 'not_found', 'Product not found.');
+        }
+      }
+    }
+    if (table.values.any((r) => r['reference'] == reference)) {
+      return _reject(e, 'conflict_unique', 'Inbound reference already exists.');
+    }
+    lines.sort((a, b) => a.$1.compareTo(b.$1));
+    final row = <String, dynamic>{
+      'id': e.entityId,
+      'shop': shop,
+      'vendor': vendor,
+      'reference': reference,
+      'notes': p['notes'] ?? '',
+      'created_by': null,
+      'created_at': _iso(_serverTime),
+      'items': [
+        for (final (pid, q, it) in lines)
+          {
+            'product': pid,
+            'quantity': _fixed(q, 3),
+            'unit_cost': it['unit_cost'] == null
+                ? null
+                : _fixed(_parseDec(it['unit_cost']), 2),
+            'expiry_date': it['expiry_date'],
+            'batch_number': it['batch_number'] ?? '',
+          },
+      ],
+    };
+    table[e.entityId] = row;
+    var seq = _emit('inbound', 'upsert', e.entityId, 0, row, device);
+    for (final (pid, q, _) in lines) {
+      seq = _moveStock(pid, shop, q, device) ?? seq;
     }
     return PushResult(
       mutationId: e.mutationId,
       status: PushStatus.applied,
       entityId: e.entityId,
       serverSeq: seq,
-      warnings: warnings,
-      stockAfter: after,
+      stockAfter: _stockAfter([for (final (pid, _, _) in lines) (pid, shop)]),
     );
   }
+}
 
-  PushResult _saleOp(OutboxEntry e, String device) {
-    final p = e.payload;
-    final table = _c.tables.putIfAbsent('sale', () => {});
-    final after = <StockAfter>[];
-    final warnings = <String>[];
-    switch (e.op) {
-      case 'create':
-        final items = p['items'];
-        final shop = p['shop_id'];
-        if (items is! List || shop is! String) {
-          return _reject(e, 'validation_error', 'items/shop_id required');
-        }
-        final lines = <(String, BigInt)>[];
-        for (final it in items) {
-          if (it is! Map || it['product_id'] is! String) {
-            return _reject(e, 'validation_error', 'Bad line');
-          }
-          lines.add((it['product_id'] as String, _parseDec(it['quantity'])));
-        }
-        final existingSale = table[e.entityId];
-        if (existingSale != null) {
-          return PushResult(
-            mutationId: e.mutationId,
-            status: PushStatus.duplicate,
-            entityId: e.entityId,
-            version: existingSale['version'] as int,
-          );
-        }
-        final cust = p['customer_id'];
-        var custMissing = false;
-        if (cust is String &&
-            (_c.tombstones.containsKey('customer/$cust') ||
-                _c.rejectedCreates.contains(cust))) {
-          warnings.add('customer_missing');
-          custMissing = true;
-        }
-        var seq = 0;
-        for (final (prod, q) in lines) {
-          seq = _addStock(prod, shop, -q, device, after, warnings);
-        }
-        final row = {
-          ...p,
-          if (custMissing) 'customer_id': null,
-          'id': e.entityId,
-          'version': 1,
-          'status': 'done',
-        };
-        table[e.entityId] = row;
-        seq = _emit('sale', 'upsert', e.entityId, 1, row, device);
-        return PushResult(
-          mutationId: e.mutationId,
-          status: PushStatus.applied,
-          entityId: e.entityId,
-          version: 1,
-          serverSeq: seq,
-          warnings: warnings,
-          stockAfter: after,
-          receiptNumber: 'R-${++_c.receiptCounter}',
-        );
-      case 'refund':
-        final saleId = p['sale_id'];
-        final sale = saleId is String ? table[saleId] : null;
-        if (sale == null) {
-          return _reject(
-            e,
-            'dependency_pending',
-            'Sale not yet known',
-            status: PushStatus.retry,
-          );
-        }
-        final sold = <String, BigInt>{};
-        for (final it in (sale['items'] as List)) {
-          final m = it as Map;
-          sold[m['product_id'] as String] =
-              (sold[m['product_id']] ?? BigInt.zero) + _parseDec(m['quantity']);
-        }
-        final req = <String, BigInt>{};
-        for (final it in (p['items'] as List? ?? const [])) {
-          final m = it as Map;
-          req[m['product_id'] as String] =
-              (req[m['product_id']] ?? BigInt.zero) + _parseDec(m['quantity']);
-        }
-        for (final en in req.entries) {
-          final done = _c.refunded['$saleId|${en.key}'] ?? BigInt.zero;
-          if (done + en.value > (sold[en.key] ?? BigInt.zero)) {
-            return _reject(
-              e,
-              'refund_exceeds_sold',
-              'Refund exceeds sold',
-              state: Map<String, dynamic>.from(sale),
-            );
-          }
-        }
-        var seq = 0;
-        for (final en in req.entries) {
-          _c.refunded['$saleId|${en.key}'] =
-              (_c.refunded['$saleId|${en.key}'] ?? BigInt.zero) + en.value;
-          seq = _addStock(
-            en.key,
-            sale['shop_id'] as String,
-            en.value,
-            device,
-            after,
-            warnings,
-          );
-        }
-        final v = (sale['version'] as int) + 1;
-        sale['version'] = v;
-        seq = _emit('sale', 'upsert', saleId as String, v, sale, device);
-        return PushResult(
-          mutationId: e.mutationId,
-          status: PushStatus.applied,
-          entityId: e.entityId,
-          version: v,
-          serverSeq: seq,
-          warnings: warnings,
-          stockAfter: after,
-        );
-      case 'cancel':
-        final sale = table[e.entityId];
-        if (sale == null) {
-          return _reject(
-            e,
-            'dependency_pending',
-            'Sale not yet known',
-            status: PushStatus.retry,
-          );
-        }
-        if (sale['status'] != 'cancelled') {
-          for (final it in (sale['items'] as List)) {
-            final m = it as Map;
-            _addStock(
-              m['product_id'] as String,
-              sale['shop_id'] as String,
-              _parseDec(m['quantity']),
-              device,
-              after,
-              warnings,
-            );
-          }
-          sale['status'] = 'cancelled';
-          sale['version'] = (sale['version'] as int) + 1;
-        }
-        final seq = _emit(
-          'sale',
-          'upsert',
-          e.entityId,
-          sale['version'] as int,
-          sale,
-          device,
-        );
-        return PushResult(
-          mutationId: e.mutationId,
-          status: PushStatus.applied,
-          entityId: e.entityId,
-          version: sale['version'] as int,
-          serverSeq: seq,
-          warnings: warnings,
-          stockAfter: after,
-        );
-      default:
-        return _reject(e, 'validation_error', 'Unknown sale op ${e.op}');
-    }
-  }
+class _SaleLineIn {
+  _SaleLineIn({
+    required this.id,
+    required this.productId,
+    required this.custom,
+    required this.note,
+    required this.quantity,
+    required this.unitPrice,
+    required this.discount,
+    required this.unitCost,
+    required this.productName,
+  });
+
+  final String? id;
+  final String? productId;
+  final bool custom;
+  final String note;
+  final BigInt quantity;
+  final BigInt? unitPrice;
+  final BigInt discount;
+  final BigInt? unitCost;
+  final String productName;
 }

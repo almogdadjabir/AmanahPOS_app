@@ -1,6 +1,7 @@
 part of 'vendors_bloc.dart';
 
 enum VendorsStatus { initial, loading, success, failure }
+
 enum VendorsSubmitStatus { idle, loading, success, failure }
 
 class VendorsState extends Equatable {
@@ -32,12 +33,20 @@ class VendorsState extends Equatable {
     return VendorsState(
       status: status ?? this.status,
       vendors: vendors ?? this.vendors,
-      responseError: clearResponseError ? null : responseError ?? this.responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: clearSubmitError ? null : submitError ?? this.submitError,
     );
   }
 
   @override
-  List<Object?> get props => [status, vendors, responseError, submitStatus, submitError];
+  List<Object?> get props => [
+    status,
+    vendors,
+    responseError,
+    submitStatus,
+    submitError,
+  ];
 }

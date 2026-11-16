@@ -4,7 +4,12 @@ class AdjustStockRequestDto {
   String? newQuantity;
   String? notes;
 
-  AdjustStockRequestDto({this.productId, this.shopId, this.newQuantity, this.notes});
+  AdjustStockRequestDto({
+    this.productId,
+    this.shopId,
+    this.newQuantity,
+    this.notes,
+  });
 
   AdjustStockRequestDto.fromJson(Map<String, dynamic> json) {
     productId = json['product'];

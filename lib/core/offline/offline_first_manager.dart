@@ -4,7 +4,6 @@ import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/data/offline_remote_data_source.dart';
 import 'package:amana_pos/core/offline/offline_asset_downloader.dart';
-import 'package:amana_pos/core/sync/sync_manager.dart';
 
 enum OfflineFirstStatus {
   readyFromCache,
@@ -40,18 +39,15 @@ class OfflineFirstManager {
     required NetworkMonitor networkMonitor,
     required OfflineLocalCache localCache,
     required OfflineRemoteDataSource remoteDataSource,
-    required SyncManager syncManager,
     required OfflineAssetDownloader assetDownloader,
   }) : _networkMonitor = networkMonitor,
        _localCache = localCache,
        _remoteDataSource = remoteDataSource,
-       _syncManager = syncManager,
        _assetDownloader = assetDownloader;
 
   final NetworkMonitor _networkMonitor;
   final OfflineLocalCache _localCache;
   final OfflineRemoteDataSource _remoteDataSource;
-  final SyncManager _syncManager;
   final OfflineAssetDownloader _assetDownloader;
 
   bool _started = false;
@@ -81,7 +77,6 @@ class OfflineFirstManager {
       try {
         await refreshBootstrap();
         await refreshAssetManifest(silent: true);
-        unawaited(_syncManager.syncPendingSales());
 
         return const OfflineFirstResult(
           status: OfflineFirstStatus.readyFresh,
@@ -103,7 +98,6 @@ class OfflineFirstManager {
     if (hasCache && online) {
       unawaited(refreshBootstrap());
       unawaited(refreshAssetManifest(silent: true));
-      unawaited(_syncManager.syncPendingSales());
 
       return const OfflineFirstResult(
         status: OfflineFirstStatus.readyFromCache,
@@ -174,7 +168,6 @@ class OfflineFirstManager {
     _networkSubscription = _networkMonitor.onStatusChanged.listen((online) {
       if (!online) return;
 
-      unawaited(_syncManager.syncPendingSales());
       unawaited(refreshBootstrap());
       unawaited(refreshAssetManifest(silent: true));
     });

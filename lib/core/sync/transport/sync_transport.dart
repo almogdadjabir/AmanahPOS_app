@@ -11,6 +11,10 @@ enum SyncTransportKind {
   deviceRevoked,
   tooLarge,
   maintenance,
+
+  /// The signed-in session no longer matches the scope the request was
+  /// built for; nothing was sent. The engine aborts quietly.
+  scopeChanged,
 }
 
 class SyncTransportException implements Exception {
@@ -41,7 +45,15 @@ abstract class SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+
+    /// `userId|tenantId` the batch belongs to. Real transports refuse to
+    /// send when the current auth session differs.
+    required String scope,
   });
 
-  Future<PullResponse> pull({String? cursor, int limit = 500});
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  });
 }

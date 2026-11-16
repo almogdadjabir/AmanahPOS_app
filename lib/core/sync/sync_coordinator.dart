@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import 'outbox/outbox_store.dart';
 import 'sync_device_registrar.dart';
+import 'sync_scope.dart';
 import 'sync_session_guard.dart';
 import 'sync_state_store.dart';
 import 'sync_triggers.dart';
@@ -127,7 +128,10 @@ class SyncCoordinator with WidgetsBindingObserver {
 
   // Session changes are applied strictly in order.
   void _enqueue(SyncSession? s) {
-    _queue = _queue.then((_) => _apply(s)).catchError((Object e, StackTrace st) {
+    _queue = _queue.then((_) => _apply(s)).catchError((
+      Object e,
+      StackTrace st,
+    ) {
       _log('session change failed', e, st);
     });
   }
@@ -136,10 +140,11 @@ class SyncCoordinator with WidgetsBindingObserver {
     if (!_attached || next == _current) return;
     final previous = _current;
     _current = next;
+    SyncScope.current = next?.key;
     if (previous != null) {
       await _triggers.stop();
       if (next == null || next.tenantId != previous.tenantId) {
-        await _clearSyncStateIfOutboxEmpty();
+        await _clearSyncStateIfOutboxEmpty(previous.key);
       }
     }
     if (next != null) {
@@ -148,13 +153,16 @@ class SyncCoordinator with WidgetsBindingObserver {
     }
   }
 
-  /// Rule: sync bookkeeping is reset on logout / tenant change only when
-  /// nothing is waiting in the outbox. Unsynced rows (pending, inflight,
+  /// Rule: [scope]'s sync bookkeeping is reset on logout / tenant change only
+  /// when nothing of that scope is waiting in the outbox. Other scopes' rows
+  /// and keys are never touched. Unsynced rows (pending, inflight,
   /// blocked, rejected) keep their context so the same user can push them
   /// after signing in again; they are NEVER deleted here.
-  Future<void> _clearSyncStateIfOutboxEmpty() async {
+  Future<void> _clearSyncStateIfOutboxEmpty(String scope) async {
     try {
-      if (await _outbox.unsyncedCount() == 0) await _state.clear();
+      if (await _outbox.unsyncedCount(scope: scope) == 0) {
+        await _state.forScope(scope).clear();
+      }
     } catch (e, st) {
       _log('sync state clear skipped', e, st);
     }

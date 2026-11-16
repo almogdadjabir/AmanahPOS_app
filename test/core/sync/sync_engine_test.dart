@@ -54,6 +54,7 @@ class _ScriptedTransport implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) async {
     batchSizes.add(mutations.length);
     pushedIds.addAll(mutations.map((m) => m.mutationId));
@@ -63,17 +64,22 @@ class _ScriptedTransport implements SyncTransport {
       deviceId: deviceId,
       appVersion: appVersion,
       mutations: mutations,
+      scope: scope,
     );
     return rewritePush == null ? r : rewritePush!(r);
   }
 
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) async {
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) async {
     pulls++;
     if (onPull != null) await onPull!(pulls);
     if (pullErrors.isNotEmpty) throw pullErrors.removeAt(0);
     if (pullOverride != null) return pullOverride!(cursor);
-    var r = await inner.pull(cursor: cursor, limit: limit);
+    var r = await inner.pull(cursor: cursor, limit: limit, scope: scope);
     final keep = keepChange;
     if (keep != null) {
       r = PullResponse(
@@ -197,6 +203,7 @@ void main() {
   final engines = <SyncEngine>[];
 
   DateTime now() => clock;
+  const scope = 'u1|t1';
   final seedCursor = base64Url.encode(utf8.encode('seq:0'));
 
   setUp(() async {
@@ -210,7 +217,7 @@ void main() {
     server = FakeSyncServer(now: now);
     transport = _ScriptedTransport(server);
     outbox = OutboxStore(odb, now: now);
-    state = SyncStateStore(odb, now: now);
+    state = SyncStateStore(odb, now: now, scope: scope);
     notifier = DbChangeNotifier();
     // Bootstrapped device: a cursor at the start of the feed.
     await db.transaction((t) => state.setCursor(t, seedCursor));
@@ -244,6 +251,7 @@ void main() {
       transport: tr,
       outbox: outbox,
       state: state,
+      scopeProvider: () => scope,
       reachability: ServerReachability(tr, now: now),
       appliers: registry,
       notifier: notifier,
@@ -271,6 +279,7 @@ void main() {
     op: op,
     entityId: entityId,
     payload: payload ?? {'name': 'P $entityId'},
+    scope: scope,
     dependsOnEntityId: dep,
   );
 
@@ -312,6 +321,7 @@ void main() {
           payload: payload ?? {'name': 'Other $entityId'},
         ),
       ],
+      scope: 'u1|t1',
     );
     return r.results.single;
   }
@@ -698,7 +708,7 @@ void main() {
         expect((await tRows()).single['id'], 'p1');
         final cursor = await state.cursor();
         expect(cursor, isNotNull);
-        final page = await server.pull(cursor: cursor);
+        final page = await server.pull(cursor: cursor, scope: 'u1|t1');
         expect(page.changes, isEmpty);
       },
     );
@@ -708,7 +718,10 @@ void main() {
       final engine = build();
       expect(await engine.syncNow(), SyncOutcome.completed);
       expect(await tRows(), isEmpty);
-      final page = await server.pull(cursor: await state.cursor());
+      final page = await server.pull(
+        cursor: await state.cursor(),
+        scope: 'u1|t1',
+      );
       expect(page.changes, isEmpty);
     });
 
@@ -1098,7 +1111,10 @@ void main() {
         final engine = build();
         expect(await engine.syncNow(), SyncOutcome.completed);
         expect(await statusOf(local.mutationId), 'pending');
-        expect((await dataOf('p1:sh', 'stock'))['quantity'], '5');
+        // Stock change ids are server UUIDs, not '<product>:<shop>'; the BE
+        // serialises StockLevel.quantity with its 3 decimal places.
+        final rows = await db.query('t_rows', where: "entity = 'stock'");
+        expect(jsonDecode(rows.single['data'] as String)['quantity'], '5.000');
       },
     );
 
@@ -1209,7 +1225,7 @@ void main() {
             's1',
             entity: 'sale',
             payload: {
-              'shop_id': 'sh',
+              'shop': 'sh',
               'items': [
                 {'product_id': 'p1', 'quantity': '1'},
               ],

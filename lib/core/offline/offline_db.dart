@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../features/pos/data/local/sale_local_store.dart';
 import '../sync/sync_schema.dart';
 
 class OfflineDb {
@@ -12,8 +13,24 @@ class OfflineDb {
 
   static final OfflineDb instance = OfflineDb._();
 
+  /// "Tables changed" hook for writers that do not go through `LocalWriter`
+  /// (the legacy cache: `shops` rows decide which local sales are visible).
+  /// Set by DI to `DbChangeNotifier.notify` when the sync engine is on;
+  /// null (flag off): a no-op.
+  void Function(Set<String> tables)? onTablesChanged;
+
+  /// Calls [onTablesChanged] after a commit; a listener failure never fails
+  /// the write that already committed.
+  void notifyTablesChanged(Set<String> tables) {
+    try {
+      onTablesChanged?.call(tables);
+    } catch (_) {
+      // Listeners are best-effort.
+    }
+  }
+
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 6;
+  static const int _dbVersion = 10;
 
   static const int schemaVersion = _dbVersion;
 
@@ -31,26 +48,38 @@ class OfflineDb {
       version: _dbVersion,
       onConfigure: onConfigure,
       onCreate: onCreate,
-      onUpgrade: _onUpgrade,
+      onUpgrade: onUpgrade,
     );
 
     return _database!;
   }
 
+  /// How long a statement waits for a lock held by another connection (the
+  /// background sync isolate / the app) before failing with SQLITE_BUSY.
+  static const int busyTimeoutMs = 5000;
+
   static Future<void> onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
 
-    // Do not run journal_mode=WAL here.
-    // On sqflite/iOS it can throw "not an error" during database open.
+    // The foreground app and the background sync worker may open this file
+    // at the same time. Both PRAGMAs return a row, so they go through
+    // rawQuery: `execute` of journal_mode=WAL throws "not an error" on
+    // sqflite/iOS. Best effort: a failure here must never block the open.
+    try {
+      await db.rawQuery('PRAGMA busy_timeout = $busyTimeoutMs');
+    } catch (_) {}
+    try {
+      await db.rawQuery('PRAGMA journal_mode = WAL');
+    } catch (_) {}
     await db.execute('PRAGMA synchronous = NORMAL');
     await db.execute('PRAGMA temp_store = MEMORY');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await _createPendingInboundTables(db);
-    }
-
+  static Future<void> onUpgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     if (oldVersion < 3) {
       await _createPremiumTables(db);
     }
@@ -59,12 +88,39 @@ class OfflineDb {
       await _createPerformanceIndexes(db);
     }
 
-    if (oldVersion < 5) {
-      await _migrateV5(db);
-    }
-
     if (oldVersion < 6) {
       await SyncSchema.createAll(db);
+    }
+
+    if (oldVersion < 7) {
+      await SyncSchema.addOutboxScope(db);
+    }
+
+    if (oldVersion < 8) {
+      await SyncSchema.addStockBaseQuantity(db);
+    }
+
+    if (oldVersion < 9) {
+      await SaleLocalStore.createTables(db);
+    }
+
+    // v10: the legacy sale / inbound queues are gone (the sync outbox is the
+    // only write path). Zero production users, so nothing is migrated.
+    if (oldVersion < 10 && newVersion >= 10) {
+      await dropLegacyQueueTables(db);
+    }
+  }
+
+  /// Legacy queue tables removed in v10. Idempotent.
+  static const List<String> legacyQueueTables = [
+    'pending_sale_items',
+    'pending_sales',
+    'pending_inbound_transactions',
+  ];
+
+  static Future<void> dropLegacyQueueTables(DatabaseExecutor db) async {
+    for (final t in legacyQueueTables) {
+      await db.execute('DROP TABLE IF EXISTS $t');
     }
   }
 
@@ -103,30 +159,6 @@ class OfflineDb {
     );
   }
 
-  static Future<void> _createPendingInboundTables(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS pending_inbound_transactions (
-        client_inbound_id TEXT PRIMARY KEY,
-        reference TEXT NOT NULL,
-        shop_id TEXT NOT NULL,
-        notes TEXT,
-        payload_json TEXT NOT NULL,
-        status TEXT NOT NULL,
-        error_message TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        synced_at TEXT
-      )
-    ''');
-
-    await db.execute(
-      'CREATE INDEX IF NOT EXISTS idx_pending_inbound_status ON pending_inbound_transactions(status)',
-    );
-    await db.execute(
-      'CREATE INDEX IF NOT EXISTS idx_pending_inbound_reference ON pending_inbound_transactions(reference)',
-    );
-  }
-
   static Future<void> _createPerformanceIndexes(Database db) async {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS idx_products_category_name ON products(category_id, name)',
@@ -149,31 +181,12 @@ class OfflineDb {
     );
 
     await db.execute(
-      'CREATE INDEX IF NOT EXISTS idx_pending_sales_created_at ON pending_sales(created_at)',
-    );
-
-    await db.execute(
       'CREATE INDEX IF NOT EXISTS idx_customers_phone_name ON customers(phone, name)',
     );
 
     await db.execute(
       'CREATE INDEX IF NOT EXISTS idx_offline_assets_url ON offline_assets(url)',
     );
-  }
-
-  static Future<void> _migrateV5(Database db) async {
-    // Add receipt_number to pending_sales so the history screen can display
-    // it offline after a synced sale, without needing a network call.
-    await db.execute('''
-      ALTER TABLE pending_sales
-      ADD COLUMN receipt_number TEXT
-    ''');
-
-    // Add index to speed up receipt number lookups in the history screen
-    await db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_pending_sales_receipt_number
-      ON pending_sales(receipt_number)
-    ''');
   }
 
   static Future<void> onCreate(Database db, int version) async {
@@ -255,6 +268,7 @@ class OfflineDb {
         product_id TEXT NOT NULL,
         shop_id TEXT NOT NULL,
         quantity REAL NOT NULL DEFAULT 0,
+        base_quantity TEXT NOT NULL DEFAULT '0',
         json TEXT NOT NULL,
         updated_at TEXT,
         UNIQUE(product_id, shop_id)
@@ -278,50 +292,13 @@ class OfflineDb {
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE pending_sales (
-        client_sale_id TEXT PRIMARY KEY,
-        server_sale_id TEXT,
-        shop_id TEXT NOT NULL,
-        customer_id TEXT,
-        payment_method TEXT NOT NULL,
-        discount_amount TEXT,
-        tax_amount TEXT,
-        subtotal TEXT NOT NULL,
-        total TEXT NOT NULL,
-        status TEXT NOT NULL,
-        error_message TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        synced_at TEXT
-      )
-    ''');
-
-    await db.execute(
-      'CREATE INDEX idx_pending_sales_status ON pending_sales(status)',
-    );
-
-    await _createPendingInboundTables(db);
-
     await _createPremiumTables(db);
-
-    await db.execute('''
-      CREATE TABLE pending_sale_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        client_sale_id TEXT NOT NULL,
-        product_id TEXT NOT NULL,
-        product_name TEXT,
-        quantity REAL NOT NULL,
-        unit_price TEXT NOT NULL,
-        line_total TEXT NOT NULL,
-        product_snapshot_json TEXT NOT NULL,
-        FOREIGN KEY(client_sale_id) REFERENCES pending_sales(client_sale_id) ON DELETE CASCADE
-      )
-    ''');
 
     await _createPerformanceIndexes(db);
 
     await SyncSchema.createAll(db);
+
+    await SaleLocalStore.createTables(db);
   }
 
   Future<int> countRows(String table) async {
@@ -381,8 +358,12 @@ class OfflineDb {
       await txn.delete('offline_assets');
       await txn.delete('sync_metadata');
     });
+    notifyTablesChanged(const {'shops'});
   }
 
+  /// Clears reference/cache data. Never deletes `outbox` / `sync_state`.
+  /// Local `sales` are never deleted here (see
+  /// [SaleLocalStore.visibleShopSql]).
   Future<void> clearAllLocalOfflineData() async {
     final db = await database;
 
@@ -394,13 +375,11 @@ class OfflineDb {
       await txn.delete('customers');
       await txn.delete('stock');
       await txn.delete('offline_assets');
-      await txn.delete('pending_sale_items');
-      await txn.delete('pending_sales');
-      await txn.delete('pending_inbound_transactions');
       await txn.delete('vendors');
       await txn.delete('premium_summary');
       await txn.delete('inbound_transactions');
       await txn.delete('sync_metadata');
     });
+    notifyTablesChanged(const {'shops'});
   }
 }

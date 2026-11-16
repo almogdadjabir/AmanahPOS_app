@@ -297,6 +297,11 @@ Optional: when another device writes data a shop device needs (price change, new
 
 ---
 
+## Follow-ups found by the mobile Phase 1 work
+
+- **`stock.add` should accept `expiry_date` / `batch_number` to create a batch** (like REST `POST inventory/stock/add/`, which creates a `ProductBatch` for expiry alerts). Until then the app sends dated adds through REST and refuses them offline ("Expiry tracking needs a connection").
+- **Dashboard revenue basis**: endpoint sums `total_amount` (before sale discount and exclusive tax) while `sync-contract.md` says `net_amount`; BE agent to confirm which is intended; app currently matches the endpoint. (Same for the payment breakdown: the endpoint groups by `sale.payment_method`, a split sale being one `split` row; the contract says `sale.payments[]`.) The app's switch is `saleRevenueCentsSql` in `lib/features/dashboard/data/local/local_dashboard_queries.dart`.
+
 ## Acceptance checklist for the BE agent
 
 Mobile will test against these. Please add backend tests for each.

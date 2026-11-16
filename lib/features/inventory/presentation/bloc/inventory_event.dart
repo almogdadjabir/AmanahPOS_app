@@ -6,18 +6,21 @@ abstract class InventoryEvent extends Equatable {
 
 class OnInventoryInitial extends InventoryEvent {
   const OnInventoryInitial();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }
 
 class OnLoadMoreStock extends InventoryEvent {
   const OnLoadMoreStock();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }
 
 class OnInventoryFilterChanged extends InventoryEvent {
   final StockFilter filter;
   const OnInventoryFilterChanged({required this.filter});
-  @override List<Object?> get props => [filter];
+  @override
+  List<Object?> get props => [filter];
 }
 
 class OnAdjustStock extends InventoryEvent {
@@ -32,7 +35,27 @@ class OnAdjustStock extends InventoryEvent {
     required this.newQuantity,
     this.notes,
   });
-  @override List<Object?> get props => [productId, shopId, newQuantity, notes];
+  @override
+  List<Object?> get props => [productId, shopId, newQuantity, notes];
+}
+
+/// Sync engine path: remove exactly [quantity] (raw entered text) with
+/// `stock.remove`, independent of what the screen last displayed.
+class OnRemoveStock extends InventoryEvent {
+  final String productId;
+  final String shopId;
+  final String quantity;
+  final String? reason;
+
+  const OnRemoveStock({
+    required this.productId,
+    required this.shopId,
+    required this.quantity,
+    this.reason,
+  });
+
+  @override
+  List<Object?> get props => [productId, shopId, quantity, reason];
 }
 
 class OnTransferStock extends InventoryEvent {
@@ -47,12 +70,14 @@ class OnTransferStock extends InventoryEvent {
     required this.toShopId,
     required this.quantity,
   });
-  @override List<Object?> get props => [productId, fromShopId, toShopId, quantity];
+  @override
+  List<Object?> get props => [productId, fromShopId, toShopId, quantity];
 }
 
 class OnInventoryReset extends InventoryEvent {
   const OnInventoryReset();
-  @override List<Object?> get props => [];
+  @override
+  List<Object?> get props => [];
 }
 
 class OnAddStock extends InventoryEvent {
@@ -61,6 +86,7 @@ class OnAddStock extends InventoryEvent {
   final String quantity;
   final MovementType movementType;
   final String? reference;
+
   /// ISO date-only "YYYY-MM-DD". Null if not tracked. Shop only.
   final String? expiryDate;
 
@@ -74,8 +100,14 @@ class OnAddStock extends InventoryEvent {
   });
 
   @override
-  List<Object?> get props =>
-      [productId, shopId, quantity, movementType, reference, expiryDate];
+  List<Object?> get props => [
+    productId,
+    shopId,
+    quantity,
+    movementType,
+    reference,
+    expiryDate,
+  ];
 }
 
 class OnCreateInboundTransaction extends InventoryEvent {

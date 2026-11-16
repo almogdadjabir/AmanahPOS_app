@@ -15,10 +15,12 @@ import 'package:amana_pos/core/offline/offline_asset_downloader.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
-import 'package:amana_pos/core/sync/sync_manager.dart';
 import 'package:amana_pos/common/services/device/device_info_service.dart';
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/core/sync/background/background_entry.dart';
+import 'package:amana_pos/core/sync/sync_appliers.dart';
 import 'package:amana_pos/core/sync/change_applier.dart';
+import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/local_writer.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
@@ -28,6 +30,7 @@ import 'package:amana_pos/core/sync/sync_device_registrar.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:amana_pos/core/sync/sync_flags.dart';
 import 'package:amana_pos/core/sync/sync_session_guard.dart';
+import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/core/sync/sync_token_refresher.dart';
 import 'package:amana_pos/core/sync/sync_triggers.dart';
@@ -44,16 +47,19 @@ import 'package:amana_pos/features/devices/data/services/printer_permission_serv
 import 'package:amana_pos/features/devices/domain/repositories/printer_repository.dart';
 import 'package:amana_pos/features/devices/domain/usecases/printer_usecase.dart';
 import 'package:amana_pos/features/dashboard/data/datasources/dashboard_remote_data_source.dart';
+import 'package:amana_pos/features/dashboard/data/local/local_dashboard_queries.dart';
 import 'package:amana_pos/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:amana_pos/features/returns/data/repository_impl/returns_repo_impl.dart';
 import 'package:amana_pos/features/returns/domain/repositories/returns_repository.dart';
 import 'package:amana_pos/features/returns/domain/usecases/returns_usecase.dart';
+import 'package:amana_pos/features/sales_history/data/local/local_sales_history.dart';
 import 'package:amana_pos/features/sales_history/data/repository_impl/sales_history_repo_impl.dart';
 import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
 import 'package:amana_pos/features/sales_history/domain/usecases/sales_history_usecase.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
+import 'package:amana_pos/features/sync/presentation/bloc/sync_badge_cubit.dart';
 import 'package:amana_pos/features/business/data/repository_impl/business_repo_impl.dart';
 import 'package:amana_pos/features/business/domain/repositories/business_repository.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
@@ -63,16 +69,15 @@ import 'package:amana_pos/features/category/domain/usecases/category_usecase.dar
 import 'package:amana_pos/features/customers/data/repository_impl/customer_repo_impl.dart';
 import 'package:amana_pos/features/customers/domain/repositories/customer_repository.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
-import 'package:amana_pos/features/inventory/data/offline/offline_inbound_queue.dart';
 import 'package:amana_pos/features/inventory/data/repository_impl/inventory_repo_impl.dart';
 import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/login/data/repository_impl/login_repo_impl.dart';
 import 'package:amana_pos/features/login/domain/repository/login_repository.dart';
 import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
-import 'package:amana_pos/features/pos/data/datasources/pos_remote_data_source.dart';
-import 'package:amana_pos/features/pos/data/model/offline/offline_sales_queue.dart';
 import 'package:amana_pos/features/pos/data/repository_impl/pos_repo_impl.dart';
+import 'package:amana_pos/features/pos/domain/sale_service.dart';
+import 'package:amana_pos/features/inventory/domain/stock_service.dart';
 import 'package:amana_pos/features/pos/domain/repositories/pos_repository.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/repository_impl/product_repo_impl.dart';
@@ -88,6 +93,7 @@ import 'package:amana_pos/features/users/data/repository_impl/users_repo_impl.da
 import 'package:amana_pos/features/users/domain/repositories/users_repository.dart';
 import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
@@ -117,125 +123,95 @@ class DependenciesProvider {
     getIt.registerLazySingleton<Dio>(() => Dio());
 
     getIt.registerLazySingleton<DioClient>(
-          () => DioClient(
+      () => DioClient(
         baseUrl,
         dio: getIt<Dio>(),
-        interceptors: [
-          AppInterceptors(getIt<Dio>()),
-        ],
+        interceptors: [AppInterceptors(getIt<Dio>())],
       ),
     );
 
     getIt.registerLazySingleton<RequestHandler>(
-          () => RequestHandler(getIt<DioClient>()),
+      () => RequestHandler(getIt<DioClient>()),
     );
 
-    getIt.registerLazySingleton<Connectivity>(
-          () => Connectivity(),
-    );
+    getIt.registerLazySingleton<Connectivity>(() => Connectivity());
 
     getIt.registerLazySingleton<NetworkMonitor>(
-          () => NetworkMonitor(getIt<Connectivity>()),
+      () => NetworkMonitor(getIt<Connectivity>()),
     );
 
     // Offline-first core
     getIt.registerLazySingleton<OfflineDb>(
-          () => OfflineDb.instance,
+      () => OfflineDb.instance
+        // Legacy cache writes (e.g. `shops`) reach live local queries.
+        ..onTablesChanged = (tables) {
+          if (getIt.isRegistered<DbChangeNotifier>()) {
+            getIt<DbChangeNotifier>().notify(tables);
+          }
+        },
     );
 
     getIt.registerLazySingleton<OfflineLocalCache>(
-          () => OfflineLocalCache(getIt<OfflineDb>()),
+      () => OfflineLocalCache(getIt<OfflineDb>()),
     );
 
     getIt.registerLazySingleton<OfflineAssetDownloader>(
-          () => OfflineAssetDownloader(
+      () => OfflineAssetDownloader(
         dio: getIt<Dio>(),
         localCache: getIt<OfflineLocalCache>(),
       ),
     );
 
     getIt.registerLazySingleton<OfflineRemoteDataSource>(
-          () => OfflineRemoteDataSource(getIt<RequestHandler>()),
-    );
-
-    // Remote data sources
-    getIt.registerLazySingleton<PosRemoteDataSource>(
-          () => PosRemoteDataSource(getIt<RequestHandler>()),
-    );
-
-    // Offline queues
-    getIt.registerLazySingleton<OfflineSalesQueue>(
-          () => OfflineSalesQueue(
-        db: getIt<OfflineDb>(),
-      ),
-    );
-
-    getIt.registerLazySingleton<OfflineInboundQueue>(
-          () => OfflineInboundQueue(
-        db: getIt<OfflineDb>(),
-      ),
-    );
-
-    // Sync manager
-    getIt.registerLazySingleton<SyncManager>(
-          () => SyncManager(
-        salesQueue: getIt<OfflineSalesQueue>(),
-        inboundQueue: getIt<OfflineInboundQueue>(),
-        posRemoteDataSource: getIt<PosRemoteDataSource>(),
-        requestHandler: getIt<RequestHandler>(),
-      ),
+      () => OfflineRemoteDataSource(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<PendingSyncBloc>(
-          () => PendingSyncBloc(syncManager: getIt<SyncManager>()),
+      () =>
+          PendingSyncBloc(outbox: getIt<OutboxStore>(), db: getIt<OfflineDb>()),
     );
 
     // App-wide progress signal (thin line under the main app bar).
-    getIt.registerLazySingleton<AppProgressCubit>(
-          () => AppProgressCubit(),
-    );
+    getIt.registerLazySingleton<AppProgressCubit>(() => AppProgressCubit());
 
     // Offline-first manager
     getIt.registerLazySingleton<OfflineFirstManager>(
-          () => OfflineFirstManager(
+      () => OfflineFirstManager(
         networkMonitor: getIt<NetworkMonitor>(),
         localCache: getIt<OfflineLocalCache>(),
         remoteDataSource: getIt<OfflineRemoteDataSource>(),
-        syncManager: getIt<SyncManager>(),
         assetDownloader: getIt<OfflineAssetDownloader>(),
       ),
     );
 
     getIt.registerLazySingleton<FcmTokenService>(
-          () => FcmTokenService(
+      () => FcmTokenService(
         cacheStorage: getIt<CacheStorage>(),
         requestHandler: getIt<RequestHandler>(),
       ),
     );
 
     getIt.registerLazySingleton<BarcodePermissionService>(
-          () => BarcodePermissionService(),
+      () => BarcodePermissionService(),
     );
 
     // Receipt printer (Bluetooth + LAN/WiFi)
     getIt.registerLazySingleton<BluetoothPrinterChannel>(
-          () => PrintBluetoothThermalChannel(),
+      () => PrintBluetoothThermalChannel(),
     );
 
-    getIt.registerLazySingleton<BlePrinterChannel>(
-          () => BlePrinterChannel(),
-    );
+    getIt.registerLazySingleton<BlePrinterChannel>(() => BlePrinterChannel());
 
     getIt.registerLazySingleton<NetworkPrinterChannel>(
-          () => NetworkPrinterChannel(),
+      () => NetworkPrinterChannel(),
     );
 
     getIt.registerLazySingleton<PrinterPermissionService>(
-          () => PrinterPermissionService(),
+      () => PrinterPermissionService(),
     );
 
     getIt.registerLazySingleton<PrinterRepository>(
-          () => PrinterRepoImpl(
+      () => PrinterRepoImpl(
         channel: getIt<BluetoothPrinterChannel>(),
         bleChannel: getIt<BlePrinterChannel>(),
         networkChannel: getIt<NetworkPrinterChannel>(),
@@ -245,187 +221,190 @@ class DependenciesProvider {
     );
 
     getIt.registerLazySingleton<PrinterUseCase>(
-          () => PrinterUseCase(
-        repository: getIt<PrinterRepository>(),
-      ),
+      () => PrinterUseCase(repository: getIt<PrinterRepository>()),
     );
 
     // Repositories
     getIt.registerLazySingleton<RegistrationRepository>(
-          () => RegistrationRepoImpl(getIt<RequestHandler>()),
+      () => RegistrationRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<LoginRepository>(
-          () => LoginRepoImpl(getIt<RequestHandler>()),
+      () => LoginRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<BusinessRepository>(
-          () => BusinessRepoImpl(getIt<RequestHandler>()),
+      () => BusinessRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<UsersRepository>(
-          () => UsersRepoImpl(getIt<RequestHandler>()),
+      () => UsersRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<CategoryRepository>(
-          () => CategoryRepoImpl(getIt<RequestHandler>()),
+      () => CategoryRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<ProductRepository>(
-          () => ProductRepoImpl(getIt<RequestHandler>()),
+      () => ProductRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<InventoryRepository>(
-          () => InventoryRepoImpl(getIt<RequestHandler>()),
+      () => InventoryRepoImpl(
+        getIt<RequestHandler>(),
+        // The only stock write path (local + outbox).
+        stockService: () => getIt<StockService>(),
+      ),
     );
 
     getIt.registerLazySingleton<PosRepository>(
-          () => PosRepoImpl(
-        networkMonitor: getIt<NetworkMonitor>(),
-        offlineSalesQueue: getIt<OfflineSalesQueue>(),
-        remoteDataSource: getIt<PosRemoteDataSource>(),
-      ),
+      // The only sale write path (local + outbox).
+      () => PosRepoImpl(saleService: () => getIt<SaleService>()),
     );
 
     getIt.registerLazySingleton<CustomerRepository>(
-          () => CustomerRepoImpl(getIt<RequestHandler>()),
+      () => CustomerRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<NotificationRepository>(
-          () => NotificationRepoImpl(getIt<RequestHandler>()),
+      () => NotificationRepoImpl(getIt<RequestHandler>()),
     );
 
     getIt.registerLazySingleton<NotificationUseCases>(
-          () => NotificationUseCases(repository: getIt<NotificationRepository>()),
+      () => NotificationUseCases(repository: getIt<NotificationRepository>()),
     );
 
     getIt.registerLazySingleton<DashboardRemoteDataSource>(
-          () => DashboardRemoteDataSourceImpl(
-        dio: getIt<Dio>(),
-      ),
+      () => DashboardRemoteDataSourceImpl(dio: getIt<Dio>()),
     );
 
     getIt.registerLazySingleton<DashboardLocalDataSource>(
-          () => DashboardLocalDataSourceImpl(
-        offlineDb: getIt<OfflineDb>(),
-      ),
+      () => DashboardLocalDataSourceImpl(offlineDb: getIt<OfflineDb>()),
     );
 
     getIt.registerLazySingleton<DashboardRepository>(
-          () => DashboardRepositoryImpl(
+      () => DashboardRepositoryImpl(
         remoteDataSource: getIt<DashboardRemoteDataSource>(),
         localDataSource: getIt<DashboardLocalDataSource>(),
+        // Today's summary comes from the local sales tables (reactive, no
+        // REST call).
+        localQueries: LocalDashboardQueries(
+          db: getIt<OfflineDb>(),
+          notifier: getIt<DbChangeNotifier>(),
+          // Only the active business's shops' sales are visible; live
+          // summaries re-run when the business changes/loads.
+          tenantId: () => getIt<AuthBloc>().state.defaultBusiness?.id,
+          tenantChanges: getIt<AuthBloc>().stream
+              .map((s) => s.defaultBusiness?.id)
+              .distinct(),
+        ),
+        shiftCashierId: () {
+          final s = getIt<AuthBloc>().state;
+          return s.permissions.role == AppUserRole.cashier
+              ? s.profile?.id
+              : null;
+        },
       ),
     );
-
 
     // Use cases
     getIt.registerLazySingleton<RegistrationUseCase>(
-          () => RegistrationUseCase(
-        repository: getIt<RegistrationRepository>(),
-      ),
+      () => RegistrationUseCase(repository: getIt<RegistrationRepository>()),
     );
 
     getIt.registerLazySingleton<LoginUseCase>(
-          () => LoginUseCase(
+      () => LoginUseCase(
         repository: getIt<LoginRepository>(),
         cacheStorage: getIt<CacheStorage>(),
       ),
     );
 
     getIt.registerLazySingleton<BusinessUseCase>(
-          () => BusinessUseCase(
-        repository: getIt<BusinessRepository>(),
-      ),
+      () => BusinessUseCase(repository: getIt<BusinessRepository>()),
     );
 
     getIt.registerLazySingleton<UsersUseCase>(
-          () => UsersUseCase(
-        repository: getIt<UsersRepository>(),
-      ),
+      () => UsersUseCase(repository: getIt<UsersRepository>()),
     );
 
     getIt.registerLazySingleton<CategoryUseCase>(
-          () => CategoryUseCase(
-        repository: getIt<CategoryRepository>(),
-      ),
+      () => CategoryUseCase(repository: getIt<CategoryRepository>()),
     );
 
     getIt.registerLazySingleton<ProductUseCase>(
-          () => ProductUseCase(
-        repository: getIt<ProductRepository>(),
-      ),
+      () => ProductUseCase(repository: getIt<ProductRepository>()),
     );
 
     getIt.registerLazySingleton<InventoryUseCase>(
-          () => InventoryUseCase(
-        repository: getIt<InventoryRepository>(),
-      ),
+      () => InventoryUseCase(repository: getIt<InventoryRepository>()),
     );
 
     getIt.registerLazySingleton<PosUseCase>(
-          () => PosUseCase(
-        repository: getIt<PosRepository>(),
-      ),
+      () => PosUseCase(repository: getIt<PosRepository>()),
     );
 
     getIt.registerLazySingleton<CustomerUseCase>(
-          () => CustomerUseCase(
-        repository: getIt<CustomerRepository>(),
-      ),
+      () => CustomerUseCase(repository: getIt<CustomerRepository>()),
     );
     getIt.registerLazySingleton<GetDashboardSummaryUseCase>(
-          () => GetDashboardSummaryUseCase(
-        repository: getIt<DashboardRepository>(),
-      ),
+      () =>
+          GetDashboardSummaryUseCase(repository: getIt<DashboardRepository>()),
     );
 
     // Sales History
     getIt.registerLazySingleton<SalesHistoryRepository>(
-          () => SalesHistoryRepoImpl(
+      () => SalesHistoryRepoImpl(
         requestHandler: getIt<RequestHandler>(),
-        offlineDb: getIt<OfflineDb>(),
         networkMonitor: getIt<NetworkMonitor>(),
+        // The list reads the local sales tables.
+        localHistory: LocalSalesHistory(
+          db: getIt<OfflineDb>(),
+          tenantId: () => getIt<AuthBloc>().state.defaultBusiness?.id,
+        ),
+        businessTimezone: () async =>
+            (await getIt<DashboardLocalDataSource>().lastKnownMeta()).timezone,
       ),
     );
     getIt.registerLazySingleton<SalesHistoryUseCase>(
-          () => SalesHistoryUseCase(repository: getIt<SalesHistoryRepository>()),
+      () => SalesHistoryUseCase(repository: getIt<SalesHistoryRepository>()),
     );
 
     // Returns
     getIt.registerLazySingleton<ReturnsRepository>(
-          () => ReturnsRepoImpl(requestHandler: getIt<RequestHandler>()),
+      () => ReturnsRepoImpl(requestHandler: getIt<RequestHandler>()),
     );
     getIt.registerLazySingleton<ReturnsUseCase>(
-          () => ReturnsUseCase(repository: getIt<ReturnsRepository>()),
+      () => ReturnsUseCase(repository: getIt<ReturnsRepository>()),
     );
 
     // Blocs
     getIt.registerLazySingleton<OfflineStatusBloc>(
-          () => OfflineStatusBloc(
+      () => OfflineStatusBloc(
         networkMonitor: getIt<NetworkMonitor>(),
         localCache: getIt<OfflineLocalCache>(),
         offlineFirstManager: getIt<OfflineFirstManager>(),
-        syncManager: getIt<SyncManager>(),
+        outboxUnsyncedCount: () => getIt<OutboxStore>().unsyncedCount(),
       ),
     );
 
-    getIt.registerLazySingleton<AuthBloc>(() => AuthBloc(
-      useCase: getIt<LoginUseCase>(),
-      businessUseCase: getIt<BusinessUseCase>(),
-      offlineLocalCache: getIt<OfflineLocalCache>(),
-      offlineStatusBloc: getIt<OfflineStatusBloc>(),
-    ));
+    getIt.registerLazySingleton<AuthBloc>(
+      () => AuthBloc(
+        useCase: getIt<LoginUseCase>(),
+        businessUseCase: getIt<BusinessUseCase>(),
+        offlineLocalCache: getIt<OfflineLocalCache>(),
+        offlineStatusBloc: getIt<OfflineStatusBloc>(),
+      ),
+    );
 
     _registerSyncCore();
   }
 
   // ---------------------------------------------------------------- sync core
   //
-  // Offline-first sync core (Phase 0). Every registration is LAZY: nothing
-  // here is constructed unless kSyncEngineEnabled (`--dart-define=
-  // SYNC_ENGINE=true`) and [startSyncIfEnabled] runs. With the flag off the
-  // app behaves exactly as before.
+  // Offline-first sync core. Every registration is LAZY. The local write path
+  // (LocalWriter, OutboxStore, SaleService, StockService) is always used;
+  // only the engine / triggers / background worker are gated by
+  // kSyncEngineEnabled (kill switch: `--dart-define=SYNC_ENGINE=false`).
 
   static const String syncDioName = 'syncDio';
 
@@ -435,15 +414,19 @@ class DependenciesProvider {
     Future<String?> readTenantId() =>
         getIt<CacheStorage>().getValue(Constants.xTenantID);
     Future<String?> readDeviceId() => getIt<SyncStateStore>().deviceId();
+    // Live AuthBloc state, NOT SyncScope.current: the coordinator publishes
+    // the scope with a delay, while token/tenant headers change immediately.
+    Future<String?> readSessionKey() async =>
+        _syncSessionOf(getIt<AuthBloc>().state)?.key;
 
     getIt.registerLazySingleton<DbChangeNotifier>(() => DbChangeNotifier());
 
     getIt.registerLazySingleton<OutboxStore>(
-          () => OutboxStore(getIt<OfflineDb>()),
+      () => OutboxStore(getIt<OfflineDb>()),
     );
 
     getIt.registerLazySingleton<LocalWriter>(
-          () => LocalWriter(
+      () => LocalWriter(
         getIt<OfflineDb>(),
         getIt<OutboxStore>(),
         getIt<DbChangeNotifier>(),
@@ -451,22 +434,23 @@ class DependenciesProvider {
     );
 
     getIt.registerLazySingleton<SyncStateStore>(
-          () => SyncStateStore(getIt<OfflineDb>()),
+      () => SyncStateStore(getIt<OfflineDb>()),
     );
 
     // Same token / tenant storage as AppInterceptors; headers only (no
     // refresh, retry or logout on the sync Dio).
     getIt.registerLazySingleton<SyncTransport>(
-          () => HttpSyncTransport.create(
+      () => HttpSyncTransport.create(
         baseUrl: baseUrl,
         readAccessToken: readAccessToken,
         readTenantId: readTenantId,
         readDeviceId: readDeviceId,
+        readSessionKey: readSessionKey,
       ),
     );
 
     getIt.registerLazySingleton<Dio>(
-          () => HttpSyncTransport.createDio(
+      () => HttpSyncTransport.createDio(
         baseUrl: baseUrl,
         readAccessToken: readAccessToken,
         readTenantId: readTenantId,
@@ -476,17 +460,46 @@ class DependenciesProvider {
     );
 
     getIt.registerLazySingleton<ServerReachability>(
-          () => ServerReachability(getIt<SyncTransport>()),
+      () => ServerReachability(getIt<SyncTransport>()),
     );
 
-    // Empty in Phase 0: features register their appliers when they move on
-    // to the sync core.
-    getIt.registerLazySingleton<ChangeApplierRegistry>(
-          () => ChangeApplierRegistry(),
+    // Same list as the background worker (sync_appliers.dart).
+    getIt.registerLazySingleton<ChangeApplierRegistry>(buildSyncAppliers);
+
+    // The only writer of local stock edits / inbound receipts (outbox +
+    // stock, one txn). Role, shop and business type come from the live
+    // session, mirroring the BE checks.
+    getIt.registerLazySingleton<StockService>(
+      () => StockService(
+        writer: getIt<LocalWriter>(),
+        actor: () {
+          final s = getIt<AuthBloc>().state;
+          final perms = s.permissions;
+          return StockActor(
+            businessType: perms.businessType,
+            role: perms.role,
+            shopId: s.profile?.defaultShopId,
+          );
+        },
+      ),
+    );
+
+    // The only writer of local sales (sale rows + outbox + stock, one txn).
+    getIt.registerLazySingleton<SaleService>(
+      () => SaleService(
+        writer: getIt<LocalWriter>(),
+        state: getIt<SyncStateStore>(),
+        cashierId: () {
+          final scope = SyncScope.current;
+          if (scope == null) return null;
+          final i = scope.indexOf('|');
+          return i <= 0 ? null : scope.substring(0, i);
+        },
+      ),
     );
 
     getIt.registerLazySingleton<SyncTokenRefresher>(
-          () => SyncTokenRefresher(
+      () => SyncTokenRefresher(
         baseUrl: baseUrl,
         storage: getIt<CacheStorage>(),
         mainRefreshInFlight: () => AppInterceptors.refreshInFlight,
@@ -501,6 +514,9 @@ class DependenciesProvider {
         transport: getIt<SyncTransport>(),
         outbox: getIt<OutboxStore>(),
         state: getIt<SyncStateStore>(),
+        scopeProvider: () => SyncScope.current,
+        readSessionKey: () async =>
+            _syncSessionOf(getIt<AuthBloc>().state)?.key,
         reachability: getIt<ServerReachability>(),
         appliers: getIt<ChangeApplierRegistry>(),
         notifier: getIt<DbChangeNotifier>(),
@@ -516,15 +532,31 @@ class DependenciesProvider {
         getIt<OutboxStore>(),
         getIt<DbChangeNotifier>(),
         canSync: _syncGate,
+        // Backgrounded with unsynced rows: ask the OS worker to sync soon.
+        onBackgroundWork: BackgroundSync.requestSoon,
+        // A background run may have changed these while we were away.
+        resumeRefreshTables: syncedLocalTables(getIt<ChangeApplierRegistry>()),
+      );
+    });
+
+    getIt.registerLazySingletonAsync<SyncBadgeCubit>(() async {
+      final engine = await getIt.getAsync<SyncEngine>();
+      return SyncBadgeCubit(
+        status: engine.status,
+        initial: engine.current,
+        unsyncedCount: () => getIt<OutboxStore>().unsyncedCount(),
       );
     });
 
     getIt.registerLazySingletonAsync<SyncSessionGuard>(() async {
-      return SyncSessionGuard((await getIt.getAsync<SyncEngine>()).status);
+      return SyncSessionGuard(
+        (await getIt.getAsync<SyncEngine>()).status,
+        hasSession: () => SyncScope.current != null,
+      );
     });
 
     getIt.registerLazySingleton<SyncDeviceRegistrar>(
-          () => SyncDeviceRegistrar(
+      () => SyncDeviceRegistrar(
         dio: getIt<Dio>(instanceName: syncDioName),
         state: getIt<SyncStateStore>(),
         capabilities: () async {
@@ -560,9 +592,14 @@ class DependenciesProvider {
   }
 
   /// Starts the sync core after login when the build enables it. With
-  /// kSyncEngineEnabled false this is a no-op and nothing is constructed.
+  /// kSyncEngineEnabled false (kill switch) no engine is constructed; only
+  /// [SyncScope.current] follows the session so local sales/stock edits still
+  /// save to the outbox (they sync once the engine is back on).
   static Future<void> startSyncIfEnabled() async {
-    if (!kSyncEngineEnabled) return;
+    if (!kSyncEngineEnabled) {
+      _followScopeWithoutEngine();
+      return;
+    }
     try {
       final coordinator = await getIt.getAsync<SyncCoordinator>();
       await coordinator.attach();
@@ -576,6 +613,17 @@ class DependenciesProvider {
     }
   }
 
+  static StreamSubscription<AuthState>? _scopeOnlySub;
+
+  static void _followScopeWithoutEngine() {
+    if (_scopeOnlySub != null) return;
+    final auth = getIt<AuthBloc>();
+    SyncScope.current = _syncSessionOf(auth.state)?.key;
+    _scopeOnlySub = auth.stream.listen(
+      (s) => SyncScope.current = _syncSessionOf(s)?.key,
+    );
+  }
+
   static SyncSession? _syncSessionOf(AuthState s) {
     final userId = s.profile?.id;
     final tenantId = s.defaultBusiness?.id;
@@ -585,7 +633,9 @@ class DependenciesProvider {
 
   static Future<String> _syncAppVersion() async {
     try {
-      return await DeviceInfoService.instance.getAppVersion();
+      final v = await DeviceInfoService.instance.getAppVersion();
+      unawaited(BackgroundSync.rememberAppVersion(v));
+      return v;
     } catch (_) {
       return ''; // unparseable/empty never blocks sync (engine rule)
     }

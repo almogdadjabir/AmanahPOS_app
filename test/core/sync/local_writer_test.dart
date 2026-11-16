@@ -21,7 +21,7 @@ void main() {
     await db.execute('CREATE TABLE scratch (id TEXT PRIMARY KEY)');
     outbox = OutboxStore(odb);
     notifier = DbChangeNotifier();
-    writer = LocalWriter(odb, outbox, notifier);
+    writer = LocalWriter(odb, outbox, notifier, scopeProvider: () => 'u1|t1');
     events.clear();
     notifier.changes.listen(events.add);
   });

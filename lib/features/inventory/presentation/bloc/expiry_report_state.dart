@@ -1,6 +1,7 @@
 part of 'expiry_report_bloc.dart';
 
 enum ExpiryReportStatus { initial, loading, loadingMore, success, failure }
+
 enum ExpiryReportFilter { expiringSoon, expired, all }
 
 class ExpiryReportState extends Equatable {
@@ -39,10 +40,19 @@ class ExpiryReportState extends Equatable {
       filter: filter ?? this.filter,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
-      responseError: clearResponseError ? null : responseError ?? this.responseError,
+      responseError: clearResponseError
+          ? null
+          : responseError ?? this.responseError,
     );
   }
 
   @override
-  List<Object?> get props => [status, items, filter, currentPage, totalPages, responseError];
+  List<Object?> get props => [
+    status,
+    items,
+    filter,
+    currentPage,
+    totalPages,
+    responseError,
+  ];
 }

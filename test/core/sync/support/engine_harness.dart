@@ -33,6 +33,22 @@ class ScenarioTransport implements SyncTransport {
   /// mutation_id -> result returned instead of reaching the server.
   final scripted = <String, PushResult>{};
   int pushCalls = 0;
+  int pullCalls = 0;
+
+  /// Runs right before a push/pull is sent (a session switch can happen
+  /// here, like on a real network wait).
+  Future<void> Function(String op)? onBeforeSend;
+
+  /// Emulates the auth interceptor: the session key that is current at send
+  /// time. A request bound to a different scope is refused.
+  String? Function()? sessionKey;
+
+  void _guard(String? scope) {
+    final key = sessionKey;
+    if (scope != null && key != null && key() != scope) {
+      throw SyncTransportException(kind: SyncTransportKind.scopeChanged);
+    }
+  }
 
   List<String> get pushedIds => pushed.map((e) => e.mutationId).toList();
 
@@ -44,7 +60,10 @@ class ScenarioTransport implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) async {
+    await onBeforeSend?.call('push');
+    _guard(scope);
     pushCalls++;
     batchSizes.add(mutations.length);
     pushed.addAll(mutations);
@@ -58,6 +77,7 @@ class ScenarioTransport implements SyncTransport {
       deviceId: deviceId,
       appVersion: appVersion,
       mutations: rest,
+      scope: scope,
     );
     if (mine.isEmpty) return r;
     return PushResponse(
@@ -68,8 +88,16 @@ class ScenarioTransport implements SyncTransport {
   }
 
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) =>
-      inner.pull(cursor: cursor, limit: limit);
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) async {
+    await onBeforeSend?.call('pull');
+    _guard(scope);
+    pullCalls++;
+    return inner.pull(cursor: cursor, limit: limit, scope: scope);
+  }
 }
 
 /// Applier over the scratch `widgets` table. Records the last conflict
@@ -157,6 +185,19 @@ class WidgetApplier implements ChangeApplier {
 class EngineHarness {
   EngineHarness._();
 
+  static const String scope = 'u1|t1';
+
+  /// Scope the engine and writer act under; null = nobody signed in.
+  String? activeScope = scope;
+
+  /// What the live auth session says; null = same as [activeScope]. Setting
+  /// it differently models the delayed `SyncScope.current`.
+  String? liveScope;
+
+  /// Runs on every live session read of the engine (1-based call count).
+  void Function(int n)? onSessionRead;
+  int sessionReads = 0;
+
   late OfflineDb odb;
   late Database db;
   late FakeSyncServer server;
@@ -187,6 +228,7 @@ class EngineHarness {
     h.server = FakeSyncServer(now: h.now);
     h.transport = ScenarioTransport(h.server);
     h.registry.register(h.applier);
+    h.transport.sessionKey = () => h.liveScope ?? h.activeScope;
     h._rebuildStores();
     // Bootstrapped device: a cursor at the start of the feed.
     await h.db.transaction((t) => h.state.setCursor(t, seedCursor));
@@ -195,20 +237,31 @@ class EngineHarness {
 
   void _rebuildStores() {
     outbox = OutboxStore(odb, now: now);
-    state = SyncStateStore(odb, now: now);
-    writer = LocalWriter(odb, outbox, notifier);
+    state = SyncStateStore(odb, now: now, scope: scope);
+    writer = LocalWriter(
+      odb,
+      outbox,
+      notifier,
+      scopeProvider: () => activeScope,
+    );
   }
 
   SyncEngine build({
     SyncHooks? hooks,
     int pullPageSize = SyncEngine.defaultPullPageSize,
     int backoffSeed = 1,
+    Future<RefreshOutcome> Function()? refreshToken,
   }) {
     final e = SyncEngine(
       db: odb,
       transport: transport,
       outbox: outbox,
       state: state,
+      scopeProvider: () => activeScope,
+      readSessionKey: () async {
+        onSessionRead?.call(++sessionReads);
+        return liveScope ?? activeScope;
+      },
       reachability: ServerReachability(transport, now: now),
       appliers: registry,
       notifier: notifier,
@@ -216,6 +269,7 @@ class EngineHarness {
       backoff: Backoff(random: Random(backoffSeed)),
       now: now,
       hooks: hooks,
+      refreshToken: refreshToken,
       pullPageSize: pullPageSize,
     );
     _engines.add(e);
@@ -295,6 +349,7 @@ class EngineHarness {
               payload: {'name': name ?? 'Other $id'},
             ),
           ],
+          scope: 'u1|t1',
         );
     return r.results.single;
   }

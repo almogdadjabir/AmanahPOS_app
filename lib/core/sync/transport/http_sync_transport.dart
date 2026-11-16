@@ -26,6 +26,7 @@ class HttpSyncTransport implements SyncTransport {
     required Future<String?> Function() readAccessToken,
     required Future<String?> Function() readTenantId,
     Future<String?> Function()? readDeviceId,
+    Future<String?> Function()? readSessionKey,
     HttpClientAdapter? adapter,
   }) => HttpSyncTransport(
     createDio(
@@ -33,6 +34,7 @@ class HttpSyncTransport implements SyncTransport {
       readAccessToken: readAccessToken,
       readTenantId: readTenantId,
       readDeviceId: readDeviceId,
+      readSessionKey: readSessionKey,
       adapter: adapter,
     ),
   );
@@ -44,6 +46,7 @@ class HttpSyncTransport implements SyncTransport {
     required Future<String?> Function() readAccessToken,
     required Future<String?> Function() readTenantId,
     Future<String?> Function()? readDeviceId,
+    Future<String?> Function()? readSessionKey,
     HttpClientAdapter? adapter,
   }) {
     final dio = Dio(
@@ -55,6 +58,7 @@ class HttpSyncTransport implements SyncTransport {
         readAccessToken: readAccessToken,
         readTenantId: readTenantId,
         readDeviceId: readDeviceId,
+        readSessionKey: readSessionKey,
       ),
     );
     return dio;
@@ -77,6 +81,7 @@ class HttpSyncTransport implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) => _run(() async {
     final json = buildPushRequestJson(
       deviceId: deviceId,
@@ -92,18 +97,24 @@ class HttpSyncTransport implements SyncTransport {
       _syncTimeout,
       data: Uint8List.fromList(gz ? gzip.encode(bytes) : bytes),
       headers: {'Content-Encoding': ?(gz ? 'gzip' : null)},
+      scope: scope,
     );
     return PushResponse.fromJson(_asMap(res.data));
   });
 
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) =>
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) =>
       _run(() async {
         final res = await _send(
           'GET',
           'api/v1/sync/pull/',
           _syncTimeout,
           query: {'cursor': ?cursor, 'limit': limit},
+          scope: scope,
         );
         return PullResponse.fromJson(_asMap(res.data));
       });
@@ -115,6 +126,9 @@ class HttpSyncTransport implements SyncTransport {
     Object? data,
     Map<String, dynamic>? query,
     Map<String, dynamic>? headers,
+
+    /// Null only for ping, which carries no user data.
+    String? scope,
   }) {
     final isPost = method == 'POST';
     return _dio.fetch<dynamic>(
@@ -125,6 +139,7 @@ class HttpSyncTransport implements SyncTransport {
         data: data,
         queryParameters: query ?? const {},
         headers: headers,
+        extra: {kSyncScopeExtra: ?scope},
         contentType: isPost ? 'application/json; charset=utf-8' : null,
         responseType: ResponseType.json,
         connectTimeout: timeout,
@@ -177,6 +192,12 @@ class HttpSyncTransport implements SyncTransport {
           message: e.message,
         );
       case DioExceptionType.cancel:
+        if (e.error is SyncScopeMismatch) {
+          return SyncTransportException(
+            kind: SyncTransportKind.scopeChanged,
+            code: 'scope_changed',
+          );
+        }
         return SyncTransportException(
           kind: SyncTransportKind.network,
           code: 'cancelled',

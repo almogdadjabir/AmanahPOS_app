@@ -12,7 +12,7 @@ void main() {
   setUp(() async {
     clock = DateTime.utc(2026, 1, 1, 12);
     odb = await openTestDb();
-    store = SyncStateStore(odb, now: () => clock);
+    store = SyncStateStore(odb, now: () => clock, scope: 'u1|t1');
   });
 
   tearDown(() async => (await odb.database).close());

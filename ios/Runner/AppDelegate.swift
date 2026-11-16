@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import Security
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -14,6 +15,22 @@ import Security
         GeneratedPluginRegistrant.register(with: self)
 
         setupDeviceInfoMethodChannel()
+
+        // Background sync worker (lib/core/sync/background/background_entry.dart).
+        // The headless background engine needs the plugins (sqflite, secure
+        // storage, shared_preferences); the BGTask identifiers must be
+        // registered before didFinishLaunching returns and match Info.plist
+        // BGTaskSchedulerPermittedIdentifiers. Scheduling itself happens in
+        // Dart only when the sync engine is enabled.
+        WorkmanagerPlugin.setPluginRegistrantCallback { registry in
+            GeneratedPluginRegistrant.register(with: registry)
+        }
+        WorkmanagerPlugin.registerPeriodicTask(
+            withIdentifier: "amana.sync",
+            earliestBeginInSeconds: NSNumber(value: 15 * 60)
+        )
+        WorkmanagerPlugin.registerBGProcessingTask(withIdentifier: "amana.sync.processing")
+        WorkmanagerPlugin.registerLaunchHandlers()
 
         return super.application(
             application,

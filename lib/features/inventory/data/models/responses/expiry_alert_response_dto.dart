@@ -11,14 +11,14 @@
 // }
 
 class ExpiryAlertResponseDto {
-  final bool?                  success;
-  final List<ExpiryAlertData>  expiringSoon;
-  final List<ExpiryAlertData>  expired;
+  final bool? success;
+  final List<ExpiryAlertData> expiringSoon;
+  final List<ExpiryAlertData> expired;
 
   const ExpiryAlertResponseDto({
     this.success,
     this.expiringSoon = const [],
-    this.expired      = const [],
+    this.expired = const [],
   });
 
   factory ExpiryAlertResponseDto.fromJson(Map<String, dynamic> json) {
@@ -30,9 +30,9 @@ class ExpiryAlertResponseDto {
             .toList();
 
     return ExpiryAlertResponseDto(
-      success:      json['success'] as bool?,
+      success: json['success'] as bool?,
       expiringSoon: parseList('expiring_soon'),
-      expired:      parseList('expired'),
+      expired: parseList('expired'),
     );
   }
 
@@ -41,7 +41,6 @@ class ExpiryAlertResponseDto {
 
   bool get isEmpty => expired.isEmpty && expiringSoon.isEmpty;
 }
-
 
 class ExpiryAlertData {
   final String? id;
@@ -58,7 +57,7 @@ class ExpiryAlertData {
   /// ISO date-only string: "2026-05-13"
   final String? expiryDate;
 
-  final bool?   isExpired;
+  final bool? isExpired;
   final String? batchNumber;
   final String? createdAt;
 
@@ -79,18 +78,18 @@ class ExpiryAlertData {
 
   factory ExpiryAlertData.fromJson(Map<String, dynamic> json) {
     return ExpiryAlertData(
-      id:           json['id']?.toString(),
-      product:      json['product']?.toString(),
-      productName:  json['product_name']?.toString(),
-      productSku:   json['product_sku']?.toString(),
-      shop:         json['shop']?.toString(),
-      shopName:     json['shop_name']?.toString(),
+      id: json['id']?.toString(),
+      product: json['product']?.toString(),
+      productName: json['product_name']?.toString(),
+      productSku: json['product_sku']?.toString(),
+      shop: json['shop']?.toString(),
+      shopName: json['shop_name']?.toString(),
       businessName: json['business_name']?.toString(),
-      quantity:     _parseQtyString(json['quantity']),
-      expiryDate:   json['expiry_date']?.toString(),
-      isExpired:    _parseBool(json['is_expired']),
-      batchNumber:  json['batch_number']?.toString(),
-      createdAt:    json['created_at']?.toString(),
+      quantity: _parseQtyString(json['quantity']),
+      expiryDate: json['expiry_date']?.toString(),
+      isExpired: _parseBool(json['is_expired']),
+      batchNumber: json['batch_number']?.toString(),
+      createdAt: json['created_at']?.toString(),
     );
   }
 
@@ -101,7 +100,7 @@ class ExpiryAlertData {
     return double.tryParse(quantity!) ?? 0;
   }
 
-  bool get isExpiredSafe  => isExpired ?? false;
+  bool get isExpiredSafe => isExpired ?? false;
   bool get isExpiringSoon => !isExpiredSafe;
 
   /// Parsed expiry date for display. Returns null if not set or unparseable.
@@ -117,7 +116,7 @@ class ExpiryAlertData {
     final date = parsedExpiryDate;
     if (date == null) return null;
     final today = DateTime.now();
-    final todayDate  = DateTime(today.year, today.month, today.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
     final expiryOnly = DateTime(date.year, date.month, date.day);
     return expiryOnly.difference(todayDate).inDays;
   }
@@ -136,7 +135,7 @@ class ExpiryAlertData {
     if (v is bool) return v;
     if (v is num) return v != 0;
     final s = v.toString().trim().toLowerCase();
-    if (s == 'true'  || s == '1') return true;
+    if (s == 'true' || s == '1') return true;
     if (s == 'false' || s == '0') return false;
     return null;
   }

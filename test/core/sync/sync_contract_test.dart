@@ -377,7 +377,7 @@ void main() {
     });
   });
 
-  test('SyncTransportKind has exactly the 9 values', () {
+  test('SyncTransportKind has exactly the 10 values', () {
     expect(SyncTransportKind.values.map((e) => e.name).toList(), [
       'network',
       'timeout',
@@ -388,12 +388,13 @@ void main() {
       'deviceRevoked',
       'tooLarge',
       'maintenance',
+      'scopeChanged',
     ]);
   });
 
   test('SyncTransport.pull default limit is 500', () async {
     final tr = _Spy();
-    await tr.pull();
+    await tr.pull(scope: 'u1|t1');
     expect(tr.lastLimit, 500);
   });
 }
@@ -407,9 +408,14 @@ class _Spy implements SyncTransport {
     required String deviceId,
     required String appVersion,
     required List<OutboxEntry> mutations,
+    required String scope,
   }) => throw UnimplementedError();
   @override
-  Future<PullResponse> pull({String? cursor, int limit = 500}) async {
+  Future<PullResponse> pull({
+    String? cursor,
+    int limit = 500,
+    required String scope,
+  }) async {
     lastLimit = limit;
     return PullResponse(
       serverTime: DateTime.utc(2026),

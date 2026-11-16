@@ -18,11 +18,11 @@ class AppInterceptors extends Interceptor {
   static Future<bool>? _refreshTokenFuture;
   static bool isLoggingOut = false;
   static const String _sessionExpiredSentinel = '__session_expired__';
+  static const String _refreshPath = 'api-public/v1/auth/token/refresh/';
+  static bool _lastRefreshRejected = false;
 
   AppInterceptors(this._dio);
 
-  /// Read-only view of the main client's in-flight token refresh, so the
-  /// sync core can await it instead of racing it. Null when idle.
   static Future<bool>? get refreshInFlight => _refreshTokenFuture;
 
   /// The existing forced-logout path (tokens, PIN and Face ID cleared;
@@ -51,6 +51,14 @@ class AppInterceptors extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode != 401) {
+      handler.next(err);
+      return;
+    }
+
+    // The refresh call itself runs through this same Dio: its 401 is the
+    // rejection signal for _refreshMainToken, never a trigger to refresh
+    // again (that would await its own in-flight future forever).
+    if (err.requestOptions.path.contains('auth/token/refresh')) {
       handler.next(err);
       return;
     }
@@ -102,8 +110,14 @@ class AppInterceptors extends Interceptor {
     }
 
     if (!refreshSucceeded) {
-      await _triggerForcedLogout();
-      handler.reject(_makeExpiredError(err.requestOptions));
+      if (_lastRefreshRejected) {
+        await _triggerForcedLogout();
+        handler.reject(_makeExpiredError(err.requestOptions));
+      } else {
+        // Network error, timeout, 5xx, 429 or malformed reply: the session
+        // is not proven dead. Keep tokens and fail only this request.
+        handler.next(err);
+      }
       return;
     }
 
@@ -135,19 +149,25 @@ class AppInterceptors extends Interceptor {
   }
 
   Future<bool> _refreshMainToken() async {
+    _lastRefreshRejected = false;
     final refreshToken = await _cacheStorage.getValue(Constants.refreshToken);
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      // No refresh token at all: there is no session left to keep.
+      _lastRefreshRejected = true;
+      return false;
+    }
 
     try {
       final response = await _dio.post<dynamic>(
-        'api-public/v1/auth/token/refresh/',
+        _refreshPath,
         data: {'refresh': refreshToken},
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
       if (response.statusCode == 200) {
-        final newAccess = response.data['access'] as String?;
-        final newRefresh = response.data['refresh'] as String?;
+        final data = response.data;
+        final newAccess = data is Map ? data['access'] as String? : null;
+        final newRefresh = data is Map ? data['refresh'] as String? : null;
 
         if (newAccess == null) return false;
 
@@ -161,11 +181,38 @@ class AppInterceptors extends Interceptor {
         return true;
       }
       return false;
-    } catch (e) {
-      if (kDebugMode)
+    } on DioException catch (e) {
+      if (_isExplicitRejection(e)) {
+        // Rotation + blacklist: our token may be refused only because
+        // another party (the sync refresher) already rotated the pair.
+        // A different non-empty stored token means the session is healthy.
+        final now = await _cacheStorage.getValue(Constants.refreshToken);
+        if (now != null && now.isNotEmpty && now != refreshToken) {
+          return true;
+        }
+        _lastRefreshRejected = true;
+      }
+      if (kDebugMode) {
         debugPrint('[AppInterceptors] _refreshMainToken error: $e');
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AppInterceptors] _refreshMainToken error: $e');
+      }
       return false;
     }
+  }
+
+  /// HTTP 401, or 400 with `token_not_valid`, from the refresh endpoint.
+  static bool _isExplicitRejection(DioException e) {
+    final status = e.response?.statusCode;
+    if (status == 401) return true;
+    if (status != 400) return false;
+    final body = e.response?.data;
+    if (body is! Map) return false;
+    final nested = body['error'] is Map ? body['error'] as Map : null;
+    return (nested?['code'] ?? body['code']) == 'token_not_valid';
   }
 
   Future<void> _triggerForcedLogout() async {

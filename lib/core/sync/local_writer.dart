@@ -8,14 +8,16 @@ import 'db_change_notifier.dart';
 import 'outbox/outbox_entry.dart';
 import 'outbox/outbox_store.dart';
 import 'sync_schema.dart';
+import 'sync_scope.dart';
 
 /// Handle passed to a [LocalWriter.write] body. Everything done through it
 /// shares one SQLite transaction.
 class WriteScope {
-  WriteScope(this.txn, this._outbox);
+  WriteScope(this.txn, this._outbox, this._scope);
 
   final Transaction txn;
   final OutboxStore _outbox;
+  final String? Function() _scope;
 
   Future<OutboxEntry> enqueue({
     required String entity,
@@ -26,8 +28,13 @@ class WriteScope {
     int? baseVersion,
     DateTime? occurredAt,
   }) {
+    final scope = _scope();
+    if (scope == null) {
+      throw StateError('LocalWriter: no signed-in scope to enqueue under');
+    }
     return _outbox.enqueue(
       txn,
+      scope: scope,
       entity: entity,
       op: op,
       entityId: entityId,
@@ -42,11 +49,17 @@ class WriteScope {
 /// The single write path: row writes and outbox enqueues commit atomically,
 /// and listeners are notified only after the commit succeeds.
 class LocalWriter {
-  LocalWriter(this._db, this._outbox, this._notifier);
+  LocalWriter(
+    this._db,
+    this._outbox,
+    this._notifier, {
+    String? Function()? scopeProvider,
+  }) : _scopeProvider = scopeProvider ?? (() => SyncScope.current);
 
   final OfflineDb _db;
   final OutboxStore _outbox;
   final DbChangeNotifier _notifier;
+  final String? Function() _scopeProvider;
 
   static const Symbol _depthKey = #amanaLocalWriterDepth;
 
@@ -67,7 +80,11 @@ class LocalWriter {
     final db = await _db.database;
     final result = await Zone.current
         .fork(zoneValues: {_depthKey: 1})
-        .run(() => db.transaction((txn) => body(WriteScope(txn, _outbox))));
+        .run(
+          () => db.transaction(
+            (txn) => body(WriteScope(txn, _outbox, _scopeProvider)),
+          ),
+        );
     try {
       _notifier.notify({...tables, SyncTables.outbox});
     } catch (e, st) {

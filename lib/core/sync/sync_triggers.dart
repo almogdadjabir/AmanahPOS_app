@@ -6,6 +6,7 @@ import 'db_change_notifier.dart';
 import 'outbox/outbox_store.dart';
 import 'sync_engine.dart';
 import 'sync_schema.dart';
+import 'sync_scope.dart';
 
 /// Decides WHEN the [SyncEngine] runs. The engine decides what a run does.
 ///
@@ -48,6 +49,8 @@ class SyncTriggers {
     this.maxBackoffWait = const Duration(hours: 1),
     Future<bool> Function()? canSync,
     DateTime Function()? now,
+    this.onBackgroundWork,
+    this.resumeRefreshTables = const {},
   }) : _canSync = canSync,
        _now = now ?? DateTime.now;
 
@@ -69,6 +72,17 @@ class SyncTriggers {
   final Future<bool> Function()? _canSync;
   final DateTime Function() _now;
 
+  /// Optional: asks the OS background worker for a sync soon. Called at most
+  /// once per background period, when the app is paused (or written to
+  /// while paused) with `pending` outbox rows: Dart timers do not run once
+  /// the OS suspends the app.
+  final void Function()? onBackgroundWork;
+
+  /// Notified on resume: a background run (another isolate, another
+  /// notifier) may have changed them while the app was away.
+  final Set<String> resumeRefreshTables;
+  bool _backgroundRequested = false;
+
   bool _started = false;
   bool _foreground = true;
   int _generation = 0;
@@ -83,6 +97,7 @@ class SyncTriggers {
 
   bool? _lastOnline;
   bool _inFlight = false;
+  Completer<void>? _runDone;
   bool _followUpRequested = false;
   SyncReason _followUpReason = SyncReason.afterWrite;
   DateTime? _backoffUntil;
@@ -102,7 +117,13 @@ class SyncTriggers {
   }
 
   Future<void> stop() async {
-    if (!_started) return;
+    if (!_started) {
+      // A concurrent second stop(): the first one is already winding the run
+      // down; this caller must also not return before it is finished.
+      final pending = _runDone;
+      if (pending != null && !pending.isCompleted) await pending.future;
+      return;
+    }
     _started = false;
     _generation++;
     _cancelTimers();
@@ -114,11 +135,21 @@ class SyncTriggers {
     _dbSub = null;
     await net?.cancel();
     await db?.cancel();
+    // Cooperative: the engine stops between batches/pages, so this returns
+    // within about one network call. Callers may clear sync state afterwards
+    // knowing no stale cursor/result write can still land.
+    final done = _runDone;
+    if (done != null && !done.isCompleted) {
+      _engine.cancel();
+      await done.future;
+    }
   }
 
   void onAppResumed() {
     if (!_started) return;
     _foreground = true;
+    _backgroundRequested = false;
+    if (resumeRefreshTables.isNotEmpty) _notifier.notify(resumeRefreshTables);
     _startPeriodic();
     _kick(SyncReason.resume);
   }
@@ -127,6 +158,32 @@ class SyncTriggers {
     _foreground = false;
     _periodicTimer?.cancel();
     _periodicTimer = null;
+    _requestBackgroundWork();
+  }
+
+  void _requestBackgroundWork() {
+    final hook = onBackgroundWork;
+    if (hook == null || !_started || _foreground || _backgroundRequested) {
+      return;
+    }
+    final gen = _generation;
+    unawaited(() async {
+      int pending;
+      try {
+        pending = await _outbox.pendingCount(scope: SyncScope.current);
+      } catch (e, st) {
+        _log('pendingCount failed', e, st);
+        return;
+      }
+      if (gen != _generation || _foreground || _backgroundRequested) return;
+      if (pending == 0) return;
+      _backgroundRequested = true;
+      try {
+        hook();
+      } catch (e, st) {
+        _log('onBackgroundWork failed', e, st);
+      }
+    }());
   }
 
   /// Manual sync. Returns null when not started or gated off.
@@ -141,13 +198,13 @@ class SyncTriggers {
     final was = _lastOnline;
     _lastOnline = online;
     if (!online || was == true) return;
-    final maintenance =
-        _engine.current.block == SyncBlockReason.maintenance;
+    final maintenance = _engine.current.block == SyncBlockReason.maintenance;
     _kick(SyncReason.connectivity, bypassBackoff: !maintenance);
   }
 
   void _onTablesChanged(Set<String> tables) {
     if (!tables.contains(SyncTables.outbox)) return;
+    if (!_foreground) _requestBackgroundWork();
     if (_writeTimer != null) return; // join the open window
     _writeTimer = Timer(afterWriteDebounce, () {
       _writeTimer = null;
@@ -160,7 +217,7 @@ class SyncTriggers {
     final gen = _generation;
     int pending;
     try {
-      pending = await _outbox.pendingCount();
+      pending = await _outbox.pendingCount(scope: SyncScope.current);
     } catch (e, st) {
       _log('pendingCount failed', e, st);
       return;
@@ -173,7 +230,10 @@ class SyncTriggers {
     _periodicTimer?.cancel();
     _periodicTimer = null;
     if (!_started || !_foreground) return;
-    _periodicTimer = Timer.periodic(periodic, (_) => _kick(SyncReason.periodic));
+    _periodicTimer = Timer.periodic(
+      periodic,
+      (_) => _kick(SyncReason.periodic),
+    );
   }
 
   // ------------------------------------------------------------ running
@@ -199,6 +259,7 @@ class SyncTriggers {
       return SyncOutcome.alreadyRunning;
     }
     _inFlight = true;
+    final done = _runDone = Completer<void>();
     final gen = _generation;
     SyncOutcome? outcome;
     try {
@@ -221,6 +282,8 @@ class SyncTriggers {
       }
     } finally {
       _inFlight = false;
+      if (identical(_runDone, done)) _runDone = null;
+      done.complete();
     }
     if (gen != _generation || !_started) return outcome;
     _afterRun(outcome);
@@ -256,6 +319,7 @@ class SyncTriggers {
         _scheduleBackoff();
       case SyncOutcome.blocked:
       case SyncOutcome.needsBootstrap:
+      case SyncOutcome.cancelled:
       case null:
         _retryTimer?.cancel();
         _retryTimer = null;

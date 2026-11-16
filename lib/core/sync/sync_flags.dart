@@ -1,16 +1,18 @@
-/// Compile-time switch for the offline-first sync core.
+/// Compile-time switch for the offline-first sync engine.
 ///
-/// OFF by default: with the flag off nothing in `lib/core/sync` is
-/// instantiated, no trigger runs, and the app behaves exactly as before
-/// (legacy `SyncManager` / `OfflineSalesQueue` path).
+/// ON by default. Sales and stock edits are ALWAYS written locally + to the
+/// outbox (`SaleService` / `StockService`); this flag only gates the engine,
+/// its triggers and the OS background worker.
 ///
-/// Turn it on for a build or run with:
-///   flutter run --dart-define=SYNC_ENGINE=true
+/// Kill switch for a build or run:
+///   flutter run --dart-define=SYNC_ENGINE=false
+/// With it off, local saves keep working and queue in the outbox; nothing
+/// syncs until a build with the engine on runs.
 const bool kSyncEngineEnabled = bool.fromEnvironment(
   'SYNC_ENGINE',
-  defaultValue: false,
+  defaultValue: true,
 );
 
 /// Ping capabilities the sync engine needs before any trigger may run it.
-/// Unknown/missing capability = stay on the legacy online path.
+/// Unknown/missing capability = the engine does not run.
 const Set<String> kSyncRequiredCapabilities = {'push', 'pull'};

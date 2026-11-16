@@ -1,10 +1,15 @@
-// Multi-device convergence property test (Task 11).
+// Multi-device convergence property test (Task 11, extended in Phase 1
+// Task 12).
 //
 // For every seed: N devices, each with its OWN in-memory OfflineDb, real
-// LocalWriter / OutboxStore / SyncStateStore / SyncEngine and its own
-// appliers writing local tables, all sharing ONE FakeSyncServer through
-// forDevice views. Devices perform random offline writes (stock deltas,
-// sales, product renames, customer creates), then sync in random order under
+// LocalWriter / OutboxStore / SyncStateStore / SyncEngine, all sharing ONE
+// FakeSyncServer (strict catalog, BE semantics) through forDevice views.
+// Sales, stock edits and inbound receipts go through the REAL SaleService /
+// StockService and the production SaleApplier / StockApplier /
+// InboundApplier (wrapped by a spy that enforces "stock is re-based from
+// stock_after on `applied` only, never on `duplicate`"); product renames
+// and customer creates use small test appliers. Devices perform random
+// offline writes, then sync in random order under
 // random per-view faults (flaky, lost responses, dropped response after
 // apply, device down) and simulated crashes (SyncHooks + restart on the same
 // DB). Finally faults are cleared and devices sync until a fixed point, then
@@ -12,28 +17,39 @@
 //
 // Re-run one seed (prints its action log on failure):
 //   flutter test test/core/sync/convergence_test.dart --dart-define=CONV_SEED=17
-// Other knobs: CONV_SEEDS (count, default 200), CONV_FIRST (first seed),
+// Other knobs: CONV_SEEDS (count, default 60), CONV_FIRST (first seed),
 // CONV_DEVICES (default 3), CONV_FAULTS / CONV_CRASHES (default true),
 // CONV_MIN_ACTIONS / CONV_MAX_ACTIONS (default 20 / 60), CONV_VERBOSE.
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/permissions/app_permissions.dart';
+import 'package:amana_pos/core/sync/appliers/inbound_applier.dart';
+import 'package:amana_pos/core/sync/appliers/sale_applier.dart';
+import 'package:amana_pos/core/sync/appliers/stock_applier.dart';
 import 'package:amana_pos/core/sync/change_applier.dart';
 import 'package:amana_pos/core/sync/contract/sync_contract.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
+import 'package:amana_pos/core/sync/decimal3.dart';
 import 'package:amana_pos/core/sync/local_writer.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_entry.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/reachability.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
+import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
+import 'package:amana_pos/features/inventory/domain/stock_service.dart';
+import 'package:amana_pos/features/pos/domain/sale_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:uuid/data.dart';
+import 'package:uuid/rng.dart';
+import 'package:uuid/uuid.dart';
 
 import 'support/fake_sync_server.dart';
 
-// Default 60 seeds (~17 s) keeps `flutter test` fast. Full run before releases:
+// Default 60 seeds (~40 s) keeps `flutter test` reasonable. Full run before releases:
 //   flutter test test/core/sync/convergence_test.dart --dart-define=CONV_SEEDS=200
 const int kSeeds = int.fromEnvironment('CONV_SEEDS', defaultValue: 60);
 const int kFirstSeed = int.fromEnvironment('CONV_FIRST', defaultValue: 0);
@@ -53,9 +69,23 @@ const bool kVerbose = bool.fromEnvironment('CONV_VERBOSE');
 
 /// Hard cap on fault-free rounds before declaring a device wedged.
 const int kMaxFixedPointRounds = 25;
+const String _scope = 'u1|t1';
 
-const List<String> kProducts = ['P1', 'P2', 'P3', 'P4'];
-const List<String> kShops = ['S1', 'S2'];
+// UUIDs: the strict fake (like the BE) refuses anything else.
+const List<String> kProducts = [
+  'f0000000-0000-4000-8000-000000000001',
+  'f0000000-0000-4000-8000-000000000002',
+  'f0000000-0000-4000-8000-000000000003',
+  'f0000000-0000-4000-8000-000000000004',
+];
+const List<String> kShops = [
+  'e0000000-0000-4000-8000-000000000001',
+  'e0000000-0000-4000-8000-000000000002',
+];
+const String kVendor = 'd0000000-0000-4000-8000-000000000001';
+const List<String> kPrices = ['2.50', '1.75', '0.99', '12.00'];
+
+String _short(String id) => id.substring(id.length - 4);
 
 // ------------------------------------------------------------------ decimals
 
@@ -174,16 +204,29 @@ class CustomerApplier extends _RowApplier {
   Map<String, Object?> rowFrom(PullChange c) => {'name': c.data?['name']};
 }
 
-class SaleApplier extends _RowApplier {
-  SaleApplier(this.stock) : super('sale', 'c_sales');
-  final StockApplier stock;
+/// Wraps a production applier. On every push result it checks the re-base
+/// rule: `applied` -> each `stock_after` entry is now the local base;
+/// `duplicate` (a replay whose stock_after is stale) -> no base changed.
+class SpyApplier implements ChangeApplier {
+  SpyApplier(this.inner);
+  final ChangeApplier inner;
 
   @override
-  Map<String, Object?> rowFrom(PullChange c) => {
-    'shop_id': c.data?['shop_id'],
-    'total': c.data?['total'],
-    'status': c.data?['status'],
-    'customer_id': c.data?['customer_id'],
+  String get entity => inner.entity;
+  @override
+  Set<String> get tables => inner.tables;
+  @override
+  bool get skipWhenLocalPending => inner.skipWhenLocalPending;
+  @override
+  Future<int?> localVersion(Transaction txn, PullChange change) =>
+      inner.localVersion(txn, change);
+  @override
+  Future<void> apply(Transaction txn, PullChange change) =>
+      inner.apply(txn, change);
+
+  static Future<Map<String, String>> _bases(Transaction txn) async => {
+    for (final r in await txn.query('stock'))
+      '${r['product_id']}|${r['shop_id']}': '${r['base_quantity']}',
   };
 
   @override
@@ -192,75 +235,32 @@ class SaleApplier extends _RowApplier {
     OutboxEntry sent,
     PushResult result,
   ) async {
-    _bump(
-      'push_${entity}_${result.status.name}${result.merged ? '_merged' : ''}',
-    );
-    if (result.status == PushStatus.rejected) return;
-    await txn.update(
-      table,
-      {'version': result.version, 'status': 'done'},
-      where: 'id = ?',
-      whereArgs: [sent.entityId],
-    );
-    await stock.rebase(txn, result);
-  }
-}
-
-/// Local stock = server base (pulled) + this device's pending deltas (derived
-/// from the outbox). Base is always refreshed from pulls, even while local
-/// deltas are pending.
-class StockApplier implements ChangeApplier {
-  @override
-  String get entity => 'stock';
-
-  @override
-  Set<String> get tables => {'c_stock'};
-
-  @override
-  bool get skipWhenLocalPending => false;
-
-  @override
-  Future<int?> localVersion(Transaction txn, PullChange change) async => null;
-
-  @override
-  Future<void> apply(Transaction txn, PullChange change) async {
-    final d = change.data!;
-    await txn.insert('c_stock', {
-      'product_id': d['product_id'],
-      'shop_id': d['shop_id'],
-      'base': d['quantity'],
-      'version': change.version,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
-  /// Re-base from `stock_after` only for a FRESH `applied` result: a
-  /// `duplicate` replays the stored (possibly stale) stock_after.
-  Future<void> rebase(Transaction txn, PushResult r) async {
-    if (r.status != PushStatus.applied) return;
-    for (final a in r.stockAfter) {
-      final n = await txn.update(
-        'c_stock',
-        {'base': a.quantity},
-        where: 'product_id = ? AND shop_id = ?',
-        whereArgs: [a.productId, a.shopId],
-      );
-      if (n == 0) {
-        await txn.insert('c_stock', {
-          'product_id': a.productId,
-          'shop_id': a.shopId,
-          'base': a.quantity,
-          'version': null,
-        });
-      }
+    _bump('push_${entity}_${result.status.name}');
+    final before = await _bases(txn);
+    await inner.onPushResult(txn, sent, result);
+    final after = await _bases(txn);
+    switch (result.status) {
+      case PushStatus.applied:
+        if (result.stockAfter.isNotEmpty) _bump('rebase_${entity}_applied');
+        for (final a in result.stockAfter) {
+          expect(
+            Decimal3.parse(after['${a.productId}|${a.shopId}']!),
+            Decimal3.parse(a.quantity),
+            reason: 'applied ${sent.mutationId}: base not re-based',
+          );
+        }
+      case PushStatus.duplicate:
+        if (result.stockAfter.isNotEmpty) _bump('dup_with_stock_after');
+        expect(
+          after,
+          before,
+          reason: 'duplicate ${sent.mutationId} re-based stock',
+        );
+      case PushStatus.rejected:
+      case PushStatus.retry:
+        break;
     }
   }
-
-  @override
-  Future<void> onPushResult(
-    Transaction txn,
-    OutboxEntry sent,
-    PushResult result,
-  ) => rebase(txn, result);
 }
 
 // ------------------------------------------------------------------ world
@@ -329,14 +329,6 @@ Future<OfflineDb> _openDb() async {
     'CREATE TABLE c_customers (id TEXT PRIMARY KEY, name TEXT, '
     'version INTEGER)',
   );
-  await db.execute(
-    'CREATE TABLE c_sales (id TEXT PRIMARY KEY, shop_id TEXT, total TEXT, '
-    'status TEXT, customer_id TEXT, version INTEGER)',
-  );
-  await db.execute(
-    'CREATE TABLE c_stock (product_id TEXT, shop_id TEXT, base TEXT, '
-    'version INTEGER, PRIMARY KEY (product_id, shop_id))',
-  );
   return OfflineDb.forTesting(db);
 }
 
@@ -361,20 +353,30 @@ class Device {
   int restarts = 0;
   int counter = 0;
 
-  /// Every sale this device created: id -> total.
+  /// Every sale this device created: id -> subtotal (= BE total_amount).
   final sales = <String, String>{};
   final customers = <String>{};
+  late Uuid uuid;
+  late SaleService saleService;
+  late StockService stockService;
 
   Future<void> init() async {
     odb = await _openDb();
     db = await odb.database;
     view = w.server.forDevice(name, seed: w.rnd.nextInt(1 << 30));
-    final stock = StockApplier();
+    // Reproducible ids per seed (sale/line/stock/inbound/device ids).
+    uuid = Uuid(goptions: GlobalOptions(MathRNG(seed: w.rnd.nextInt(1 << 30))));
+    await db.insert('sync_state', {
+      'key': 'device_id',
+      'value': uuid.v4(),
+      'updated_at': w.clock.toIso8601String(),
+    });
     registry
       ..register(ProductApplier())
       ..register(CustomerApplier())
-      ..register(stock)
-      ..register(SaleApplier(stock));
+      ..register(SpyApplier(StockApplier()))
+      ..register(SpyApplier(SaleApplier()))
+      ..register(SpyApplier(InboundApplier()));
     _rebuild();
     await db.transaction(
       (t) => state.setCursor(t, base64Url.encode(utf8.encode('seq:0'))),
@@ -383,13 +385,31 @@ class Device {
 
   void _rebuild() {
     outbox = OutboxStore(odb, now: w.now);
-    state = SyncStateStore(odb, now: w.now);
-    writer = LocalWriter(odb, outbox, notifier);
+    state = SyncStateStore(odb, now: w.now, scope: _scope);
+    writer = LocalWriter(odb, outbox, notifier, scopeProvider: () => _scope);
+    saleService = SaleService(
+      writer: writer,
+      state: state,
+      cashierId: () => null,
+      now: w.now,
+      uuid: uuid,
+    );
+    stockService = StockService(
+      writer: writer,
+      actor: () => const StockActor(
+        businessType: AppBusinessType.shop,
+        role: AppUserRole.owner,
+        shopId: null,
+      ),
+      now: w.now,
+      uuid: uuid,
+    );
     engine = SyncEngine(
       db: odb,
       transport: view,
       outbox: outbox,
       state: state,
+      scopeProvider: () => _scope,
       reachability: ServerReachability(view, now: w.now),
       appliers: registry,
       notifier: notifier,
@@ -427,53 +447,6 @@ class Device {
   }
 
   // ---------------------------------------------------------- local writes
-
-  Future<OutboxEntry> stockDelta(String p, String s, String delta) =>
-      writer.write(
-        tables: {'c_stock'},
-        body: (scope) => scope.enqueue(
-          entity: 'stock',
-          op: 'adjust',
-          entityId: '$p:$s',
-          payload: {'product_id': p, 'shop_id': s, 'delta': delta},
-          occurredAt: w.clock,
-        ),
-      );
-
-  Future<OutboxEntry> sale(
-    String id,
-    String shop,
-    List<(String, String)> lines,
-    String total,
-    String? customer,
-  ) => writer.write(
-    tables: {'c_sales'},
-    body: (scope) async {
-      await scope.txn.insert('c_sales', {
-        'id': id,
-        'shop_id': shop,
-        'total': total,
-        'status': 'local',
-        'customer_id': customer,
-        'version': null,
-      });
-      return scope.enqueue(
-        entity: 'sale',
-        op: 'create',
-        entityId: id,
-        payload: {
-          'shop_id': shop,
-          'total': total,
-          'items': [
-            for (final (p, q) in lines) {'product_id': p, 'quantity': q},
-          ],
-          'customer_id': ?customer,
-        },
-        dependsOnEntityId: customer,
-        occurredAt: w.clock,
-      );
-    },
-  );
 
   Future<OutboxEntry> rename(String p, String name) => writer.write(
     tables: {'c_products'},
@@ -524,37 +497,71 @@ class Device {
     final r = w.rnd;
     final k = r.nextInt(100);
     counter++;
-    if (k < 40) {
+    if (k < 35) {
       final p = kProducts[r.nextInt(kProducts.length)];
       final s = kShops[r.nextInt(kShops.length)];
       final d = randDec(r, 20);
-      final delta = r.nextBool() ? d : '-$d';
-      w.note('$name stock $p:$s $delta');
-      await stockDelta(p, s, delta);
-    } else if (k < 70) {
-      final id = '$name-s$counter';
+      final op = const ['add', 'remove', 'adjust'][r.nextInt(3)];
+      final delta = op == 'adjust' && r.nextBool() ? '-$d' : d;
+      w.note('$name stock.$op ${_short(p)}:${_short(s)} $delta');
+      await switch (op) {
+        'add' => stockService.add(productId: p, shopId: s, delta: delta),
+        'remove' => stockService.remove(productId: p, shopId: s, delta: delta),
+        _ => stockService.adjust(productId: p, shopId: s, delta: delta),
+      };
+    } else if (k < 65) {
       final shop = kShops[r.nextInt(kShops.length)];
       final n = r.nextInt(3) + 1;
-      final lines = <(String, String)>[
+      final lines = <SaleDraftLine>[
         for (var i = 0; i < n; i++)
-          (kProducts[r.nextInt(kProducts.length)], randDec(r, 5)),
+          SaleDraftLine.product(
+            productId: kProducts[r.nextInt(kProducts.length)],
+            productName: 'P',
+            quantity: randDec(r, 5),
+            unitPrice: kPrices[r.nextInt(kPrices.length)],
+          ),
+        if (r.nextInt(4) == 0)
+          const SaleDraftLine.custom(name: 'Keypad', unitPrice: '4.20'),
       ];
-      final total = randDec(r, 500);
       final cust = customers.isNotEmpty && r.nextInt(3) == 0
           ? customers.elementAt(r.nextInt(customers.length))
           : null;
-      sales[id] = total;
-      w.note('$name sale $id $shop total=$total cust=$cust $lines');
-      await sale(id, shop, lines, total, cust);
+      final sale = await saleService.createSale(
+        SaleDraft(
+          shopId: shop,
+          paymentMethod: r.nextBool() ? 'cash' : 'card',
+          lines: lines,
+          customerId: cust,
+        ),
+      );
+      sales[sale.id] = sale.subtotal;
+      w.note(
+        '$name sale ${_short(sale.id)} ${_short(shop)} '
+        'total=${sale.subtotal} cust=$cust '
+        '${lines.map((l) => '${l.isCustom ? 'custom' : _short(l.productId!)}x${l.quantity}').join(',')}',
+      );
+    } else if (k < 72) {
+      final shop = kShops[r.nextInt(kShops.length)];
+      final p = kProducts[r.nextInt(kProducts.length)];
+      final q = randDec(r, 30);
+      w.note('$name inbound ${_short(p)}:${_short(shop)} +$q');
+      await stockService.receiveInbound(
+        CreateInboundRequestDto(
+          shopId: shop,
+          reference: '$name-PO-$counter',
+          vendorId: kVendor,
+          items: [CreateInboundItemRequestDto(productId: p, quantity: q)],
+        ),
+      );
     } else if (k < 88) {
       final p = kProducts[r.nextInt(kProducts.length)];
       final nm = '$name-n$counter';
-      w.note('$name rename $p -> $nm');
+      w.note('$name rename ${_short(p)} -> $nm');
       await rename(p, nm);
     } else {
-      final id = '$name-c$counter';
+      final id = uuid.v4();
       customers.add(id);
-      w.note('$name customer $id');
+      w.note('$name customer ${_short(id)}');
       await createCustomer(id, 'Cust $id');
     }
   }
@@ -656,7 +663,9 @@ Future<void> runSeed(int seed) async {
 
 Future<void> _scenario(World w, List<Device> devices) async {
   final r = w.rnd;
-  final server = w.server;
+  final server = w.server
+    ..strictCatalog = true
+    ..seedVendor(kVendor);
 
   // ---- seed the server: products + initial stock ----
   final initial = <String, BigInt>{};
@@ -694,6 +703,7 @@ Future<void> _scenario(World w, List<Device> devices) async {
     deviceId: 'seed',
     appVersion: '1.0.0',
     mutations: seedMutations,
+    scope: 'u1|t1',
   );
   expect(seedResp.results.every((x) => x.status == PushStatus.applied), isTrue);
   final seedFeed = server.feed.length;
@@ -824,8 +834,11 @@ Future<void> _assertInvariants(
     final res = server.applied[e.mutationId];
     expect(res, isNotNull, reason: '(d) ${e.mutationId} never applied');
     expect(res!.status, PushStatus.applied, reason: '(d) ${e.mutationId}');
+    final items = (e.payload['items'] as List?) ?? const [];
     expectedEmits += switch (e.entity) {
-      'sale' => (e.payload['items'] as List).length + 1,
+      // the sale row + one stock movement per tracked product line
+      'sale' => 1 + items.where((it) => (it as Map)['custom'] != true).length,
+      'inbound' => 1 + items.length,
       _ => 1,
     };
   }
@@ -844,19 +857,30 @@ Future<void> _assertInvariants(
     reason: '(d) a sale was emitted twice',
   );
 
-  // (a) stock: server == initial + every delta (stock adjusts and sale
-  // lines), decimal-exact.
+  // (a) stock: server == initial + every signed effect (stock add / remove /
+  // adjust, inbound lines, sale product lines), decimal-exact.
   final expected = {...initial};
+  void add(String k, BigInt d) =>
+      expected[k] = (expected[k] ?? BigInt.zero) + d;
   for (final e in all) {
-    if (e.entity == 'stock') {
-      final k = '${e.payload['product_id']}|${e.payload['shop_id']}';
-      expected[k] = (expected[k] ?? BigInt.zero) + dec(e.payload['delta']);
-    } else if (e.entity == 'sale') {
-      final shop = e.payload['shop_id'];
-      for (final it in e.payload['items'] as List) {
-        final k = '${it['product_id']}|$shop';
-        expected[k] = (expected[k] ?? BigInt.zero) - dec(it['quantity']);
-      }
+    final p = e.payload;
+    switch (e.entity) {
+      case 'stock':
+        final k = '${p['product_id']}|${p['shop_id']}';
+        final d = dec(p['delta']);
+        add(k, switch (e.op) {
+          'remove' => -d.abs(),
+          _ => d,
+        });
+      case 'inbound':
+        for (final it in p['items'] as List) {
+          add('${it['product_id']}|${p['shop_id']}', dec(it['quantity']));
+        }
+      case 'sale':
+        for (final it in p['items'] as List) {
+          if (it['custom'] == true) continue;
+          add('${it['product_id']}|${p['shop']}', -dec(it['quantity']));
+        }
     }
   }
   for (final p in kProducts) {
@@ -869,8 +893,8 @@ Future<void> _assertInvariants(
     }
   }
 
-  // (b) sales: each created sale exists exactly once on the server; totals
-  // add up to the devices' totals.
+  // (b) sales: each created sale exists exactly once on the server; Σ
+  // total_amount == Σ the devices' own subtotals.
   final serverSales = server.tables['sale'] ?? {};
   final deviceSales = <String, String>{};
   for (final d in devices) {
@@ -886,7 +910,12 @@ Future<void> _assertInvariants(
   );
   var serverTotal = BigInt.zero;
   for (final s in serverSales.values) {
-    serverTotal += dec(s['total']);
+    serverTotal += dec(s['total_amount']);
+    expect(
+      dec(s['total_amount']),
+      dec(deviceSales[s['id']]),
+      reason: '(b) sale ${s['id']} total',
+    );
   }
   var deviceTotal = BigInt.zero;
   for (final t in deviceSales.values) {
@@ -922,42 +951,61 @@ Future<void> _assertInvariants(
         reason: '(c) ${d.name} customer ${sc['id']}',
       );
     }
-    final sales = {
-      for (final row in await d.db.query('c_sales')) row['id']: row,
-    };
+    // Real `sales` table (own sales synced + other devices' pulled).
+    final sales = {for (final row in await d.db.query('sales')) row['id']: row};
     expect(sales.keys.toSet(), serverSales.keys.toSet(), reason: d.name);
     for (final ss in serverSales.values) {
       final ls = sales[ss['id']]!;
       expect(
-        [ls['total'], ls['status'], ls['shop_id'], ls['version']],
-        [ss['total'], ss['status'], ss['shop_id'], ss['version']],
+        [
+          dec(ls['subtotal']),
+          dec(ls['net_amount']),
+          ls['shop_id'],
+          ls['receipt_number'],
+          ls['sync_state'],
+        ],
+        [
+          dec(ss['total_amount']),
+          dec(ss['net_amount']),
+          ss['shop'],
+          ss['receipt_number'],
+          'synced',
+        ],
         reason: '(c) ${d.name} sale ${ss['id']}',
       );
-    }
-    // Local stock = base + pending deltas (none pending at the fixed point).
-    final pendingDelta = <String, BigInt>{};
-    for (final row in await d.notDone()) {
-      final e = OutboxEntry.fromRow(row);
-      if (e.entity == 'stock') {
-        final k = '${e.payload['product_id']}|${e.payload['shop_id']}';
-        pendingDelta[k] =
-            (pendingDelta[k] ?? BigInt.zero) + dec(e.payload['delta']);
-      }
-    }
-    for (final row in await d.db.query('c_stock')) {
-      final k = '${row['product_id']}|${row['shop_id']}';
-      final local = dec(row['base']) + (pendingDelta[k] ?? BigInt.zero);
       expect(
-        fmt(local),
-        server.stockQuantity(
-          row['product_id'] as String,
-          row['shop_id'] as String,
-        ),
-        reason: '(c) ${d.name} stock $k',
+        (await d.db.query(
+          'sale_items',
+          where: 'sale_id = ?',
+          whereArgs: [ss['id']],
+        )).length,
+        (ss['items'] as List).length,
+        reason: '(c) ${d.name} sale ${ss['id']} lines',
+      );
+    }
+    // Real `stock` table: base == displayed == server (nothing pending).
+    for (final row in await d.db.query('stock')) {
+      final p = row['product_id'] as String;
+      final s = row['shop_id'] as String;
+      final server = dec(w.server.stockQuantity(p, s));
+      expect(
+        dec(row['base_quantity']),
+        server,
+        reason: '(c) ${d.name} base $p|$s',
+      );
+      expect(
+        (row['quantity'] as num).toDouble(),
+        Decimal3.toDouble(Decimal3.parse(fmt(server))),
+        reason: '(c) ${d.name} displayed $p|$s',
+      );
+      expect(
+        row['id'],
+        w.server.stockLevelId(p, s),
+        reason: '(c) ${d.name} stock row adopts the StockLevel id',
       );
     }
     expect(
-      (await d.db.query('c_stock')).length,
+      (await d.db.query('stock')).length,
       kProducts.length * kShops.length,
       reason: '(c) ${d.name} stock rows',
     );
