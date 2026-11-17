@@ -44,13 +44,17 @@ class VendorApplier implements ChangeApplier {
     await upsertVersioned(txn, 'vendors', id, version, {
       'json': jsonEncode({...d, 'id': id}),
       'updated_at': d['updated_at'] is String ? d['updated_at'] : null,
+      'server_json': jsonEncode({...d, 'id': id, 'version': version}),
     });
   }
 
+  /// Spec "Push results": see [catalogPushResult].
   @override
   Future<void> onPushResult(
     Transaction txn,
     OutboxEntry sent,
     PushResult result,
-  ) async {}
+  ) async {
+    await catalogPushResult(txn, 'vendors', sent, result);
+  }
 }

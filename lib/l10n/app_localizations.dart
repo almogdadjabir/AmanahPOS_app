@@ -1100,6 +1100,12 @@ abstract class AppLocalizations {
   /// **'You are not assigned to this shop. Contact your manager.'**
   String get posShopMismatch;
 
+  /// No description provided for @posItemsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer available, removed from the cart: {names}. It was merged, discarded or deleted. Review the cart and try again.'**
+  String posItemsUnavailable(String names);
+
   /// No description provided for @productsManagement.
   ///
   /// In en, this message translates to:
@@ -5408,12 +5414,6 @@ abstract class AppLocalizations {
   /// **'More'**
   String get stMore;
 
-  /// No description provided for @fbOpeningStockWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'Product created, but its starting stock was not saved. Add it with Update stock.'**
-  String get fbOpeningStockWarning;
-
   /// No description provided for @fbCategoriesErrorTitle.
   ///
   /// In en, this message translates to:
@@ -8113,6 +8113,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This change belongs to another account. Use “Discard other account\'s changes” instead.'**
   String get syOxDiscardOtherScope;
+
+  /// No description provided for @syOxEntityProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get syOxEntityProduct;
+
+  /// No description provided for @syOxEntityCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get syOxEntityCategory;
+
+  /// No description provided for @syOxEntityVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor'**
+  String get syOxEntityVendor;
+
+  /// No description provided for @syOxEditRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit and retry'**
+  String get syOxEditRetry;
+
+  /// No description provided for @syOxMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into existing'**
+  String get syOxMerge;
+
+  /// No description provided for @syOxMergeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into the existing item?'**
+  String get syOxMergeTitle;
+
+  /// No description provided for @syOxMergeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” already exists. This copy\'s details are dropped and everything recorded for it on this phone moves to the existing one.'**
+  String syOxMergeBody(String name);
+
+  /// No description provided for @syOxMergeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing else changes.} =1{1 record will point to the existing item.} other{{count} records will point to the existing item.}}'**
+  String syOxMergeCount(int count);
+
+  /// No description provided for @syOxMergeExistingFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'The existing item'**
+  String get syOxMergeExistingFallback;
+
+  /// No description provided for @syOxMergeRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'This change can no longer be merged. Refresh and try again.'**
+  String get syOxMergeRefused;
+
+  /// No description provided for @syOxEditNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was changed, so it was not sent again.'**
+  String get syOxEditNotSaved;
+
+  /// No description provided for @syOxEditGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer on this phone.'**
+  String get syOxEditGone;
+
+  /// No description provided for @syOxDiscardCatalogCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This item and its opening stock will be removed from this phone. Nothing else waits on it.'**
+  String get syOxDiscardCatalogCreateBody;
+
+  /// No description provided for @syOxDiscardBlockedByDependents.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 change waits on this item (a sale, stock or a product), so it cannot be discarded. Merge it into the existing item, or edit and retry.} other{{count} changes wait on this item (sales, stock or products), so it cannot be discarded. Merge it into the existing item, or edit and retry.}}'**
+  String syOxDiscardBlockedByDependents(int count);
+
+  /// No description provided for @syOxDiscardHasDependents.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was not discarded: other changes (sales, stock or products) wait on it. Merge it into the existing item, or edit and retry.'**
+  String get syOxDiscardHasDependents;
+
+  /// No description provided for @syOxDiscardMayBeOnServerFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'This item was not discarded: it may already be on the server. Tap Send now first; once it has synced, delete it from its own list.'**
+  String get syOxDiscardMayBeOnServerFailure;
+
+  /// No description provided for @syOxRetryMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send without its item?'**
+  String get syOxRetryMissingTitle;
+
+  /// No description provided for @syOxRetryMissingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A product, category or vendor this change refers to is no longer on this phone. If you send it, the server records it without that link: a sale keeps its money, but its product and stock are not updated.'**
+  String get syOxRetryMissingBody;
+
+  /// No description provided for @syOxRetryMissingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Send anyway'**
+  String get syOxRetryMissingConfirm;
+
+  /// No description provided for @syOxRetryMissingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Refers to an item that is no longer on this phone.'**
+  String get syOxRetryMissingHint;
+
+  /// No description provided for @syOxStaleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not restore the server copy. It is replaced at the next sync.'**
+  String get syOxStaleHint;
+
+  /// No description provided for @syOxMergeStockAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Its opening stock and other stock changes on this phone are added to the existing item\'s stock.'**
+  String get syOxMergeStockAdded;
+
+  /// No description provided for @syOxMergeEditsDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Its queued edits and its photo are dropped. The existing item keeps its own details and photo.'**
+  String get syOxMergeEditsDropped;
+
+  /// No description provided for @syOxMergeTargetInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'The existing item is deleted. Merged sales and stock will belong to an item that the till does not show.'**
+  String get syOxMergeTargetInactive;
+
+  /// No description provided for @syOxDiscardCatalogEditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The item goes back to how it is on the server.'**
+  String get syOxDiscardCatalogEditBody;
+
+  /// No description provided for @syOxUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Image upload failed'**
+  String get syOxUploadFailed;
+
+  /// No description provided for @invNoVendorsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No vendors yet'**
+  String get invNoVendorsYet;
+
+  /// No description provided for @invAddVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Vendor'**
+  String get invAddVendor;
+
+  /// No description provided for @invEditVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Vendor'**
+  String get invEditVendor;
+
+  /// No description provided for @invVendorNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name *'**
+  String get invVendorNameLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -15,19 +15,28 @@ void main() {
   PinUserRecord record(String userId, String pin, {String business = 'b1'}) {
     final salt = PinHasher.generateSalt();
     return PinUserRecord(
-      userId: userId, businessId: business, tenantId: business,
-      fullName: 'User $userId', role: 'cashier', phone: '+1',
-      pinSalt: salt, pinHash: PinHasher.hashPin(pin, salt),
-      accessToken: 'acc-$userId', refreshToken: 'ref-$userId',
-      profileJson: {'id': userId}, enrolledAt: 'now', lastUnlockAt: 'now',
+      userId: userId,
+      businessId: business,
+      tenantId: business,
+      fullName: 'User $userId',
+      role: 'cashier',
+      phone: '+1',
+      pinSalt: salt,
+      pinHash: PinHasher.hashPin(pin, salt),
+      accessToken: 'acc-$userId',
+      refreshToken: 'ref-$userId',
+      profileJson: {'id': userId},
+      enrolledAt: 'now',
+      lastUnlockAt: 'now',
     );
   }
 
   setUp(() {
     cache = _FakeCache();
     store = {};
-    when(() => cache.getObject('pin_vault'))
-        .thenAnswer((_) async => store['pin_vault']);
+    when(
+      () => cache.getObject('pin_vault'),
+    ).thenAnswer((_) async => store['pin_vault']);
     when(() => cache.saveObject('pin_vault', any())).thenAnswer((inv) async {
       store['pin_vault'] = inv.positionalArguments[1];
       return true;

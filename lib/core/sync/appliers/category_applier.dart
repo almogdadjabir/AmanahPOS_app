@@ -90,16 +90,34 @@ class CategoryApplier implements ChangeApplier {
       'json': jsonEncode(json),
       'updated_at': d['updated_at'] is String ? d['updated_at'] : null,
       'image_hash': d['image_hash'] is String ? d['image_hash'] : null,
+      'server_json': jsonEncode({...d, 'id': id, 'version': version}),
     });
     if (!wrote) return;
     await registerRowAssets(txn, entity, id, d);
     await refreshProductsCategoryName(txn, id, name);
   }
 
+  /// Spec "Push results": see [catalogPushResult]. A rename taken from a
+  /// merged `server_state` refreshes the products' `category_name`.
   @override
   Future<void> onPushResult(
     Transaction txn,
     OutboxEntry sent,
     PushResult result,
-  ) async {}
+  ) async {
+    if (!await catalogPushResult(txn, 'categories', sent, result)) return;
+    final r = await txn.query(
+      'categories',
+      columns: ['name'],
+      where: 'id = ?',
+      whereArgs: [sent.entityId],
+      limit: 1,
+    );
+    if (r.isEmpty) return;
+    await refreshProductsCategoryName(
+      txn,
+      sent.entityId,
+      r.first['name'] as String?,
+    );
+  }
 }

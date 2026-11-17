@@ -5,6 +5,7 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/services/notifications/fcm_token_service.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/customers/domain/usecases/customer_usecase.dart';
@@ -22,7 +23,6 @@ import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/features/pin/presentation/bloc/pin_bloc.dart';
-import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
 import 'package:amana_pos/features/registration/domain/usecases/registration_usecase.dart';
 import 'package:amana_pos/features/registration/presentation/bloc/registration_bloc.dart';
 import 'package:amana_pos/features/returns/domain/usecases/returns_usecase.dart';
@@ -106,9 +106,7 @@ class FeatureBlocProviders {
 
   static Widget registration({required Widget child}) {
     return BlocProvider(
-      create: (_) => RegistrationBloc(
-        useCase: getIt<RegistrationUseCase>(),
-      ),
+      create: (_) => RegistrationBloc(useCase: getIt<RegistrationUseCase>()),
       child: child,
     );
   }
@@ -117,8 +115,9 @@ class FeatureBlocProviders {
     return BlocProvider(
       create: (_) => CategoryBloc(
         useCase: getIt<CategoryUseCase>(),
-        productUseCase: getIt<ProductUseCase>(),
         offlineLocalCache: getIt<OfflineLocalCache>(),
+        changes: getIt<DbChangeNotifier>().changes,
+        syncNow: appSyncNow(),
       ),
       child: child,
     );
@@ -126,9 +125,7 @@ class FeatureBlocProviders {
 
   static Widget customers({required Widget child}) {
     return BlocProvider(
-      create: (_) => CustomersBloc(
-        useCase: getIt<CustomerUseCase>(),
-      ),
+      create: (_) => CustomersBloc(useCase: getIt<CustomerUseCase>()),
       child: child,
     );
   }
@@ -144,9 +141,7 @@ class FeatureBlocProviders {
           ),
         ),
         BlocProvider(
-          create: (_) => ExpiryBloc(
-            useCase: getIt<InventoryUseCase>(),
-          ),
+          create: (_) => ExpiryBloc(useCase: getIt<InventoryUseCase>()),
         ),
         BlocProvider(
           create: (_) => PremiumInventoryBloc(
@@ -156,9 +151,7 @@ class FeatureBlocProviders {
           ),
         ),
         BlocProvider(
-          create: (_) => StockLevelsBloc(
-            useCase: getIt<InventoryUseCase>(),
-          ),
+          create: (_) => StockLevelsBloc(useCase: getIt<InventoryUseCase>()),
         ),
         BlocProvider(
           create: (_) => InboundBloc(
@@ -171,13 +164,12 @@ class FeatureBlocProviders {
           create: (_) => VendorsBloc(
             useCase: getIt<InventoryUseCase>(),
             offlineLocalCache: getIt<OfflineLocalCache>(),
-            isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+            changes: getIt<DbChangeNotifier>().changes,
+            syncNow: appSyncNow(),
           ),
         ),
         BlocProvider(
-          create: (_) => ExpiryReportBloc(
-            useCase: getIt<InventoryUseCase>(),
-          ),
+          create: (_) => ExpiryReportBloc(useCase: getIt<InventoryUseCase>()),
         ),
       ],
       child: child,
@@ -205,13 +197,10 @@ class FeatureBlocProviders {
 
   static Widget expiryAlerts({required Widget child}) {
     return BlocProvider(
-      create: (_) => ExpiryBloc(
-        useCase: getIt<InventoryUseCase>(),
-      ),
+      create: (_) => ExpiryBloc(useCase: getIt<InventoryUseCase>()),
       child: child,
     );
   }
-
 
   static Widget salesHistory({required Widget child}) {
     return BlocProvider(
@@ -226,18 +215,14 @@ class FeatureBlocProviders {
 
   static Widget salesReports({required Widget child}) {
     return BlocProvider(
-      create: (_) => SalesReportBloc(
-        useCase: getIt<SalesHistoryUseCase>(),
-      ),
+      create: (_) => SalesReportBloc(useCase: getIt<SalesHistoryUseCase>()),
       child: child,
     );
   }
 
   static Widget returns({required Widget child}) {
     return BlocProvider(
-      create: (_) => ReturnsBloc(
-        useCase: getIt<ReturnsUseCase>(),
-      ),
+      create: (_) => ReturnsBloc(useCase: getIt<ReturnsUseCase>()),
       child: child,
     );
   }

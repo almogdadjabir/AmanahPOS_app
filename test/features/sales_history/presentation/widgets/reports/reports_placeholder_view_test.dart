@@ -12,15 +12,16 @@ void main() {
       theme: AppTheme.light,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: CustomScrollView(slivers: [sliver]),
-      ),
+      home: Scaffold(body: CustomScrollView(slivers: [sliver])),
     );
 
     testWidgets('renders reportsComingSoon text', (WidgetTester tester) async {
       await tester.pumpWidget(wrap(const ReportsPlaceholderView()));
 
-      expect(find.text('Reports & Statistics are coming soon.'), findsOneWidget);
+      expect(
+        find.text('Reports & Statistics are coming soon.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders chart icon', (WidgetTester tester) async {

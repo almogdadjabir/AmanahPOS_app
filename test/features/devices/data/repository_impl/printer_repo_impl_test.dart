@@ -62,34 +62,39 @@ void main() {
     permissions = _MockPermissionService();
     repo = buildRepo();
 
-    when(() => permissions.ensureBluetoothPermissions())
-        .thenAnswer((_) async => true);
+    when(
+      () => permissions.ensureBluetoothPermissions(),
+    ).thenAnswer((_) async => true);
   });
 
   group('persistence', () {
     test('savePrinter stores JSON under the saved_printer key', () async {
-      when(() => cache.saveObject(Constants.savedPrinter, printer.toJson()))
-          .thenAnswer((_) async => true);
+      when(
+        () => cache.saveObject(Constants.savedPrinter, printer.toJson()),
+      ).thenAnswer((_) async => true);
 
       await repo.savePrinter(printer);
 
-      verify(() =>
-              cache.saveObject(Constants.savedPrinter, printer.toJson()))
-          .called(1);
+      verify(
+        () => cache.saveObject(Constants.savedPrinter, printer.toJson()),
+      ).called(1);
     });
 
     test('getSavedPrinter round-trips the device', () async {
-      when(() => cache.getTypedObject<PrinterDevice>(
-            Constants.savedPrinter,
-            PrinterDevice.fromJson,
-          )).thenAnswer((_) async => printer);
+      when(
+        () => cache.getTypedObject<PrinterDevice>(
+          Constants.savedPrinter,
+          PrinterDevice.fromJson,
+        ),
+      ).thenAnswer((_) async => printer);
 
       expect(await repo.getSavedPrinter(), printer);
     });
 
     test('removeSavedPrinter clears the key', () async {
-      when(() => cache.saveObject(Constants.savedPrinter, null))
-          .thenAnswer((_) async => true);
+      when(
+        () => cache.saveObject(Constants.savedPrinter, null),
+      ).thenAnswer((_) async => true);
 
       await repo.removeSavedPrinter();
 
@@ -99,13 +104,19 @@ void main() {
 
   group('scanForDevices', () {
     test('throws permissionDenied when permissions are refused', () async {
-      when(() => permissions.ensureBluetoothPermissions())
-          .thenAnswer((_) async => false);
+      when(
+        () => permissions.ensureBluetoothPermissions(),
+      ).thenAnswer((_) async => false);
 
       expect(
         repo.scanForDevices(),
-        throwsA(isA<PrinterException>()
-            .having((e) => e.error, 'error', PrinterError.permissionDenied)),
+        throwsA(
+          isA<PrinterException>().having(
+            (e) => e.error,
+            'error',
+            PrinterError.permissionDenied,
+          ),
+        ),
       );
     });
 
@@ -114,15 +125,19 @@ void main() {
 
       expect(
         repo.scanForDevices(),
-        throwsA(isA<PrinterException>()
-            .having((e) => e.error, 'error', PrinterError.bluetoothOff)),
+        throwsA(
+          isA<PrinterException>().having(
+            (e) => e.error,
+            'error',
+            PrinterError.bluetoothOff,
+          ),
+        ),
       );
     });
 
     test('returns discovered devices', () async {
       when(() => channel.isBluetoothEnabled()).thenAnswer((_) async => true);
-      when(() => channel.discoverDevices())
-          .thenAnswer((_) async => [printer]);
+      when(() => channel.discoverDevices()).thenAnswer((_) async => [printer]);
 
       expect(await repo.scanForDevices(), [printer]);
     });
@@ -133,21 +148,30 @@ void main() {
 
       expect(
         repo.scanForDevices(),
-        throwsA(isA<PrinterException>()
-            .having((e) => e.error, 'error', PrinterError.scanFailed)),
+        throwsA(
+          isA<PrinterException>().having(
+            (e) => e.error,
+            'error',
+            PrinterError.scanFailed,
+          ),
+        ),
       );
     });
   });
 
   group('connect / print', () {
     test('connect wraps plugin failures as connectionFailed', () async {
-      when(() => channel.connect(printer.address))
-          .thenThrow(Exception('boom'));
+      when(() => channel.connect(printer.address)).thenThrow(Exception('boom'));
 
       expect(
         repo.connect(printer),
-        throwsA(isA<PrinterException>()
-            .having((e) => e.error, 'error', PrinterError.connectionFailed)),
+        throwsA(
+          isA<PrinterException>().having(
+            (e) => e.error,
+            'error',
+            PrinterError.connectionFailed,
+          ),
+        ),
       );
     });
 
@@ -156,8 +180,13 @@ void main() {
 
       expect(
         repo.printBytes(printer, [0x1B, 0x40]),
-        throwsA(isA<PrinterException>()
-            .having((e) => e.error, 'error', PrinterError.printFailed)),
+        throwsA(
+          isA<PrinterException>().having(
+            (e) => e.error,
+            'error',
+            PrinterError.printFailed,
+          ),
+        ),
       );
     });
 
@@ -171,8 +200,9 @@ void main() {
   group('network printers', () {
     test('connect routes to the network channel without Bluetooth '
         'permissions', () async {
-      when(() => networkChannel.connect('192.168.1.50', 9100))
-          .thenAnswer((_) async => true);
+      when(
+        () => networkChannel.connect('192.168.1.50', 9100),
+      ).thenAnswer((_) async => true);
 
       expect(await repo.connect(networkPrinter), isTrue);
 
@@ -182,8 +212,9 @@ void main() {
     });
 
     test('printBytes routes to the network channel', () async {
-      when(() => networkChannel.writeBytes(any()))
-          .thenAnswer((_) async => true);
+      when(
+        () => networkChannel.writeBytes(any()),
+      ).thenAnswer((_) async => true);
 
       expect(await repo.printBytes(networkPrinter, [0x1B, 0x40]), isTrue);
 
@@ -200,22 +231,28 @@ void main() {
     });
 
     test('unreachable host surfaces as connectionFailed', () async {
-      when(() => networkChannel.connect(any(), any()))
-          .thenThrow(Exception('unreachable'));
+      when(
+        () => networkChannel.connect(any(), any()),
+      ).thenThrow(Exception('unreachable'));
 
       expect(
         repo.connect(networkPrinter),
-        throwsA(isA<PrinterException>()
-            .having((e) => e.error, 'error', PrinterError.connectionFailed)),
+        throwsA(
+          isA<PrinterException>().having(
+            (e) => e.error,
+            'error',
+            PrinterError.connectionFailed,
+          ),
+        ),
       );
     });
   });
 
   group('BLE printers', () {
-    test('connect routes to the BLE channel after permission check',
-        () async {
-      when(() => bleChannel.connect(blePrinter.address))
-          .thenAnswer((_) async => true);
+    test('connect routes to the BLE channel after permission check', () async {
+      when(
+        () => bleChannel.connect(blePrinter.address),
+      ).thenAnswer((_) async => true);
 
       expect(await repo.connect(blePrinter), isTrue);
 
@@ -247,12 +284,15 @@ void main() {
       when(() => channel.isBluetoothEnabled()).thenAnswer((_) async => true);
     });
 
-    test('merges BLE results with classic ones, deduplicating by address',
-        () async {
-      repo = buildRepo(includeBleScan: true);
-      when(() => channel.discoverDevices())
-          .thenAnswer((_) async => [printer]);
-      when(() => bleChannel.scan()).thenAnswer((_) async => [
+    test(
+      'merges BLE results with classic ones, deduplicating by address',
+      () async {
+        repo = buildRepo(includeBleScan: true);
+        when(
+          () => channel.discoverDevices(),
+        ).thenAnswer((_) async => [printer]);
+        when(() => bleChannel.scan()).thenAnswer(
+          (_) async => [
             blePrinter,
             // Same address as the classic entry: classic wins.
             const PrinterDevice(
@@ -260,27 +300,27 @@ void main() {
               address: 'AA:BB:CC',
               type: PrinterConnectionType.ble,
             ),
-          ]);
+          ],
+        );
 
-      final devices = await repo.scanForDevices();
+        final devices = await repo.scanForDevices();
 
-      expect(devices, hasLength(2));
-      expect(devices, contains(printer));
-      expect(devices, contains(blePrinter));
-    });
+        expect(devices, hasLength(2));
+        expect(devices, contains(printer));
+        expect(devices, contains(blePrinter));
+      },
+    );
 
     test('keeps classic results when the BLE scan fails', () async {
       repo = buildRepo(includeBleScan: true);
-      when(() => channel.discoverDevices())
-          .thenAnswer((_) async => [printer]);
+      when(() => channel.discoverDevices()).thenAnswer((_) async => [printer]);
       when(() => bleChannel.scan()).thenThrow(Exception('ble boom'));
 
       expect(await repo.scanForDevices(), [printer]);
     });
 
     test('skips the BLE scan entirely when disabled', () async {
-      when(() => channel.discoverDevices())
-          .thenAnswer((_) async => [printer]);
+      when(() => channel.discoverDevices()).thenAnswer((_) async => [printer]);
 
       expect(await repo.scanForDevices(), [printer]);
 

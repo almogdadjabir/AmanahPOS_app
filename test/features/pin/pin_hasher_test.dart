@@ -19,8 +19,10 @@ void main() {
 
     test('hashPin differs for different pins on same salt', () {
       final salt = PinHasher.generateSalt();
-      expect(PinHasher.hashPin('1234', salt) == PinHasher.hashPin('5678', salt),
-          isFalse);
+      expect(
+        PinHasher.hashPin('1234', salt) == PinHasher.hashPin('5678', salt),
+        isFalse,
+      );
     });
 
     test('hashPin differs for same pin on different salts', () {

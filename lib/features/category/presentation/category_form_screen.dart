@@ -1,5 +1,7 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/motion/motion_route.dart';
+import 'package:amana_pos/common/services/image/app_image_picker.dart';
+import 'package:amana_pos/common/widgets/image_upload_box.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/widgets/category_sheet_widgets.dart';
@@ -15,13 +17,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Opens the new / edit category screen. [category] null = new category.
 /// [fromDetail] is true when the category detail screen sits right under the
-/// form, so deleting the category also closes the detail.
+/// form, so deleting the category also closes the detail. [bloc] defaults to
+/// the one in [context] (the pending-sync screen passes its own).
 Future<void> openCategoryForm(
   BuildContext context, {
   CategoryData? category,
   bool fromDetail = false,
+  CategoryBloc? bloc,
 }) {
-  final bloc = context.read<CategoryBloc>();
+  bloc ??= context.read<CategoryBloc>();
 
   return Navigator.of(context).push(
     motionPageRoute(
@@ -98,8 +102,18 @@ class _CategoryFormScreenState extends State<_CategoryFormScreen> {
   final _descCtrl = TextEditingController();
 
   bool _saving = false;
+  PickedAppImage? _image;
 
   bool get _isEdit => widget.category != null;
+
+  String? get _existingImageUrl {
+    final c = widget.category;
+    for (final u in [c?.image, c?.thumbnailUrl]) {
+      final t = u?.trim();
+      if (t != null && t.isNotEmpty) return t;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -146,6 +160,7 @@ class _CategoryFormScreenState extends State<_CategoryFormScreen> {
           categoryId: id,
           name: name,
           description: description.isEmpty ? null : description,
+          image: _image,
         ),
       );
       await _finish(result, tr.categoryUpdatedSuccessfully);
@@ -159,6 +174,7 @@ class _CategoryFormScreenState extends State<_CategoryFormScreen> {
       OnAddCategory(
         name: name,
         description: description.isEmpty ? null : description,
+        image: _image,
       ),
     );
     await _finish(result, tr.categoryCreatedSuccessfully);
@@ -232,19 +248,15 @@ class _CategoryFormScreenState extends State<_CategoryFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 84,
-                        height: 84,
-                        decoration: BoxDecoration(
-                          color: colors.primaryContainer,
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: Icon(
-                          PhosphorIconsRegular.stack,
-                          size: 38,
-                          color: colors.primary,
-                        ),
+                    // Staged locally, uploaded in the background (Task 7).
+                    FormPhotoTile(
+                      picked: _image,
+                      imageUrl: _existingImageUrl,
+                      productId: widget.category?.id,
+                      entityType: 'category',
+                      onTap: () => ImageUploadBox.showPicker(
+                        context,
+                        (image) => setState(() => _image = image),
                       ),
                     ),
                     const SizedBox(height: AppDims.s4),

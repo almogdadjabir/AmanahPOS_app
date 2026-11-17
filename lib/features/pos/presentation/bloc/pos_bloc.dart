@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
+import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -15,7 +18,22 @@ part 'pos_state.dart';
 class PosBloc extends Bloc<PosEvent, PosState> {
   final PosUseCase useCase;
 
-  PosBloc({required this.useCase}) : super(PosState.initial()) {
+  /// The subset of the given product ids that can no longer be sold (no
+  /// local row, or inactive): `SaleService.unavailableProductIds`. Null =
+  /// no pre-check (SaleService still refuses them).
+  final Future<Set<String>> Function(Set<String> productIds)?
+  unavailableProducts;
+
+  StreamSubscription<Set<String>>? _changesSub;
+
+  /// [changes]: `DbChangeNotifier.changes`. A merge / discard / delete that
+  /// touches `products` re-checks the open cart (fix-wave I2).
+  PosBloc({
+    required this.useCase,
+    this.unavailableProducts,
+    Stream<Set<String>>? changes,
+  }) : super(PosState.initial()) {
+    on<_PosCatalogChanged>(_onCatalogChanged);
     on<PosSearchChanged>(_onSearchChanged);
     on<PosCategoryChanged>(_onCategoryChanged);
     on<PosPaymentMethodChanged>(_onPaymentMethodChanged);
@@ -32,6 +50,73 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosBarcodeScanned>(_onBarcodeScanned);
     on<PosSessionReset>(_onSessionReset);
     on<PosTaxConfigChanged>(_onTaxConfigChanged);
+    _changesSub = changes?.listen((tables) {
+      if (tables.contains('products') && !isClosed) {
+        add(const _PosCatalogChanged());
+      }
+    });
+  }
+
+  @override
+  Future<void> close() async {
+    await _changesSub?.cancel();
+    return super.close();
+  }
+
+  /// Product ids of the cart's non-custom lines.
+  Set<String> get _cartProductIds => {
+    for (final i in state.items)
+      if (!i.isCustom && i.product.id != null) i.product.id!,
+  };
+
+  /// Cart lines whose product is gone, or empty.
+  Future<Set<String>> _goneFromCart() async {
+    final check = unavailableProducts;
+    final ids = _cartProductIds;
+    if (check == null || ids.isEmpty) return const {};
+    return check(ids);
+  }
+
+  /// The cart without [gone] lines, and the dropped lines' names.
+  (List<PosCartItem>, List<String>) _without(Set<String> gone) {
+    final kept = <PosCartItem>[];
+    final names = <String>[];
+    for (final i in state.items) {
+      if (!i.isCustom && gone.contains(i.product.id)) {
+        names.add(i.product.name ?? '');
+      } else {
+        kept.add(i);
+      }
+    }
+    return (kept, names);
+  }
+
+  Future<void> _onCatalogChanged(
+    _PosCatalogChanged event,
+    Emitter<PosState> emit,
+  ) async {
+    if (state.submitStatus == PosSubmitStatus.loading) return;
+    final Set<String> gone;
+    try {
+      gone = await _goneFromCart();
+    } catch (_) {
+      return; // checkout re-checks anyway
+    }
+    if (gone.isEmpty) return;
+    final (kept, names) = _without(gone);
+    if (names.isEmpty) return;
+    emit(state.copyWith(items: kept, removedUnavailable: names));
+  }
+
+  void _refuseGone(Set<String> gone, Emitter<PosState> emit) {
+    final (kept, names) = _without(gone);
+    emit(
+      state.copyWith(
+        items: kept,
+        submitStatus: PosSubmitStatus.failure,
+        removedUnavailable: names,
+      ),
+    );
   }
 
   void _onShopSelected(PosShopSelected event, Emitter<PosState> emit) {
@@ -165,6 +250,15 @@ class PosBloc extends Bloc<PosEvent, PosState> {
   ) async {
     if (state.items.isEmpty) return;
 
+    // Fix-wave I2: a line whose product was merged away, discarded or
+    // deleted since it was added must not be sold (its sale would reach
+    // the server with product = NULL).
+    final gone = await _goneFromCart();
+    if (gone.isNotEmpty) {
+      _refuseGone(gone, emit);
+      return;
+    }
+
     // Snapshot BEFORE clearing
     final cartSnapshot = [...state.items];
     final saleSubtotal = state.subtotal;
@@ -244,6 +338,8 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           );
         },
       );
+    } on SaleProductUnavailableException catch (e) {
+      _refuseGone(e.productIds, emit);
     } catch (e) {
       emit(
         state.copyWith(

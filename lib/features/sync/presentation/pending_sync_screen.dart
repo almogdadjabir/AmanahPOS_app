@@ -97,6 +97,11 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
       PendingSyncFailure.discardAlreadySynced => tr.syOxDiscardAlreadySynced,
       PendingSyncFailure.discardOtherScope => tr.syOxDiscardOtherScope,
       PendingSyncFailure.actionFailed => tr.syOxActionFailed,
+      PendingSyncFailure.mergeRefused => tr.syOxMergeRefused,
+      PendingSyncFailure.editNotSaved => tr.syOxEditNotSaved,
+      PendingSyncFailure.discardHasDependents => tr.syOxDiscardHasDependents,
+      PendingSyncFailure.discardMayBeOnServer =>
+        tr.syOxDiscardMayBeOnServerFailure,
     };
   }
 
@@ -130,7 +135,7 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
       );
     }
 
-    if (state.rows.isEmpty) {
+    if (state.rows.isEmpty && state.failedUploads.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -151,7 +156,10 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         title,
-        PendingSyncOutboxView(rows: state.rows),
+        PendingSyncOutboxView(
+          rows: state.rows,
+          failedUploads: state.failedUploads,
+        ),
       ],
     );
   }

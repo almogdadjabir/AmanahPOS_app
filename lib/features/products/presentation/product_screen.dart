@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
 import 'package:amana_pos/features/inventory/presentation/update_stock_screen.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/nav_shell.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -98,13 +99,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Future<void> _refresh() async {
     HapticFeedback.selectionClick();
     final bloc = context.read<ProductBloc>()
-      ..add(const OnProductInitial(force: true));
+      ..add(const OnProductInitial(force: true))
+      ..add(const OnProductsSyncRequested());
     _dispatchQuery();
+    // A local re-read (SQLite); an unchanged list emits nothing, so wait
+    // briefly at most.
     await bloc.stream
-        .firstWhere(
-          (s) => s.productStatus != ProductStatus.loading && !s.isFromCache,
-        )
-        .timeout(const Duration(seconds: 4), onTimeout: () => bloc.state);
+        .firstWhere((s) => s.productStatus != ProductStatus.loading)
+        .timeout(const Duration(seconds: 1), onTimeout: () => bloc.state);
   }
 
   // ---- query + filters ---------------------------------------------------
@@ -220,6 +222,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   List<AppSwipeAction> _swipeActions(
     ProductData product, {
     required bool isRestaurant,
+    required bool canEditCatalog,
   }) {
     final colors = context.appColors;
     final tr = context.tr;
@@ -231,7 +234,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
           color: colors.primary,
           onTap: () => openUpdateStock(context, product: product),
         ),
-      AppSwipeAction(
+      // Catalog writes are owner/manager only (BE `forbidden` otherwise).
+      if (canEditCatalog)
+        AppSwipeAction(
         label: tr.delete,
         icon: PhosphorIconsRegular.trash,
         color: colors.danger,
@@ -251,6 +256,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final isRestaurant = context.select<AuthBloc, bool>(
       (b) => b.state.permissions.isRestaurant,
     );
+    final canEditCatalog = context.select<AuthBloc, bool>(
+      (b) => b.state.permissions.canEditCatalog,
+    );
     final viewBottom = MediaQuery.viewPaddingOf(context).bottom;
     final bottomInset = widget.isWithAppbar
         ? viewBottom + 24
@@ -264,7 +272,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           children: [
             _NavBar(
               showBack: widget.isWithAppbar,
-              onAdd: () => openProductForm(context),
+              onAdd: canEditCatalog ? () => openProductForm(context) : null,
             ),
             Expanded(
               child: BlocBuilder<ProductBloc, ProductState>(
@@ -277,9 +285,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     prev.hasMorePages != curr.hasMorePages ||
                     prev.queryStatus != curr.queryStatus ||
                     prev.queryResults != curr.queryResults ||
-                    prev.loadingAll != curr.loadingAll,
-                builder: (context, state) =>
-                    _body(context, state, isRestaurant, bottomInset),
+                    prev.loadingAll != curr.loadingAll ||
+                    prev.syncMarks != curr.syncMarks,
+                builder: (context, state) => _body(
+                  context,
+                  state,
+                  isRestaurant,
+                  bottomInset,
+                  canEditCatalog,
+                ),
               ),
             ),
           ],
@@ -293,6 +307,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     ProductState state,
     bool isRestaurant,
     double bottomInset,
+    bool canEditCatalog,
   ) {
     final tr = context.tr;
     final colors = context.appColors;
@@ -339,8 +354,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
         icon: PhosphorIconsRegular.package,
         title: tr.noProductsYet,
         body: tr.pcEmptyBody,
-        actionLabel: tr.pcAddProduct,
-        onAction: () => openProductForm(context),
+        actionLabel: canEditCatalog ? tr.pcAddProduct : null,
+        onAction: canEditCatalog ? () => openProductForm(context) : null,
       );
     } else if (visible.isEmpty) {
       content = Padding(
@@ -366,12 +381,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ),
       );
     } else if (state.isGrid) {
-      content = _Grid(products: visible, isRestaurant: isRestaurant);
+      content = _Grid(
+        products: visible,
+        isRestaurant: isRestaurant,
+        syncMarks: state.syncMarks,
+      );
     } else {
       content = ProductListGroup(
         products: visible,
         isRestaurant: isRestaurant,
-        swipeActions: (p) => _swipeActions(p, isRestaurant: isRestaurant),
+        syncMarks: state.syncMarks,
+        swipeActions: (p) => _swipeActions(
+          p,
+          isRestaurant: isRestaurant,
+          canEditCatalog: canEditCatalog,
+        ),
       );
     }
 
@@ -460,7 +484,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
 class _NavBar extends StatelessWidget {
   final bool showBack;
-  final VoidCallback onAdd;
+
+  /// Null hides the add button (cashier).
+  final VoidCallback? onAdd;
 
   const _NavBar({required this.showBack, required this.onAdd});
 
@@ -510,18 +536,20 @@ class _NavBar extends StatelessWidget {
                 ),
               ),
             ),
-            Pressable(
-              onTap: onAdd,
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(
-                  PhosphorIconsRegular.plus,
-                  size: 26,
-                  color: colors.primary,
+            if (onAdd != null)
+              Pressable(
+                key: const ValueKey('products-add'),
+                onTap: onAdd,
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Icon(
+                    PhosphorIconsRegular.plus,
+                    size: 26,
+                    color: colors.primary,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -532,8 +560,13 @@ class _NavBar extends StatelessWidget {
 class _Grid extends StatelessWidget {
   final List<ProductData> products;
   final bool isRestaurant;
+  final CatalogSyncMarks syncMarks;
 
-  const _Grid({required this.products, required this.isRestaurant});
+  const _Grid({
+    required this.products,
+    required this.isRestaurant,
+    required this.syncMarks,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -557,6 +590,7 @@ class _Grid extends StatelessWidget {
         key: ValueKey(products[i].id ?? i),
         product: products[i],
         isRestaurant: isRestaurant,
+        syncMark: syncMarks.markOf(products[i].id),
       ),
     );
   }

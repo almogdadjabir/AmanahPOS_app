@@ -73,6 +73,7 @@ class ProductApplier implements ChangeApplier {
       'image_hash': d['image_hash'] is String ? d['image_hash'] : null,
       'json': jsonEncode(json),
       'updated_at': d['updated_at'] is String ? d['updated_at'] : null,
+      'server_json': jsonEncode({...d, 'id': id, 'version': version}),
     });
     if (!wrote) return;
     await registerRowAssets(txn, entity, id, d);
@@ -119,10 +120,38 @@ class ProductApplier implements ChangeApplier {
     return Decimal3.toDouble(sum);
   }
 
+  /// Spec "Push results": see [catalogPushResult]. Fields taken from a
+  /// merged `server_state` may move the product to another category:
+  /// `category_name` and both categories' `product_count` follow.
   @override
   Future<void> onPushResult(
     Transaction txn,
     OutboxEntry sent,
     PushResult result,
-  ) async {}
+  ) async {
+    final id = sent.entityId;
+    final oldCategory = await _categoryOf(txn, id);
+    if (!await catalogPushResult(txn, 'products', sent, result)) return;
+    final category = await _categoryOf(txn, id);
+    final r = await txn.query(
+      'products',
+      columns: ['json'],
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (r.isEmpty) return;
+    final json = decodeJsonMap(r.first['json'])
+      ..['category_name'] = await _categoryName(txn, category);
+    await txn.update(
+      'products',
+      {'json': jsonEncode(json)},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (oldCategory != category) {
+      await refreshCategoryProductCount(txn, oldCategory);
+      await refreshCategoryProductCount(txn, category);
+    }
+  }
 }

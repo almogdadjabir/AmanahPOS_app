@@ -341,7 +341,7 @@ class EngineHarness {
     String entity = 'product',
     String op = 'create',
     int? baseVersion,
-    String? dependsOn,
+    List<String> dependsOn = const [],
     Map<String, dynamic>? payload,
   }) {
     return writer.write(
@@ -361,7 +361,7 @@ class EngineHarness {
           entityId: id,
           payload: payload ?? {'name': name ?? 'W $id'},
           baseVersion: baseVersion,
-          dependsOnEntityId: dependsOn,
+          dependsOn: dependsOn,
           occurredAt: occurredAt,
         );
       },

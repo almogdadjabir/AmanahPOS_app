@@ -3,14 +3,20 @@ import 'package:amana_pos/features/pin/data/pin_user_record.dart';
 
 void main() {
   PinUserRecord sample() => PinUserRecord(
-        userId: 'u1', businessId: 'b1', tenantId: 't1',
-        fullName: 'Cashier One', role: 'cashier', phone: '+249...',
-        pinSalt: 'salt', pinHash: 'hash',
-        accessToken: 'acc', refreshToken: 'ref',
-        profileJson: const {'id': 'u1', 'role': 'cashier'},
-        enrolledAt: '2026-06-22T00:00:00Z',
-        lastUnlockAt: '2026-06-22T00:00:00Z',
-      );
+    userId: 'u1',
+    businessId: 'b1',
+    tenantId: 't1',
+    fullName: 'Cashier One',
+    role: 'cashier',
+    phone: '+249...',
+    pinSalt: 'salt',
+    pinHash: 'hash',
+    accessToken: 'acc',
+    refreshToken: 'ref',
+    profileJson: const {'id': 'u1', 'role': 'cashier'},
+    enrolledAt: '2026-06-22T00:00:00Z',
+    lastUnlockAt: '2026-06-22T00:00:00Z',
+  );
 
   test('round-trips through json', () {
     final r = sample();

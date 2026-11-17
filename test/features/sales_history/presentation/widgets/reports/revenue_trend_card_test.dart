@@ -9,8 +9,18 @@ import 'package:flutter_test/flutter_test.dart';
 SalesTrend _makeTrend() => SalesTrend(
   interval: 'day',
   points: [
-    const SalesTrendPoint(label: '2026-06-01', grossAmount: 0, netAmount: 0, salesCount: 0),
-    const SalesTrendPoint(label: '2026-06-02', grossAmount: 16140, netAmount: 16140, salesCount: 5),
+    const SalesTrendPoint(
+      label: '2026-06-01',
+      grossAmount: 0,
+      netAmount: 0,
+      salesCount: 0,
+    ),
+    const SalesTrendPoint(
+      label: '2026-06-02',
+      grossAmount: 16140,
+      netAmount: 16140,
+      salesCount: 5,
+    ),
   ],
 );
 
@@ -32,9 +42,13 @@ void main() {
   });
 
   testWidgets('shows empty message when trend has no points', (tester) async {
-    await tester.pumpWidget(wrap(RevenueTrendCard(
-      trend: const SalesTrend(interval: 'day', points: []),
-    )));
+    await tester.pumpWidget(
+      wrap(
+        RevenueTrendCard(
+          trend: const SalesTrend(interval: 'day', points: []),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.byType(LineChart), findsNothing);
     expect(find.text('No sales in this period.'), findsOneWidget);

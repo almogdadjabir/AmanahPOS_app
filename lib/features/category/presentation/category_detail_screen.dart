@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/category_form_screen.dart';
@@ -69,17 +70,18 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   Future<void> _refresh() async {
-    final bloc = context.read<CategoryBloc>();
+    final bloc = context.read<CategoryBloc>()
+      ..add(const OnCategoriesSyncRequested());
     _loadCategoryProducts();
     try {
+      // A local re-read (SQLite); an unchanged list emits nothing.
       await bloc.stream
           .firstWhere(
             (s) =>
                 s.productsStatus == CategoryProductsStatus.failure ||
-                (s.productsStatus == CategoryProductsStatus.success &&
-                    !s.productsFromCache),
+                s.productsStatus == CategoryProductsStatus.success,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 1));
     } catch (_) {
       // Timed out: cached products stay on screen.
     }
@@ -135,6 +137,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     final isRestaurant = context.select<AuthBloc, bool>(
       (b) => b.state.permissions.isRestaurant,
     );
+    final canEdit = context.select<AuthBloc, bool>(
+      (b) => b.state.permissions.canEditCatalog,
+    );
 
     final category =
         context.select<CategoryBloc, CategoryData?>((bloc) {
@@ -165,8 +170,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                   HapticFeedback.selectionClick();
                   setState(() => _isGrid = !_isGrid);
                 },
-                onAdd: () => _addProduct(category),
-                onMenu: (a) => _onMenu(a, category),
+                // Catalog writes are owner/manager only.
+                onAdd: canEdit ? () => _addProduct(category) : null,
+                onMenu: canEdit ? (a) => _onMenu(a, category) : null,
               ),
               Expanded(
                 child: BlocBuilder<CategoryBloc, CategoryState>(
@@ -174,6 +180,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       prev.productsStatus != curr.productsStatus ||
                       prev.products != curr.products ||
                       prev.hasMorePages != curr.hasMorePages ||
+                      prev.productSyncMarks != curr.productSyncMarks ||
                       prev.productsFromCache != curr.productsFromCache,
                   builder: (context, state) => CustomScrollView(
                     controller: _scrollCtrl,
@@ -195,6 +202,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                             state,
                             category,
                             isRestaurant,
+                            canEdit,
                           ),
                         ),
                       ),
@@ -214,6 +222,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     CategoryState state,
     CategoryData category,
     bool isRestaurant,
+    bool canEdit,
   ) {
     final tr = context.tr;
     final colors = context.appColors;
@@ -261,8 +270,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         icon: PhosphorIconsRegular.package,
         title: tr.ctNoProducts,
         body: tr.ctNoProductsBody,
-        actionLabel: tr.pcAddProduct,
-        onAction: () => _addProduct(category),
+        actionLabel: canEdit ? tr.pcAddProduct : null,
+        onAction: canEdit ? () => _addProduct(category) : null,
       );
     } else {
       body = Column(
@@ -291,12 +300,17 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               ),
             ),
           if (_isGrid)
-            _Grid(products: state.products, isRestaurant: isRestaurant)
+            _Grid(
+              products: state.products,
+              isRestaurant: isRestaurant,
+              syncMarks: state.productSyncMarks,
+            )
           else
             ProductListGroup(
               products: state.products,
               isRestaurant: isRestaurant,
               showCategory: false,
+              syncMarks: state.productSyncMarks,
             ),
           if (state.productsStatus == CategoryProductsStatus.loadingMore)
             const Padding(
@@ -323,8 +337,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 class _Grid extends StatelessWidget {
   final List<ProductData> products;
   final bool isRestaurant;
+  final CatalogSyncMarks syncMarks;
 
-  const _Grid({required this.products, required this.isRestaurant});
+  const _Grid({
+    required this.products,
+    required this.isRestaurant,
+    required this.syncMarks,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -344,8 +363,11 @@ class _Grid extends StatelessWidget {
         mainAxisExtent: extent,
       ),
       itemCount: products.length,
-      itemBuilder: (context, i) =>
-          ProductGridTile(product: products[i], isRestaurant: isRestaurant),
+      itemBuilder: (context, i) => ProductGridTile(
+        product: products[i],
+        isRestaurant: isRestaurant,
+        syncMark: syncMarks.markOf(products[i].id),
+      ),
     );
   }
 }
@@ -354,8 +376,10 @@ class _NavBar extends StatelessWidget {
   final String backLabel;
   final bool isGrid;
   final VoidCallback onToggleLayout;
-  final VoidCallback onAdd;
-  final ValueChanged<_MenuAction> onMenu;
+
+  /// Null hides the add-product button and the edit/delete menu (cashier).
+  final VoidCallback? onAdd;
+  final ValueChanged<_MenuAction>? onMenu;
 
   const _NavBar({
     required this.backLabel,
@@ -416,52 +440,54 @@ class _NavBar extends StatelessWidget {
                   : PhosphorIconsRegular.squaresFour,
               onToggleLayout,
             ),
-            iconButton(PhosphorIconsRegular.plus, onAdd, size: 26),
-            PopupMenuButton<_MenuAction>(
-              tooltip: tr.moreActions,
-              position: PopupMenuPosition.under,
-              color: colors.surface,
-              surfaceTintColor: Colors.transparent,
-              elevation: 8,
-              shadowColor: colors.shadow,
-              constraints: const BoxConstraints(minWidth: 246),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(color: colors.border),
-              ),
-              onOpened: () => HapticFeedback.selectionClick(),
-              onSelected: onMenu,
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  value: _MenuAction.edit,
-                  height: 46,
-                  child: _MenuRow(
-                    label: tr.pfEditCategory,
-                    icon: PhosphorIconsRegular.pencilSimple,
-                    color: colors.textPrimary,
+            if (onAdd != null)
+              iconButton(PhosphorIconsRegular.plus, onAdd!, size: 26),
+            if (onMenu != null)
+              PopupMenuButton<_MenuAction>(
+                tooltip: tr.moreActions,
+                position: PopupMenuPosition.under,
+                color: colors.surface,
+                surfaceTintColor: Colors.transparent,
+                elevation: 8,
+                shadowColor: colors.shadow,
+                constraints: const BoxConstraints(minWidth: 246),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: colors.border),
+                ),
+                onOpened: () => HapticFeedback.selectionClick(),
+                onSelected: onMenu!,
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: _MenuAction.edit,
+                    height: 46,
+                    child: _MenuRow(
+                      label: tr.pfEditCategory,
+                      icon: PhosphorIconsRegular.pencilSimple,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  const PopupMenuDivider(height: 0.5),
+                  PopupMenuItem(
+                    value: _MenuAction.delete,
+                    height: 46,
+                    child: _MenuRow(
+                      label: tr.ctDelete,
+                      icon: PhosphorIconsRegular.trash,
+                      color: colors.danger,
+                    ),
+                  ),
+                ],
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Icon(
+                    PhosphorIconsRegular.dotsThree,
+                    size: 24,
+                    color: colors.primary,
                   ),
                 ),
-                const PopupMenuDivider(height: 0.5),
-                PopupMenuItem(
-                  value: _MenuAction.delete,
-                  height: 46,
-                  child: _MenuRow(
-                    label: tr.ctDelete,
-                    icon: PhosphorIconsRegular.trash,
-                    color: colors.danger,
-                  ),
-                ),
-              ],
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(
-                  PhosphorIconsRegular.dotsThree,
-                  size: 24,
-                  color: colors.primary,
-                ),
               ),
-            ),
           ],
         ),
       ),

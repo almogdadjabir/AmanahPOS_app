@@ -60,6 +60,7 @@ import 'package:amana_pos/features/sales_history/data/local/local_sales_history.
 import 'package:amana_pos/features/sales_history/data/repository_impl/sales_history_repo_impl.dart';
 import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
 import 'package:amana_pos/features/sales_history/domain/usecases/sales_history_usecase.dart';
+import 'package:amana_pos/features/sync/domain/catalog_conflict_service.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/sync_badge_cubit.dart';
 import 'package:amana_pos/features/business/data/repository_impl/business_repo_impl.dart';
@@ -80,6 +81,14 @@ import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/pos/data/repository_impl/pos_repo_impl.dart';
 import 'package:amana_pos/features/pos/domain/sale_service.dart';
 import 'package:amana_pos/features/inventory/domain/stock_service.dart';
+import 'package:amana_pos/features/inventory/domain/vendor_service.dart';
+import 'package:amana_pos/features/category/domain/category_service.dart';
+import 'package:amana_pos/features/products/domain/product_service.dart';
+import 'package:amana_pos/core/sync/images/pending_upload_store.dart';
+import 'package:amana_pos/core/sync/images/image_uploader.dart';
+import 'package:amana_pos/core/sync/images/image_uploader_wiring.dart';
+import 'package:amana_pos/core/sync/images/pending_image_resolver.dart';
+import 'package:amana_pos/core/sync/catalog_support.dart';
 import 'package:amana_pos/features/pos/domain/repositories/pos_repository.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/repository_impl/product_repo_impl.dart';
@@ -164,8 +173,14 @@ class DependenciesProvider {
         db: getIt<OfflineDb>(),
         notifier: getIt<DbChangeNotifier>(),
         // Existing manual sync-now (none with the kill switch).
-        syncNow: kSyncEngineEnabled
-            ? () async => (await getIt.getAsync<SyncTriggers>()).syncNow()
+        syncNow: appSyncNow(),
+        conflicts: getIt<CatalogConflictService>(),
+        uploads: getIt<PendingUploadStore>(),
+        // The uploader notifies pending_uploads; the triggers start the
+        // upload run from that (none with the kill switch).
+        retryUpload: kSyncEngineEnabled
+            ? (entity, id) async => (await getIt.getAsync<ImageUploader>())
+                  .retryFailed(entity, id)
             : null,
       ),
     );
@@ -230,12 +245,13 @@ class DependenciesProvider {
       () => UsersRepoImpl(getIt<RequestHandler>()),
     );
 
+    // Catalog (Phase 3): local writes only (row + outbox); no REST client.
     getIt.registerLazySingleton<CategoryRepository>(
-      () => CategoryRepoImpl(getIt<RequestHandler>()),
+      () => CategoryRepoImpl(service: () => getIt<CategoryService>()),
     );
 
     getIt.registerLazySingleton<ProductRepository>(
-      () => ProductRepoImpl(getIt<RequestHandler>()),
+      () => ProductRepoImpl(service: () => getIt<ProductService>()),
     );
 
     getIt.registerLazySingleton<InventoryRepository>(
@@ -243,6 +259,8 @@ class DependenciesProvider {
         getIt<RequestHandler>(),
         // The only stock write path (local + outbox).
         stockService: () => getIt<StockService>(),
+        // The only vendor write path (local + outbox).
+        vendorService: () => getIt<VendorService>(),
       ),
     );
 
@@ -511,6 +529,59 @@ class DependenciesProvider {
       ),
     );
 
+    // Catalog writers (category, vendor): owner/manager only, role from the
+    // live session like StockService.
+    CatalogActor catalogActor() {
+      final perms = getIt<AuthBloc>().state.permissions;
+      return CatalogActor(businessType: perms.businessType, role: perms.role);
+    }
+
+    getIt.registerLazySingleton<CategoryService>(
+      () => CategoryService(
+        writer: getIt<LocalWriter>(),
+        actor: catalogActor,
+        uploads: getIt<PendingUploadStore>(),
+      ),
+    );
+    getIt.registerLazySingleton<VendorService>(
+      () => VendorService(writer: getIt<LocalWriter>(), actor: catalogActor),
+    );
+    // Pending-sync screen actions on rejected catalog rows (merge, discard,
+    // edit and retry).
+    getIt.registerLazySingleton<CatalogConflictService>(
+      () => CatalogConflictService(
+        db: getIt<OfflineDb>(),
+        writer: getIt<LocalWriter>(),
+        outbox: getIt<OutboxStore>(),
+        uploads: getIt<PendingUploadStore>(),
+      ),
+    );
+    // Staged catalog images: <appSupport>/pending_images (foreground only).
+    getIt.registerLazySingleton<PendingUploadStore>(
+      () => PendingUploadStore(
+        baseDir: () async => (await getApplicationSupportDirectory()).path,
+      ),
+    );
+    // Staged image of an entity, shown first by OfflineCachedImage (one
+    // pending_uploads query per notify for every image on screen).
+    getIt.registerLazySingleton<PendingImageResolver>(
+      () => buildPendingImageResolver(
+        db: getIt<OfflineDb>(),
+        store: getIt<PendingUploadStore>(),
+        notifier: getIt<DbChangeNotifier>(),
+        scopeProvider: () => SyncScope.current,
+      ),
+      dispose: (r) => r.dispose(),
+    );
+    getIt.registerLazySingleton<ProductService>(
+      () => ProductService(
+        writer: getIt<LocalWriter>(),
+        actor: catalogActor,
+        uploads: getIt<PendingUploadStore>(),
+        categories: getIt<CategoryService>(),
+      ),
+    );
+
     // The only writer of local sales (sale rows + outbox + stock, one txn).
     getIt.registerLazySingleton<SaleService>(
       () => SaleService(
@@ -576,6 +647,25 @@ class DependenciesProvider {
       );
     });
 
+    // Catalog image uploads (foreground only; only the triggers start it).
+    // Same transport (HttpSyncTransport is also the ImageUploadTransport)
+    // and token rules (engine.authedFor) as the rest of sync.
+    getIt.registerLazySingletonAsync<ImageUploader>(() async {
+      final engine = await getIt.getAsync<SyncEngine>();
+      final uploader = buildImageUploader(
+        db: getIt<OfflineDb>(),
+        store: getIt<PendingUploadStore>(),
+        transport: getIt<SyncTransport>(),
+        notifier: getIt<DbChangeNotifier>(),
+        scopeProvider: () => SyncScope.current,
+        authedFor: engine.authedFor,
+      );
+      if (uploader == null) {
+        throw StateError('SyncTransport is not an ImageUploadTransport');
+      }
+      return uploader;
+    });
+
     getIt.registerLazySingletonAsync<SyncTriggers>(() async {
       return SyncTriggers(
         await getIt.getAsync<SyncEngine>(),
@@ -591,6 +681,7 @@ class DependenciesProvider {
         // Resolved on first use (not here): building it needs the app
         // support folder.
         assetSync: () => getIt.getAsync<AssetSync>(),
+        imageUploader: () => getIt.getAsync<ImageUploader>(),
         assetsReachable: () async =>
             await getIt<ServerReachability>().check() != null,
       );
@@ -800,3 +891,11 @@ class DependenciesProvider {
     return getIt.get<T>();
   }
 }
+
+/// The app's manual sync-now for UI callers (pending-sync "Send now", pull
+/// to refresh on the catalog screens); null with the kill switch.
+Future<void> Function()? appSyncNow() => kSyncEngineEnabled
+    ? () async {
+        await (await getIt.getAsync<SyncTriggers>()).syncNow();
+      }
+    : null;

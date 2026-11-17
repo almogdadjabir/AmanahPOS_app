@@ -465,6 +465,68 @@ void main() {
     });
   });
 
+  group('product re-check at checkout (fix-wave I2)', () {
+    test('a line whose product row is gone (merged / discarded) is refused; '
+        'nothing is written', () async {
+      await f.db.delete('products', where: 'id = ?', whereArgs: [kP2]);
+      await expectLater(
+        service.createSale(draft()),
+        throwsA(
+          isA<SaleProductUnavailableException>().having(
+            (e) => e.productIds,
+            'productIds',
+            {kP2},
+          ),
+        ),
+      );
+      expect(await f.count('sales'), 0);
+      expect(await f.count('sale_items'), 0);
+      expect(await f.count('outbox'), 0);
+    });
+
+    test('an inactive (deleted) product is refused', () async {
+      await f.db.update(
+        'products',
+        {'json': '{"id":"$kP1","name":"Tea","is_active":false}'},
+        where: 'id = ?',
+        whereArgs: [kP1],
+      );
+      await expectLater(
+        service.createSale(draft()),
+        throwsA(
+          isA<SaleProductUnavailableException>().having(
+            (e) => e.productIds,
+            'productIds',
+            {kP1},
+          ),
+        ),
+      );
+      expect(await f.count('outbox'), 0);
+    });
+
+    test('custom lines are never checked', () async {
+      await f.db.delete('products');
+      final sale = await service.createSale(
+        draft(
+          lines: [
+            const SaleDraftLine.custom(
+              name: 'Tip',
+              unitPrice: '3',
+              quantity: '1',
+            ),
+          ],
+        ),
+      );
+      expect(sale.items.single.productId, isNull);
+    });
+
+    test('unavailableProductIds reports missing and inactive ids only', () async {
+      await f.db.delete('products', where: 'id = ?', whereArgs: [kP2]);
+      expect(await service.unavailableProductIds({kP1, kP2}), {kP2});
+      expect(await service.unavailableProductIds(const []), isEmpty);
+    });
+  });
+
   group('schema v9', () {
     test('fresh onCreate has the sales tables', () async {
       expect(OfflineDb.schemaVersion, greaterThanOrEqualTo(9));

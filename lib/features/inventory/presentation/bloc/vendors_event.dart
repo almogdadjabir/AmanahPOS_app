@@ -10,6 +10,20 @@ class OnVendorsStarted extends VendorsEvent {
   List<Object?> get props => [];
 }
 
+/// A local write or a pull touched [VendorsBloc.watchedTables]: re-read.
+class OnVendorsChanged extends VendorsEvent {
+  const OnVendorsChanged();
+  @override
+  List<Object?> get props => [];
+}
+
+/// Pull to refresh: ask the server for changes (see `requestCatalogSync`).
+class OnVendorsSyncRequested extends VendorsEvent {
+  const OnVendorsSyncRequested();
+  @override
+  List<Object?> get props => [];
+}
+
 class OnVendorCreate extends VendorsEvent {
   final CreateVendorRequestDto request;
   const OnVendorCreate(this.request);

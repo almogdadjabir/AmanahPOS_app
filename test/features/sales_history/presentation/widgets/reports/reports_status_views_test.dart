@@ -25,14 +25,18 @@ void main() {
     expect(find.text('No sales in this period.'), findsOneWidget);
   });
 
-  testWidgets('ReportsErrorView shows error message and retry button', (tester) async {
+  testWidgets('ReportsErrorView shows error message and retry button', (
+    tester,
+  ) async {
     bool retried = false;
-    await tester.pumpWidget(wrap(
-      ReportsErrorView(
-        message: 'Failed to load report.',
-        onRetry: () => retried = true,
+    await tester.pumpWidget(
+      wrap(
+        ReportsErrorView(
+          message: 'Failed to load report.',
+          onRetry: () => retried = true,
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     expect(find.text('Failed to load report.'), findsOneWidget);
     await tester.tap(find.text('Retry'));

@@ -11,12 +11,16 @@ class VendorsState extends Equatable {
   final VendorsSubmitStatus submitStatus;
   final String? submitError;
 
+  /// "Waiting to sync" / "Sync failed" markers of the vendor rows.
+  final CatalogSyncMarks syncMarks;
+
   const VendorsState({
     this.status = VendorsStatus.initial,
     this.vendors = const [],
     this.responseError,
     this.submitStatus = VendorsSubmitStatus.idle,
     this.submitError,
+    this.syncMarks = CatalogSyncMarks.none,
   });
 
   factory VendorsState.initial() => const VendorsState();
@@ -29,6 +33,7 @@ class VendorsState extends Equatable {
     VendorsSubmitStatus? submitStatus,
     String? submitError,
     bool clearSubmitError = false,
+    CatalogSyncMarks? syncMarks,
   }) {
     return VendorsState(
       status: status ?? this.status,
@@ -38,6 +43,7 @@ class VendorsState extends Equatable {
           : responseError ?? this.responseError,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: clearSubmitError ? null : submitError ?? this.submitError,
+      syncMarks: syncMarks ?? this.syncMarks,
     );
   }
 
@@ -48,5 +54,6 @@ class VendorsState extends Equatable {
     responseError,
     submitStatus,
     submitError,
+    syncMarks,
   ];
 }

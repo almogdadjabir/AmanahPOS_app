@@ -5,6 +5,7 @@ import '../network/network_monitor.dart';
 import 'assets/asset_sync.dart';
 import 'bootstrap/bootstrapper.dart';
 import 'db_change_notifier.dart';
+import 'images/image_uploader.dart';
 import 'outbox/outbox_store.dart';
 import 'sync_engine.dart';
 import 'sync_schema.dart';
@@ -58,6 +59,18 @@ import 'sync_scope.dart';
 /// server answers. Fire-and-forget: never awaited by the run, never changes
 /// its outcome, every failure is swallowed and logged. AssetSync is
 /// single-flight itself, so overlapping starts collapse.
+///
+/// Image uploads (phase 3, Task 6): [imageUploader] (`ImageUploader.run()`)
+/// starts at the same points as [assetSync] and also on connectivity
+/// regained, under the same [assetsReachable] gate. It runs NEXT TO the
+/// asset run (never delays downloads); when it uploaded something, AssetSync
+/// is started once more so the served image is fetched. Fire-and-forget like
+/// AssetSync. The OS background worker never builds an uploader
+/// (foreground-only ruling). A `pending_uploads` change (an image staged by
+/// an image-only edit, a failed upload put back by the pending-sync screen)
+/// also starts an upload run, debounced by [uploadDebounce] (review M1: the
+/// periodic run alone was 5 minutes away; an image-only edit enqueues no
+/// outbox row, so no push run follows it).
 class SyncTriggers {
   SyncTriggers(
     this._engine,
@@ -65,6 +78,7 @@ class SyncTriggers {
     this._outbox,
     this._notifier, {
     this.afterWriteDebounce = const Duration(seconds: 5),
+    this.uploadDebounce = const Duration(seconds: 2),
     this.periodic = const Duration(minutes: 5),
     this.alreadyRunningRetry = const Duration(minutes: 2),
     this.backoffFallback = const Duration(minutes: 2),
@@ -75,8 +89,10 @@ class SyncTriggers {
     this.resumeRefreshTables = const {},
     Bootstrapper? bootstrapper,
     Future<AssetSync?> Function()? assetSync,
+    Future<ImageUploader?> Function()? imageUploader,
     Future<bool> Function()? assetsReachable,
   }) : _canSync = canSync,
+       _imageUploader = imageUploader,
        _now = now ?? DateTime.now,
        _bootstrapper = bootstrapper,
        _assetSync = assetSync,
@@ -87,6 +103,10 @@ class SyncTriggers {
   final OutboxStore _outbox;
   final DbChangeNotifier _notifier;
   final Duration afterWriteDebounce;
+
+  /// Wait after a `pending_uploads` change before the upload run starts
+  /// (a burst of changes starts one run).
+  final Duration uploadDebounce;
   final Duration periodic;
 
   /// Wait before retrying when another runner holds the lock (lock TTL).
@@ -101,6 +121,7 @@ class SyncTriggers {
   final DateTime Function() _now;
   final Bootstrapper? _bootstrapper;
   final Future<AssetSync?> Function()? _assetSync;
+  final Future<ImageUploader?> Function()? _imageUploader;
   final Future<bool> Function()? _assetsReachable;
 
   /// The last bootstrap ended `blocked`: only manual runs retry it (and app
@@ -131,6 +152,7 @@ class SyncTriggers {
   StreamSubscription<Set<String>>? _dbSub;
   Timer? _periodicTimer;
   Timer? _writeTimer;
+  Timer? _uploadTimer;
   Timer? _retryTimer;
   Timer? _backoffTimer;
   Timer? _followUpTimer;
@@ -211,6 +233,8 @@ class SyncTriggers {
 
   void onAppPaused() {
     _foreground = false;
+    _uploadTimer?.cancel();
+    _uploadTimer = null;
     _periodicTimer?.cancel();
     _periodicTimer = null;
     _requestBackgroundWork();
@@ -255,15 +279,31 @@ class SyncTriggers {
     if (!online || was == true) return;
     final maintenance = _engine.current.block == SyncBlockReason.maintenance;
     _kick(SyncReason.connectivity, bypassBackoff: !maintenance);
+    _kickAssets('connectivity', downloads: false);
   }
 
   void _onTablesChanged(Set<String> tables) {
+    if (tables.contains(SyncTables.pendingUploads)) _onUploadsChanged();
     if (!tables.contains(SyncTables.outbox)) return;
     if (!_foreground) _requestBackgroundWork();
     if (_writeTimer != null) return; // join the open window
     _writeTimer = Timer(afterWriteDebounce, () {
       _writeTimer = null;
       unawaited(_afterWrite());
+    });
+  }
+
+  /// The uploader's own writes notify too; such a run finds nothing due
+  /// (removed, parked, or backed off into the future) and writes nothing,
+  /// so this never loops.
+  void _onUploadsChanged() {
+    if (_imageUploader == null || !_started || !_foreground) return;
+    if (_uploadTimer != null) return; // join the open window
+    _uploadTimer = Timer(uploadDebounce, () {
+      _uploadTimer = null;
+      // M7: backgrounded meanwhile: no upload (foreground-only ruling).
+      if (!_started || !_foreground) return;
+      _kickAssets('pending uploads changed', downloads: false);
     });
   }
 
@@ -433,21 +473,49 @@ class SyncTriggers {
     });
   }
 
-  /// Starts an image run without waiting for it. Never throws.
-  void _kickAssets(String why) {
-    final provider = _assetSync;
-    if (provider == null || !_started) return;
+  /// Starts the image work without waiting for it: an AssetSync run
+  /// ([downloads]) and, next to it, an upload run; an upload that landed
+  /// starts one more AssetSync run. Never throws.
+  void _kickAssets(String why, {bool downloads = true}) {
+    final assetsProvider = _assetSync;
+    final uploadsProvider = _imageUploader;
+    if ((assetsProvider == null && uploadsProvider == null) || !_started) {
+      return;
+    }
     final gen = _generation;
-    unawaited(() async {
+    bool live() => _started && gen == _generation;
+
+    Future<void> runAssets() async {
+      if (assetsProvider == null || !live()) return;
       try {
-        final gate = _assetsReachable;
-        if (gate != null && !await gate()) return;
-        if (!_started || gen != _generation) return;
-        final assets = await provider();
+        final assets = await assetsProvider();
         if (assets == null) return;
         await assets.run();
       } catch (e, st) {
         _log('asset sync ($why) failed', e, st);
+      }
+    }
+
+    Future<void> runUploads() async {
+      if (uploadsProvider == null || !live()) return;
+      try {
+        final uploader = await uploadsProvider();
+        if (uploader == null || !live()) return;
+        final report = await uploader.run();
+        if (report.uploaded > 0) await runAssets();
+      } catch (e, st) {
+        _log('image upload ($why) failed', e, st);
+      }
+    }
+
+    unawaited(() async {
+      try {
+        final gate = _assetsReachable;
+        if (gate != null && !await gate()) return;
+        if (!live()) return;
+        await Future.wait([if (downloads) runAssets(), runUploads()]);
+      } catch (e, st) {
+        _log('image work ($why) failed', e, st);
       }
     }());
   }
@@ -456,6 +524,7 @@ class SyncTriggers {
     for (final t in [
       _periodicTimer,
       _writeTimer,
+      _uploadTimer,
       _retryTimer,
       _backoffTimer,
       _followUpTimer,
@@ -464,6 +533,7 @@ class SyncTriggers {
     }
     _periodicTimer = null;
     _writeTimer = null;
+    _uploadTimer = null;
     _retryTimer = null;
     _backoffTimer = null;
     _followUpTimer = null;

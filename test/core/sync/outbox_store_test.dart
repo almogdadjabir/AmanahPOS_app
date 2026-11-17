@@ -36,7 +36,7 @@ void main() {
       entityId: entityId,
       payload: payload ?? {'a': 1},
       scope: 'u1|t1',
-      dependsOnEntityId: dep,
+      dependsOn: [?dep],
     );
   }
 
@@ -68,9 +68,13 @@ void main() {
   test(
     'blocked when dependency create is open; unblock flips to pending',
     () async {
-      await enq('p1', op: 'create');
+      final parent = await enq('p1', op: 'create');
       final child = await enq('v1', op: 'create', dep: 'p1');
       expect(child.status, OutboxStatus.blocked);
+      // Unblock re-checks the dependency: the create must be done first.
+      await store.unblockDependents(db, 'p1', scope: 'u1|t1');
+      expect(await statusOf(child.mutationId), 'blocked');
+      await store.applyResult(db, parent.mutationId, status: OutboxStatus.done);
       await store.unblockDependents(db, 'p1', scope: 'u1|t1');
       expect(await statusOf(child.mutationId), 'pending');
     },
@@ -129,17 +133,73 @@ void main() {
     },
   );
 
-  test('rejected earlier mutation holds later same-entity mutations', () async {
-    final u1 = await enq('e1');
-    await enq('e1');
-    await store.claimBatch(scope: 'u1|t1');
-    await store.applyResult(
+  test('rejected earlier mutation holds later same-entity mutations '
+      '(non-catalog entity, or a rejected create)', () async {
+    Future<OutboxEntry> row(String entity, String op) => store.enqueue(
       db,
-      u1.mutationId,
-      status: OutboxStatus.rejected,
-      code: 'validation_error',
+      entity: entity,
+      op: op,
+      entityId: 'e1',
+      payload: const {'a': 1},
+      scope: 'u1|t1',
     );
-    expect(await store.claimBatch(scope: 'u1|t1'), isEmpty);
+    for (final (entity, op) in [
+      ('sale', 'refund'),
+      ('customer', 'update'),
+      ('product', 'create'),
+    ]) {
+      await db.delete('outbox');
+      final first = await row(entity, op);
+      await row(entity, op == 'create' ? 'update' : op);
+      await store.claimBatch(scope: 'u1|t1');
+      await store.applyResult(
+        db,
+        first.mutationId,
+        status: OutboxStatus.rejected,
+        code: 'validation_error',
+      );
+      expect(
+        await store.claimBatch(scope: 'u1|t1'),
+        isEmpty,
+        reason: '$entity.$op',
+      );
+    }
+  });
+
+  test('a rejected catalog update/delete does not hold later rows of the '
+      'same row (ruling I2)', () async {
+    for (final entity in ['product', 'category', 'vendor']) {
+      for (final op in ['update', 'delete']) {
+        await db.delete('outbox');
+        final first = await store.enqueue(
+          db,
+          entity: entity,
+          op: op,
+          entityId: 'e1',
+          payload: const {},
+          scope: 'u1|t1',
+        );
+        final later = await store.enqueue(
+          db,
+          entity: entity,
+          op: 'update',
+          entityId: 'e1',
+          payload: const {'name': 'x'},
+          scope: 'u1|t1',
+        );
+        await store.claimBatch(scope: 'u1|t1');
+        await store.applyResult(
+          db,
+          first.mutationId,
+          status: OutboxStatus.rejected,
+          code: 'conflict_unique',
+        );
+        final got = await store.claimBatch(scope: 'u1|t1');
+        expect(got.map((e) => e.mutationId), [
+          later.mutationId,
+        ], reason: '$entity.$op');
+      }
+    }
   });
 
   test('next_attempt_at in the future is not claimed until due', () async {

@@ -2,6 +2,7 @@ import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'dart:io';
 
 import 'package:amana_pos/core/offline/data/local_image_resolver.dart';
+import 'package:amana_pos/core/sync/images/pending_image_resolver.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,19 +14,31 @@ class OfflineCachedImage extends StatefulWidget {
   final Widget? placeholder;
   final Widget? errorWidget;
 
+  /// Optional owner of the image (`product` / `category` + its id). When
+  /// both are set and the entity has a staged upload (`pending_uploads`,
+  /// current scope), that file is shown first, before any `synced_assets`
+  /// file or the network. Without them the widget behaves as before.
+  final String? entityType;
+  final String? entityId;
+
   const OfflineCachedImage({
     super.key,
     required this.imageUrl,
     this.fit = BoxFit.cover,
     this.placeholder,
     this.errorWidget,
+    this.entityType,
+    this.entityId,
   });
 
   @override
   State<OfflineCachedImage> createState() => _OfflineCachedImageState();
 }
 
-/// Image source order: the file AssetSync downloaded (`synced_assets`, by
+/// Image source order: the staged upload of [OfflineCachedImage.entityId]
+/// (Task 6; shared [PendingImageResolver], re-resolved on `pending_uploads`
+/// notifies, decoded small via `cacheWidth`), then the file AssetSync
+/// downloaded (`synced_assets`, by
 /// url, file exists), then the network exactly as before. Resolved through
 /// the ONE shared [LocalImageResolver] (one query per `synced_assets`
 /// notify for all images on screen), so a thumbnail downloaded while the
@@ -35,6 +48,8 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
   String? _resolvedUrl;
   LocalImageResolver? _resolver;
   ValueListenable<LocalImageLookup>? _lookup;
+  PendingImageResolver? _pendingResolver;
+  ValueListenable<Map<String, String>?>? _pending;
 
   static const ValueListenable<LocalImageLookup> _network = _ConstLookup(
     LocalImageLookup.resolved(null),
@@ -44,6 +59,31 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
   void initState() {
     super.initState();
     _subscribe(widget.imageUrl?.trim());
+    _subscribePending();
+  }
+
+  String? get _entityKey {
+    final type = widget.entityType;
+    final id = widget.entityId;
+    if (type == null || type.isEmpty || id == null || id.isEmpty) return null;
+    return PendingImageResolver.keyOf(type, id);
+  }
+
+  void _subscribePending() {
+    if (_entityKey == null) return;
+    try {
+      if (getIt.isRegistered<PendingImageResolver>()) {
+        final r = getIt<PendingImageResolver>();
+        _pending = r.acquire();
+        _pendingResolver = r;
+      }
+    } catch (_) {}
+  }
+
+  void _unsubscribePending() {
+    _pendingResolver?.release();
+    _pendingResolver = null;
+    _pending = null;
   }
 
   void _subscribe(String? url) {
@@ -72,6 +112,16 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
   void didUpdateWidget(OfflineCachedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    final hadEntity =
+        (oldWidget.entityType?.isNotEmpty ?? false) &&
+        (oldWidget.entityId?.isNotEmpty ?? false);
+    if (hadEntity != (_entityKey != null)) {
+      setState(() {
+        _unsubscribePending();
+        _subscribePending();
+      });
+    }
+
     final oldUrl = oldWidget.imageUrl?.trim();
     final newUrl = widget.imageUrl?.trim();
 
@@ -92,11 +142,45 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
   @override
   void dispose() {
     _unsubscribe();
+    _unsubscribePending();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final pending = _pending;
+    final key = _entityKey;
+    if (pending == null || key == null) return _buildFromUrl(context);
+    return ValueListenableBuilder<Map<String, String>?>(
+      valueListenable: pending,
+      builder: (context, paths, _) {
+        // T6 M4: first load still running: a placeholder, not a flash of
+        // the url / error tile before the staged file appears.
+        if (paths == null) {
+          return widget.placeholder ?? const _DefaultImagePlaceholder();
+        }
+        final staged = paths[key];
+        if (staged == null) return _buildFromUrl(context);
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0;
+            final w = constraints.maxWidth.isFinite
+                ? (constraints.maxWidth * dpr).round().clamp(1, 2048)
+                : 512;
+            return Image.file(
+              File(staged),
+              key: ValueKey(staged),
+              fit: widget.fit,
+              cacheWidth: w,
+              errorBuilder: (_, _, _) => _buildFromUrl(context),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFromUrl(BuildContext context) {
     final url = _resolvedUrl;
     final lookup = _lookup;
 

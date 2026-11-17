@@ -10,7 +10,6 @@ import 'package:amana_pos/features/inventory/data/models/responses/expiry_report
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
-import 'package:amana_pos/features/inventory/data/models/responses/vendor_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/vendor_summary_dto.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -55,20 +54,14 @@ abstract class InventoryRepository {
     int pageSize = 20,
   });
 
-  Future<Either<String?, VendorListResponseDto>> getVendors({
-    bool activeOnly = true,
-    int pageSize = 200,
-  });
-
-  Future<Either<String?, VendorData>> getVendorById(String id);
-  Future<Either<String?, VendorData>> createVendor(
-    CreateVendorRequestDto request,
-  );
-  Future<Either<String?, VendorData>> updateVendor(
+  /// Vendor writes are local (VendorService + outbox); the list is read
+  /// from SQLite. Create returns the new vendor id.
+  Future<Either<String?, String>> createVendor(CreateVendorRequestDto request);
+  Future<Either<String?, Unit>> updateVendor(
     String id,
     UpdateVendorRequestDto request,
   );
-  Future<Either<String?, bool>> deleteVendor(String id);
+  Future<Either<String?, Unit>> deleteVendor(String id);
 
   Future<Either<String?, VendorSummaryData>> getVendorSummary({
     String? shopId,

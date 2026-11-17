@@ -1,7 +1,9 @@
 part of 'product_bloc.dart';
 
 enum ProductStatus { initial, loading, loadingMore, success, failure }
+
 enum ProductSubmitStatus { idle, loading, success, failure }
+
 enum ProductQueryStatus { idle, loading, success, failure }
 
 class ProductState extends Equatable {
@@ -16,13 +18,11 @@ class ProductState extends Equatable {
   final ProductSubmitStatus submitStatus;
   final String? submitError;
 
-  /// Non-fatal note attached to a successful submit. e.g. the product was
-  /// created but its opening stock could not be recorded. The product still
-  /// exists; the UI should inform rather than block.
-  final String? submitWarning;
-
-  /// True when data came from SQLite/offline cache.
+  /// Legacy flag (REST era). Always false: SQLite is the only source.
   final bool isFromCache;
+
+  /// "Waiting to sync" / "Sync failed" markers of the product rows.
+  final CatalogSyncMarks syncMarks;
 
   /// Search / inactive-only query, kept apart from [products].
   final ProductQueryStatus queryStatus;
@@ -42,11 +42,11 @@ class ProductState extends Equatable {
     this.isGrid = true,
     this.submitStatus = ProductSubmitStatus.idle,
     this.submitError,
-    this.submitWarning,
     this.isFromCache = false,
     this.queryStatus = ProductQueryStatus.idle,
     this.queryResults = const [],
     this.loadingAll = false,
+    this.syncMarks = CatalogSyncMarks.none,
   });
 
   factory ProductState.initial() => const ProductState();
@@ -67,12 +67,11 @@ class ProductState extends Equatable {
     ProductSubmitStatus? submitStatus,
     String? submitError,
     bool clearSubmitError = false,
-    String? submitWarning,
-    bool clearSubmitWarning = false,
     bool? isFromCache,
     ProductQueryStatus? queryStatus,
     List<ProductData>? queryResults,
     bool? loadingAll,
+    CatalogSyncMarks? syncMarks,
   }) {
     return ProductState(
       productStatus: productStatus ?? this.productStatus,
@@ -87,11 +86,11 @@ class ProductState extends Equatable {
       isGrid: isGrid ?? this.isGrid,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: clearSubmitError ? null : submitError,
-      submitWarning: clearSubmitWarning ? null : submitWarning,
       isFromCache: isFromCache ?? this.isFromCache,
       queryStatus: queryStatus ?? this.queryStatus,
       queryResults: queryResults ?? this.queryResults,
       loadingAll: loadingAll ?? this.loadingAll,
+      syncMarks: syncMarks ?? this.syncMarks,
     );
   }
 
@@ -107,10 +106,10 @@ class ProductState extends Equatable {
     isGrid,
     submitStatus,
     submitError,
-    submitWarning,
     isFromCache,
     queryStatus,
     queryResults,
     loadingAll,
+    syncMarks,
   ];
 }

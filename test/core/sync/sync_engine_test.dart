@@ -305,7 +305,7 @@ void main() {
     entityId: entityId,
     payload: payload ?? {'name': 'P $entityId'},
     scope: scope,
-    dependsOnEntityId: dep,
+    dependsOn: [?dep],
   );
 
   Future<Map<String, Object?>> row(String mid) async => (await db.query(

@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../contract/sync_contract.dart';
 import '../decimal3.dart';
+import '../outbox/outbox_entry.dart';
 
 /// True when [v] is a plain decimal (string or number). Money stays a string
 /// on the wire and in storage; this only validates.
@@ -268,3 +269,238 @@ Future<void> unregisterAssets(Transaction txn, String type, String id) =>
       where: 'type = ? AND id = ?',
       whereArgs: [type, id],
     );
+
+// ---------------------------------------------------------------- push results
+
+/// `server_state` of a BE result is `handlers.snapshot(obj)`: model
+/// attnames (`category_id`, `parent_id`, `tenant_id`) and storage keys for
+/// images. This maps it onto the feed `data` shape the local json uses and
+/// drops what must not overwrite local columns (tenant, image keys: the
+/// image is adopted by the feed / the image uploader, never from a
+/// snapshot).
+Map<String, dynamic> feedShapeOf(Map<String, dynamic> state) {
+  final out = <String, dynamic>{...state};
+  for (final (from, to) in kSnapshotFeedKeys) {
+    if (out.containsKey(from)) out[to] = out.remove(from);
+  }
+  for (final k in const [
+    'tenant_id',
+    'tenant',
+    'image',
+    'thumbnail',
+    'thumbnail_url',
+    'image_hash',
+    'image_bytes',
+    'thumbnail_bytes',
+    'version',
+  ]) {
+    out.remove(k);
+  }
+  return out;
+}
+
+/// BE `snapshot()` attname -> feed key (FKs; feed.py `ser_category`,
+/// `ser_product`, `ser_vendor`).
+const List<(String, String)> kSnapshotFeedKeys = [
+  ('category_id', 'category'),
+  ('parent_id', 'parent'),
+  ('shop_id', 'shop'),
+];
+
+/// Keys the local json derives (legacy readers) that are not server state:
+/// never stored in `server_json`.
+const Set<String> kLocalDerivedKeys = {
+  'category_name',
+  'stock_level',
+  'product_count',
+  'children',
+  'tenant',
+};
+
+/// [m] without [kLocalDerivedKeys]: the pure server snapshot.
+Map<String, dynamic> withoutDerivedKeys(Map<String, dynamic> m) => {
+  for (final e in m.entries)
+    if (!kLocalDerivedKeys.contains(e.key)) e.key: e.value,
+};
+
+/// Mutation payload keys that are not row fields.
+const Set<String> kNonFieldPayloadKeys = _nonFieldPayloadKeys;
+const Set<String> _nonFieldPayloadKeys = {
+  'id',
+  'image_pending',
+  'image_upload',
+};
+
+/// Whether [txn] has an unconfirmed outbox row (anything but `done`) of
+/// [sent]'s entity other than [sent] itself: a later local edit the row
+/// still shows, which a server snapshot must not overwrite.
+Future<bool> hasOtherOpenRows(Transaction txn, OutboxEntry sent) async {
+  final r = await txn.rawQuery(
+    'SELECT 1 FROM outbox WHERE entity = ? AND entity_id = ? AND scope = ? '
+    "AND mutation_id != ? AND status != 'done' LIMIT 1",
+    [sent.entity, sent.entityId, sent.scope, sent.mutationId],
+  );
+  return r.isNotEmpty;
+}
+
+/// Local columns derived from the catalog json of [table] (`products`:
+/// category_id, name, sku, barcode, price; `categories`: parent_id, name).
+Map<String, Object?> catalogColumnsOf(String table, Map<String, dynamic> j) =>
+    _catalogColumns(table, j);
+
+Map<String, Object?> _catalogColumns(String table, Map<String, dynamic> j) {
+  String? str(Object? v) => v is String ? v : null;
+  return switch (table) {
+    'products' => {
+      'category_id': str(j['category']),
+      'name': str(j['name']),
+      'sku': str(j['sku']),
+      'barcode': str(j['barcode']),
+      if (j['price'] != null) 'price': '${j['price']}',
+    },
+    'categories' => {'parent_id': str(j['parent']), 'name': str(j['name'])},
+    _ => const {},
+  };
+}
+
+/// Spec "Push results" for `applied` / `duplicate` of a catalog row
+/// (`categories`, `products`, `vendors`: `json`, `version`, `server_json`).
+///
+/// - Never rolls back: nothing happens when the stored `version` is already
+///   >= `r.version` (a `duplicate` replays the ORIGINAL result).
+/// - `merged` + `server_state`: the local fields are replaced from the
+///   (feed-shaped) state and `version` adopted, unless another unconfirmed
+///   local row of the entity exists (its edit keeps showing; that row's own
+///   result brings the merged truth later).
+/// - Otherwise the version is adopted only when nobody else can have written
+///   in between: a `create`, or an edit with `version == base_version + 1`.
+///   An edit sent with no base (queued behind its unsent create) leaves the
+///   version alone, so the pulled echo of the server row still applies.
+/// - `server_json` (last server state, feed-shaped + `version`) is written
+///   whenever the version is adopted.
+///
+/// [sent] null = trust the result (no outbox context). Returns whether the
+/// local fields were replaced from `server_state`.
+Future<bool> adoptServerRow(
+  Transaction txn,
+  String table,
+  String id,
+  PushResult r, {
+  OutboxEntry? sent,
+}) async {
+  final v = r.version;
+  if (v == null) return false;
+  final rows = await txn.query(
+    table,
+    columns: ['json', 'version', 'server_json'],
+    where: 'id = ?',
+    whereArgs: [id],
+    limit: 1,
+  );
+  if (rows.isEmpty) return false;
+  final stored = rows.first['version'] as int?;
+  if (stored != null && stored >= v) return false;
+  final state = r.serverState == null ? null : feedShapeOf(r.serverState!);
+  final merged = r.merged && state != null;
+  final base = sent?.baseVersion;
+  final trusted =
+      merged ||
+      sent == null ||
+      sent.op == 'create' ||
+      (base != null && v == base + 1);
+  if (!trusted) return false;
+  final json = decodeJsonMap(rows.first['json']);
+  final otherOpen = sent != null && await hasOtherOpenRows(txn, sent);
+  final Map<String, dynamic> server;
+  if (merged) {
+    server = {...state};
+  } else {
+    final previous = decodeJsonMap(rows.first['server_json']);
+    server = {
+      ...(otherOpen ? previous : {...previous, ...json}),
+      if (sent != null)
+        for (final e in sent.payload.entries)
+          if (!_nonFieldPayloadKeys.contains(e.key)) e.key: e.value,
+    };
+  }
+  final pure = withoutDerivedKeys(server)
+    ..['id'] = id
+    ..['version'] = v;
+  final replace = merged && !otherOpen;
+  final next = replace ? <String, dynamic>{...json, ...state, 'id': id} : json;
+  await txn.update(
+    table,
+    {
+      'version': v,
+      'server_json': jsonEncode(pure),
+      if (replace) 'json': jsonEncode(next),
+      if (replace) ..._catalogColumns(table, next),
+    },
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+  return replace;
+}
+
+/// Spec: `rejected entity_deleted` on an update: the server deleted the row.
+/// The local row stays (the user decides) but is marked inactive
+/// (`json.is_active = false`); a feed-shaped `server_state` becomes its
+/// `server_json`. The pulled delete normally removes the row right after.
+Future<void> markServerDeleted(
+  Transaction txn,
+  String table,
+  String id,
+  PushResult r,
+) async {
+  final rows = await txn.query(
+    table,
+    columns: ['json'],
+    where: 'id = ?',
+    whereArgs: [id],
+    limit: 1,
+  );
+  if (rows.isEmpty) return;
+  final json = decodeJsonMap(rows.first['json'])..['is_active'] = false;
+  final state = r.serverState;
+  await txn.update(
+    table,
+    {
+      'json': jsonEncode(json),
+      if (state != null)
+        'server_json': jsonEncode({
+          ...feedShapeOf(state),
+          'id': id,
+          if (state['version'] is int) 'version': state['version'],
+        }),
+    },
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+}
+
+/// The shared catalog `onPushResult` decision (spec "Push results"):
+/// returns true when the row's fields were replaced from `server_state`, so
+/// the applier refreshes what it derives (names, counts).
+Future<bool> catalogPushResult(
+  Transaction txn,
+  String table,
+  OutboxEntry sent,
+  PushResult r,
+) async {
+  switch (r.status) {
+    case PushStatus.rejected:
+      // The engine already stored code/message/conflict id on the outbox
+      // row; the local row stays (conflict policy A: no id rewrite).
+      if (r.code == 'entity_deleted' && sent.op != 'create') {
+        await markServerDeleted(txn, table, sent.entityId, r);
+      }
+      return false;
+    case PushStatus.applied:
+    case PushStatus.duplicate:
+      // A delete: the pulled tombstone removes the row.
+      if (sent.op == 'delete') return false;
+      return adoptServerRow(txn, table, sent.entityId, r, sent: sent);
+    case PushStatus.retry:
+      return false;
+  }
+}

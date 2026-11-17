@@ -271,16 +271,18 @@ void main() {
       expect(triggers.log.where((e) => e == 'start').length, 1);
     });
 
-    test('a failed logout after pauseForWipe restarts the triggers once',
-        () async {
-      final c = withBoot(initial: _a);
-      await c.attach(observeLifecycle: false);
-      await c.pauseForWipe();
-      c
-        ..resumeAfterFailedWipe()
-        ..resumeAfterFailedWipe();
-      expect(triggers.log, ['start', 'cancelBootstrap', 'stop', 'start']);
-    });
+    test(
+      'a failed logout after pauseForWipe restarts the triggers once',
+      () async {
+        final c = withBoot(initial: _a);
+        await c.attach(observeLifecycle: false);
+        await c.pauseForWipe();
+        c
+          ..resumeAfterFailedWipe()
+          ..resumeAfterFailedWipe();
+        expect(triggers.log, ['start', 'cancelBootstrap', 'stop', 'start']);
+      },
+    );
 
     test('pauseForWipe without a session does nothing', () async {
       final c = withBoot();

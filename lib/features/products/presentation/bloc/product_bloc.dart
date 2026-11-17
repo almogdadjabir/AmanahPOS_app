@@ -1,40 +1,67 @@
 import 'dart:async';
-import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
-import 'package:amana_pos/core/errors/friendly_error.dart';
 
+import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
-import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
+import 'package:amana_pos/core/sync/catalog_refresh.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
+import 'package:amana_pos/core/sync/sync_schema.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
-import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
-import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
-import 'package:amana_pos/features/users/data/models/movement_type.dart';
-import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fpdart/fpdart.dart';
 
 part 'product_event.dart';
 part 'product_state.dart';
 
+/// Products and categories of the catalog screens, the POS grid and the
+/// stock pickers. Phase 3: reads SQLite only (the sync feed is the only
+/// source of server changes) and re-reads whenever a local write or a pull
+/// touches [watchedTables]; writes go through [ProductUseCase] ->
+/// `ProductService` (row + outbox, works offline). No REST call.
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductUseCase useCase;
-  final OfflineLocalCache offlineLocalCache;
   final CategoryUseCase categoryUseCase;
-  final InventoryUseCase inventoryUseCase;
+  final OfflineLocalCache offlineLocalCache;
+
+  /// `DbChangeNotifier.changes`: the tables each local write / pull touched.
+  final Stream<Set<String>>? changes;
+
+  /// The app's sync-now (pull to refresh); null = local re-read only.
+  final Future<void> Function()? syncNow;
+
+  /// What the list shows: rows, their stock, categories, sync markers and
+  /// staged images.
+  static const Set<String> watchedTables = {
+    'products',
+    'categories',
+    'stock',
+    SyncTables.outbox,
+    SyncTables.pendingUploads,
+    'synced_assets',
+  };
+
+  /// Name of the category created for a product saved without one.
+  static const String autoCategoryName = 'General';
+
+  StreamSubscription<Set<String>>? _changesSub;
+  Timer? _debounce;
+  int _loadToken = 0;
+  int _queryToken = 0;
 
   ProductBloc({
     required this.useCase,
-    required this.offlineLocalCache,
     required this.categoryUseCase,
-    required this.inventoryUseCase,
+    required this.offlineLocalCache,
+    this.changes,
+    this.syncNow,
   }) : super(ProductState.initial()) {
     on<OnProductInitial>(_init);
+    on<OnProductsSyncRequested>((_, _) => requestCatalogSync(syncNow));
+    on<OnProductsChanged>(_changed);
     on<OnProductCategorySelected>(_onCategorySelected);
     on<OnProductQuery>(_query);
     on<OnProductsLoadAll>(_loadAll);
@@ -49,527 +76,187 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<OnProductReset>(_reset);
   }
 
-  Future<void> _init(
-      OnProductInitial event,
-      Emitter<ProductState> emit,
-      ) async {
-    // Block concurrent loads.
-    if (state.productStatus == ProductStatus.loading) return;
+  /// Tables whose change can alter the listed rows themselves (stock
+  /// writes `products.stock_level`; images resolve from `synced_assets`).
+  /// The rest of [watchedTables] (outbox, staged uploads) only moves the
+  /// sync markers (review M10).
+  static const Set<String> rowTables = {
+    'products',
+    'categories',
+    'stock',
+    'synced_assets',
+  };
 
-    // Block redundant auto-inits when fresh live data is already in memory.
-    // Pull-to-refresh passes force: true to bypass this.
-    if (!event.force &&
-        state.productStatus == ProductStatus.success &&
-        !state.isFromCache) {
-      return;
-    }
+  final Set<String> _pendingTables = {};
 
-    var emittedCachedData = false;
+  void _watch() {
+    if (_changesSub != null || changes == null) return;
+    _changesSub = changes!.listen((tables) {
+      final hit = tables.intersection(watchedTables);
+      if (hit.isEmpty) return;
+      _pendingTables.addAll(hit);
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 16), () {
+        final t = {..._pendingTables};
+        _pendingTables.clear();
+        if (!isClosed) add(OnProductsChanged(t));
+      });
+    });
+  }
 
+  /// Re-reads only the sync markers (an outbox / upload-only change).
+  Future<void> _reloadMarks(Emitter<ProductState> emit) async {
     try {
-      final cachedProducts = await offlineLocalCache.getProducts();
-      final cachedCategories = await offlineLocalCache.getCategories();
+      final marks = await offlineLocalCache.getCatalogSyncMarks('product');
+      if (emit.isDone) return;
+      emit(state.copyWith(syncMarks: marks));
+    } catch (_) {
+      // Markers are cosmetic; the next row change re-reads everything.
+    }
+  }
 
-      if (cachedProducts.isNotEmpty || cachedCategories.isNotEmpty) {
-        emittedCachedData = true;
-        emit(state.copyWith(
-          productStatus: ProductStatus.success,
-          products: cachedProducts,
-          categories: cachedCategories,
-          currentPage: 1,
-          totalPages: 1,
-          isFromCache: true,
-          clearResponseError: true,
-        ));
-      } else {
-        emit(state.copyWith(
-          productStatus: ProductStatus.loading,
-          currentPage: 1,
-          totalPages: 1,
-          products: [],
-          categories: [],
-          isFromCache: false,
-          clearResponseError: true,
-        ));
-      }
+  /// Reads the list, categories and markers from SQLite and emits them.
+  /// An older read finishing after a newer one is dropped (returns false).
+  Future<bool> _reload(Emitter<ProductState> emit) async {
+    final token = ++_loadToken;
+    final products = await offlineLocalCache.getProducts(
+      categoryId: state.selectedCategoryId,
+      isActive: true,
+    );
+    final categories = await offlineLocalCache.getCategories();
+    final marks = await offlineLocalCache.getCatalogSyncMarks('product');
+    if (token != _loadToken || emit.isDone) return false;
+    emit(
+      state.copyWith(
+        productStatus: ProductStatus.success,
+        products: products,
+        categories: categories,
+        syncMarks: marks,
+        currentPage: 1,
+        totalPages: 1,
+        isFromCache: false,
+        clearResponseError: true,
+      ),
+    );
+    return true;
+  }
 
-      final responses = await getIt<AppProgressCubit>().run(
-            () => Future.wait([
-          useCase.getProducts(page: 1),
-          useCase.getCategories(),
-        ]),
-      );
-
-      final productsResponse = responses[0] as Either<String?, ProductListResponseDto>;
-      final categoriesResponse = responses[1] as Either<String?, CategoryResponseDto>;
-
-      final productsError = productsResponse.getLeft().toNullable();
-      final categoriesError = categoriesResponse.getLeft().toNullable();
-
-      if (productsError != null || categoriesError != null) {
-        if (emittedCachedData) {
-          emit(state.copyWith(
-            productStatus: ProductStatus.success,
-            responseError: productsError ?? categoriesError,
-            isFromCache: true,
-          ));
-          return;
-        }
-        emit(state.copyWith(
-          productStatus: ProductStatus.failure,
-          responseError: productsError ?? categoriesError,
-          isFromCache: false,
-        ));
-        return;
-      }
-
-      final productsResult = productsResponse.getRight().toNullable();
-      final categoriesResult = categoriesResponse.getRight().toNullable();
-
-      final freshProducts = productsResult?.results ?? [];
-      final freshCategories = categoriesResult?.data ?? [];
-
-      await offlineLocalCache.saveProductsToCache(freshProducts);
-      await offlineLocalCache.saveCategoriesToCache(freshCategories);
-
-      final normalizedProducts = await offlineLocalCache.getProducts();
-      final normalizedCategories = await offlineLocalCache.getCategories();
-
-      if (!emit.isDone) {
-        emit(state.copyWith(
-          productStatus: ProductStatus.success,
-          products: normalizedProducts,
-          categories: normalizedCategories,
-          currentPage: productsResult?.currentPage ?? 1,
-          totalPages: productsResult?.totalPages ?? 1,
-          isFromCache: false,
-          clearResponseError: true,
-        ));
+  /// [_reload] that never throws. A read overtaken by a newer one is
+  /// retried (a few times), so a caller such as a submit only continues
+  /// once the state holds data read after its own write.
+  Future<void> _safeReload(Emitter<ProductState> emit) async {
+    try {
+      for (var i = 0; i < 4; i++) {
+        if (await _reload(emit) || emit.isDone) return;
       }
     } catch (e) {
-      if (emittedCachedData) {
-        emit(state.copyWith(
-          productStatus: ProductStatus.success,
+      if (emit.isDone) return;
+      emit(
+        state.copyWith(
+          productStatus: state.products.isEmpty
+              ? ProductStatus.failure
+              : ProductStatus.success,
           responseError: friendlyError(e),
-          isFromCache: true,
-        ));
-        return;
-      }
-      if (!emit.isDone) {
-        emit(state.copyWith(
-          productStatus: ProductStatus.failure,
-          responseError: friendlyError(e),
-          isFromCache: false,
-        ));
-      }
+        ),
+      );
     }
+  }
+
+  Future<void> _init(OnProductInitial event, Emitter<ProductState> emit) async {
+    _watch();
+    if (state.productStatus == ProductStatus.initial) {
+      emit(state.copyWith(productStatus: ProductStatus.loading));
+    }
+    await _safeReload(emit);
+  }
+
+  Future<void> _changed(
+    OnProductsChanged event,
+    Emitter<ProductState> emit,
+  ) async {
+    // Nothing on screen yet: the first OnProductInitial loads.
+    if (state.productStatus == ProductStatus.initial) return;
+    if (event.tables.isNotEmpty &&
+        event.tables.intersection(rowTables).isEmpty) {
+      await _reloadMarks(emit);
+      return;
+    }
+    await _safeReload(emit);
   }
 
   Future<void> _onCategorySelected(
-      OnProductCategorySelected event,
-      Emitter<ProductState> emit,
-      ) async {
-    final categoryId = event.categoryId;
-    var emittedCachedData = false;
-
-    try {
-      final cachedProducts = await offlineLocalCache.getProducts(
-        categoryId: categoryId,
-      );
-
-      if (cachedProducts.isNotEmpty) {
-        emittedCachedData = true;
-
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.success,
-            products: cachedProducts,
-            currentPage: 1,
-            totalPages: 1,
-            selectedCategoryId: categoryId,
-            clearCategory: categoryId == null,
-            isFromCache: true,
-            clearResponseError: true,
-          ),
-        );
-      } else {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.loading,
-            products: [],
-            currentPage: 1,
-            totalPages: 1,
-            selectedCategoryId: categoryId,
-            clearCategory: categoryId == null,
-            isFromCache: false,
-            clearResponseError: true,
-          ),
-        );
-      }
-
-      final response = categoryId == null
-          ? await useCase.getProducts(page: 1)
-          : await useCase.getProductsByCategory(
-        categoryId: categoryId,
-        page: 1,
-      );
-
-      final error = response.getLeft().toNullable();
-
-      if (error != null) {
-        if (emittedCachedData) {
-          if (!emit.isDone) {
-            emit(
-              state.copyWith(
-                productStatus: ProductStatus.success,
-                responseError: error,
-                isFromCache: true,
-              ),
-            );
-          }
-          return;
-        }
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.failure,
-              responseError: error,
-              isFromCache: false,
-            ),
-          );
-        }
-        return;
-      }
-
-      final result = response.getRight().toNullable();
-      if (result == null) return;
-
-      if (categoryId == null) {
-        final r = result as ProductListResponseDto;
-        final freshProducts = r.results ?? [];
-
-        await offlineLocalCache.saveProductsToCache(freshProducts);
-
-        final normalizedProducts = await offlineLocalCache.getProducts();
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.success,
-              products: normalizedProducts,
-              currentPage: r.currentPage ?? 1,
-              totalPages: r.totalPages ?? 1,
-              isFromCache: false,
-              clearResponseError: true,
-            ),
-          );
-        }
-      } else {
-        final r = result as CategoryProductsResponseDto;
-        final freshProducts = r.products ?? [];
-
-        await offlineLocalCache.saveProductsToCache(freshProducts);
-
-        final normalizedProducts = await offlineLocalCache.getProducts(
-          categoryId: categoryId,
-        );
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.success,
-              products: normalizedProducts,
-              currentPage: r.currentPage ?? 1,
-              totalPages: r.totalPages ?? 1,
-              isFromCache: false,
-              clearResponseError: true,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (emittedCachedData) {
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.success,
-              responseError: friendlyError(e),
-              isFromCache: true,
-            ),
-          );
-        }
-        return;
-      }
-
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.failure,
-            responseError: friendlyError(e),
-            isFromCache: false,
-          ),
-        );
-      }
-    }
+    OnProductCategorySelected event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        selectedCategoryId: event.categoryId,
+        clearCategory: event.categoryId == null,
+      ),
+    );
+    await _safeReload(emit);
   }
 
+  /// SQLite holds the whole catalog: there is never a next page.
   Future<void> _loadMore(
-      OnLoadMoreProducts event,
-      Emitter<ProductState> emit,
-      ) async {
-    if (state.isFromCache) return;
-    if (!state.hasMorePages) return;
-    if (state.productStatus == ProductStatus.loadingMore) return;
+    OnLoadMoreProducts event,
+    Emitter<ProductState> emit,
+  ) async {}
 
-    emit(state.copyWith(productStatus: ProductStatus.loadingMore));
+  /// Kept for the Low / Out filters: the list already holds every product.
+  Future<void> _loadAll(
+    OnProductsLoadAll event,
+    Emitter<ProductState> emit,
+  ) async {}
 
-    try {
-      final nextPage = state.currentPage + 1;
-
-      final response = state.selectedCategoryId == null
-          ? await useCase.getProducts(page: nextPage)
-          : await useCase.getProductsByCategory(
-        categoryId: state.selectedCategoryId!,
-        page: nextPage,
-      );
-
-      final error = response.getLeft().toNullable();
-
-      if (error != null) {
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.failure,
-              responseError: error,
-            ),
-          );
-        }
-        return;
-      }
-
-      final result = response.getRight().toNullable();
-      if (result == null) return;
-
-      if (state.selectedCategoryId == null) {
-        final r = result as ProductListResponseDto;
-        final freshProducts = r.results ?? [];
-
-        await offlineLocalCache.saveProductsToCache(freshProducts);
-
-        final normalizedProducts = await offlineLocalCache.getProducts();
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.success,
-              products: normalizedProducts,
-              currentPage: r.currentPage ?? nextPage,
-              totalPages: r.totalPages ?? state.totalPages,
-              isFromCache: false,
-              clearResponseError: true,
-            ),
-          );
-        }
-      } else {
-        final r = result as CategoryProductsResponseDto;
-        final freshProducts = r.products ?? [];
-
-        await offlineLocalCache.saveProductsToCache(freshProducts);
-
-        final normalizedProducts = await offlineLocalCache.getProducts(
-          categoryId: state.selectedCategoryId,
-        );
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              productStatus: ProductStatus.success,
-              products: normalizedProducts,
-              currentPage: r.currentPage ?? nextPage,
-              totalPages: r.totalPages ?? state.totalPages,
-              isFromCache: false,
-              clearResponseError: true,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            productStatus: ProductStatus.failure,
-            responseError: friendlyError(e),
-          ),
-        );
-      }
-    }
-  }
-
-  int _queryToken = 0;
-
-  Future<void> _query(
-      OnProductQuery event,
-      Emitter<ProductState> emit,
-      ) async {
+  Future<void> _query(OnProductQuery event, Emitter<ProductState> emit) async {
     final token = ++_queryToken;
     final search = event.search.trim();
 
     if (search.isEmpty && !event.inactiveOnly) {
-      emit(state.copyWith(
-        queryStatus: ProductQueryStatus.idle,
-        queryResults: const [],
-      ));
+      emit(
+        state.copyWith(
+          queryStatus: ProductQueryStatus.idle,
+          queryResults: const [],
+        ),
+      );
       return;
     }
 
     emit(state.copyWith(queryStatus: ProductQueryStatus.loading));
-
     try {
-      final response = await useCase.getProducts(
-        page: 1,
-        pageSize: 200,
+      final results = await offlineLocalCache.getProducts(
         search: search.isEmpty ? null : search,
-        isActive: event.inactiveOnly ? 'false' : null,
+        isActive: !event.inactiveOnly,
       );
-
-      if (token != _queryToken) return;
-
-      final error = response.getLeft().toNullable();
-
-      if (error != null) {
-        await _queryFromCache(event, emit, token);
-        return;
-      }
-
-      final results = response.getRight().toNullable()?.results ?? const [];
-      if (!emit.isDone) {
-        emit(state.copyWith(
+      if (token != _queryToken || emit.isDone) return;
+      emit(
+        state.copyWith(
           queryStatus: ProductQueryStatus.success,
           queryResults: results,
-        ));
-      }
-    } catch (_) {
-      if (token != _queryToken) return;
-      await _queryFromCache(event, emit, token);
-    }
-  }
-
-  /// Offline fallback: search whatever is in the local cache.
-  Future<void> _queryFromCache(
-      OnProductQuery event,
-      Emitter<ProductState> emit,
-      int token,
-      ) async {
-    try {
-      final cached = await offlineLocalCache.getProducts(
-        search: event.search,
+        ),
       );
-      if (token != _queryToken) return;
-      final results = event.inactiveOnly
-          ? cached.where((p) => p.isActive == false).toList()
-          : cached;
-      if (!emit.isDone) {
-        emit(state.copyWith(
-          queryStatus: ProductQueryStatus.success,
-          queryResults: results,
-        ));
-      }
-    } catch (e) {
-      if (!emit.isDone) {
-        emit(state.copyWith(queryStatus: ProductQueryStatus.failure));
-      }
-    }
-  }
-
-  Future<void> _loadAll(
-      OnProductsLoadAll event,
-      Emitter<ProductState> emit,
-      ) async {
-    if (state.loadingAll) return;
-    if (state.isFromCache || !state.hasMorePages) return;
-    if (state.productStatus == ProductStatus.loading ||
-        state.productStatus == ProductStatus.loadingMore) {
-      return;
-    }
-
-    emit(state.copyWith(loadingAll: true));
-
-    try {
-      var page = state.currentPage;
-      var total = state.totalPages;
-      var guard = 0;
-
-      while (page < total && guard < 25) {
-        guard++;
-        final next = page + 1;
-
-        final response = state.selectedCategoryId == null
-            ? await useCase.getProducts(page: next, pageSize: 200)
-            : await useCase.getProductsByCategory(
-          categoryId: state.selectedCategoryId!,
-          page: next,
-          pageSize: 200,
-        );
-
-        if (response.getLeft().toNullable() != null) break;
-
-        final result = response.getRight().toNullable();
-        if (result == null) break;
-
-        final List<ProductData> fresh;
-        if (state.selectedCategoryId == null) {
-          final r = result as ProductListResponseDto;
-          fresh = r.results ?? const [];
-          total = r.totalPages ?? total;
-        } else {
-          final r = result as CategoryProductsResponseDto;
-          fresh = r.products ?? const [];
-          total = r.totalPages ?? total;
-        }
-
-        await offlineLocalCache.saveProductsToCache(fresh);
-        page = next;
-
-        final normalized = await offlineLocalCache.getProducts(
-          categoryId: state.selectedCategoryId,
-        );
-
-        if (emit.isDone) return;
-        emit(state.copyWith(
-          products: normalized,
-          currentPage: page,
-          totalPages: total,
-        ));
-      }
     } catch (_) {
-      // Keep whatever pages loaded; the list is still usable.
-    } finally {
-      if (!emit.isDone) emit(state.copyWith(loadingAll: false));
+      if (token != _queryToken || emit.isDone) return;
+      emit(state.copyWith(queryStatus: ProductQueryStatus.failure));
     }
   }
 
   Future<void> _createCategory(
-      OnCreateProductCategory event,
-      Emitter<ProductState> emit,
-      ) async {
+    OnCreateProductCategory event,
+    Emitter<ProductState> emit,
+  ) async {
     try {
-      final response = await categoryUseCase.addCategory(
-        AddCategoryRequestDto(name: event.name.trim()),
-      );
-      final created = response.getRight().toNullable()?.data;
-
-      if (created == null) {
+      final result = await categoryUseCase.addCategory(name: event.name.trim());
+      final id = result.getRight().toNullable();
+      if (id == null) {
         event.completer.complete(null);
         return;
       }
-
-      try {
-        await offlineLocalCache.saveCategoriesToCache([created]);
-      } catch (_) {}
-
-      if (!emit.isDone) {
-        emit(state.copyWith(categories: [...state.categories, created]));
+      await _safeReload(emit);
+      CategoryData? created;
+      for (final c in state.categories) {
+        if (c.id == id) created = c;
       }
       event.completer.complete(created);
     } catch (_) {
@@ -577,359 +264,138 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
-  void _toggleLayout(
-      OnToggleProductLayout event,
-      Emitter<ProductState> emit,
-      ) {
+  void _toggleLayout(OnToggleProductLayout event, Emitter<ProductState> emit) {
     emit(state.copyWith(isGrid: !state.isGrid));
   }
 
-  Future<void> _addProduct(
-      OnAddProduct event,
-      Emitter<ProductState> emit,
-      ) async {
+  Future<void> _submit(
+    Emitter<ProductState> emit,
+    Future<String?> Function() write,
+  ) async {
     emit(
       state.copyWith(
         submitStatus: ProductSubmitStatus.loading,
         clearSubmitError: true,
       ),
     );
-
+    String? error;
     try {
-      final response = await useCase.addProduct(event.dto);
-
-      final error = response.getLeft().toNullable();
-      final product = response.getRight().toNullable();
-
-      if (error != null) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: error,
-          ),
-        );
-        return;
-      }
-
-      if (product?.data != null && !emit.isDone) {
-        final outcome = await _recordOpeningStock(
-          product: product!.data!,
-          openingStock: event.openingStock,
-          openingShopId: event.openingShopId,
-        );
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              submitStatus: ProductSubmitStatus.success,
-              products: [outcome.product, ...state.products],
-              submitWarning: outcome.warning,
-              clearSubmitWarning: outcome.warning == null,
-            ),
-          );
-        }
-      }
+      error = await write();
     } catch (e) {
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: friendlyError(e),
-          ),
-        );
-      }
+      error = friendlyError(e);
     }
-  }
-
-  Future<void> _addProductWithAutoCategory(
-      OnAddProductWithAutoCategory event,
-      Emitter<ProductState> emit,
-      ) async {
-    emit(
-      state.copyWith(
-        submitStatus: ProductSubmitStatus.loading,
-        clearSubmitError: true,
-      ),
-    );
-
-    try {
-      final categoryPayload = AddCategoryRequestDto(
-        name: 'General',
-        description: null,
-      );
-
-      final categoryResponse = await categoryUseCase.addCategory(categoryPayload);
-
-      final categoryError = categoryResponse.getLeft().toNullable();
-      final newCategory = categoryResponse.getRight().toNullable();
-
-      if (categoryError != null || newCategory?.data == null) {
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              submitStatus: ProductSubmitStatus.failure,
-              submitError: categoryError ?? 'Failed to create default category',
-            ),
-          );
-        }
-        return;
-      }
-
-      final createdCategory = newCategory!.data!;
-
-      final productDto = AddProductRequestDto(
-        name: event.dto.name,
-        price: event.dto.price,
-        costPrice: event.dto.costPrice,
-        category: createdCategory.id!,
-        unit: event.dto.unit,
-        trackInventory: event.dto.trackInventory,
-        minStockLevel: event.dto.minStockLevel,
-        description: event.dto.description,
-        sku: event.dto.sku,
-        barcode: event.dto.barcode,
-        expiryAlertDays: event.dto.expiryAlertDays,
-        imageUpload: event.dto.imageUpload,
-      );
-
-      final productResponse = await useCase.addProduct(productDto);
-
-      final productError = productResponse.getLeft().toNullable();
-      final product = productResponse.getRight().toNullable();
-
-      if (productError != null) {
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              submitStatus: ProductSubmitStatus.failure,
-              submitError: productError,
-            ),
-          );
-        }
-        return;
-      }
-
-      if (product?.data != null && !emit.isDone) {
-        final outcome = await _recordOpeningStock(
-          product: product!.data!,
-          openingStock: event.openingStock,
-          openingShopId: event.openingShopId,
-        );
-
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              submitStatus: ProductSubmitStatus.success,
-              products: [outcome.product, ...state.products],
-              categories: [...state.categories, createdCategory],
-              submitWarning: outcome.warning,
-              clearSubmitWarning: outcome.warning == null,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: friendlyError(e),
-          ),
-        );
-      }
-    }
-  }
-
-  /// Records opening stock for a freshly created product as a single
-  /// `opening` movement. Best-effort: the product already exists, so a
-  /// failure here returns a non-fatal warning instead of failing the submit.
-  ///
-  /// Skips silently (no warning) when there is nothing to record — no
-  /// quantity, a non-positive/invalid quantity, or a missing product/shop id.
-  Future<({ProductData product, String? warning})> _recordOpeningStock({
-    required ProductData product,
-    required String? openingStock,
-    required String? openingShopId,
-  }) async {
-    final raw = openingStock?.trim();
-    if (raw == null || raw.isEmpty) {
-      return (product: product, warning: null);
-    }
-
-    final qty = double.tryParse(raw);
-    if (qty == null || qty <= 0) {
-      return (product: product, warning: null);
-    }
-
-    final productId = product.id?.trim();
-    final shopId = openingShopId?.trim();
-    if (productId == null ||
-        productId.isEmpty ||
-        shopId == null ||
-        shopId.isEmpty) {
-      return (product: product, warning: null);
-    }
-
-    try {
-      final response = await inventoryUseCase.addStock(
-        AddStockRequestDto(
-          productId: productId,
-          shopId: shopId,
-          quantity: raw,
-          movementType: MovementType.opening,
+    if (emit.isDone) return;
+    if (error != null) {
+      emit(
+        state.copyWith(
+          submitStatus: ProductSubmitStatus.failure,
+          submitError: error,
         ),
       );
-
-      final error = response.getLeft().toNullable();
-      if (error != null) {
-        return (product: product, warning: error);
-      }
-
-      // Reflect the new quantity immediately in the list card.
-      return (product: product.copyWith(stockLevel: qty), warning: null);
-    } catch (e) {
-      return (product: product, warning: friendlyError(e));
+      return;
     }
+    // The row (and its stock) shows at once, read back from SQLite.
+    await _safeReload(emit);
+    if (emit.isDone) return;
+    emit(
+      state.copyWith(
+        submitStatus: ProductSubmitStatus.success,
+        clearSubmitError: true,
+      ),
+    );
   }
+
+  Future<void> _addProduct(OnAddProduct event, Emitter<ProductState> emit) =>
+      _submit(emit, () async {
+        final r = await useCase.addProduct(
+          event.dto,
+          initialQuantity: event.openingStock,
+          shopId: event.openingShopId,
+        );
+        return r.getLeft().toNullable();
+      });
+
+  /// No category picked: the "General" category is reused or created in
+  /// the SAME write as the product (and its opening stock).
+  Future<void> _addProductWithAutoCategory(
+    OnAddProductWithAutoCategory event,
+    Emitter<ProductState> emit,
+  ) => _submit(emit, () async {
+    final d = event.dto;
+    final r = await useCase.addProduct(
+      AddProductRequestDto(
+        name: d.name,
+        price: d.price,
+        costPrice: d.costPrice,
+        category: '',
+        unit: d.unit,
+        trackInventory: d.trackInventory,
+        minStockLevel: d.minStockLevel,
+        description: d.description,
+        sku: d.sku,
+        barcode: d.barcode,
+        expiryAlertDays: d.expiryAlertDays,
+        imageUpload: d.imageUpload,
+      ),
+      initialQuantity: event.openingStock,
+      shopId: event.openingShopId,
+      newCategoryName: autoCategoryName,
+    );
+    return r.getLeft().toNullable();
+  });
 
   Future<void> _updateProduct(
-      OnUpdateProduct event,
-      Emitter<ProductState> emit,
-      ) async {
-    emit(
-      state.copyWith(
-        submitStatus: ProductSubmitStatus.loading,
-        clearSubmitError: true,
-      ),
-    );
-
-    try {
-      final response = await useCase.editProduct(
-        event.productId,
-        event.dto,
-      );
-
-      final error = response.getLeft().toNullable();
-
-      if (error != null) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: error,
-          ),
-        );
-        return;
-      }
-
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.success,
-            clearSubmitError: true,
-          ),
-        );
-
-        add(const OnProductInitial(force: true));
-      }
-    } catch (e) {
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: friendlyError(e),
-          ),
-        );
-      }
-    }
-  }
+    OnUpdateProduct event,
+    Emitter<ProductState> emit,
+  ) => _submit(emit, () async {
+    final r = await useCase.editProduct(event.productId, event.dto);
+    return r.getLeft().toNullable();
+  });
 
   Future<void> _deleteProduct(
-      OnDeleteProduct event,
-      Emitter<ProductState> emit,
-      ) async {
-    emit(
-      state.copyWith(
-        submitStatus: ProductSubmitStatus.loading,
-        clearSubmitError: true,
-      ),
-    );
-
-    try {
-      final response = await useCase.deactivateProduct(event.productId);
-
-      final error = response.getLeft().toNullable();
-
-      if (error != null) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: error,
-          ),
-        );
-        return;
-      }
-      await offlineLocalCache.deleteProductFromCache(event.productId);
-
-      final updatedProducts = state.products
-          .where((product) => product.id != event.productId)
-          .toList();
-
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.success,
-            clearSubmitError: true,
-            products: updatedProducts,
-          ),
-        );
-
-        add(const OnProductInitial(force: true));
-      }
-    } catch (e) {
-      if (!emit.isDone) {
-        emit(
-          state.copyWith(
-            submitStatus: ProductSubmitStatus.failure,
-            submitError: friendlyError(e),
-          ),
-        );
-      }
-    }
-  }
+    OnDeleteProduct event,
+    Emitter<ProductState> emit,
+  ) => _submit(emit, () async {
+    final r = await useCase.deleteProduct(event.productId);
+    return r.getLeft().toNullable();
+  });
 
   void _productsSoldLocally(
-      OnProductsSoldLocally event,
-      Emitter<ProductState> emit,
-      ) {
+    OnProductsSoldLocally event,
+    Emitter<ProductState> emit,
+  ) {
     if (event.soldQuantities.isEmpty) return;
 
-    final updatedProducts = state.products.map((product) {
-      final productId = product.id;
-      if (productId == null) return product;
+    final updatedProducts = state.products
+        .map((product) {
+          final productId = product.id;
+          if (productId == null) return product;
 
-      final soldQty = event.soldQuantities[productId];
-      if (soldQty == null || soldQty <= 0) return product;
+          final soldQty = event.soldQuantities[productId];
+          if (soldQty == null || soldQty <= 0) return product;
 
-      final currentStock = product.stockLevel ?? 0;
-      final nextStock = currentStock - soldQty;
+          final currentStock = product.stockLevel ?? 0;
+          final nextStock = currentStock - soldQty;
 
-      return product.copyWith(
-        stockLevel: nextStock < 0 ? 0 : nextStock,
-      );
-    }).toList(growable: false);
+          return product.copyWith(stockLevel: nextStock < 0 ? 0 : nextStock);
+        })
+        .toList(growable: false);
 
     emit(state.copyWith(products: updatedProducts));
   }
 
-  Future<void> _reset(
-      OnProductReset event,
-      Emitter<ProductState> emit,
-      ) async {
+  Future<void> _reset(OnProductReset event, Emitter<ProductState> emit) async {
     // Emit initial state first so the UI shows the loading skeleton
     // rather than the previous user's data for even a single frame.
+    _loadToken++;
     emit(ProductState.initial());
-    // Then immediately kick off a fresh load.
     add(const OnProductInitial());
   }
 
+  @override
+  Future<void> close() async {
+    _debounce?.cancel();
+    await _changesSub?.cancel();
+    return super.close();
+  }
 }

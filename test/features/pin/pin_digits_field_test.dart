@@ -6,10 +6,12 @@ import 'package:amana_pos/theme/app_theme.dart';
 void main() {
   testWidgets('accepts only 4 digits', (tester) async {
     final controller = TextEditingController();
-    await tester.pumpWidget(MaterialApp(
-      theme: AppTheme.light,
-      home: Scaffold(body: PinDigitsField(controller: controller)),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(body: PinDigitsField(controller: controller)),
+      ),
+    );
     await tester.enterText(find.byType(TextField), '12345678');
     expect(controller.text.length, 4);
     expect(controller.text, '1234');

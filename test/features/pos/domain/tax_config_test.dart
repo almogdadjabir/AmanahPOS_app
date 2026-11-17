@@ -32,10 +32,9 @@ void main() {
     });
 
     test('enabled with zero rate is not active', () {
-      final config = TaxConfig.fromBusiness(BusinessData.fromJson({
-        'tax_enabled': true,
-        'tax_rate': '0.00',
-      }));
+      final config = TaxConfig.fromBusiness(
+        BusinessData.fromJson({'tax_enabled': true, 'tax_rate': '0.00'}),
+      );
       expect(config.isActive, false);
     });
   });
@@ -51,9 +50,17 @@ void main() {
 
   group('TaxCalculator.compute', () {
     const exclusive = TaxConfig(
-      enabled: true, name: 'VAT', rate: 15, inclusive: false);
+      enabled: true,
+      name: 'VAT',
+      rate: 15,
+      inclusive: false,
+    );
     const inclusive = TaxConfig(
-      enabled: true, name: 'VAT', rate: 15, inclusive: true);
+      enabled: true,
+      name: 'VAT',
+      rate: 15,
+      inclusive: true,
+    );
 
     test('exclusive: tax added on top (spec example)', () {
       final r = TaxCalculator.compute(taxableAmount: 90.00, config: exclusive);
@@ -69,7 +76,9 @@ void main() {
 
     test('disabled: zero tax, net = taxable', () {
       final r = TaxCalculator.compute(
-        taxableAmount: 90.00, config: const TaxConfig.disabled());
+        taxableAmount: 90.00,
+        config: const TaxConfig.disabled(),
+      );
       expect(r.taxAmount, 0);
       expect(r.netAmount, 90.00);
     });
@@ -77,7 +86,12 @@ void main() {
     test('rounds to 2 decimals half-up', () {
       // 33.33 * 0.15 ≈ 4.9995 → 5.00. Note: exact half-cent boundaries can
       // drift ±0.01 vs the server's Decimal math (see _round2 in tax_config).
-      const cfg = TaxConfig(enabled: true, name: 'VAT', rate: 15, inclusive: false);
+      const cfg = TaxConfig(
+        enabled: true,
+        name: 'VAT',
+        rate: 15,
+        inclusive: false,
+      );
       final r = TaxCalculator.compute(taxableAmount: 33.33, config: cfg);
       expect(r.taxAmount, 5.00);
     });

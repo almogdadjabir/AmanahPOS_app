@@ -1,4 +1,5 @@
 import 'package:amana_pos/core/api/request_handler.dart';
+import 'package:amana_pos/core/sync/catalog_result.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
@@ -11,10 +12,10 @@ import 'package:amana_pos/features/inventory/data/models/responses/expiry_report
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
-import 'package:amana_pos/features/inventory/data/models/responses/vendor_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/vendor_summary_dto.dart';
 import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:amana_pos/features/inventory/domain/stock_service.dart';
+import 'package:amana_pos/features/inventory/domain/vendor_service.dart';
 import 'package:fpdart/fpdart.dart';
 
 class InventoryRepoImpl extends InventoryRepository {
@@ -22,7 +23,12 @@ class InventoryRepoImpl extends InventoryRepository {
   InventoryRepoImpl(
     this.requestHandler, {
     required StockService Function() stockService,
-  }) : _stockService = stockService;
+    VendorService Function()? vendorService,
+  }) : _stockService = stockService,
+       _vendorService = vendorService;
+
+  /// Lazy, like [_stockService]; the only vendor writer.
+  final VendorService Function()? _vendorService;
 
   /// Lazy so the sync core is only constructed on first stock edit.
   /// Add / remove / adjust / inbound are written locally + outbox (never the
@@ -231,55 +237,35 @@ class InventoryRepoImpl extends InventoryRepository {
     );
   }
 
-  @override
-  Future<Either<String?, VendorListResponseDto>> getVendors({
-    bool activeOnly = true,
-    int pageSize = 200,
-  }) {
-    return requestHandler.handleGetRequest(
-      'api/v1/inventory/vendors/?is_active=$activeOnly&page_size=$pageSize',
-      (data) => VendorListResponseDto.fromJson(data as Map<String, dynamic>),
-    );
+  // Vendors (Phase 3): local row + outbox through VendorService, never
+  // REST; the list is read from SQLite (OfflineLocalCache.getVendors).
+
+  VendorService _vendors() {
+    final f = _vendorService;
+    if (f == null) throw StateError('InventoryRepoImpl has no VendorService');
+    return f();
   }
 
   @override
-  Future<Either<String?, VendorData>> getVendorById(String id) {
-    return requestHandler.handleGetRequest(
-      'api/v1/inventory/vendors/$id/',
-      (data) => VendorData.fromJson(data as Map<String, dynamic>),
-    );
-  }
-
-  @override
-  Future<Either<String?, VendorData>> createVendor(
+  Future<Either<String?, String>> createVendor(
     CreateVendorRequestDto request,
-  ) {
-    return requestHandler.handlePostRequest(
-      'api/v1/inventory/vendors/',
-      (data) => VendorData.fromJson(data as Map<String, dynamic>),
-      data: request.toJson(),
-    );
-  }
+  ) => catalogResult(() => _vendors().create(request));
 
   @override
-  Future<Either<String?, VendorData>> updateVendor(
+  Future<Either<String?, Unit>> updateVendor(
     String id,
     UpdateVendorRequestDto request,
-  ) {
-    return requestHandler.handlePatchRequest(
-      'api/v1/inventory/vendors/$id/',
-      (data) => VendorData.fromJson(data as Map<String, dynamic>),
-      data: request.toJson(),
-    );
-  }
+  ) => catalogResult(() async {
+    await _vendors().update(id, request);
+    return unit;
+  });
 
   @override
-  Future<Either<String?, bool>> deleteVendor(String id) {
-    return requestHandler.handleDeleteRequest(
-      'api/v1/inventory/vendors/$id/',
-      (data) => true,
-    );
-  }
+  Future<Either<String?, Unit>> deleteVendor(String id) =>
+      catalogResult(() async {
+        await _vendors().delete(id);
+        return unit;
+      });
 
   @override
   Future<Either<String?, VendorSummaryData>> getVendorSummary({

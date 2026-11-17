@@ -9,17 +9,18 @@ the sync core (`lib/core/sync/`) is the ONLY way server data enters the
 device: a resumable paged first setup (bootstrap), a pull applier for every
 feed entity, and images downloaded by change token. Local writes (sales,
 stock edits, inbound) go through the outbox and sync when the device is back
-online. REST-refreshing blocs still write some legacy tables (Phases 3-5
-retire them).
+online. Catalog screens (products, categories, vendors) read SQLite only
+and write through the outbox since Phase 3; other REST-refreshing blocs
+still write some legacy tables (Phases 4-5 retire them).
 
 ## Files
 
 ```
 lib/core/offline/
-├── offline_db.dart                    ← SQLite DB singleton (OfflineDb.instance), schema v13
+├── offline_db.dart                    ← SQLite DB singleton (OfflineDb.instance), schema v14
 ├── offline_constants.dart             ← table name constants
 ├── data/
-│   └── offline_local_cache.dart       ← legacy-shaped reads + REST writers of the cache tables
+│   └── offline_local_cache.dart       ← legacy-shaped reads (+ a few non-catalog REST writers)
 └── presentation/
     ├── first_setup_screen.dart        ← blocking first-setup screen (Nile Ledger)
     ├── bloc/
@@ -69,31 +70,24 @@ Detects: `mobile`, `wifi`, `ethernet`, `vpn`.
 ## OfflineLocalCache
 
 Reads the cache tables in the legacy DTO shapes (the appliers write those
-shapes) and holds the REST writers the blocs still use. Wraps `OfflineDb`.
+shapes). Wraps `OfflineDb`. Phase 3 removed every REST catalog writer
+(`saveProductsToCache`, `saveCategoriesToCache`, `saveVendors`,
+`removeVendorFromCache`, `deleteProductFromCache`); a test greps `lib/` so
+none comes back (`test/features/catalog/no_rest_catalog_writer_test.dart`).
 
 Key methods:
 ```dart
 Future<void> clearAllOnLogout()      // catalog wipe + every scope's setup keys
 Future<List<BusinessData>> getBusinesses()
 Future<List<ShopData>> getShops()
-Future<List<CategoryData>> getCategories()
-Future<List<ProductData>> getProducts({String? categoryId, String? search})
+Future<List<CategoryData>> getCategories()             // inactive hidden
+Future<List<ProductData>> getProducts({String? categoryId, String? search,
+    bool? isActive})                                  // null all, true active
+Future<CatalogSyncMarks> getCatalogSyncMarks(String entity)  // row markers
 Future<List<StockData>> getStock({String? shopId})
-Future<List<VendorData>> getVendors()
+Future<List<VendorData>> getVendors()                  // active only
 Future<String?> getSyncedAssetPathByUrl(String? url)   // image widget
-Future<void> saveProductsToCache(List<ProductData> products)        // REST
-Future<void> saveCategoriesToCache(List<CategoryData> categories)   // REST
-Future<void> saveVendors(List<VendorData> vendors)  // REST, UPSERT only
-Future<void> removeVendorFromCache(String id)       // REST delete
 ```
-
-`saveVendors` never deletes: the REST vendor list is active-only and paged,
-so a delete-all would erase vendors the `VendorApplier` wrote (inactive
-vendors, inbound vendor names). An existing row keeps its feed `version`
-(the REST content is the current server state), so an older feed row can
-never roll it back. A vendor deleted through REST is removed with
-`removeVendorFromCache`; vendors deleted elsewhere disappear when the feed's
-`delete` arrives.
 
 ## OfflineStatusBloc
 
@@ -332,37 +326,192 @@ Devices that ran an earlier v11/v12 development build must REINSTALL (the
 v11 step was extended in place before release, e.g. `sale_refunds`; zero
 production users, nothing is migrated).
 
-## Offline-First Data Pattern in Blocs
+## Catalog writes (Phase 3)
 
-All data blocs (`ProductBloc`, `CategoryBloc`) follow this pattern:
+Spec: `docs/superpowers/specs/2026-11-17-phase3-catalog-writes-design.md`
+(audit: `docs/superpowers/plans/2026-11-17-phase3-audit.md`). Owners and
+managers create, edit and delete categories, products and vendors with no
+connection; cashiers see no entry point and the services refuse them
+(`CatalogValidationException`).
 
-```dart
-// 1. Try cache first → emit immediately if found
-final cached = await offlineLocalCache.getXxx();
-if (cached.isNotEmpty) {
-  emittedCachedData = true;
-  emit(state.copyWith(status: success, data: cached, isFromCache: true));
-} else {
-  emit(state.copyWith(status: loading));
-}
+### Flow
 
-// 2. Fetch from API
-final response = await useCase.getXxx();
-response.fold(
-  (error) {
-    if (emittedCachedData) {
-      emit(state.copyWith(status: success, responseError: error, isFromCache: true));
-      return;
-    }
-    emit(state.copyWith(status: failure, responseError: error));
-  },
-  (result) {
-    emit(state.copyWith(status: success, data: result.data, isFromCache: false));
-  },
-);
+1. A form calls the bloc -> use case -> repo -> `CategoryService` /
+   `ProductService` / `VendorService`. One `LocalWriter.write`: the row
+   (client UUID v4, money as strings) + its outbox row (`create`, `update`
+   with `base_version`, `delete`). A product create with an opening
+   quantity also enqueues a dependent `stock.add`; "General" is created in
+   the same write when no category was picked.
+2. A picked image is copied and hashed outside the transaction, staged in
+   `pending_uploads` inside it, shown at once from the local file, and sent
+   by the foreground `ImageUploader` once the row's own outbox rows are
+   done (create first, then `PUT .../image/`). An image-only edit enqueues
+   nothing: `SyncTriggers` starts the upload from the `pending_uploads`
+   notification.
+3. Anything naming an unsent create (a product's category, a sale line,
+   stock / inbound lines) waits `blocked` (`depends_on_json`) until that
+   create is `done`; a rejected create fails them (`dependency_failed`).
+4. Lists (`ProductBloc`, `CategoryBloc`, `VendorsBloc`) read SQLite only and
+   re-read on `DbChangeNotifier` (`ProductBloc`: an outbox / upload-only
+   notify re-reads only the sync markers, review M10; a products,
+   categories, stock or synced_assets notify re-reads the list);
+   the markers count only the signed-in scope's rows (review M6); a pull never overwrites a row with an
+   open local change (`skipWhenLocalPending`). Pull to refresh re-reads and
+   calls `SyncTriggers.syncNow()` (fire and forget, `requestCatalogSync`).
+5. Push results: see "Catalog push results" below. A rejected row stays
+   local and shows "Sync failed" on its list row and on the pending-sync
+   screen.
+6. The open POS cart (fix-wave I2): `PosBloc` re-checks its product lines
+   on every `products` notify and at checkout
+   (`SaleService.unavailableProductIds`: no local row, or `is_active`
+   false). Gone lines are dropped with a localized notice
+   (`posItemsUnavailable`); `SaleService.createSale` refuses them too
+   (`SaleProductUnavailableException`, nothing written), so a sale never
+   reaches the BE naming a product a merge, a discard or a dropped create
+   removed.
+7. Logout (review M1): `clearAllOnLogout` wipes the catalog tables but
+   first stashes every catalog row with an open outbox row (plus a
+   product's stock rows) per scope in `sync_state`
+   (`catalog_stash|<scope>`, `CatalogStash`). The same scope's next
+   bootstrap restores them in its final commit where it wrote no row (a
+   server row always wins); another account never sees them.
+
+### Pending-sync screen: conflicts, discard, merge (Task 8)
+
+`CatalogConflictService` (`lib/features/sync/domain/catalog_conflict_service.dart`),
+used by `PendingSyncBloc` for rows whose entity is product / category /
+vendor. Conflict policy A: nothing is rewritten automatically.
+
+- **Edit and retry** (a rejected create / update that the server refused
+  itself, not a `dependency_failed` cascade): opens the entity's normal
+  form (`openCatalogEditor`, no new screen). When the form saved an edit,
+  `editAndRetry` folds the queued `update` rows into the rejected row
+  (later fields win, dependencies merged), removes them and queues the row
+  again (`OutboxStore.retryRejectedIn`, which also revives the rows it
+  failed). Closing the form without saving changes nothing. A product SKU
+  cannot be edited (immutable): a SKU conflict is resolved by merge or
+  discard.
+- **Merge into existing**: offered only when the rejected create carries
+  `conflict_entity_id` (`error_entity_id`; today products only, BE_GAPS).
+  The screen shows a standard confirm with the count of records that will
+  point at the existing item (`previewMerge`: the real merge in a rolled
+  back transaction). `mergeInto` is ONE `LocalWriter.write`: the local
+  entity's outbox rows are dropped, every other outbox row's payload (any
+  JSON path), `depends_on_json` and legacy `depends_on_entity_id` are
+  rewritten (`OutboxStore.rekeyForMerge`), the rows the rejected create had
+  failed or blocked go back to the queue, and every audited table is
+  rewritten: `products.category_id`, `categories.parent_id`, `stock`
+  (rows folded into the existing product's row, recomputed: the copy's
+  opening stock and other queued stock changes ADD to the existing
+  product's stock), `sale_items.product_id`, `synced_assets` (dropped),
+  `outbox.failed_by_entity_id`, and the JSON columns listed in
+  `CatalogConflictService.jsonColumns`. The copy's own queued edits are
+  dropped, and so is its staged image (row and file; fix-wave ruling): it
+  never replaces the existing product's server image, and an image already
+  staged for the existing row stays queued. The confirm dialog says all
+  three, plus a warning when the existing row is inactive (deleted on the
+  server; `MergeReport.targetInactive`, review M2). After a merge the bloc
+  starts a sync, so an existing row that was not pulled yet (the copy
+  stands in under its id with no version) gets its server state at once
+  (review M4). The local row is deleted, or takes the server id with no
+  version when the server row is not pulled yet. Deliberately NOT
+  rewritten: `sale_refunds.json` (raw feed, server ids only) and
+  `sales.warnings_json` (display history). The schema-grep test fails when
+  a new column that can hold a catalog id is added without being covered.
+- **Discard** (`discardRejected`): ruling R7 applies here too (fix-wave
+  I3). A catalog create that anything waits on (outbox rows listing it in
+  `depends_on`, in any open status, including rows already failed
+  `dependency_failed` by its rejection; for a category also its active
+  local products and child categories) is NOT discarded:
+  `DiscardOutcome.hasDependents`, and the screen does not offer Discard
+  for it (`PendingSyncRow.dependents` / `canDiscard`, with a localized
+  hint: merge it, or edit and retry). The opening `stock.add` written with
+  a product create (the row right after it, `seq + 1`) is part of the
+  create, not a dependent. A create claimed by a sync run and never
+  answered (`claimed_at` set, not `rejected`) may already be on the
+  server: `DiscardOutcome.mayBeOnServer` (review M8; "Send now" settles
+  it). Otherwise a create removes every open row of the entity and its
+  opening stock, deletes the local row, its stock rows, image
+  registrations and staged image (files after the commit). With no
+  signed-in scope nothing is discarded (review M6). An update / delete restores the row from `server_json` with any
+  later queued edit re-applied on top; a field only the discarded change
+  set is cleared. With no stored server state the row is kept and marked
+  `local_stale: true` until the next pulled version replaces it. A row
+  being sent (`inflight` / leased) is never discarded.
+- **Retry of a row naming a gone item** (T5 I4): a rejected row whose
+  `depends_on` names an id with no create row and no local product /
+  category / vendor row (`CatalogSupport.goneDependencies`) is flagged on
+  the screen; its Retry asks first (sent, the BE keeps it without that
+  link: a sale keeps its money, not its product / stock), and "Retry all"
+  skips it.
+- **Edit and retry on a rejected UPDATE** (review M5, T8/9 concern 4): the
+  user's edit may already have been claimed or sent on its own (a rejected
+  update does not hold later edits). It still counts as saved; its fields
+  are removed from the rejected row before it is queued again, so an old
+  rejected value (a price) is never resent over the new one; a rejected
+  row left with no field is deleted.
+- A row whose local copy is marked `local_stale` says so ("replaced at the
+  next sync", T8/9 concern 5).
+- **Failed image uploads** (403 / 404 / 413 / unreadable file) are listed
+  with Retry (`ImageUploader.retryFailed`); the notification starts the
+  upload run.
+
+### Files
+
+```
+lib/features/category/domain/category_service.dart
+lib/features/products/domain/product_service.dart
+lib/features/inventory/domain/vendor_service.dart
+lib/core/sync/catalog_support.dart        ← CatalogActor, CatalogValidationException, helpers
+lib/core/sync/catalog_sync_marks.dart     ← "waiting to sync" / "sync failed" markers
+lib/core/sync/catalog_refresh.dart        ← pull to refresh -> syncNow
+lib/core/sync/catalog_stash.dart          ← logout stash / bootstrap restore of unsynced catalog rows (M1)
+lib/core/sync/images/                     ← PendingUploadStore, ImageUploader, resolver
+lib/features/sync/domain/catalog_conflict_service.dart
+lib/features/sync/presentation/widgets/catalog_editor.dart
 ```
 
-Rule: if cache was shown, a network error does NOT replace the UI with an error state — it shows the cached data with a soft error in state.
+### How to
+
+- **Add a column that holds a product / category / vendor id**: add it to
+  `CatalogConflictService.idColumns` (real column) or `jsonColumns` (JSON)
+  and handle it in `_merge`; the schema-grep test in
+  `catalog_conflict_service_test.dart` fails until you do.
+- **Resolve a stuck catalog row by hand**: Pending sync screen -> the row ->
+  Edit and retry / Merge into existing / Discard.
+- **Run the Phase 3 tests**: `flutter test test/features/sync
+  test/features/lifecycle/catalog_lifecycle_test.dart test/core/sync`.
+
+## Offline-First Data Pattern in Blocs
+
+Catalog blocs (`ProductBloc`, `CategoryBloc`, `VendorsBloc`, Phase 3 Task 7)
+never call REST:
+
+- Reads: SQLite through `OfflineLocalCache` (lists active rows only; the
+  whole catalog, no paging), plus `CatalogSyncMarks` for the row markers.
+- Re-read: each bloc listens to `DbChangeNotifier.changes` and re-reads
+  (16 ms debounce, an overtaken read is dropped) when a local write or a
+  pull touches its `watchedTables` (products/categories/stock/outbox/
+  pending_uploads/synced_assets; vendors/outbox).
+- Writes: use case -> repo -> `ProductService` / `CategoryService` /
+  `VendorService` (row + outbox in one `LocalWriter.write`), then a re-read,
+  then `submitStatus: success`. A refusal (`CatalogValidationException`,
+  e.g. cashier, duplicate barcode) is `submitError` and nothing is written.
+- Add product: the auto "General" category (`newCategoryName`) and the
+  opening stock (dependent `stock.add`) are in the SAME write as the
+  product create. A delete hides the row at once (`is_active: false`).
+- Category images are staged like product images (`CategoryService`
+  takes the `PendingUploadStore`; the form reuses `FormPhotoTile`,
+  `CategoryThumb` shows the staged file first).
+- Markers: `CatalogSyncPill` ("Not synced" = open outbox row or waiting
+  upload; "Sync failed" = rejected outbox row or failed upload).
+- Cashiers (`AppPermissions.canEditCatalog` false) see no add/edit/delete
+  entry point (products list + swipe, product detail, categories list +
+  swipe, category detail, vendors sheet); the services refuse them too.
+- First setup: the existing `FirstSetupScreen` gate covers these screens.
+- A pull never erases or reverts a pending local edit (appliers'
+  `skipWhenLocalPending` defers it), pinned end to end by
+  `catalog_pull_keeps_local_edit_test`.
 
 ---
 
@@ -504,7 +653,39 @@ notified only after commit. Never call `LocalWriter.write` inside another
 
 Outbox rows carry a `scope` (`userId|tenantId`, `SyncSession.key`); the pull cursor, `deferred_pull` and `repair_needed` are stored per scope (`SyncStateStore.forScope`). `device_id` and `sync_lock` stay global. The engine only claims, pushes and pulls for the current scope (`SyncScope.current`, set by `SyncCoordinator`) and returns `blocked(noSession)` with no session. Push/pull requests are bound to their scope: the sync auth interceptor refuses to send when the live auth session no longer matches (`SyncTransportKind.scopeChanged`), and the engine aborts quietly (claims released, no backoff). Rows from before DB v7 have scope `''` and are never pushed.
 
+### Dependencies (DB v14)
+
+An outbox row may wait on several entities: `depends_on_json` is a JSON array of entity ids (NULL = none; replaces the unused single `depends_on_entity_id`, backfilled by `SyncSchema.addOutboxDependsOnList`). `OutboxStore.enqueue(dependsOn:)` records only the ids that have an open (not `done`, so `rejected` counts) `create` in the same scope (`OutboxStore.openCreateIds`) and stores the row `blocked` when any is recorded. When a create is `done`, `unblockDependents` re-checks each dependent's whole list and flips it to `pending` only when none is open. Only a rejected/discarded **create** fails its dependents (`OutboxStore.failsDependents`; `dependency_failed`, cascading only through failed creates): a rejected or discarded product/vendor `update`/`delete` never fails the sales, stock ops or inbounds naming it. Writers: `sale.create` -> every non-custom line product; `stock.add|remove|adjust` -> its product; `inbound.create` -> vendor + every line product. This is what keeps a sale from being pushed after a product create that answered `retry` (the BE would store the line with `product = NULL`).
+
+A failed create also fails the LATER rows of the same entity (an edit or delete queued behind it) with `dependency_failed` (Task 5, Review Focus 2); the rows failed because of id X carry `error_message = OutboxStore.dependencyFailedMessage(X)` (`Dependency X failed`). `retryRejected` of a create revives them (recursively through revived creates): `blocked` while a dependency create is open, else `pending`; a row naming another dependency that has no create row any more stays rejected (best effort). `retryRejected` of any row now goes back `blocked` (not `pending`) while one of its dependency creates is still open. Per-entity order (`claimBatch`): a not-`done` earlier row of the same entity id holds later rows, EXCEPT a `rejected` `update`/`delete` of a catalog entity (`OutboxStore.catalogEntities`: category, product, vendor; ruling I2): later edits of that row are still sent with their own `base_version` and the BE merges them field-wise. A rejected create, and any rejected sale/stock/inbound/refund row, still holds. A `rejected` row is not "local pending" for pull deferral (`hasLocalPendingOutbox` counts `pending`/`inflight`/`blocked` only), so a newer server row is applied over the user's rejected edit locally; the rejected row keeps its payload on the pending-sync screen (Task 8 offers edit/retry/discard).
+
+Retry of a row naming a gone dependency (ruling I4, fix-wave): discard of a create with dependents is refused (I3), so this is rare; when it happens the pending-sync screen flags the row and asks before sending it (the BE keeps it without that link: `product = NULL`, `product_missing`; no money is lost, the product link is). "Retry all" skips such rows.
+
+Revival (review M9): every row failed `dependency_failed` because of create X carries `failed_by_entity_id = X` (DB v14 outbox column), set both by the local cascade and by the engine for a real BE `dependency_failed` (one of the row's dependencies has an open local create; that id is also added to its `depends_on_json`). `retryRejected` / merge revive by that column; the `error_message` text match is kept only for rows failed before the column existed. A merge moves the column to the surviving id.
+
+BE finding 1 (BE_GAPS, client stopgap, fix-wave I1): the BE fails EVERY mutation later in the same push that depends on the entity of ANY rejected mutation (`services._apply_one` `failed_ids`), not only a rejected create. The engine therefore treats a server `dependency_failed` as `retry`, not `rejected`, when none of the row's dependencies (its `depends_on` plus the server's `depends_on`) has an open local create (`SyncEngine._isStrayDependencyFailure`): the row is due again at once (backoff after 3 such retries) and the same run sends it alone. A sale in the same push as a rejected product edit is therefore recorded, exactly once, and its local stock never goes back up. Pinned by `catalog_push_results_test` "BE finding 1" and exercised by the convergence test (any device may now delete any product; counter `be_finding1_sale_retried`).
+
+### Catalog push results (Phase 3, Task 5)
+
+`CategoryApplier`, `ProductApplier`, `VendorApplier.onPushResult` share `catalogPushResult` (applier_support.dart):
+- `applied`/`duplicate` -> `adoptServerRow(txn, table, id, r, sent:)`: never lowers the stored `version`; `merged` + `server_state` (BE snapshot keys `category_id`/`parent_id` mapped by `feedShapeOf`, image keys dropped) replaces the local fields unless another unconfirmed row of the entity still shows a newer local edit; otherwise the version is adopted only for a `create` or `version == base_version + 1` (an edit sent without a base leaves it to the pulled echo). A `delete` adopts nothing (the pulled tombstone removes the row).
+- `rejected`: the engine stores `error_code`, `error_message` (first `errors{}` message when the message is empty, `SyncEngine.rejectionMessage`) and `error_entity_id` (= `conflict_entity_id`, DB v14 outbox column, read by "Merge into existing"). `entity_deleted` on an update marks the local row `is_active: false`; `conflict_unique` never rewrites ids.
+- `server_json` (DB v14, on `categories`/`products`/`vendors`) = the last server state (feed-shaped `data` + `version`), written by pull/bootstrap and by `adoptServerRow`; NULL for a never-synced create. Used to restore a row on discard.
+- `outbox.claimed_at` (DB v14) is set the first time a sync run claims a row and never cleared. `CatalogSupport.dropNeverSentCreate` drops a create only when it is `rejected` or was never claimed: a `pending` create may already be on the server (lost response, crash after send).
+
 Limitation: per-entity ordering and `depends_on` are resolved within one scope. Another user's unsynced create is not seen as a dependency (Task 3's logout gate makes this rare).
+
+### Catalog image uploads (Phase 3, Task 6)
+
+Staged images (`pending_uploads` + `<appSupport>/pending_images`, Task 4) are sent by `ImageUploader` (`lib/core/sync/images/image_uploader.dart`), FOREGROUND ONLY:
+- Started by `SyncTriggers` next to `AssetSync` (after a run that ends `completed`, after a bootstrap `completed`, on app resume) and also on connectivity regained, only while the server answers; fire-and-forget, never changes a sync outcome, never logs out. When it uploaded something, AssetSync runs once more. The OS worker (`background_sync.dart` / `background_entry.dart`) never builds one (a test greps for it).
+- Eligible: `due(scope)` rows whose entity row exists and has NO open outbox row of its own (`pending`/`inflight`/`blocked`); a `rejected` create parks it (waits). Entity row gone, or a never-synced row (`version` NULL) without any create row -> upload row + file cancelled.
+- Request (`HttpSyncTransport.putImage`, the `ImageUploadTransport`): multipart `PUT api/v1/products/<id>/image/` or `api/v1/products/categories/<id>/image/`, field `image`, content type by magic bytes, `X-Content-SHA256` and `Idempotency-Key` = the staged sha256, through `engine.authedFor(scope)`; 15 s connect/receive, 60 s send. 4xx keep the BE code (`hash_mismatch`, `forbidden`).
+- Success (one txn): row `image_url`/`thumbnail_url` (products) + json `image`/`thumbnail_url`, `image_hash` = local sha256, `version` only when newer than the stored one (a pull that already applied it or a newer row wins), `server_json` image keys + version, `registerRowAssets`, upload row deleted (guarded on its `local_path`: a newer pick is left alone); staged file deleted after the commit; notifies only what changed: `products`/`categories` + `synced_assets` when the row was written, `pending_uploads` when the upload row was removed (T6 M6). The upload debounce re-checks foreground when it fires and is cancelled on pause (review M7). The BE answers a same-bytes replay `unchanged`: a lost response + retry leaves one server image.
+- Errors: network/timeout/maintenance/5xx/429/408 -> `attempts+1`, `next_attempt_at` = `AssetSync.backoffFor` (1 min doubling to 24 h, or a longer Retry-After), file kept, never gives up, the run stops on network/timeout. 400 `hash_mismatch` -> sha recomputed from the file, stored when different, retried once (a second mismatch backs off). Other 400, 403, 404, 413, unreadable file -> `failed` + `last_error`; `ImageUploader.retryFailed(entity, id)` / `PendingUploadStore.retryFailed` put it back. 401 `token_expired` -> one refresh via `authedFor`; any remaining 401, `account_disabled`, `device_revoked`, refresh rejected, scope changed -> run stops, row untouched.
+- `PendingUploadStore.sweepOrphans` runs from the uploader at most once per hour per instance.
+- `OfflineCachedImage(entityType:, entityId:)`: an entity with a `pending_uploads` row in the current scope shows the staged file first (decoded with `cacheWidth` from the layout width), before any `synced_assets` file or the network. One shared `PendingImageResolver` (one query per `pending_uploads` notify, only while subscribed; after a user switch the next `acquire` drops the previous scope's map and reloads, T6 M3). Until its first load finishes the widget shows its placeholder (no flash of the url / error tile, T6 M4). Used by `ProductThumb`, the POS product tile and the product form's photo tile. Without the pair the widget behaves as before.
+- Known window: an edit enqueued while an upload is in flight carries the pre-upload `base_version`; the server applies it as `merged` (Task 5 rules), nothing is lost.
 
 ### Stock edits and inbound (Phase 1)
 
@@ -645,7 +826,12 @@ comparison (`getDashboardSummary`, no pending merge any more).
 
 `SyncTriggers`: start kick, app resume, connectivity false→true, outbox change
 (first notification opens a 5 s window; runs only if rows are `pending`),
-periodic 5 min while foreground, manual `syncNow`. Triggers during a run
+periodic 5 min while foreground, manual `syncNow` (also pull to refresh on
+the product, category and vendor screens, Phase 3). A `pending_uploads`
+change (an image-only edit stages an image but enqueues no outbox row; the
+pending-sync screen's upload retry) starts an image-upload run after a 2 s
+window (`uploadDebounce`, review M1), under the same server-reachable gate
+as every image run. Triggers during a run
 collapse into one follow-up. `alreadyRunning` from another runner → exactly
 one retry after the lock TTL (2 min). `backoff` → wait for the engine's
 `nextRetryAt` (manual always runs; connectivity may cut a network backoff
@@ -825,8 +1011,18 @@ Phase 2 tests (bootstrap, pull appliers, assets, first setup):
 | `test/core/sync/bootstrap_transport_test.dart`, `bootstrap_controller_test.dart` | transport errors, UI controller |
 | `test/core/sync/catalog_appliers_test.dart`, `other_appliers_test.dart`, `refund_applier_test.dart`, `stock_applier_test.dart` | appliers (incl. `is_low_stock` BE rule) |
 | `test/core/sync/asset_sync_test.dart`, `asset_triggers_test.dart` | image download/verify/backoff/orphans, triggers, worker thumbnails only |
+| `test/core/sync/image_uploader_test.dart`, `offline_cached_image_pending_test.dart`, `http_sync_transport_test.dart` (putImage) | Phase 3 image uploads: eligibility, lost-response idempotency, backoff, failed/retry, cancel, hash_mismatch, auth, staged image shown first |
 | `test/core/sync/convergence_test.dart` | bootstrap-in-the-middle, rows written between pages, faults |
 | `test/core/offline/first_setup_screen_test.dart`, `offline_status_setup_test.dart` | first-setup screen + readiness gate |
-| `test/core/offline/offline_db_v11/v12/v13_test.dart` | schema steps (v13 drops `offline_assets`, `sync_metadata`) |
-| `test/core/offline/save_vendors_test.dart` | REST `saveVendors` never erases synced vendors |
+| `test/core/offline/offline_db_v11/v12/v13/v14_test.dart` | schema steps (v13 drops `offline_assets`, `sync_metadata`; v14 adds outbox `depends_on_json`) |
+| `test/core/sync/outbox_dependencies_test.dart` | multi-dependency block/unblock/fail, sale/stock/inbound dependencies, `retry` ordering |
+| `test/core/sync/catalog_push_results_test.dart`, `outbox_catalog_cascade_test.dart` | catalog push results (adopt version, merged, conflict_unique + error_entity_id, entity_deleted, forbidden/limit/validation), same-entity cascade, retry revival, lost-response delete |
+| `test/core/sync/fake_sync_server_catalog_test.dart` | FakeSyncServer mirrors the BE catalog handlers, cashier gate, in-batch dependency_failed, image PUT |
+| `test/features/products/product_bloc_local_test.dart`, `category/category_bloc_local_test.dart`, `inventory/vendors_bloc_local_test.dart` | Phase 3 catalog blocs: SQLite reads, notifier re-read, local add/edit/delete, one-write auto category + opening stock, category image staging, markers, cashier refusal |
+| `test/core/sync/catalog_pull_keeps_local_edit_test.dart` | Review Focus 4: a pull (push answered `retry`) keeps a pending edit/create; the edit then merges with another device's change |
+| `test/features/catalog/no_rest_catalog_writer_test.dart`, `cashier_entry_points_test.dart` | no REST catalog writer/endpoint in `lib/`; cashier entry points hidden |
 | `test/core/offline/offline_cached_image_test.dart` | image widget lookup |
+| `test/features/sync/catalog_conflict_service_test.dart` | Review Focus 5/6: merge rewrites every audited table and leaves no old id (schema grep + whitelist), merge atomic at every stage, preview = merge, refused without `conflict_entity_id`; discard of a create (row, outbox, files) / update (server_json + later edits) / delete; dependents stay failed; edit and retry |
+| `test/features/sync/pending_sync_catalog_test.dart` | pending-sync bloc + view: labels, merge only with a conflict id, confirm with counts, edit and retry, catalog discard path, failed upload retry (en + ar) |
+| `test/features/catalog/catalog_refresh_sync_test.dart`, `test/core/sync/asset_triggers_test.dart` (review M1) | pull to refresh calls sync-now; a `pending_uploads` change starts an upload run |
+| `test/features/lifecycle/catalog_lifecycle_test.dart` | offline day of catalog work on the real stack -> exact server state, one image, second device pulls it; SKU conflict on two devices -> merge -> convergence |

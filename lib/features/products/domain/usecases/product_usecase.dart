@@ -1,9 +1,5 @@
-import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/add_product_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:amana_pos/features/products/domain/repositories/product_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -12,36 +8,23 @@ class ProductUseCase {
 
   ProductUseCase({required this.repository});
 
-  Future<Either<String?, CategoryProductsResponseDto>> getCategoryProducts({
-    required String categoryId,
-    required int page,
-    required int pageSize,
-  }) => repository.getCategoryProducts(categoryId: categoryId, page: page, pageSize: pageSize);
-
-  Future<Either<String?, CategoryResponseDto>> getCategories() => repository.getCategories();
-
-  Future<Either<String?, ProductListResponseDto>> getProducts({
-    required int page,
-    int pageSize = 20,
-    String? search,
-    String? isActive,
-  }) => repository.getProducts(
-    page: page,
-    pageSize: pageSize,
-    search: search,
-    isActive: isActive,
+  Future<Either<String, String>> addProduct(
+    AddProductRequestDto request, {
+    String? initialQuantity,
+    String? shopId,
+    String? newCategoryName,
+  }) => repository.addProduct(
+    request,
+    initialQuantity: initialQuantity,
+    shopId: shopId,
+    newCategoryName: newCategoryName,
   );
 
-  Future<Either<String?, CategoryProductsResponseDto>> getProductsByCategory({
-    required String categoryId,
-    required int page,
-    int pageSize = 20,
-  }) => repository.getProductsByCategory(categoryId: categoryId, page: page, pageSize: pageSize);
+  Future<Either<String, Unit>> editProduct(
+    String productId,
+    UpdateProductRequestDto request,
+  ) => repository.editProduct(productId, request);
 
-  Future<Either<String?, AddProductResponseDto>> addProduct(AddProductRequestDto request) => repository.addProduct(request);
-
-  Future<Either<String?, bool>> deactivateProduct(String productId) => repository.deactivateProduct(productId);
-
-  Future<Either<String?, bool>> editProduct(String productId, UpdateProductRequestDto request) => repository.editProduct(productId, request);
-
+  Future<Either<String, Unit>> deleteProduct(String productId) =>
+      repository.deleteProduct(productId);
 }

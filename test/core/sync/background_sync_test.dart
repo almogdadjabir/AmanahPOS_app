@@ -267,61 +267,58 @@ void main() {
     });
   });
 
-  test(
-    'OfflineDb.onConfigure sets WAL, synchronous=FULL and busy_timeout on a '
-    'file db',
-    () async {
-      sqfliteFfiInit();
-      final dir = await Directory.systemTemp.createTemp('amana_wal');
-      final path = '${dir.path}/t.db';
-      try {
-        final db = await databaseFactoryFfi.openDatabase(
-          path,
-          options: OpenDatabaseOptions(
-            singleInstance: false,
-            version: OfflineDb.schemaVersion,
-            onConfigure: OfflineDb.onConfigure,
-            onCreate: OfflineDb.onCreate,
-          ),
-        );
-        final mode = await db.rawQuery('PRAGMA journal_mode');
-        final busy = await db.rawQuery('PRAGMA busy_timeout');
-        expect(mode.single.values.single.toString().toLowerCase(), 'wal');
-        expect(busy.single.values.single, OfflineDb.busyTimeoutMs);
-        // Review I5: FULL (2), not NORMAL (1): with WAL, NORMAL can roll back
-        // a committed (printed) sale on power loss / OS crash.
-        final sync = await db.rawQuery('PRAGMA synchronous');
-        expect(sync.single.values.single, 2);
+  test('OfflineDb.onConfigure sets WAL, synchronous=FULL and busy_timeout on a '
+      'file db', () async {
+    sqfliteFfiInit();
+    final dir = await Directory.systemTemp.createTemp('amana_wal');
+    final path = '${dir.path}/t.db';
+    try {
+      final db = await databaseFactoryFfi.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          singleInstance: false,
+          version: OfflineDb.schemaVersion,
+          onConfigure: OfflineDb.onConfigure,
+          onCreate: OfflineDb.onCreate,
+        ),
+      );
+      final mode = await db.rawQuery('PRAGMA journal_mode');
+      final busy = await db.rawQuery('PRAGMA busy_timeout');
+      expect(mode.single.values.single.toString().toLowerCase(), 'wal');
+      expect(busy.single.values.single, OfflineDb.busyTimeoutMs);
+      // Review I5: FULL (2), not NORMAL (1): with WAL, NORMAL can roll back
+      // a committed (printed) sale on power loss / OS crash.
+      final sync = await db.rawQuery('PRAGMA synchronous');
+      expect(sync.single.values.single, 2);
 
-        // A second connection on the same file (the other isolate) can read
-        // and write while the first one is open.
-        final other = await databaseFactoryFfi.openDatabase(
-          path,
-          options: OpenDatabaseOptions(
-            singleInstance: false,
-            version: OfflineDb.schemaVersion,
-            onConfigure: OfflineDb.onConfigure,
-            onCreate: OfflineDb.onCreate,
-          ),
-        );
-        await other.insert('sync_state', {
-          'key': 'k',
-          'value': 'v',
-          'updated_at': '2026-11-16T00:00:00Z',
-        });
-        expect(
-          (await db.query(
-            'sync_state',
-            where: 'key = ?',
-            whereArgs: ['k'],
-          )).single['value'],
-          'v',
-        );
-        await other.close();
-        await db.close();
-      } finally {
-        await dir.delete(recursive: true);
-      }
-    },
-  );
+      // A second connection on the same file (the other isolate) can read
+      // and write while the first one is open.
+      final other = await databaseFactoryFfi.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          singleInstance: false,
+          version: OfflineDb.schemaVersion,
+          onConfigure: OfflineDb.onConfigure,
+          onCreate: OfflineDb.onCreate,
+        ),
+      );
+      await other.insert('sync_state', {
+        'key': 'k',
+        'value': 'v',
+        'updated_at': '2026-11-16T00:00:00Z',
+      });
+      expect(
+        (await db.query(
+          'sync_state',
+          where: 'key = ?',
+          whereArgs: ['k'],
+        )).single['value'],
+        'v',
+      );
+      await other.close();
+      await db.close();
+    } finally {
+      await dir.delete(recursive: true);
+    }
+  });
 }

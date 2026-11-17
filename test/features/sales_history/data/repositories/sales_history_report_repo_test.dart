@@ -34,10 +34,12 @@ void main() {
       dayOfWeek: const [],
     );
 
-    when(() => repo.getSalesReport(
-      from: any(named: 'from'),
-      to: any(named: 'to'),
-    )).thenAnswer((_) async => right(fakeReport));
+    when(
+      () => repo.getSalesReport(
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+      ),
+    ).thenAnswer((_) async => right(fakeReport));
 
     final result = await repo.getSalesReport(
       from: DateTime(2026, 6, 1),

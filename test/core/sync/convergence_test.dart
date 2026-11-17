@@ -30,13 +30,29 @@
 // to one device. A bootstrap can be interrupted by the same faults
 // (offline, flaky) and by a simulated crash at a page boundary, and must
 // resume later from its stored progress.
+//
+// Phase 3 Task 5: products, categories and vendors use the REAL
+// ProductApplier / CategoryApplier / VendorApplier and the real
+// Product/Category/VendorService. Extra actions: create category / product
+// / vendor (product barcodes, category and vendor names come from small
+// pools, so two offline devices make CONFLICTING creates the server answers
+// `conflict_unique`), edit, delete. Rejected rows are allowed only as the
+// conflict policy says (conflict_unique creates, their dependency_failed
+// followers, entity_deleted edits); everything else must still be done and
+// every device must equal the server for every live catalog row.
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
+import 'package:amana_pos/core/sync/appliers/category_applier.dart';
 import 'package:amana_pos/core/sync/appliers/inbound_applier.dart';
+import 'package:amana_pos/core/sync/appliers/product_applier.dart' as real;
+import 'package:amana_pos/core/sync/appliers/vendor_applier.dart';
+import 'package:amana_pos/core/sync/catalog_support.dart';
+import 'package:amana_pos/core/sync/images/pending_upload_store.dart';
 import 'package:amana_pos/core/sync/appliers/sale_applier.dart';
 import 'package:amana_pos/core/sync/appliers/stock_applier.dart';
 import 'package:amana_pos/core/sync/change_applier.dart';
@@ -49,8 +65,16 @@ import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/reachability.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
+import 'package:amana_pos/features/category/data/models/requests/edit_category_request_dto.dart';
+import 'package:amana_pos/features/category/domain/category_service.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/requests/create_vendor_request_dto.dart';
+import 'package:amana_pos/features/inventory/data/models/requests/update_vendor_request_dto.dart';
 import 'package:amana_pos/features/inventory/domain/stock_service.dart';
+import 'package:amana_pos/features/inventory/domain/vendor_service.dart';
+import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
+import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
+import 'package:amana_pos/features/products/domain/product_service.dart';
 import 'package:amana_pos/features/pos/domain/sale_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -204,11 +228,54 @@ abstract class _RowApplier implements ChangeApplier {
   }
 }
 
-class ProductApplier extends _RowApplier {
-  ProductApplier() : super('product', 'c_products');
+/// Counts the push results a production catalog applier receives.
+class _CountingApplier implements ChangeApplier {
+  _CountingApplier(this.inner);
+  final ChangeApplier inner;
+
   @override
-  Map<String, Object?> rowFrom(PullChange c) => {'name': c.data?['name']};
+  String get entity => inner.entity;
+  @override
+  Set<String> get tables => inner.tables;
+  @override
+  bool get skipWhenLocalPending => inner.skipWhenLocalPending;
+  @override
+  Future<int?> localVersion(Transaction txn, PullChange change) =>
+      inner.localVersion(txn, change);
+  @override
+  Future<void> apply(Transaction txn, PullChange change) =>
+      inner.apply(txn, change);
+  @override
+  Future<void> onPushResult(
+    Transaction txn,
+    OutboxEntry sent,
+    PushResult result,
+  ) {
+    _bump(
+      'push_${entity}_${sent.op}_${result.status.name}'
+      '${result.code == null ? '' : '_${result.code}'}'
+      '${result.merged ? '_merged' : ''}',
+    );
+    return inner.onPushResult(txn, sent, result);
+  }
 }
+
+/// Local catalog table of a catalog entity.
+const Map<String, String> kCatalogTables = {
+  'product': 'products',
+  'category': 'categories',
+  'vendor': 'vendors',
+};
+
+/// Rejections the catalog conflict policy allows to stay (no user here).
+bool allowedRejection(OutboxEntry e) =>
+    kCatalogTables.containsKey(e.entity) &&
+    switch (e.errorCode) {
+      'conflict_unique' => e.op == 'create',
+      'dependency_failed' => true,
+      'entity_deleted' => e.op == 'update',
+      _ => false,
+    };
 
 class CustomerApplier extends _RowApplier {
   CustomerApplier() : super('customer', 'c_customers');
@@ -335,9 +402,6 @@ Future<OfflineDb> _openDb() async {
   await db.execute(ddl);
   await db.execute('PRAGMA user_version = ${OfflineDb.schemaVersion}');
   await db.execute(
-    'CREATE TABLE c_products (id TEXT PRIMARY KEY, name TEXT, version INTEGER)',
-  );
-  await db.execute(
     'CREATE TABLE c_customers (id TEXT PRIMARY KEY, name TEXT, '
     'version INTEGER)',
   );
@@ -373,6 +437,20 @@ class Device {
   late Uuid uuid;
   late SaleService saleService;
   late StockService stockService;
+  late CategoryService categoryService;
+  late ProductService productService;
+  late VendorService vendorService;
+
+  /// Catalog ids this device created (only the creator deletes them).
+  final ownCatalog = <String, String>{}; // id -> entity
+
+  /// Own categories with a unique name: their create can never conflict.
+  final uniqueCategories = <String>{};
+
+  /// Own products whose create can never be rejected (no barcode, in a
+  /// category that is synced or uniquely named): this device sells them,
+  /// often before the create is confirmed (the sale waits `blocked`).
+  final sellable = <String>{};
 
   Future<void> init() async {
     odb = await _openDb();
@@ -386,7 +464,9 @@ class Device {
       'updated_at': w.clock.toIso8601String(),
     });
     registry
-      ..register(ProductApplier())
+      ..register(_CountingApplier(real.ProductApplier()))
+      ..register(_CountingApplier(CategoryApplier(scopeProvider: () => _scope)))
+      ..register(_CountingApplier(VendorApplier()))
       ..register(CustomerApplier())
       ..register(SpyApplier(StockApplier()))
       ..register(SpyApplier(SaleApplier()))
@@ -420,6 +500,33 @@ class Device {
       now: w.now,
       uuid: uuid,
     );
+    const catalogActor = CatalogActor(
+      businessType: AppBusinessType.shop,
+      role: AppUserRole.owner,
+    );
+    categoryService = CategoryService(
+      writer: writer,
+      actor: () => catalogActor,
+      now: w.now,
+      uuid: uuid,
+    );
+    productService = ProductService(
+      writer: writer,
+      actor: () => catalogActor,
+      // Never used: the convergence actions stage no image.
+      uploads: PendingUploadStore(
+        baseDir: () async => '${Directory.systemTemp.path}/conv_unused',
+      ),
+      categories: categoryService,
+      now: w.now,
+      uuid: uuid,
+    );
+    vendorService = VendorService(
+      writer: writer,
+      actor: () => catalogActor,
+      now: w.now,
+      uuid: uuid,
+    );
     engine = SyncEngine(
       db: odb,
       transport: view,
@@ -433,7 +540,19 @@ class Device {
       backoff: Backoff(random: Random(w.rnd.nextInt(1 << 30))),
       now: w.now,
       hooks: SyncHooks(
-        beforeResultWrite: (b, r) async => _maybeCrash('beforeResultWrite'),
+        beforeResultWrite: (b, r) async {
+          // BE finding 1 reached: a sale/stock/inbound failed by an
+          // unrelated rejection in the same push (the engine retries it).
+          for (final x in r.results) {
+            if (x.code != 'dependency_failed') continue;
+            final e = b.where((m) => m.mutationId == x.mutationId);
+            if (e.isNotEmpty &&
+                const {'sale', 'stock', 'inbound'}.contains(e.first.entity)) {
+              _bump('be_finding1_${e.first.entity}_retried');
+            }
+          }
+          _maybeCrash('beforeResultWrite');
+        },
         afterPushApplied: (b) async => _maybeCrash('afterPushApplied'),
         beforePullPageCommit: (p) async => _maybeCrash('beforePullPageCommit'),
       ),
@@ -484,31 +603,155 @@ class Device {
 
   // ---------------------------------------------------------- local writes
 
-  Future<OutboxEntry> rename(String p, String name) => writer.write(
-    tables: {'c_products'},
-    body: (scope) async {
-      final r = await scope.txn.query(
-        'c_products',
-        where: 'id = ?',
-        whereArgs: [p],
+  Future<void> rename(String p, String name) =>
+      productService.update(p, UpdateProductRequestDto(name: name));
+
+  // ---------------------------------------------------------- catalog
+
+  /// Ids of [entity] rows this device may still act on: active locally and
+  /// no failed create (a conflict waits for the user). A rejected EDIT does
+  /// not exclude the row: later edits pass it (ruling I2), so rows another
+  /// device deleted get several `entity_deleted` edits in a row.
+  /// [ownOnly]: created by this device.
+  Future<List<String>> catalogIds(String entity, {bool ownOnly = false}) async {
+    final rows = await db.query(kCatalogTables[entity]!, orderBy: 'id');
+    final out = <String>[];
+    for (final r in rows) {
+      final id = r['id'] as String;
+      // Seed rows stay live: inbound names kVendor, sales kProducts (a
+      // rejected edit of one in the same push would fail them, finding 1).
+      if (kProducts.contains(id) || id == kVendor) continue;
+      if (ownOnly && ownCatalog[id] != entity) continue;
+      final j = jsonDecode(r['json'] as String) as Map;
+      if (j['is_active'] == false) continue;
+      final failed = await db.query(
+        'outbox',
+        where:
+            "entity_id = ? AND status = 'rejected' "
+            "AND (op = 'create' OR error_code = 'dependency_failed')",
+        whereArgs: [id],
       );
-      final base = r.isEmpty ? null : r.single['version'] as int?;
-      await scope.txn.update(
-        'c_products',
-        {'name': name},
-        where: 'id = ?',
-        whereArgs: [p],
-      );
-      return scope.enqueue(
-        entity: 'product',
-        op: 'update',
-        entityId: p,
-        payload: {'name': name},
-        baseVersion: base,
-        occurredAt: w.clock,
-      );
-    },
-  );
+      if (failed.isNotEmpty) continue;
+      out.add(id);
+    }
+    return out;
+  }
+
+  /// A category a new product may use: active, never rejected, and its
+  /// create (if local) not rejected.
+  Future<String> categoryForProduct() async {
+    final cats = await catalogIds('category');
+    if (cats.isNotEmpty) return cats[w.rnd.nextInt(cats.length)];
+    final id = await categoryService.create(name: '$name-cat-$counter');
+    ownCatalog[id] = 'category';
+    uniqueCategories.add(id);
+    w.note('$name category.create ${_short(id)} (for a product)');
+    return id;
+  }
+
+  static const kNames = ['Drinks', 'Snacks', 'Bakery'];
+  static const kBarcodes = ['BC-1', 'BC-2', 'BC-3', 'BC-4'];
+  static const kVendors = ['Acme', 'Nile Traders'];
+
+  Future<void> catalogAction() async {
+    final r = w.rnd;
+    final k = r.nextInt(9);
+    try {
+      switch (k) {
+        case 0:
+          // Pool names: two offline devices may pick the same one.
+          final nm = kNames[r.nextInt(kNames.length)];
+          final id = await categoryService.create(name: nm);
+          ownCatalog[id] = 'category';
+          w.note('$name category.create ${_short(id)} "$nm"');
+        case 1 || 2:
+          final cat = await categoryForProduct();
+          final bc = r.nextBool()
+              ? kBarcodes[r.nextInt(kBarcodes.length)]
+              : null;
+          final id = await productService.create(
+            AddProductRequestDto(
+              name: '$name-prod-$counter',
+              price: kPrices[r.nextInt(kPrices.length)],
+              category: cat,
+              unit: 'piece',
+              trackInventory: true,
+              barcode: bc,
+            ),
+          );
+          ownCatalog[id] = 'product';
+          final catDone = (await db.query(
+            'outbox',
+            where: "entity_id = ? AND op = 'create' AND status != 'done'",
+            whereArgs: [cat],
+          )).isEmpty;
+          if (bc == null && (catDone || uniqueCategories.contains(cat))) {
+            sellable.add(id);
+          }
+          w.note(
+            '$name product.create ${_short(id)} cat=${_short(cat)} bc=$bc',
+          );
+        case 3:
+          final nm = kVendors[r.nextInt(kVendors.length)];
+          final id = await vendorService.create(
+            CreateVendorRequestDto(name: nm),
+          );
+          ownCatalog[id] = 'vendor';
+          w.note('$name vendor.create ${_short(id)} "$nm"');
+        case 4 || 5:
+          final ent = const ['category', 'product', 'vendor'][r.nextInt(3)];
+          final own = await catalogIds(ent, ownOnly: true);
+          final others = (await catalogIds(
+            ent,
+          )).where((id) => ownCatalog[id] == null).toList();
+          final pool = [...own, ...others];
+          if (pool.isEmpty) return;
+          final id = pool[r.nextInt(pool.length)];
+          // 1-3 queued edits of the row: when another device deleted it,
+          // the first comes back `entity_deleted` and the later ones are
+          // still sent (ruling I2), getting the same answer.
+          final times = 1 + r.nextInt(3);
+          for (var i = 0; i < times; i++) {
+            final nm = '$name-e$counter-$i'; // unique: renames never collide
+            w.note('$name $ent.update ${_short(id)} -> $nm');
+            await switch (ent) {
+              'category' => categoryService.update(
+                id,
+                EditCategoryRequestDto(name: nm),
+              ),
+              'product' => productService.update(
+                id,
+                r.nextBool()
+                    ? UpdateProductRequestDto(name: nm)
+                    : UpdateProductRequestDto(
+                        price: kPrices[r.nextInt(kPrices.length)],
+                      ),
+              ),
+              _ => vendorService.update(id, UpdateVendorRequestDto(name: nm)),
+            };
+          }
+        default:
+          final ent = const ['category', 'product', 'vendor'][r.nextInt(3)];
+          // Any device deletes any row, so other devices' queued edits come
+          // back `entity_deleted` and later edits pass them (ruling I2). A
+          // product another device sells and edits in one push hits BE
+          // finding 1: the client retries the sale alone (fix-wave I1).
+          final pool = await catalogIds(ent);
+          if (pool.isEmpty) return;
+          final id = pool[r.nextInt(pool.length)];
+          w.note('$name $ent.delete ${_short(id)}');
+          await switch (ent) {
+            'category' => categoryService.delete(id),
+            'product' => productService.delete(id),
+            _ => vendorService.delete(id),
+          };
+      }
+    } on CatalogValidationException catch (e) {
+      // Local refusal (duplicate barcode/name, category in use): no write.
+      _bump('catalog_refused_locally');
+      w.note('$name catalog refused: ${e.message}');
+    }
+  }
 
   Future<OutboxEntry> createCustomer(String id, String name) => writer.write(
     tables: {'c_customers'},
@@ -548,12 +791,35 @@ class Device {
     } else if (k < 65) {
       final shop = kShops[r.nextInt(kShops.length)];
       final n = r.nextInt(3) + 1;
+      // Own products created offline, maybe still unconfirmed (I3).
+      final mine = <String>[];
+      for (final id in sellable) {
+        final row = await db.query(
+          'products',
+          columns: ['json'],
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+        if (row.isEmpty) continue;
+        if ((jsonDecode(row.single['json'] as String) as Map)['is_active'] ==
+            false) {
+          continue;
+        }
+        mine.add(id);
+      }
       final lines = <SaleDraftLine>[
         for (var i = 0; i < n; i++)
           SaleDraftLine.product(
             productId: kProducts[r.nextInt(kProducts.length)],
             productName: 'P',
             quantity: randDec(r, 5),
+            unitPrice: kPrices[r.nextInt(kPrices.length)],
+          ),
+        if (mine.isNotEmpty && r.nextInt(3) == 0)
+          SaleDraftLine.product(
+            productId: mine[r.nextInt(mine.length)],
+            productName: 'New',
+            quantity: randDec(r, 3),
             unitPrice: kPrices[r.nextInt(kPrices.length)],
           ),
         if (r.nextInt(4) == 0)
@@ -571,6 +837,15 @@ class Device {
         ),
       );
       sales[sale.id] = sale.subtotal;
+      final saleRow = await db.query(
+        'outbox',
+        columns: ['status'],
+        where: 'entity_id = ?',
+        whereArgs: [sale.id],
+      );
+      if (saleRow.single['status'] == 'blocked') {
+        _bump('sale_of_unconfirmed_new_product');
+      }
       w.note(
         '$name sale ${_short(sale.id)} ${_short(shop)} '
         'total=${sale.subtotal} cust=$cust '
@@ -589,11 +864,13 @@ class Device {
           items: [CreateInboundItemRequestDto(productId: p, quantity: q)],
         ),
       );
-    } else if (k < 88) {
+    } else if (k < 76) {
       final p = kProducts[r.nextInt(kProducts.length)];
       final nm = '$name-n$counter';
       w.note('$name rename ${_short(p)} -> $nm');
       await rename(p, nm);
+    } else if (k < 96) {
+      await catalogAction();
     } else {
       final id = uuid.v4();
       customers.add(id);
@@ -697,9 +974,25 @@ class Device {
   // ---------------------------------------------------------- observation
 
   static const _pendingTables = {
-    'product': 'c_products',
+    'product': 'products',
+    'category': 'categories',
+    'vendor': 'vendors',
     'customer': 'c_customers',
     'sale': 'sales',
+  };
+
+  /// Keys a pull of ANOTHER row legitimately rewrites (derived values).
+  static const _derived = {'product_count', 'category_name', 'stock_level'};
+
+  static Map<String, Object?> _stable(Map<String, Object?> row) => {
+    for (final e in row.entries)
+      if (!_derived.contains(e.key))
+        e.key: e.key == 'json' && e.value is String
+            ? {
+                for (final j in (jsonDecode(e.value as String) as Map).entries)
+                  if (!_derived.contains(j.key)) j.key: j.value,
+              }
+            : e.value,
   };
 
   /// Local rows of entities that have a not-done outbox row (or of [keys]).
@@ -707,7 +1000,7 @@ class Device {
     final want =
         keys?.toList() ??
         [
-          for (final o in await notDone())
+          for (final o in await open())
             if (_pendingTables.containsKey(o['entity']))
               '${o['entity']}/${o['entity_id']}',
         ];
@@ -719,13 +1012,20 @@ class Device {
         where: 'id = ?',
         whereArgs: [k.substring(i + 1)],
       );
-      out[k] = jsonEncode(rows);
+      out[k] = jsonEncode(rows.map(_stable).toList());
     }
     return out;
   }
 
   Future<List<Map<String, Object?>>> notDone() =>
       db.query('outbox', where: "status != 'done'", orderBy: 'seq');
+
+  /// Rows still waiting to be sent (a `rejected` row waits for the user).
+  Future<List<Map<String, Object?>>> open() => db.query(
+    'outbox',
+    where: "status IN ('pending','inflight','blocked')",
+    orderBy: 'seq',
+  );
 
   Future<bool> atHead() async {
     final c = await state.cursor();
@@ -768,13 +1068,23 @@ Future<void> _scenario(World w, List<Device> devices) async {
   final r = w.rnd;
   final server = w.server
     ..strictCatalog = true
-    ..capabilities = {'push', 'pull', 'bootstrap_paged'}
-    ..seedVendor(kVendor);
+    ..capabilities = {'push', 'pull', 'bootstrap_paged'};
 
   // ---- seed the server: products + initial stock ----
   final initial = <String, BigInt>{};
   var seedSeq = 0;
-  final seedMutations = <OutboxEntry>[];
+  final seedMutations = <OutboxEntry>[
+    // In the feed (not seedVendor): every device holds it like any vendor.
+    OutboxEntry(
+      seq: ++seedSeq,
+      mutationId: 'seed-vendor',
+      entity: 'vendor',
+      op: 'create',
+      entityId: kVendor,
+      occurredAt: w.clock,
+      payload: {'name': 'Seed vendor'},
+    ),
+  ];
   for (final p in kProducts) {
     seedMutations.add(
       OutboxEntry(
@@ -784,7 +1094,12 @@ Future<void> _scenario(World w, List<Device> devices) async {
         op: 'create',
         entityId: p,
         occurredAt: w.clock,
-        payload: {'name': 'Product $p'},
+        payload: {
+          'name': 'Product $p',
+          'price': kPrices[kProducts.indexOf(p)],
+          'unit': 'piece',
+          'track_inventory': true,
+        },
       ),
     );
     for (final s in kShops) {
@@ -878,7 +1193,7 @@ Future<void> _scenario(World w, List<Device> devices) async {
     }
     fixed = true;
     for (final d in devices) {
-      if ((await d.notDone()).isNotEmpty ||
+      if ((await d.open()).isNotEmpty ||
           !await d.atHead() ||
           await d.deferred() != null) {
         fixed = false;
@@ -889,7 +1204,7 @@ Future<void> _scenario(World w, List<Device> devices) async {
   // (f) no device wedged.
   for (final d in devices) {
     expect(
-      await d.notDone(),
+      await d.open(),
       isEmpty,
       reason: '(e)/(f) ${d.name} outbox not drained',
     );
@@ -922,8 +1237,13 @@ Future<void> _assertInvariants(
     all.addAll(rows.map(OutboxEntry.fromRow));
   }
 
-  // (e) everything done, nothing rejected.
+  // (e) everything done; only the catalog conflict policy leaves rows
+  // rejected (no user here to merge / edit / discard them).
   for (final e in all) {
+    if (e.status == OutboxStatus.rejected && allowedRejection(e)) {
+      _bump('final_rejected_${e.entity}_${e.op}_${e.errorCode}');
+      continue;
+    }
     expect(
       e.status,
       OutboxStatus.done,
@@ -937,6 +1257,11 @@ Future<void> _assertInvariants(
   var expectedEmits = 0;
   for (final e in all) {
     final res = server.applied[e.mutationId];
+    if (e.status == OutboxStatus.rejected) {
+      // Failed locally (never sent) or rejected by the server: no effect.
+      expect(res?.status, isNot(PushStatus.applied), reason: e.mutationId);
+      continue;
+    }
     expect(res, isNotNull, reason: '(d) ${e.mutationId} never applied');
     expect(res!.status, PushStatus.applied, reason: '(d) ${e.mutationId}');
     final items = (e.payload['items'] as List?) ?? const [];
@@ -944,13 +1269,37 @@ Future<void> _assertInvariants(
       // the sale row + one stock movement per tracked product line
       'sale' => 1 + items.where((it) => (it as Map)['custom'] != true).length,
       'inbound' => 1 + items.length,
+      // a delete of an already-deleted row writes no change row
+      'product' || 'category' || 'vendor' => res.serverSeq == null ? 0 : 1,
       _ => 1,
     };
+  }
+  // Every catalog row the server holds came from a create some device
+  // still has in its outbox (none was created behind the devices' back).
+  final creates = {
+    for (final e in all)
+      if (e.op == 'create') e.entityId,
+  };
+  for (final entity in kCatalogTables.keys) {
+    for (final id in (server.tables[entity] ?? const {}).keys) {
+      if (id == kVendor || kProducts.contains(id)) continue;
+      expect(
+        creates,
+        contains(id),
+        reason: '(d) server $entity $id has no create in any outbox',
+      );
+    }
+  }
+  final byEntity = <String, int>{};
+  for (final c in server.feed.skip(seedFeed)) {
+    byEntity[c.entity] = (byEntity[c.entity] ?? 0) + 1;
   }
   expect(
     server.feed.length - seedFeed,
     expectedEmits,
-    reason: '(d) feed length: a mutation was applied twice or lost',
+    reason:
+        '(d) feed length: a mutation was applied twice or lost '
+        '(feed by entity: $byEntity)',
   );
   final saleEmits = <String, int>{};
   for (final c in server.feed.where((c) => c.entity == 'sale')) {
@@ -988,15 +1337,25 @@ Future<void> _assertInvariants(
         }
     }
   }
-  for (final p in kProducts) {
-    for (final s in kShops) {
-      expect(
-        dec(server.stockQuantity(p, s)),
-        expected['$p|$s'],
-        reason: '(a) server stock $p|$s',
-      );
-    }
+  // Every level: the seeded ones and those of products created offline
+  // and sold (I3).
+  expect(
+    server.stockLevels.keys.toSet(),
+    expected.keys.toSet(),
+    reason: '(a) server stock levels',
+  );
+  for (final k in expected.keys) {
+    final i = k.indexOf('|');
+    expect(
+      dec(server.stockQuantity(k.substring(0, i), k.substring(i + 1))),
+      expected[k],
+      reason: '(a) server stock $k',
+    );
   }
+  final newSold = expected.keys
+      .where((k) => !kProducts.contains(k.substring(0, k.indexOf('|'))))
+      .length;
+  if (newSold > 0) _bump('stock_levels_of_new_products');
 
   // (b) sales: each created sale exists exactly once on the server; Σ
   // total_amount == Σ the devices' own subtotals.
@@ -1033,20 +1392,70 @@ Future<void> _assertInvariants(
   }
 
   // (c) each device's local tables == server.
-  final serverProducts = server.tables['product'] ?? {};
   final serverCustomers = server.tables['customer'] ?? {};
   for (final d in devices) {
-    final prods = {
-      for (final row in await d.db.query('c_products')) row['id']: row,
-    };
-    expect(prods.keys.toSet(), serverProducts.keys.toSet(), reason: d.name);
-    for (final sp in serverProducts.values) {
-      final lp = prods[sp['id']]!;
-      expect(
-        [lp['name'], lp['version']],
-        [sp['name'], sp['version']],
-        reason: '(c) ${d.name} product ${sp['id']}',
-      );
+    // Catalog: every live server row is on every device with the same
+    // fields and version; a tombstoned one is gone (or inactive, served by
+    // a later bootstrap); a local row the server lacks is a rejected create.
+    for (final MapEntry(key: entity, value: table) in kCatalogTables.entries) {
+      final serverRows = server.tables[entity] ?? {};
+      final local = {
+        for (final row in await d.db.query(table)) row['id'] as String: row,
+      };
+      final rejectedCreates = {
+        for (final r in await d.db.query(
+          'outbox',
+          where: "entity = ? AND op = 'create' AND status = 'rejected'",
+          whereArgs: [entity],
+        ))
+          r['entity_id'] as String,
+      };
+      for (final sr in serverRows.values) {
+        final id = sr['id'] as String;
+        final lr = local[id];
+        if (sr['is_active'] == false) {
+          if (lr != null) {
+            _bump('catalog_inactive_row_kept');
+            expect(
+              (jsonDecode(lr['json'] as String) as Map)['is_active'],
+              isFalse,
+              reason: '(c) ${d.name} $entity $id deleted on the server',
+            );
+          }
+          continue;
+        }
+        expect(lr, isNotNull, reason: '(c) ${d.name} $entity $id missing');
+        final lj = jsonDecode(lr!['json'] as String) as Map;
+        expect(
+          [lr['version'], lj['name'], lj['is_active'] != false],
+          [sr['version'], sr['name'], true],
+          reason: '(c) ${d.name} $entity $id',
+        );
+        if (entity == 'product') {
+          expect(
+            Decimal3.parse('${lr['price']}'),
+            Decimal3.parse('${sr['price']}'),
+            reason: '(c) ${d.name} product $id price',
+          );
+        }
+        if (lr['version'] != null) {
+          final sj = jsonDecode(lr['server_json'] as String) as Map;
+          expect(
+            [sj['version'], sj['name']],
+            [sr['version'], sr['name']],
+            reason: '(c) ${d.name} $entity $id server_json',
+          );
+        }
+      }
+      for (final id in local.keys) {
+        if (serverRows.containsKey(id)) continue;
+        expect(
+          rejectedCreates,
+          contains(id),
+          reason: '(c) ${d.name} local $entity $id unknown to the server',
+        );
+        _bump('catalog_local_only_rejected_$entity');
+      }
     }
     final custs = {
       for (final row in await d.db.query('c_customers')) row['id']: row,
@@ -1124,7 +1533,7 @@ Future<void> _assertInvariants(
     }
     expect(
       (await d.db.query('stock')).length,
-      kProducts.length * kShops.length,
+      w.server.stockLevels.length,
       reason: '(c) ${d.name} stock rows',
     );
   }

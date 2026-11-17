@@ -15,19 +15,28 @@ void main() {
   PinUserRecord rec(String userId, String pin) {
     final salt = PinHasher.generateSalt();
     return PinUserRecord(
-      userId: userId, businessId: 'b1', tenantId: 'b1',
-      fullName: 'U', role: 'cashier', phone: '+1',
-      pinSalt: salt, pinHash: PinHasher.hashPin(pin, salt),
-      accessToken: 'acc', refreshToken: 'ref',
-      profileJson: {'id': userId}, enrolledAt: 'n', lastUnlockAt: 'n',
+      userId: userId,
+      businessId: 'b1',
+      tenantId: 'b1',
+      fullName: 'U',
+      role: 'cashier',
+      phone: '+1',
+      pinSalt: salt,
+      pinHash: PinHasher.hashPin(pin, salt),
+      accessToken: 'acc',
+      refreshToken: 'ref',
+      profileJson: {'id': userId},
+      enrolledAt: 'n',
+      lastUnlockAt: 'n',
     );
   }
 
   setUp(() {
     cache = _FakeCache();
     store = {};
-    when(() => cache.getObject('pin_vault'))
-        .thenAnswer((_) async => store['pin_vault']);
+    when(
+      () => cache.getObject('pin_vault'),
+    ).thenAnswer((_) async => store['pin_vault']);
     when(() => cache.saveObject('pin_vault', any())).thenAnswer((inv) async {
       store['pin_vault'] = inv.positionalArguments[1];
       return true;
@@ -50,6 +59,9 @@ void main() {
   });
 
   test('changePin for unknown user returns userNotFound', () async {
-    expect(await service.changePin('ghost', '0000'), ChangePinResult.userNotFound);
+    expect(
+      await service.changePin('ghost', '0000'),
+      ChangePinResult.userNotFound,
+    );
   });
 }

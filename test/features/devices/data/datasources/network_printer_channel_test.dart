@@ -25,21 +25,26 @@ void main() {
       final received = Completer<List<int>>();
       server.listen((client) {
         final bytes = <int>[];
-        client.listen(bytes.addAll, onDone: () {
-          // The connect() reachability probe opens and closes an empty
-          // connection first — only the print job carries data.
-          if (bytes.isNotEmpty && !received.isCompleted) {
-            received.complete(bytes);
-          }
-        });
+        client.listen(
+          bytes.addAll,
+          onDone: () {
+            // The connect() reachability probe opens and closes an empty
+            // connection first — only the print job carries data.
+            if (bytes.isNotEmpty && !received.isCompleted) {
+              received.complete(bytes);
+            }
+          },
+        );
       });
 
       await channel.connect('127.0.0.1', server.port);
       final payload = [0x1B, 0x40, 0x48, 0x65, 0x6C, 0x6C, 0x6F];
 
       expect(await channel.writeBytes(payload), isTrue);
-      expect(await received.future.timeout(const Duration(seconds: 5)),
-          payload);
+      expect(
+        await received.future.timeout(const Duration(seconds: 5)),
+        payload,
+      );
     });
 
     test('connect to a closed port fails without throwing', () async {

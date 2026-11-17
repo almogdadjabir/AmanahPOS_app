@@ -19,12 +19,15 @@ class WriteScope {
   final OutboxStore _outbox;
   final String? Function() _scope;
 
+  /// The signed-in sync scope (`userId|tenantId`), or null.
+  String? get scope => _scope();
+
   Future<OutboxEntry> enqueue({
     required String entity,
     required String op,
     required String entityId,
     required Map<String, dynamic> payload,
-    String? dependsOnEntityId,
+    List<String> dependsOn = const [],
     int? baseVersion,
     DateTime? occurredAt,
   }) {
@@ -39,7 +42,7 @@ class WriteScope {
       op: op,
       entityId: entityId,
       payload: payload,
-      dependsOnEntityId: dependsOnEntityId,
+      dependsOn: dependsOn,
       baseVersion: baseVersion,
       occurredAt: occurredAt,
     );
@@ -62,6 +65,15 @@ class LocalWriter {
   final String? Function() _scopeProvider;
 
   static const Symbol _depthKey = #amanaLocalWriterDepth;
+
+  /// A plain read on the database outside any write. Inside [write] use
+  /// `scope.txn` instead (the raw database there deadlocks sqflite).
+  Future<T> read<T>(Future<T> Function(DatabaseExecutor db) body) async {
+    if (Zone.current[_depthKey] != null) {
+      throw StateError('LocalWriter.read inside write; use scope.txn');
+    }
+    return body(await _db.database);
+  }
 
   /// Runs [body] inside one SQLite transaction (row writes + outbox enqueues
   /// commit or roll back together), then notifies [tables] plus `outbox`.

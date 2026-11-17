@@ -1,9 +1,12 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/motion/motion_route.dart';
+import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
 import 'package:amana_pos/features/category/presentation/category_detail_screen.dart';
 import 'package:amana_pos/features/category/presentation/category_form_screen.dart';
+import 'package:amana_pos/features/sync/presentation/widgets/catalog_sync_pill.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
@@ -27,11 +30,18 @@ void openCategoryDetail(BuildContext context, CategoryData category) {
 }
 
 /// Grouped list of categories: tint tile, name, product count, chevron.
-/// Swipe reveals Edit and Delete.
+/// Swipe reveals Edit and Delete (owner/manager only: [canEdit]).
 class CategoryListGroup extends StatelessWidget {
   final List<CategoryData> categories;
+  final CatalogSyncMarks syncMarks;
+  final bool canEdit;
 
-  const CategoryListGroup({super.key, required this.categories});
+  const CategoryListGroup({
+    super.key,
+    required this.categories,
+    this.syncMarks = CatalogSyncMarks.none,
+    this.canEdit = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,27 +66,36 @@ class CategoryListGroup extends StatelessWidget {
                   indent: AppDims.s4 + 44 + AppDims.s3,
                   color: colors.border,
                 ),
-              AppSwipeActions(
-                actions: [
-                  AppSwipeAction(
-                    label: tr.edit,
-                    icon: PhosphorIconsRegular.pencilSimple,
-                    color: colors.primary,
-                    onTap: () =>
-                        openCategoryForm(context, category: categories[i]),
+              if (canEdit)
+                AppSwipeActions(
+                  actions: [
+                    AppSwipeAction(
+                      label: tr.edit,
+                      icon: PhosphorIconsRegular.pencilSimple,
+                      color: colors.primary,
+                      onTap: () =>
+                          openCategoryForm(context, category: categories[i]),
+                    ),
+                    AppSwipeAction(
+                      label: tr.delete,
+                      icon: PhosphorIconsRegular.trash,
+                      color: colors.danger,
+                      onTap: () =>
+                          confirmDeleteCategory(context, categories[i]),
+                    ),
+                  ],
+                  child: CategoryRow(
+                    key: ValueKey(categories[i].id ?? i),
+                    category: categories[i],
+                    syncMark: syncMarks.markOf(categories[i].id),
                   ),
-                  AppSwipeAction(
-                    label: tr.delete,
-                    icon: PhosphorIconsRegular.trash,
-                    color: colors.danger,
-                    onTap: () => confirmDeleteCategory(context, categories[i]),
-                  ),
-                ],
-                child: CategoryRow(
+                )
+              else
+                CategoryRow(
                   key: ValueKey(categories[i].id ?? i),
                   category: categories[i],
+                  syncMark: syncMarks.markOf(categories[i].id),
                 ),
-              ),
             ],
           ],
         ),
@@ -88,7 +107,14 @@ class CategoryListGroup extends StatelessWidget {
 class CategoryRow extends StatelessWidget {
   final CategoryData category;
 
-  const CategoryRow({super.key, required this.category});
+  /// "Not synced" / "Sync failed" pill after the name.
+  final CatalogSyncMark syncMark;
+
+  const CategoryRow({
+    super.key,
+    required this.category,
+    this.syncMark = CatalogSyncMark.synced,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -118,21 +144,7 @@ class CategoryRow extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? colors.primaryContainer
-                        : colors.surfaceSoft,
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  child: Icon(
-                    PhosphorIconsRegular.stack,
-                    size: 22,
-                    color: isActive ? colors.primary : colors.disabled,
-                  ),
-                ),
+                CategoryThumb(category: category, isActive: isActive),
                 const SizedBox(width: AppDims.s3),
                 Expanded(
                   child: Column(
@@ -177,6 +189,10 @@ class CategoryRow extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (syncMark != CatalogSyncMark.synced) ...[
+                            const SizedBox(width: 6),
+                            CatalogSyncPill(mark: syncMark),
+                          ],
                         ],
                       ),
                       if (subtitle != null)
@@ -204,6 +220,58 @@ class CategoryRow extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 44px category tile: its image (a staged, not yet uploaded pick shows
+/// first, then the downloaded/served one), else the tinted stack icon.
+class CategoryThumb extends StatelessWidget {
+  final CategoryData category;
+  final bool isActive;
+  final double size;
+
+  const CategoryThumb({
+    super.key,
+    required this.category,
+    this.isActive = true,
+    this.size = 44,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final url = [category.thumbnailUrl, category.image]
+        .map((u) => u?.trim())
+        .firstWhere((u) => u != null && u.isNotEmpty, orElse: () => null);
+    final id = category.id;
+    final icon = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: isActive ? colors.primaryContainer : colors.surfaceSoft,
+        borderRadius: BorderRadius.circular(size / 4),
+      ),
+      child: Icon(
+        PhosphorIconsRegular.stack,
+        size: size / 2,
+        color: isActive ? colors.primary : colors.disabled,
+      ),
+    );
+    if (url == null && (id == null || id.isEmpty)) return icon;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size / 4),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: OfflineCachedImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          entityType: 'category',
+          entityId: id,
+          errorWidget: url == null ? icon : null,
         ),
       ),
     );

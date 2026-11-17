@@ -1,7 +1,9 @@
 part of 'category_bloc.dart';
 
 enum CategoryProductsStatus { initial, loading, loadingMore, success, failure }
+
 enum CategoryStatus { initial, loading, success, failure }
+
 enum CategorySubmitStatus { idle, loading, success, failure }
 
 class CategoryState extends Equatable {
@@ -17,8 +19,14 @@ class CategoryState extends Equatable {
   final int totalPages;
   final String? productsError;
 
+  /// Legacy flags (REST era). Always false: SQLite is the only source.
   final bool isFromCache;
   final bool productsFromCache;
+
+  /// "Waiting to sync" / "Sync failed" markers of the category rows and of
+  /// the products of the open category.
+  final CatalogSyncMarks syncMarks;
+  final CatalogSyncMarks productSyncMarks;
 
   const CategoryState({
     this.categoryStatus = CategoryStatus.initial,
@@ -33,6 +41,8 @@ class CategoryState extends Equatable {
     this.productsError,
     this.isFromCache = false,
     this.productsFromCache = false,
+    this.syncMarks = CatalogSyncMarks.none,
+    this.productSyncMarks = CatalogSyncMarks.none,
   });
 
   bool get hasMorePages => !productsFromCache && currentPage < totalPages;
@@ -55,6 +65,8 @@ class CategoryState extends Equatable {
     bool clearProductsError = false,
     bool? isFromCache,
     bool? productsFromCache,
+    CatalogSyncMarks? syncMarks,
+    CatalogSyncMarks? productSyncMarks,
   }) {
     return CategoryState(
       categoryStatus: categoryStatus ?? this.categoryStatus,
@@ -69,6 +81,8 @@ class CategoryState extends Equatable {
       productsError: clearProductsError ? null : productsError,
       isFromCache: isFromCache ?? this.isFromCache,
       productsFromCache: productsFromCache ?? this.productsFromCache,
+      syncMarks: syncMarks ?? this.syncMarks,
+      productSyncMarks: productSyncMarks ?? this.productSyncMarks,
     );
   }
 
@@ -86,5 +100,7 @@ class CategoryState extends Equatable {
     productsError,
     isFromCache,
     productsFromCache,
+    syncMarks,
+    productSyncMarks,
   ];
 }

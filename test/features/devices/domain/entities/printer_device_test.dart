@@ -31,8 +31,10 @@ void main() {
     });
 
     test('legacy JSON without type defaults to bluetooth', () {
-      final device = PrinterDevice.fromJson(
-          const {'name': 'Old printer', 'address': 'AA:BB:CC'});
+      final device = PrinterDevice.fromJson(const {
+        'name': 'Old printer',
+        'address': 'AA:BB:CC',
+      });
 
       expect(device.type, PrinterConnectionType.bluetooth);
       expect(device.port, PrinterDevice.defaultNetworkPort);

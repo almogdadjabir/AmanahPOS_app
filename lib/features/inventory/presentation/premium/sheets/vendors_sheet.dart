@@ -1,4 +1,7 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
+import 'package:amana_pos/features/sync/presentation/widgets/catalog_sync_pill.dart';
 import 'package:amana_pos/core/responsive/adaptive_sheet.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_vendor_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/update_vendor_request_dto.dart';
@@ -23,22 +26,49 @@ void showVendorsSheet(BuildContext context) {
   );
 }
 
+/// Opens the add / edit vendor form. [bloc] defaults to the one in
+/// [context] (the pending-sync screen passes its own for "Edit and retry").
+/// Completes with true when the user submitted (the sheet closes right
+/// after dispatching the save, which may still be running: see
+/// [VendorsState.submitStatus]).
+Future<bool?> showVendorFormSheet(
+  BuildContext context, {
+  VendorData? existing,
+  VendorsBloc? bloc,
+}) => showAdaptivePanel<bool>(
+  context,
+  builder: (_) => BlocProvider.value(
+    value: bloc ?? context.read<VendorsBloc>(),
+    child: _VendorFormSheet(existing: existing),
+  ),
+);
+
 class _VendorsSheet extends StatelessWidget {
   const _VendorsSheet();
 
-  void _addVendor(BuildContext context) {
-    showAdaptivePanel<void>(
-      context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<VendorsBloc>(),
-        child: const _VendorFormSheet(),
-      ),
-    );
+  void _addVendor(BuildContext context) => showVendorFormSheet(context);
+
+  /// Pull to refresh: re-read SQLite and ask the server for changes.
+  Future<void> _refresh(BuildContext context) async {
+    final bloc = context.read<VendorsBloc>()
+      ..add(const OnVendorsStarted())
+      ..add(const OnVendorsSyncRequested());
+    try {
+      await bloc.stream
+          .firstWhere((s) => s.status != VendorsStatus.loading)
+          .timeout(const Duration(seconds: 1));
+    } catch (_) {
+      // An unchanged list emits nothing.
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    // Vendor writes are owner/manager only (BE `forbidden` otherwise).
+    final canEdit = context.select<AuthBloc, bool>(
+      (b) => b.state.permissions.canEditCatalog,
+    );
     return BlocListener<VendorsBloc, VendorsState>(
       listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
       listener: (context, state) {
@@ -84,22 +114,26 @@ class _VendorsSheet extends StatelessWidget {
                   child: Row(
                     children: [
                       Text(
-                        'Vendors',
+                        context.tr.invVendors,
                         style: AppTextStyles.bs400(context).copyWith(
                           fontWeight: FontWeight.w900,
                           color: colors.textPrimary,
                         ),
                       ),
                       const Spacer(),
-                      TextButton.icon(
-                        onPressed: () => _addVendor(context),
-                        icon: const Icon(
-                          PhosphorIconsRegular.plusCircle,
-                          size: 18,
+                      if (canEdit)
+                        TextButton.icon(
+                          key: const ValueKey('vendors-add'),
+                          onPressed: () => _addVendor(context),
+                          icon: const Icon(
+                            PhosphorIconsRegular.plusCircle,
+                            size: 18,
+                          ),
+                          label: Text(context.tr.add),
+                          style: TextButton.styleFrom(
+                            foregroundColor: goldDeep,
+                          ),
                         ),
-                        label: Text(context.tr.add),
-                        style: TextButton.styleFrom(foregroundColor: goldDeep),
-                      ),
                       IconButton(
                         icon: Icon(
                           PhosphorIconsRegular.xCircle,
@@ -131,94 +165,117 @@ class _VendorsSheet extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'No vendors yet',
+                                context.tr.invNoVendorsYet,
                                 style: TextStyle(
                                   color: colors.textSecondary,
                                   fontSize: 15,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () => _addVendor(context),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: goldDeep,
+                              if (canEdit)
+                                TextButton(
+                                  onPressed: () => _addVendor(context),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: goldDeep,
+                                  ),
+                                  child: Text(context.tr.invAddFirstVendor),
                                 ),
-                                child: Text(context.tr.invAddFirstVendor),
-                              ),
                             ],
                           ),
                         );
                       }
-                      return ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.all(AppDims.s4),
-                        itemCount: state.vendors.length,
-                        separatorBuilder: (_, i) => const Divider(height: 1),
-                        itemBuilder: (context, i) {
-                          final vendor = state.vendors[i];
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
-                              backgroundColor: goldDeep.withValues(alpha: 0.10),
-                              child: Text(
-                                vendor.name.isNotEmpty
-                                    ? vendor.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                  color: goldDeep,
-                                  fontWeight: FontWeight.w800,
+                      return RefreshIndicator(
+                        onRefresh: () => _refresh(context),
+                        child: ListView.separated(
+                          controller: scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(AppDims.s4),
+                          itemCount: state.vendors.length,
+                          separatorBuilder: (_, i) => const Divider(height: 1),
+                          itemBuilder: (context, i) {
+                            final vendor = state.vendors[i];
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: CircleAvatar(
+                                backgroundColor: goldDeep.withValues(
+                                  alpha: 0.10,
+                                ),
+                                child: Text(
+                                  vendor.name.isNotEmpty
+                                      ? vendor.name[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    color: goldDeep,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
-                            ),
-                            title: Text(
-                              vendor.name,
-                              style: AppTextStyles.bs300(context).copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colors.textPrimary,
+                              title: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      vendor.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTextStyles.bs300(context)
+                                          .copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: colors.textPrimary,
+                                          ),
+                                    ),
+                                  ),
+                                  if (state.syncMarks.markOf(vendor.id) !=
+                                      CatalogSyncMark.synced) ...[
+                                    const SizedBox(width: 6),
+                                    CatalogSyncPill(
+                                      mark: state.syncMarks.markOf(vendor.id),
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ),
-                            subtitle: vendor.phone != null
-                                ? Text(
-                                    vendor.phone!,
-                                    style: AppTextStyles.bs200(
-                                      context,
-                                    ).copyWith(color: colors.textSecondary),
-                                  )
-                                : null,
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  showAdaptivePanel<void>(
-                                    context,
-                                    builder: (_) => BlocProvider.value(
-                                      value: context.read<VendorsBloc>(),
-                                      child: _VendorFormSheet(existing: vendor),
+                              subtitle: vendor.phone != null
+                                  ? Text(
+                                      vendor.phone!,
+                                      style: AppTextStyles.bs200(
+                                        context,
+                                      ).copyWith(color: colors.textSecondary),
+                                    )
+                                  : null,
+                              trailing: !canEdit
+                                  ? null
+                                  : PopupMenuButton<String>(
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          showVendorFormSheet(
+                                            context,
+                                            existing: vendor,
+                                          );
+                                        } else if (value == 'deactivate') {
+                                          context.read<VendorsBloc>().add(
+                                            OnVendorUpdate(
+                                              vendor.id,
+                                              const UpdateVendorRequestDto(
+                                                isActive: false,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      itemBuilder: (_) => [
+                                        PopupMenuItem(
+                                          value: 'edit',
+                                          child: Text(context.tr.edit),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'deactivate',
+                                          child: Text(
+                                            context.tr.invVendorDeactivate,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                } else if (value == 'deactivate') {
-                                  context.read<VendorsBloc>().add(
-                                    OnVendorUpdate(
-                                      vendor.id,
-                                      const UpdateVendorRequestDto(
-                                        isActive: false,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              itemBuilder: (_) => [
-                                PopupMenuItem(
-                                  value: 'edit',
-                                  child: Text(context.tr.edit),
-                                ),
-                                PopupMenuItem(
-                                  value: 'deactivate',
-                                  child: Text(context.tr.invVendorDeactivate),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       );
                     },
                   ),
@@ -291,7 +348,7 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
         ),
       );
     }
-    Navigator.pop(context);
+    Navigator.pop(context, true);
   }
 
   @override
@@ -313,7 +370,7 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEdit ? 'Edit Vendor' : 'Add Vendor',
+                isEdit ? context.tr.invEditVendor : context.tr.invAddVendor,
                 style: AppTextStyles.bs400(context).copyWith(
                   fontWeight: FontWeight.w900,
                   color: colors.textPrimary,
@@ -322,26 +379,29 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
               const SizedBox(height: AppDims.s3),
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: 'Name *'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                decoration: InputDecoration(
+                  labelText: context.tr.invVendorNameLabel,
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? context.tr.nameRequired
+                    : null,
               ),
               const SizedBox(height: AppDims.s2),
               TextFormField(
                 controller: _phone,
-                decoration: const InputDecoration(labelText: 'Phone'),
+                decoration: InputDecoration(labelText: context.tr.fieldPhone),
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: AppDims.s2),
               TextFormField(
                 controller: _email,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: context.tr.fieldEmail),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: AppDims.s2),
               TextFormField(
                 controller: _notes,
-                decoration: const InputDecoration(labelText: 'Notes'),
+                decoration: InputDecoration(labelText: context.tr.fieldNotes),
                 maxLines: 2,
               ),
               const SizedBox(height: AppDims.s4),
@@ -358,7 +418,7 @@ class _VendorFormSheetState extends State<_VendorFormSheet> {
                     ),
                   ),
                   child: Text(
-                    isEdit ? 'Save Changes' : 'Add Vendor',
+                    isEdit ? context.tr.saveChanges : context.tr.invAddVendor,
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 15,

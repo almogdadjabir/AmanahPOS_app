@@ -213,7 +213,7 @@ Future<OutboxEntry> _enq(
   entityId: entityId,
   payload: {},
   scope: scope,
-  dependsOnEntityId: dep,
+  dependsOn: [?dep],
 );
 
 void _fixRound1() {
@@ -234,7 +234,7 @@ void _fixRound1() {
       final db = await odb.database;
       final store = OutboxStore(odb);
       // B has an open create for p1, so each scope's dependent is blocked.
-      await _enq(store, db, scope: _a, entityId: 'p1', op: 'create');
+      final pa = await _enq(store, db, scope: _a, entityId: 'p1', op: 'create');
       await _enq(store, db, scope: _b, entityId: 'p1', op: 'create');
       final da = await _enq(store, db, scope: _a, entityId: 'c1', dep: 'p1');
       final dbb = await _enq(store, db, scope: _b, entityId: 'c2', dep: 'p1');
@@ -249,6 +249,8 @@ void _fixRound1() {
       expect(await st(da.mutationId), 'blocked');
       expect(await st(dbb.mutationId), 'blocked');
 
+      // A's create is done (B's is still open in B's scope).
+      await store.applyResult(db, pa.mutationId, status: OutboxStatus.done);
       await store.unblockDependents(db, 'p1', scope: _a);
       expect(await st(da.mutationId), 'pending');
       expect(await st(dbb.mutationId), 'blocked');

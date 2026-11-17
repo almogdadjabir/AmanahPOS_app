@@ -11,21 +11,28 @@ import 'package:amana_pos/theme/app_theme.dart';
 class _FakePinBloc extends Mock implements PinBloc {}
 
 void main() {
-  testWidgets('renders Create your PIN title in entering phase', (tester) async {
+  testWidgets('renders Create your PIN title in entering phase', (
+    tester,
+  ) async {
     final bloc = _FakePinBloc();
     when(() => bloc.state).thenReturn(PinState.initial(PinMode.setup));
     when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
-    await tester.pumpWidget(MaterialApp(
-      theme: AppTheme.light,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider<PinBloc>.value(value: bloc, child: const PinSetupScreen()),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<PinBloc>.value(
+          value: bloc,
+          child: const PinSetupScreen(),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Create a PIN'), findsWidgets);
   });

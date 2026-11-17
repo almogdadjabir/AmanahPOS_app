@@ -532,6 +532,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'You are not assigned to this shop. Contact your manager.';
 
   @override
+  String posItemsUnavailable(String names) {
+    return 'No longer available, removed from the cart: $names. It was merged, discarded or deleted. Review the cart and try again.';
+  }
+
+  @override
   String get productsManagement => 'Products Management';
 
   @override
@@ -2906,10 +2911,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stMore => 'More';
 
   @override
-  String get fbOpeningStockWarning =>
-      'Product created, but its starting stock was not saved. Add it with Update stock.';
-
-  @override
   String get fbCategoriesErrorTitle => 'Could not load categories';
 
   @override
@@ -4482,4 +4483,127 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syOxDiscardOtherScope =>
       'This change belongs to another account. Use “Discard other account\'s changes” instead.';
+
+  @override
+  String get syOxEntityProduct => 'Product';
+
+  @override
+  String get syOxEntityCategory => 'Category';
+
+  @override
+  String get syOxEntityVendor => 'Vendor';
+
+  @override
+  String get syOxEditRetry => 'Edit and retry';
+
+  @override
+  String get syOxMerge => 'Merge into existing';
+
+  @override
+  String get syOxMergeTitle => 'Merge into the existing item?';
+
+  @override
+  String syOxMergeBody(String name) {
+    return '“$name” already exists. This copy\'s details are dropped and everything recorded for it on this phone moves to the existing one.';
+  }
+
+  @override
+  String syOxMergeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records will point to the existing item.',
+      one: '1 record will point to the existing item.',
+      zero: 'Nothing else changes.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syOxMergeExistingFallback => 'The existing item';
+
+  @override
+  String get syOxMergeRefused =>
+      'This change can no longer be merged. Refresh and try again.';
+
+  @override
+  String get syOxEditNotSaved =>
+      'Nothing was changed, so it was not sent again.';
+
+  @override
+  String get syOxEditGone => 'This item is no longer on this phone.';
+
+  @override
+  String get syOxDiscardCatalogCreateBody =>
+      'This item and its opening stock will be removed from this phone. Nothing else waits on it.';
+
+  @override
+  String syOxDiscardBlockedByDependents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count changes wait on this item (sales, stock or products), so it cannot be discarded. Merge it into the existing item, or edit and retry.',
+      one:
+          '1 change waits on this item (a sale, stock or a product), so it cannot be discarded. Merge it into the existing item, or edit and retry.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syOxDiscardHasDependents =>
+      'This item was not discarded: other changes (sales, stock or products) wait on it. Merge it into the existing item, or edit and retry.';
+
+  @override
+  String get syOxDiscardMayBeOnServerFailure =>
+      'This item was not discarded: it may already be on the server. Tap Send now first; once it has synced, delete it from its own list.';
+
+  @override
+  String get syOxRetryMissingTitle => 'Send without its item?';
+
+  @override
+  String get syOxRetryMissingBody =>
+      'A product, category or vendor this change refers to is no longer on this phone. If you send it, the server records it without that link: a sale keeps its money, but its product and stock are not updated.';
+
+  @override
+  String get syOxRetryMissingConfirm => 'Send anyway';
+
+  @override
+  String get syOxRetryMissingHint =>
+      'Refers to an item that is no longer on this phone.';
+
+  @override
+  String get syOxStaleHint =>
+      'Could not restore the server copy. It is replaced at the next sync.';
+
+  @override
+  String get syOxMergeStockAdded =>
+      'Its opening stock and other stock changes on this phone are added to the existing item\'s stock.';
+
+  @override
+  String get syOxMergeEditsDropped =>
+      'Its queued edits and its photo are dropped. The existing item keeps its own details and photo.';
+
+  @override
+  String get syOxMergeTargetInactive =>
+      'The existing item is deleted. Merged sales and stock will belong to an item that the till does not show.';
+
+  @override
+  String get syOxDiscardCatalogEditBody =>
+      'The item goes back to how it is on the server.';
+
+  @override
+  String get syOxUploadFailed => 'Image upload failed';
+
+  @override
+  String get invNoVendorsYet => 'No vendors yet';
+
+  @override
+  String get invAddVendor => 'Add Vendor';
+
+  @override
+  String get invEditVendor => 'Edit Vendor';
+
+  @override
+  String get invVendorNameLabel => 'Name *';
 }

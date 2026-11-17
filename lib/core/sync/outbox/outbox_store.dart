@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../features/inventory/data/local/stock_local_store.dart';
 import '../../../features/pos/data/local/sale_local_store.dart';
 import '../../offline/offline_db.dart';
+import '../catalog_support.dart';
 import '../db_change_notifier.dart';
 import '../sync_schema.dart';
 import 'outbox_entry.dart';
@@ -21,6 +24,11 @@ class OutboxStore {
 
   static const String _t = SyncTables.outbox;
 
+  /// Catalog entities whose rejected `update`/`delete` never holds later
+  /// rows of the same row (claimBatch).
+  static const Set<String> catalogEntities = {'category', 'product', 'vendor'};
+  static final String _catalogIn = catalogEntities.map((e) => "'$e'").join(',');
+
   /// Slack for small clock steps (NTP) in the "clock moved backwards"
   /// checks: a timestamp at most this far beyond its maximum is honoured.
   static const Duration clockSlack = Duration(minutes: 1);
@@ -28,6 +36,11 @@ class OutboxStore {
   String _iso(DateTime d) => d.toUtc().toIso8601String();
   String get _nowIso => _iso(_now());
 
+  /// Inserts a row. [dependsOn]: entity ids this row needs on the server
+  /// first (e.g. a sale's products). Only those with an open `create` in
+  /// [scope] (see [openCreateIds]) are stored; the row starts `blocked` when
+  /// any is. Ids with no open create (unknown, server-side, already `done`)
+  /// are dropped.
   Future<OutboxEntry> enqueue(
     DatabaseExecutor txn, {
     required String entity,
@@ -35,34 +48,90 @@ class OutboxStore {
     required String entityId,
     required Map<String, dynamic> payload,
     required String scope,
-    String? dependsOnEntityId,
+    List<String> dependsOn = const [],
     int? baseVersion,
     DateTime? occurredAt,
   }) async {
-    var status = OutboxStatus.pending;
-    if (dependsOnEntityId != null) {
-      final open = await txn.rawQuery(
-        "SELECT 1 FROM $_t WHERE entity_id = ? AND op = 'create' "
-        "AND status != 'done' AND scope = ? LIMIT 1",
-        [dependsOnEntityId, scope],
-      );
-      if (open.isNotEmpty) status = OutboxStatus.blocked;
-    }
+    final deps = <String>[
+      ...{
+        for (final d in dependsOn)
+          if (d.trim().isNotEmpty && d.trim() != entityId) d.trim(),
+      },
+    ];
+    // Only ids whose create is still open are recorded (spec): a done or
+    // server-side entity can never block or fail this row later.
+    final open = await openCreateIds(txn, deps, scope: scope);
     final entry = OutboxEntry(
       mutationId: _uuid.v4(),
       entity: entity,
       op: op,
       entityId: entityId,
-      dependsOnEntityId: dependsOnEntityId,
+      dependsOn: [
+        for (final d in deps)
+          if (open.contains(d)) d,
+      ],
       baseVersion: baseVersion,
       occurredAt: (occurredAt ?? _now()).toUtc(),
       payload: payload,
-      status: status,
+      status: open.isEmpty ? OutboxStatus.pending : OutboxStatus.blocked,
       scope: scope,
     );
     entry.seq = await txn.insert(_t, entry.toRow(createdAt: _now()));
     return entry;
   }
+
+  /// The subset of [ids] that has an open `create` in [scope]. "Open" = not
+  /// `done`: a `rejected` create still counts (the user may retry it; a
+  /// dependent sent before it would be saved with a NULL reference).
+  Future<Set<String>> openCreateIds(
+    DatabaseExecutor txn,
+    Iterable<String> ids, {
+    required String scope,
+  }) async {
+    final list = ids.toSet().toList();
+    final open = <String>{};
+    for (var i = 0; i < list.length; i += 500) {
+      final chunk = list.sublist(
+        i,
+        i + 500 > list.length ? list.length : i + 500,
+      );
+      final rows = await txn.rawQuery(
+        'SELECT DISTINCT entity_id FROM $_t '
+        "WHERE op = 'create' AND status != 'done' AND scope = ? "
+        'AND entity_id IN (${List.filled(chunk.length, '?').join(',')})',
+        [scope, ...chunk],
+      );
+      open.addAll(rows.map((r) => r['entity_id'] as String));
+    }
+    return open;
+  }
+
+  /// Rows of [scope] whose `depends_on_json` lists [entityId] and whose
+  /// status is one of [statuses]. The LIKE on the quoted id only narrows
+  /// the scan; the list is decoded and matched exactly.
+  Future<List<Map<String, Object?>>> _dependentsOf(
+    DatabaseExecutor txn,
+    String entityId, {
+    required String scope,
+    required List<String> statuses,
+  }) async {
+    final rows = await txn.rawQuery(
+      'SELECT * FROM $_t WHERE scope = ? '
+      'AND status IN (${List.filled(statuses.length, '?').join(',')}) '
+      "AND depends_on_json LIKE ? ESCAPE '\\' ORDER BY seq ASC",
+      [scope, ...statuses, '%${_likeEscape(jsonEncode(entityId))}%'],
+    );
+    return [
+      for (final r in rows)
+        if (OutboxEntry.decodeDependsOn(
+          r['depends_on_json'],
+        ).contains(entityId))
+          r,
+    ];
+  }
+
+  static String _likeEscape(String s) =>
+      s.replaceAll(r'\', r'\\').replaceAll('%', r'\%').replaceAll('_', r'\_');
 
   /// Atomically leases up to [limit] due pending rows. A row is skipped when
   /// any earlier-seq row of the same entity is not `done` (per-entity order),
@@ -103,18 +172,26 @@ class OutboxStore {
           final seq = row['seq'] as int;
           lastSeq = seq;
           if (claimedSeqs.length >= limit) break;
-          // Uses idx_outbox_entity_seq (entity_id, seq).
+          // Uses idx_outbox_entity_seq (entity_id, seq). A rejected
+          // catalog update/delete does not hold later rows of its row
+          // ([catalogEntities]; ruling I2): they carry their own
+          // base_version and the BE merges field-wise. Every other rejected
+          // row (a create, any sale/stock/inbound row) still holds them.
           final blockers = await txn.rawQuery(
             "SELECT 1 FROM $_t WHERE entity_id = ? AND seq < ? "
-            "AND status != 'done' AND scope = ? LIMIT 1",
+            "AND status != 'done' AND scope = ? "
+            "AND NOT (status = 'rejected' AND op IN ('update','delete') "
+            'AND entity IN ($_catalogIn)) LIMIT 1',
             [row['entity_id'], seq, scope],
           );
           if (blockers.isNotEmpty) continue;
-          final n = await txn.update(
-            _t,
-            {'status': 'inflight', 'lease_until': leaseIso},
-            where: "seq = ? AND status = 'pending'",
-            whereArgs: [seq],
+          // `claimed_at` is sticky: once claimed, the row may have reached
+          // the server (see CatalogSupport.dropNeverSentCreate).
+          final n = await txn.rawUpdate(
+            "UPDATE $_t SET status = 'inflight', lease_until = ?, "
+            'claimed_at = COALESCE(claimed_at, ?) '
+            "WHERE seq = ? AND status = 'pending'",
+            [leaseIso, nowIso, seq],
           );
           if (n == 1) claimedSeqs.add(seq);
         }
@@ -150,6 +227,8 @@ class OutboxStore {
 
   /// Writes a result. With [leaseUntil] (the lease the caller claimed the row
   /// under) the write only happens if the caller still owns the row.
+  /// [errorEntityId]: the server's `conflict_entity_id` (stored in
+  /// `error_entity_id`; null clears it).
   /// Returns the number of rows updated (0 = not ours any more).
   Future<int> applyResult(
     DatabaseExecutor txn,
@@ -157,6 +236,8 @@ class OutboxStore {
     required OutboxStatus status,
     String? code,
     String? message,
+    String? errorEntityId,
+    String? failedBy,
     DateTime? leaseUntil,
   }) {
     final (where, args) = _owned(mutationId, leaseUntil);
@@ -166,6 +247,8 @@ class OutboxStore {
         'status': status.name,
         'error_code': code,
         'error_message': message,
+        'error_entity_id': errorEntityId,
+        'failed_by_entity_id': failedBy,
         'lease_until': null,
         'next_attempt_at': null,
       },
@@ -230,23 +313,48 @@ class OutboxStore {
     );
   }
 
-  /// Dependencies are resolved within one [scope] only (see enqueue).
+  /// Called once [entityId]'s create is `done`. Each `blocked` dependent of
+  /// it flips to `pending` only when none of its other dependencies still
+  /// has an open create. Dependencies are resolved within one [scope] only
+  /// (see enqueue).
   Future<void> unblockDependents(
     DatabaseExecutor txn,
     String entityId, {
     required String scope,
   }) async {
-    await txn.update(
-      _t,
-      {'status': 'pending'},
-      where: "status = 'blocked' AND depends_on_entity_id = ? AND scope = ?",
-      whereArgs: [entityId, scope],
+    final rows = await _dependentsOf(
+      txn,
+      entityId,
+      scope: scope,
+      statuses: const ['blocked'],
     );
+    for (final r in rows) {
+      final deps = OutboxEntry.decodeDependsOn(r['depends_on_json']);
+      if ((await openCreateIds(txn, deps, scope: scope)).isNotEmpty) continue;
+      await txn.update(
+        _t,
+        {'status': 'pending'},
+        where: "seq = ? AND status = 'blocked'",
+        whereArgs: [r['seq']],
+      );
+    }
   }
 
-  /// Rejects dependents (blocked or pending) of [entityId], cascading to
-  /// their own dependents. The local stock they affected is recomputed (a
-  /// rejected row no longer counts).
+  /// Whether a failed / discarded row [e] must fail the rows waiting on its
+  /// entity: only a `create` can be a dependency. A rejected or discarded
+  /// `update`/`delete` of a product never fails the sales naming it (C1).
+  static bool failsDependents(OutboxEntry e) => e.op == 'create';
+
+  /// Rejects dependents (blocked or pending) of [entityId], whose `create`
+  /// failed, cascading to the dependents of every failed `create`. The
+  /// LATER rows of the same entity (an edit or delete queued behind the
+  /// create) are failed too: without their create they can never be sent
+  /// (Review Focus 2). Callers guard with [failsDependents]. The local stock
+  /// they affected is recomputed (a rejected row no longer counts).
+  ///
+  /// Every row failed here carries `error_code` `dependency_failed` and
+  /// `error_message` [dependencyFailedMessage] of the id that failed it;
+  /// [retryRejected] uses that to revive them.
   Future<void> failDependents(
     DatabaseExecutor txn,
     String entityId, {
@@ -257,6 +365,10 @@ class OutboxStore {
       await _failDependents(txn, entityId, scope: scope),
     );
   }
+
+  /// `error_message` of a row failed because the create of [entityId] failed.
+  static String dependencyFailedMessage(String entityId) =>
+      'Dependency $entityId failed';
 
   /// [failDependents] without the stock recompute; returns the rows it
   /// rejected.
@@ -271,31 +383,136 @@ class OutboxStore {
     while (queue.isNotEmpty) {
       final id = queue.removeLast();
       if (!seen.add(id)) continue;
-      final rows = await txn.query(
-        _t,
-        where:
-            "depends_on_entity_id = ? AND scope = ? "
-            "AND status IN ('blocked','pending')",
-        whereArgs: [id, scope],
-      );
+      final rows = [
+        ...await txn.query(
+          _t,
+          where:
+              "entity_id = ? AND scope = ? AND status IN ('blocked','pending')",
+          whereArgs: [id, scope],
+          orderBy: 'seq ASC',
+        ),
+        ...await _dependentsOf(
+          txn,
+          id,
+          scope: scope,
+          statuses: const ['blocked', 'pending'],
+        ),
+      ];
+      final done = <Object?>{};
       for (final r in rows) {
+        if (!done.add(r['seq'])) continue;
         await txn.update(
           _t,
           {
             'status': 'rejected',
             'error_code': 'dependency_failed',
-            'error_message': 'Dependency $id failed',
+            'error_message': dependencyFailedMessage(id),
+            'error_entity_id': null,
+            'failed_by_entity_id': id,
             'lease_until': null,
           },
           where: 'seq = ?',
           whereArgs: [r['seq']],
         );
         failed.add(OutboxEntry.fromRow(r));
-        queue.add(r['entity_id'] as String);
+        // Only a failed create is itself a dependency.
+        if (r['op'] == 'create') queue.add(r['entity_id'] as String);
       }
     }
     return failed;
   }
+
+  /// M1: after the create of [entityId] went back to the queue, revives the
+  /// rows [failDependents] failed because of it (matched by
+  /// [dependencyFailedMessage]), recursively through revived creates. A row
+  /// becomes `blocked` while any dependency create is still open, else
+  /// `pending`. Best effort and conservative: a row listing another
+  /// dependency that no longer has any create row in [scope] (discarded, or
+  /// done and pruned: indistinguishable) stays rejected; the user can retry
+  /// it by hand. Returns the revived rows.
+  Future<List<OutboxEntry>> _reviveDependents(
+    DatabaseExecutor txn,
+    String entityId, {
+    required String scope,
+  }) async {
+    final revived = <OutboxEntry>[];
+    final queue = <String>[entityId];
+    final seen = <String>{};
+    while (queue.isNotEmpty) {
+      final id = queue.removeLast();
+      if (!seen.add(id)) continue;
+      // M9: matched by `failed_by_entity_id`; the message text only for
+      // rows failed before the column existed.
+      final rows = await txn.query(
+        _t,
+        where:
+            "scope = ? AND status = 'rejected' AND error_code = ? "
+            'AND (failed_by_entity_id = ? OR '
+            '(failed_by_entity_id IS NULL AND error_message = ?))',
+        whereArgs: [
+          scope,
+          'dependency_failed',
+          id,
+          dependencyFailedMessage(id),
+        ],
+        orderBy: 'seq ASC',
+      );
+      for (final r in rows) {
+        final e = OutboxEntry.fromRow(r);
+        final others = e.dependsOn.where((d) => d != id).toList();
+        if (others.isNotEmpty &&
+            (await _withCreateRow(txn, others, scope: scope)).length !=
+                others.toSet().length) {
+          continue;
+        }
+        final status = await _queuedStatus(txn, e);
+        await txn.update(
+          _t,
+          {
+            'status': status.name,
+            'attempts': 0,
+            'next_attempt_at': null,
+            'lease_until': null,
+            'error_code': null,
+            'error_message': null,
+            'error_entity_id': null,
+            'failed_by_entity_id': null,
+          },
+          where: "seq = ? AND status = 'rejected'",
+          whereArgs: [e.seq],
+        );
+        if (_isSaleCreate(e)) await _sales.markPendingAgain(txn, e.entityId);
+        revived.add(e);
+        if (e.op == 'create') queue.add(e.entityId);
+      }
+    }
+    return revived;
+  }
+
+  /// The subset of [ids] that has a `create` row (any status) in [scope].
+  Future<Set<String>> _withCreateRow(
+    DatabaseExecutor txn,
+    List<String> ids, {
+    required String scope,
+  }) async {
+    final rows = await txn.rawQuery(
+      'SELECT DISTINCT entity_id FROM $_t '
+      "WHERE op = 'create' AND scope = ? "
+      'AND entity_id IN (${List.filled(ids.length, '?').join(',')})',
+      [scope, ...ids],
+    );
+    return rows.map((r) => r['entity_id'] as String).toSet();
+  }
+
+  /// `blocked` while any of [e]'s dependency creates is open, else `pending`.
+  Future<OutboxStatus> _queuedStatus(
+    DatabaseExecutor txn,
+    OutboxEntry e,
+  ) async =>
+      e.dependsOn.isNotEmpty &&
+          (await openCreateIds(txn, e.dependsOn, scope: e.scope)).isNotEmpty
+      ? OutboxStatus.blocked
+      : OutboxStatus.pending;
 
   /// Live count of unconfirmed rows; with [scope] only that session's.
   Stream<int> watchPendingCount(DbChangeNotifier n, {String? scope}) {
@@ -374,6 +591,7 @@ class OutboxStore {
       }
       final failed = <OutboxEntry>[];
       for (final e in removed) {
+        if (!failsDependents(e)) continue;
         failed.addAll(await _failDependents(txn, e.entityId, scope: e.scope));
       }
       await _afterRemoved(txn, removed, failed);
@@ -405,39 +623,143 @@ class OutboxStore {
   /// Puts a `rejected` row back in the queue. In ONE transaction its local
   /// sale (for `sale.create`) goes back from `rejected` to `pending` and the
   /// local stock it affects is recomputed (a rejected row has no stock
-  /// effect; a pending one has, exactly once). False when the row is not
-  /// `rejected` (any more).
+  /// effect; a pending one has, exactly once). A row whose dependency create
+  /// is still open goes back `blocked`, never `pending` (it would be sent
+  /// before its create). Retrying a `create` also revives the rows that
+  /// were failed with `dependency_failed` because of it (see
+  /// [_reviveDependents]). False when the row is not `rejected` (any more).
   Future<bool> retryRejected(String mutationId) async {
     final db = await _db.database;
-    return db.transaction((txn) async {
-      final rows = await txn.query(
-        _t,
-        where: "mutation_id = ? AND status = 'rejected'",
-        whereArgs: [mutationId],
-        limit: 1,
+    return db.transaction((txn) => retryRejectedIn(txn, mutationId));
+  }
+
+  /// [retryRejected] in the caller's transaction (e.g. a `LocalWriter`
+  /// body: "Edit and retry" folds the edit into the row first).
+  Future<bool> retryRejectedIn(DatabaseExecutor txn, String mutationId) async {
+    final rows = await txn.query(
+      _t,
+      where: "mutation_id = ? AND status = 'rejected'",
+      whereArgs: [mutationId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return false;
+    final e = OutboxEntry.fromRow(rows.first);
+    final n = await txn.update(
+      _t,
+      {
+        'status': (await _queuedStatus(txn, e)).name,
+        'attempts': 0,
+        'next_attempt_at': null,
+        'lease_until': null,
+        'error_code': null,
+        'error_message': null,
+        'error_entity_id': null,
+        'failed_by_entity_id': null,
+      },
+      where: "mutation_id = ? AND status = 'rejected'",
+      whereArgs: [mutationId],
+    );
+    if (n != 1) return false;
+    if (_isSaleCreate(e)) {
+      await _sales.markPendingAgain(txn, e.entityId);
+    }
+    final revived = failsDependents(e)
+        ? await _reviveDependents(txn, e.entityId, scope: e.scope)
+        : const <OutboxEntry>[];
+    await _recomputeStock(txn, [e, ...revived]);
+    return true;
+  }
+
+  /// "Merge into existing" (`CatalogConflictService.mergeInto`), in the
+  /// caller's transaction; the caller has already deleted the rows of the
+  /// dropped entity itself. Every row of [scope] naming [oldId] is
+  /// rewritten: payload values equal to [oldId] become [newId] (any JSON
+  /// path), [oldId] leaves `depends_on_json` (the server row [newId] is
+  /// never a dependency), the legacy `depends_on_entity_id` is cleared and
+  /// `error_entity_id` / `error_message` follow. Rows that waited on, or were
+  /// failed by, the dropped create go back to the queue (`blocked` while
+  /// another dependency create is open, else `pending`; see
+  /// [_reviveDependents]). The caller recomputes the local stock of the
+  /// returned [requeued] rows (their payloads already hold [newId]).
+  Future<({int rewritten, List<OutboxEntry> requeued})> rekeyForMerge(
+    DatabaseExecutor txn,
+    String oldId,
+    String newId, {
+    required String scope,
+  }) async {
+    final like = '%${_likeEscape(oldId)}%';
+    final rows = await txn.rawQuery(
+      'SELECT * FROM $_t WHERE scope = ? AND ('
+      "payload_json LIKE ? ESCAPE '\\' OR depends_on_json LIKE ? ESCAPE '\\' "
+      'OR depends_on_entity_id = ? OR error_entity_id = ?) ORDER BY seq ASC',
+      [scope, like, like, oldId, oldId],
+    );
+    final touched = <int>[];
+    for (final r in rows) {
+      final payload = CatalogSupport.replaceIdDeep(
+        jsonDecode(r['payload_json'] as String),
+        oldId,
+        newId,
       );
-      if (rows.isEmpty) return false;
-      final n = await txn.update(
+      final deps = [
+        for (final d in OutboxEntry.decodeDependsOn(r['depends_on_json']))
+          if (d != oldId) d,
+      ];
+      await txn.update(
         _t,
         {
-          'status': 'pending',
-          'attempts': 0,
-          'next_attempt_at': null,
-          'lease_until': null,
-          'error_code': null,
-          'error_message': null,
+          'payload_json': jsonEncode(payload),
+          'depends_on_json': deps.isEmpty ? null : jsonEncode(deps),
+          if (r['depends_on_entity_id'] == oldId) 'depends_on_entity_id': null,
+          if (r['error_entity_id'] == oldId) 'error_entity_id': newId,
         },
-        where: "mutation_id = ? AND status = 'rejected'",
-        whereArgs: [mutationId],
+        where: 'seq = ?',
+        whereArgs: [r['seq']],
       );
-      if (n != 1) return false;
-      final e = OutboxEntry.fromRow(rows.first);
-      if (_isSaleCreate(e)) {
-        await _sales.markPendingAgain(txn, e.entityId);
+      touched.add(r['seq'] as int);
+    }
+    final requeued = <int, OutboxEntry>{
+      for (final e in await _reviveDependents(txn, oldId, scope: scope))
+        e.seq!: e,
+    };
+    // Rows queued after the rejection still wait `blocked` on [oldId].
+    for (final seq in touched) {
+      final r = await txn.query(
+        _t,
+        where: "seq = ? AND status = 'blocked'",
+        whereArgs: [seq],
+      );
+      if (r.isEmpty) continue;
+      final e = OutboxEntry.fromRow(r.first);
+      final status = await _queuedStatus(txn, e);
+      if (status == OutboxStatus.pending) {
+        await txn.update(
+          _t,
+          {'status': status.name},
+          where: "seq = ? AND status = 'blocked'",
+          whereArgs: [seq],
+        );
       }
-      await _recomputeStock(txn, [e]);
-      return true;
-    });
+      requeued[seq] = e;
+    }
+    // Rows that stay rejected now wait on the surviving id.
+    await txn.rawUpdate(
+      'UPDATE $_t SET failed_by_entity_id = ? '
+      'WHERE scope = ? AND failed_by_entity_id = ?',
+      [newId, scope, oldId],
+    );
+    // Rows that stay rejected keep a readable reason naming the new id.
+    await txn.rawUpdate(
+      'UPDATE $_t SET error_message = REPLACE(error_message, ?, ?) '
+      "WHERE scope = ? AND error_message LIKE ? ESCAPE '\\'",
+      [oldId, newId, scope, like],
+    );
+    final fresh = <OutboxEntry>[];
+    for (final seq in requeued.keys) {
+      final r = await txn.query(_t, where: 'seq = ?', whereArgs: [seq]);
+      if (r.isNotEmpty) fresh.add(OutboxEntry.fromRow(r.first));
+    }
+    return (rewritten: touched.length, requeued: fresh);
   }
 
   /// User discard of one row (review I1/I2/M4). In ONE transaction:
@@ -474,7 +796,9 @@ class OutboxStore {
         whereArgs: [mutationId],
       );
       if (n != 1) return DiscardOutcome.sending;
-      final failed = await _failDependents(txn, e.entityId, scope: e.scope);
+      final failed = failsDependents(e)
+          ? await _failDependents(txn, e.entityId, scope: e.scope)
+          : const <OutboxEntry>[];
       await _afterRemoved(txn, [e], failed);
       return DiscardOutcome.discarded;
     });
@@ -544,4 +868,14 @@ enum DiscardOutcome {
 
   /// Another account's row while a current scope was given: kept.
   otherScope,
+
+  /// A catalog create other rows wait on (sales, stock, inbound, products
+  /// of a category, child categories): kept (fix-wave I3, ruling R7). The
+  /// user merges it or edits and retries it.
+  hasDependents,
+
+  /// A catalog create that was claimed by a sync run and never answered:
+  /// the server may hold it, so dropping it locally would be undone by the
+  /// next pull (review M8). Kept; "Send now" settles it.
+  mayBeOnServer,
 }

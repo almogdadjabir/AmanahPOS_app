@@ -33,7 +33,7 @@ void main() {
     entityId: entityId,
     payload: payload ?? {},
     scope: scope,
-    dependsOnEntityId: dep,
+    dependsOn: [?dep],
   );
 
   Future<void> reject(OutboxEntry e) => outbox.applyResult(

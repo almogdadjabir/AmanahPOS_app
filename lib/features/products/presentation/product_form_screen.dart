@@ -424,20 +424,14 @@ class _ProductFormScreenState extends State<_ProductFormScreen> {
       }
 
       navigator.pop();
-      final warning = state.submitWarning;
-      if (!_isEdit && warning != null && warning.trim().isNotEmpty) {
-        GlobalSnackBar.showWarning(
-          message: tr.fbOpeningStockWarning,
-          isAutoDismiss: false,
-        );
-      } else {
-        GlobalSnackBar.show(
-          message: _isEdit
-              ? tr.productUpdatedSuccessfully
-              : tr.productAddedSuccessfully,
-          isInfo: true,
-        );
-      }
+      // The opening stock is written in the same local write as the
+      // product (Phase 3): there is no partial-save warning any more.
+      GlobalSnackBar.show(
+        message: _isEdit
+            ? tr.productUpdatedSuccessfully
+            : tr.productAddedSuccessfully,
+        isInfo: true,
+      );
       return;
     }
 
@@ -499,6 +493,7 @@ class _ProductFormScreenState extends State<_ProductFormScreen> {
                       FormPhotoTile(
                         picked: _image,
                         imageUrl: existing?.detailImageUrl,
+                        productId: existing?.id,
                         onTap: () => ImageUploadBox.showPicker(
                           context,
                           (image) => setState(() => _image = image),

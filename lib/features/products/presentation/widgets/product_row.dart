@@ -1,6 +1,8 @@
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
+import 'package:amana_pos/features/sync/presentation/widgets/catalog_sync_pill.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:amana_pos/features/products/presentation/utils/product_image_url.dart';
 import 'package:amana_pos/features/products/presentation/widgets/product_format.dart';
@@ -38,7 +40,18 @@ class ProductThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final url = product.listImageUrl;
+    final id = product.id;
     final name = product.name?.trim() ?? '';
+    final letter = Center(
+      child: Text(
+        name.isEmpty ? '·' : name.characters.first,
+        style: TextStyle(
+          fontSize: size * 0.38,
+          fontWeight: FontWeight.w600,
+          color: colors.textSecondary,
+        ),
+      ),
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
@@ -47,18 +60,16 @@ class ProductThumb extends StatelessWidget {
         height: size,
         child: ColoredBox(
           color: colors.surfaceSoft,
-          child: url != null
-              ? OfflineCachedImage(imageUrl: url, fit: BoxFit.cover)
-              : Center(
-                  child: Text(
-                    name.isEmpty ? '·' : name.characters.first,
-                    style: TextStyle(
-                      fontSize: size * 0.38,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                ),
+          // A staged (not yet uploaded) image shows first (Task 6).
+          child: url != null || (id != null && id.isNotEmpty)
+              ? OfflineCachedImage(
+                  imageUrl: url,
+                  fit: BoxFit.cover,
+                  entityType: 'product',
+                  entityId: id,
+                  errorWidget: url == null ? letter : null,
+                )
+              : letter,
         ),
       ),
     );
@@ -72,12 +83,16 @@ class ProductRow extends StatelessWidget {
   final bool showCategory;
   final VoidCallback? onTap;
 
+  /// "Not synced" / "Sync failed" pill after the name.
+  final CatalogSyncMark syncMark;
+
   const ProductRow({
     super.key,
     required this.product,
     required this.isRestaurant,
     this.showCategory = true,
     this.onTap,
+    this.syncMark = CatalogSyncMark.synced,
   });
 
   @override
@@ -164,6 +179,10 @@ class ProductRow extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (syncMark != CatalogSyncMark.synced) ...[
+                            const SizedBox(width: 6),
+                            CatalogSyncPill(mark: syncMark),
+                          ],
                         ],
                       ),
                       if (subtitle.isNotEmpty)
@@ -222,6 +241,7 @@ class ProductListGroup extends StatelessWidget {
   final bool isRestaurant;
   final bool showCategory;
   final List<AppSwipeAction> Function(ProductData product)? swipeActions;
+  final CatalogSyncMarks syncMarks;
 
   const ProductListGroup({
     super.key,
@@ -229,6 +249,7 @@ class ProductListGroup extends StatelessWidget {
     required this.isRestaurant,
     this.showCategory = true,
     this.swipeActions,
+    this.syncMarks = CatalogSyncMarks.none,
   });
 
   @override
@@ -260,6 +281,7 @@ class ProductListGroup extends StatelessWidget {
                   product: products[i],
                   isRestaurant: isRestaurant,
                   showCategory: showCategory,
+                  syncMark: syncMarks.markOf(products[i].id),
                 ),
               ),
             ],
@@ -281,10 +303,14 @@ class ProductGridTile extends StatelessWidget {
   final ProductData product;
   final bool isRestaurant;
 
+  /// "Not synced" / "Sync failed" pill over the image.
+  final CatalogSyncMark syncMark;
+
   const ProductGridTile({
     super.key,
     required this.product,
     required this.isRestaurant,
+    this.syncMark = CatalogSyncMark.synced,
   });
 
   @override
@@ -319,15 +345,27 @@ class ProductGridTile extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 1.25,
-                child: Opacity(
-                  opacity: isActive ? 1 : 0.55,
-                  child: LayoutBuilder(
-                    builder: (context, c) => ProductThumb(
-                      product: product,
-                      size: c.maxWidth,
-                      radius: 12,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: isActive ? 1 : 0.55,
+                        child: LayoutBuilder(
+                          builder: (context, c) => ProductThumb(
+                            product: product,
+                            size: c.maxWidth,
+                            radius: 12,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    if (syncMark != CatalogSyncMark.synced)
+                      PositionedDirectional(
+                        top: 6,
+                        start: 6,
+                        child: CatalogSyncPill(mark: syncMark),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 10),

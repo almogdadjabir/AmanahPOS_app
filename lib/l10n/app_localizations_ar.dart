@@ -527,6 +527,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posShopMismatch => 'لست مُعيَّناً لهذا المتجر. تواصل مع مديرك.';
 
   @override
+  String posItemsUnavailable(String names) {
+    return 'لم يعد متوفرًا وأُزيل من السلة: $names. تم دمجه أو تجاهله أو حذفه. راجع السلة وحاول مرة أخرى.';
+  }
+
+  @override
   String get productsManagement => 'إدارة المنتجات';
 
   @override
@@ -2888,10 +2893,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stMore => 'المزيد';
 
   @override
-  String get fbOpeningStockWarning =>
-      'تم إنشاء المنتج، لكن المخزون الابتدائي لم يُحفظ. أضفه من تحديث المخزون.';
-
-  @override
   String get fbCategoriesErrorTitle => 'تعذّر تحميل الفئات';
 
   @override
@@ -4440,4 +4441,134 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get syOxDiscardOtherScope =>
       'هذا التغيير يخص حسابًا آخر. استخدم «تجاهل تغييرات الحساب الآخر» بدلًا من ذلك.';
+
+  @override
+  String get syOxEntityProduct => 'منتج';
+
+  @override
+  String get syOxEntityCategory => 'فئة';
+
+  @override
+  String get syOxEntityVendor => 'مورّد';
+
+  @override
+  String get syOxEditRetry => 'تعديل وإعادة المحاولة';
+
+  @override
+  String get syOxMerge => 'دمج مع الموجود';
+
+  @override
+  String get syOxMergeTitle => 'دمج مع العنصر الموجود؟';
+
+  @override
+  String syOxMergeBody(String name) {
+    return '«$name» موجود بالفعل. ستُحذف تفاصيل هذه النسخة، وكل ما سُجّل لها على هذا الهاتف سينتقل إلى العنصر الموجود.';
+  }
+
+  @override
+  String syOxMergeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيُربط $count سجل بالعنصر الموجود.',
+      many: 'سيُربط $count سجلًا بالعنصر الموجود.',
+      few: 'سيُربط $count سجلات بالعنصر الموجود.',
+      two: 'سيُربط سجلان بالعنصر الموجود.',
+      one: 'سيُربط سجل واحد بالعنصر الموجود.',
+      zero: 'لن يتغير شيء آخر.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syOxMergeExistingFallback => 'العنصر الموجود';
+
+  @override
+  String get syOxMergeRefused =>
+      'لم يعد بالإمكان دمج هذا التغيير. حدّث الصفحة وحاول مرة أخرى.';
+
+  @override
+  String get syOxEditNotSaved => 'لم يتغير شيء، لذلك لم يُرسل مرة أخرى.';
+
+  @override
+  String get syOxEditGone => 'هذا العنصر لم يعد موجودًا على هذا الهاتف.';
+
+  @override
+  String get syOxDiscardCatalogCreateBody =>
+      'سيُحذف هذا العنصر ومخزونه الافتتاحي من هذا الهاتف. لا يوجد شيء آخر ينتظره.';
+
+  @override
+  String syOxDiscardBlockedByDependents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'هناك $count تغيير ينتظر هذا العنصر (مبيعات أو مخزون أو منتجات)، لذلك لا يمكن تجاهله. ادمجه مع العنصر الموجود، أو عدّله وأعد المحاولة.',
+      many:
+          'هناك $count تغييرًا ينتظر هذا العنصر (مبيعات أو مخزون أو منتجات)، لذلك لا يمكن تجاهله. ادمجه مع العنصر الموجود، أو عدّله وأعد المحاولة.',
+      few:
+          'هناك $count تغييرات تنتظر هذا العنصر (مبيعات أو مخزون أو منتجات)، لذلك لا يمكن تجاهله. ادمجه مع العنصر الموجود، أو عدّله وأعد المحاولة.',
+      two:
+          'هناك تغييران ينتظران هذا العنصر (مبيعات أو مخزون أو منتجات)، لذلك لا يمكن تجاهله. ادمجه مع العنصر الموجود، أو عدّله وأعد المحاولة.',
+      one:
+          'هناك تغيير واحد ينتظر هذا العنصر (عملية بيع أو مخزون أو منتج)، لذلك لا يمكن تجاهله. ادمجه مع العنصر الموجود، أو عدّله وأعد المحاولة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syOxDiscardHasDependents =>
+      'لم يتم تجاهل هذا العنصر: هناك تغييرات أخرى (مبيعات أو مخزون أو منتجات) تنتظره. ادمجه مع العنصر الموجود، أو عدّله وأعد المحاولة.';
+
+  @override
+  String get syOxDiscardMayBeOnServerFailure =>
+      'لم يتم تجاهل هذا العنصر: قد يكون موجودًا على الخادم بالفعل. اضغط «إرسال الآن» أولًا، وبعد اكتمال المزامنة احذفه من قائمته.';
+
+  @override
+  String get syOxRetryMissingTitle => 'إرسال بدون العنصر المرتبط؟';
+
+  @override
+  String get syOxRetryMissingBody =>
+      'منتج أو تصنيف أو مورد يشير إليه هذا التغيير لم يعد موجودًا على هذا الهاتف. إذا أرسلته، فسيسجّله الخادم بدون هذا الرابط: تبقى قيمة البيع مسجّلة، لكن المنتج والمخزون لا يُحدَّثان.';
+
+  @override
+  String get syOxRetryMissingConfirm => 'إرسال على أي حال';
+
+  @override
+  String get syOxRetryMissingHint =>
+      'يشير إلى عنصر لم يعد موجودًا على هذا الهاتف.';
+
+  @override
+  String get syOxStaleHint =>
+      'تعذّرت استعادة نسخة الخادم. سيتم استبدالها عند المزامنة التالية.';
+
+  @override
+  String get syOxMergeStockAdded =>
+      'يُضاف مخزونه الافتتاحي وتغييرات المخزون الأخرى على هذا الهاتف إلى مخزون العنصر الموجود.';
+
+  @override
+  String get syOxMergeEditsDropped =>
+      'تُحذف تعديلاته المنتظرة وصورته. يحتفظ العنصر الموجود بتفاصيله وصورته.';
+
+  @override
+  String get syOxMergeTargetInactive =>
+      'العنصر الموجود محذوف. ستنتمي المبيعات والمخزون المدمجة إلى عنصر لا تعرضه شاشة البيع.';
+
+  @override
+  String get syOxDiscardCatalogEditBody => 'سيعود العنصر كما هو على الخادم.';
+
+  @override
+  String get syOxUploadFailed => 'فشل رفع الصورة';
+
+  @override
+  String get invNoVendorsYet => 'لا يوجد موردون بعد';
+
+  @override
+  String get invAddVendor => 'إضافة مورّد';
+
+  @override
+  String get invEditVendor => 'تعديل المورّد';
+
+  @override
+  String get invVendorNameLabel => 'الاسم *';
 }

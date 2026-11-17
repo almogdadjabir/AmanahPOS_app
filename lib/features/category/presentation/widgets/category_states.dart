@@ -6,14 +6,15 @@ import 'package:flutter/material.dart';
 
 enum CategoryStateTone { brand, danger }
 
-/// Empty / error card: tinted icon tile, title, one line of body, one action.
+/// Empty / error card: tinted icon tile, title, one line of body, one
+/// action (none when [actionLabel] or [onAction] is null, e.g. a cashier).
 class CategoryStateCard extends StatelessWidget {
   final IconData icon;
   final CategoryStateTone tone;
   final String title;
   final String body;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final bool secondaryAction;
 
   const CategoryStateCard({
@@ -21,8 +22,8 @@ class CategoryStateCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.body,
-    required this.actionLabel,
-    required this.onAction,
+    this.actionLabel,
+    this.onAction,
     this.tone = CategoryStateTone.brand,
     this.secondaryAction = false,
   });
@@ -72,14 +73,16 @@ class CategoryStateCard extends StatelessWidget {
                   color: colors.textSecondary,
                 ),
               ),
-              const SizedBox(height: AppDims.s5),
-              AppButton(
-                label: actionLabel,
-                onPressed: onAction,
-                variant: secondaryAction
-                    ? AppButtonVariant.secondary
-                    : AppButtonVariant.primary,
-              ),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: AppDims.s5),
+                AppButton(
+                  label: actionLabel!,
+                  onPressed: onAction,
+                  variant: secondaryAction
+                      ? AppButtonVariant.secondary
+                      : AppButtonVariant.primary,
+                ),
+              ],
             ],
           ),
         ),

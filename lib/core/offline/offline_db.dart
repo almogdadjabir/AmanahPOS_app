@@ -31,7 +31,7 @@ class OfflineDb {
   }
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 13;
+  static const int _dbVersion = 14;
 
   static const int schemaVersion = _dbVersion;
 
@@ -133,7 +133,47 @@ class OfflineDb {
     if (oldVersion < 13 && newVersion >= 13) {
       await dropLegacyBootstrapTables(db);
     }
+
+    // v14 (Phase 3): see [createV14Schema]. Additive and idempotent.
+    if (oldVersion < 14 && newVersion >= 14) {
+      await createV14Schema(db);
+    }
   }
+
+  /// Phase 3 (catalog writes) additions, safe to run on a fresh or an
+  /// upgraded database; every step must stay idempotent. Later Phase 3
+  /// tasks extend THIS function (one v14 step).
+  /// - outbox `depends_on_json` (multi-dependency list, backfilled from
+  ///   `depends_on_entity_id`).
+  /// - `pending_uploads` (staged catalog images waiting to upload). Like the
+  ///   outbox it is user data: neither logout nor
+  ///   [clearAllLocalOfflineData] deletes it.
+  /// - outbox `error_entity_id` (the server's `conflict_entity_id`),
+  ///   `claimed_at` (first claim by a sync run; "may have been sent") and
+  ///   `failed_by_entity_id` (whose failed create failed this row).
+  /// - `server_json` on `categories`, `products`, `vendors`: the last server
+  ///   state of the row (feed-shaped `data` + `version`), written by the
+  ///   pull appliers and by `adoptServerRow` on push results; NULL for a
+  ///   never-synced local create. Used to restore a row on discard.
+  static Future<void> createV14Schema(DatabaseExecutor db) async {
+    await SyncSchema.addOutboxDependsOnList(db);
+    await SyncSchema.createPendingUploads(db);
+    await SyncSchema.addOutboxErrorEntityId(db);
+    await SyncSchema.addOutboxClaimedAt(db);
+    await SyncSchema.addOutboxFailedBy(db);
+    for (final t in catalogServerJsonTables) {
+      // A bare test DB (outbox only) has no catalog tables.
+      if ((await db.rawQuery('PRAGMA table_info($t)')).isEmpty) continue;
+      await _addColumnIfMissing(db, t, 'server_json', 'TEXT');
+    }
+  }
+
+  /// Catalog tables that keep their last server state in `server_json`.
+  static const List<String> catalogServerJsonTables = [
+    'categories',
+    'products',
+    'vendors',
+  ];
 
   /// Tables of the retired legacy bulk bootstrap (`sync_metadata`) and asset
   /// manifest (`offline_assets`; images now live in `synced_assets`).
@@ -410,6 +450,8 @@ class OfflineDb {
     await createV11Schema(db);
 
     await createV12Schema(db);
+
+    await createV14Schema(db);
   }
 
   Future<int> countRows(String table) async {
@@ -426,7 +468,9 @@ class OfflineDb {
         .toList();
   }
 
-  /// Clears reference/cache data. Never deletes `outbox`; of `sync_state`
+  /// Clears reference/cache data. Never deletes `outbox` nor
+  /// `pending_uploads` (an unsent image belongs to an unsent create); of
+  /// `sync_state`
   /// only every scope's setup keys (cursor, `bootstrapped`, bootstrap
   /// progress, see [SyncStateStore.resetSetupOfAllScopes]) go with the rows.
   /// Local `sales` and `sale_refunds` are never deleted here (see

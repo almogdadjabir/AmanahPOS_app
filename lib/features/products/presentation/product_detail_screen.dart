@@ -142,25 +142,30 @@ class _NavBar extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Pressable(
-              onTap: () => openProductForm(context, product: product),
-              child: SizedBox(
-                height: 44,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Center(
-                    child: Text(
-                      tr.edit,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: colors.primary,
+            // Catalog writes are owner/manager only.
+            if (context.select<AuthBloc, bool>(
+              (b) => b.state.permissions.canEditCatalog,
+            ))
+              Pressable(
+                key: const ValueKey('product-edit'),
+                onTap: () => openProductForm(context, product: product),
+                child: SizedBox(
+                  height: 44,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Center(
+                      child: Text(
+                        tr.edit,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: colors.primary,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

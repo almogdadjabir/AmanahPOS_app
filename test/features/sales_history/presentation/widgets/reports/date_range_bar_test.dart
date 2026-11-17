@@ -16,7 +16,11 @@ class MockSalesReportBloc extends MockBloc<SalesReportEvent, SalesReportState>
 void main() {
   late MockSalesReportBloc bloc;
 
-  setUpAll(() => registerFallbackValue(const SalesReportRangeChanged(preset: ReportPreset.today)));
+  setUpAll(
+    () => registerFallbackValue(
+      const SalesReportRangeChanged(preset: ReportPreset.today),
+    ),
+  );
 
   setUp(() {
     bloc = MockSalesReportBloc();
@@ -40,10 +44,16 @@ void main() {
     expect(find.text('Yesterday'), findsOneWidget);
   });
 
-  testWidgets('tapping Yesterday dispatches SalesReportRangeChanged', (tester) async {
+  testWidgets('tapping Yesterday dispatches SalesReportRangeChanged', (
+    tester,
+  ) async {
     await tester.pumpWidget(wrap(const DateRangeBar()));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Yesterday'));
-    verify(() => bloc.add(const SalesReportRangeChanged(preset: ReportPreset.yesterday))).called(1);
+    verify(
+      () => bloc.add(
+        const SalesReportRangeChanged(preset: ReportPreset.yesterday),
+      ),
+    ).called(1);
   });
 }

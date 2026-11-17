@@ -39,6 +39,9 @@ Future<AppConfirmChoice> showAppConfirmSheetChoice(
     barrierColor: Colors.black.withValues(alpha: 0.4),
     elevation: 0,
     useSafeArea: true,
+    // Long messages (e.g. the merge breakdown) get the room they need and
+    // scroll inside the card instead of overflowing.
+    isScrollControlled: true,
     builder: (_) => _ConfirmSheet(
       title: title,
       message: message,
@@ -112,48 +115,55 @@ class _ConfirmSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          group([
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Column(
-                children: [
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textSecondary,
-                    ),
+          Flexible(
+            child: group([
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: colors.textHint,
-                    ),
+                  child: Column(
+                    children: [
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: colors.textHint,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-            if (alternativeLabel != null) ...[
+              if (alternativeLabel != null) ...[
+                Divider(height: 0.5, thickness: 0.5, color: colors.border),
+                action(
+                  alternativeLabel!,
+                  destructive: false,
+                  choice: AppConfirmChoice.alternative,
+                ),
+              ],
               Divider(height: 0.5, thickness: 0.5, color: colors.border),
               action(
-                alternativeLabel!,
-                destructive: false,
-                choice: AppConfirmChoice.alternative,
+                confirmLabel,
+                destructive: true,
+                choice: AppConfirmChoice.confirm,
               ),
-            ],
-            Divider(height: 0.5, thickness: 0.5, color: colors.border),
-            action(
-              confirmLabel,
-              destructive: true,
-              choice: AppConfirmChoice.confirm,
-            ),
-          ]),
+            ]),
+          ),
           const SizedBox(height: 8),
           group([
             action(

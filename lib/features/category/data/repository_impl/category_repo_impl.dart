@@ -1,52 +1,46 @@
-
-import 'package:amana_pos/core/api/request_handler.dart';
-import 'package:amana_pos/features/category/data/models/requests/add_category_request_dto.dart';
+import 'package:amana_pos/common/services/image/app_image_picker.dart';
+import 'package:amana_pos/core/sync/catalog_result.dart';
 import 'package:amana_pos/features/category/data/models/requests/edit_category_request_dto.dart';
-import 'package:amana_pos/features/category/data/models/responses/add_category_response_dto.dart';
-import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
+import 'package:amana_pos/features/category/domain/category_service.dart';
 import 'package:amana_pos/features/category/domain/repositories/category_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
+/// Local-only: every write goes through [CategoryService]. No REST client.
 class CategoryRepoImpl extends CategoryRepository {
-  final RequestHandler requestHandler;
-  CategoryRepoImpl(this.requestHandler);
+  CategoryRepoImpl({required CategoryService Function() service})
+    : _service = service;
 
-
-  @override
-  Future<Either<String?, CategoryResponseDto>> getCategories() {
-    return requestHandler.handleGetRequest(
-      'api/v1/products/categories/',
-          (data) => CategoryResponseDto.fromJson(data as Map<String, dynamic>),
-    );
-  }
-
-
+  final CategoryService Function() _service;
 
   @override
-  Future<Either<String?, AddCategoryResponseDto>> addCategory(AddCategoryRequestDto request) {
-    return requestHandler.handlePostRequest(
-      'api/v1/products/categories/',
-          (data) => AddCategoryResponseDto.fromJson(data as Map<String, dynamic>),
-      data: request.toJson(),
-    );
-  }
-
-
-  @override
-  Future<Either<String?, bool>> deleteCategory(String categoryId) {
-    return requestHandler.handleDeleteRequest(
-      'api/v1/products/categories/$categoryId/',
-          (_) => true,
-    );
-  }
+  Future<Either<String, String>> addCategory({
+    required String name,
+    String? description,
+    String? parent,
+    PickedAppImage? image,
+  }) => catalogResult(
+    () => _service().create(
+      name: name,
+      description: description,
+      parent: parent,
+      image: image,
+    ),
+  );
 
   @override
-  Future<Either<String?, bool>> editCategory(String categoryId, EditCategoryRequestDto request) {
-    return requestHandler.handlePatchRequest(
-      'api/v1/products/categories/$categoryId/',
-          (_) => true,
-      data: request.toJson(),
-    );
-  }
+  Future<Either<String, Unit>> editCategory(
+    String categoryId,
+    EditCategoryRequestDto request, {
+    PickedAppImage? image,
+  }) => catalogResult(() async {
+    await _service().update(categoryId, request, image: image);
+    return unit;
+  });
 
+  @override
+  Future<Either<String, Unit>> deleteCategory(String categoryId) =>
+      catalogResult(() async {
+        await _service().delete(categoryId);
+        return unit;
+      });
 }

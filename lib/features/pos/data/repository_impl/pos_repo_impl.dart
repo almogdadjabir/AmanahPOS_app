@@ -73,6 +73,8 @@ class PosRepoImpl extends PosRepository {
           netAmount: sale.netAmount,
         ),
       );
+    } on SaleProductUnavailableException {
+      rethrow; // PosBloc drops those lines and tells the cashier
     } on SaleValidationException catch (e) {
       return Left(e.message);
     } catch (_) {

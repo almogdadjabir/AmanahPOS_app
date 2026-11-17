@@ -7,6 +7,7 @@ import 'package:amana_pos/core/sync/assets/asset_sync_wiring.dart';
 import 'package:amana_pos/core/sync/background/background_sync.dart';
 import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
+import 'package:amana_pos/core/sync/images/image_uploader.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:amana_pos/core/sync/sync_flags.dart';
@@ -117,7 +118,211 @@ class _FakeAssets implements AssetSync {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Records [run] calls (Task 6 uploader).
+class _FakeUploader implements ImageUploader {
+  int runs = 0;
+  int uploaded = 0;
+  Object? throwAsync;
+
+  @override
+  Future<ImageUploadReport> run() async {
+    runs++;
+    final a = throwAsync;
+    if (a != null) throw a;
+    return ImageUploadReport(uploaded: uploaded);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
+  group('image uploads (Task 6, foreground only)', () {
+    late _FakeEngine engine;
+    late _FakeAssets assets;
+    late _FakeUploader uploader;
+    late _FakeNetwork network;
+    late bool reachable;
+
+    setUp(() {
+      engine = _FakeEngine();
+      assets = _FakeAssets();
+      uploader = _FakeUploader();
+      network = _FakeNetwork();
+      reachable = true;
+    });
+
+    SyncTriggers make() => SyncTriggers(
+      engine,
+      network,
+      _FakeOutbox(),
+      DbChangeNotifier(),
+      assetSync: () async => assets,
+      imageUploader: () async => uploader,
+      assetsReachable: () async => reachable,
+    );
+
+    test('review M1: a pending_uploads change (image-only edit, retry of a '
+        'failed upload) starts an upload run within seconds, without '
+        'waiting for the 5-minute periodic run', () {
+      fakeAsync((async) {
+        engine.outcome = SyncOutcome.backoff; // no run-completed kick
+        final notifier = DbChangeNotifier();
+        final t = SyncTriggers(
+          engine,
+          network,
+          _FakeOutbox(),
+          notifier,
+          assetSync: () async => assets,
+          imageUploader: () async => uploader,
+          assetsReachable: () async => reachable,
+        )..start();
+        async.flushMicrotasks();
+        expect(uploader.runs, 0);
+        notifier.notify({'pending_uploads'});
+        // Debounced: a burst of notifications starts one run.
+        notifier.notify({'pending_uploads', 'products'});
+        async.elapse(const Duration(seconds: 6));
+        expect(uploader.runs, 1);
+        expect(assets.runs, isEmpty, reason: 'downloads are not re-run');
+        // Unrelated tables do not start uploads.
+        notifier.notify({'products'});
+        async.elapse(const Duration(seconds: 6));
+        expect(uploader.runs, 1);
+        // Gated like every image run: nothing while the server is down.
+        reachable = false;
+        notifier.notify({'pending_uploads'});
+        async.elapse(const Duration(seconds: 6));
+        expect(uploader.runs, 1);
+        t.stop();
+        async.flushMicrotasks();
+        notifier.dispose();
+      });
+    });
+
+    test('review M7: the app going to the background inside the upload '
+        'debounce starts no upload (foreground-only)', () {
+      fakeAsync((async) {
+        engine.outcome = SyncOutcome.backoff;
+        final notifier = DbChangeNotifier();
+        final t = SyncTriggers(
+          engine,
+          network,
+          _FakeOutbox(),
+          notifier,
+          assetSync: () async => assets,
+          imageUploader: () async => uploader,
+          assetsReachable: () async => reachable,
+        )..start();
+        async.flushMicrotasks();
+        notifier.notify({'pending_uploads'});
+        async.elapse(const Duration(seconds: 1));
+        t.onAppPaused();
+        async.elapse(const Duration(seconds: 6));
+        expect(uploader.runs, 0);
+        t.stop();
+        async.flushMicrotasks();
+        notifier.dispose();
+      });
+    });
+
+    test('a completed run starts the uploader next to AssetSync', () {
+      fakeAsync((async) {
+        make().start();
+        async.flushMicrotasks();
+        expect(uploader.runs, 1);
+        expect(assets.runs, [false]);
+      });
+    });
+
+    test('an upload that landed runs AssetSync again (served image)', () {
+      fakeAsync((async) {
+        uploader.uploaded = 1;
+        make().start();
+        async.flushMicrotasks();
+        expect(uploader.runs, 1);
+        expect(assets.runs, [false, false]);
+      });
+    });
+
+    for (final o in [
+      SyncOutcome.backoff,
+      SyncOutcome.blocked,
+      SyncOutcome.cancelled,
+      SyncOutcome.needsBootstrap,
+    ]) {
+      test('no upload after ${o.name}', () {
+        fakeAsync((async) {
+          engine.outcome = o;
+          final t = make()..start();
+          async.flushMicrotasks();
+          expect(uploader.runs, 0);
+          t.stop();
+          async.flushMicrotasks();
+        });
+      });
+    }
+
+    test('server unreachable: no upload', () {
+      fakeAsync((async) {
+        reachable = false;
+        make().start();
+        async.flushMicrotasks();
+        expect(uploader.runs, 0);
+      });
+    });
+
+    test('app resume and connectivity regained start an upload', () {
+      fakeAsync((async) {
+        engine.outcome = SyncOutcome.backoff;
+        final t = make()..start();
+        async.flushMicrotasks();
+        expect(uploader.runs, 0);
+        t.onAppPaused();
+        t.onAppResumed();
+        async.flushMicrotasks();
+        expect(uploader.runs, 1);
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        async.flushMicrotasks();
+        expect(uploader.runs, 2);
+        t.stop();
+        async.flushMicrotasks();
+      });
+    });
+
+    test('a throwing uploader never fails syncNow nor stops AssetSync', () {
+      fakeAsync((async) {
+        uploader.throwAsync = StateError('boom');
+        final t = make()..start();
+        async.flushMicrotasks();
+        SyncOutcome? got;
+        t.syncNow().then((o) => got = o);
+        async.flushMicrotasks();
+        expect(got, SyncOutcome.completed);
+        expect(assets.runs, hasLength(2));
+      });
+    });
+
+    test('the background worker has no uploader hook (every file under '
+        'lib/core/sync/background, T6 M5)', () {
+      final files = Directory('lib/core/sync/background')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.dart'))
+          .toList();
+      expect(
+        files.map((f) => f.path.split('/').last),
+        containsAll(['background_sync.dart', 'background_entry.dart']),
+      );
+      for (final f in files) {
+        final s = f.readAsStringSync();
+        expect(s.contains('ImageUploader'), isFalse, reason: f.path);
+        expect(s.contains('image_uploader'), isFalse, reason: f.path);
+      }
+    });
+  });
+
   group('foreground triggers', () {
     late _FakeEngine engine;
     late _FakeAssets assets;

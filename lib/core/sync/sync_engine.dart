@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -761,26 +762,64 @@ class SyncEngine {
       );
       return false;
     }
+    if (await _isStrayDependencyFailure(txn, e, r)) {
+      // Fix-wave I1 (BE finding 1): the BE fails every later mutation in
+      // the same push whose dependencies name ANY rejected entity id, e.g.
+      // a sale of P behind a rejected EDIT of P. No dependency create is
+      // open here, so nothing local is missing: send it again (alone, in
+      // the next batch of this run). Sales are accept-always. The first
+      // few retries are due at once; after that the normal backoff applies
+      // so a server that keeps answering this cannot spin the queue.
+      await _outbox.scheduleRetry(
+        e.mutationId,
+        e.attempts < _strayDependencyFastRetries
+            ? _now()
+            : _now().add(_rowDelay(e)),
+        executor: txn,
+        leaseUntil: lease,
+      );
+      return false;
+    }
     final applier = withApplier ? _appliers.of(e.entity) : null;
     final converged =
         r.status == PushStatus.rejected &&
         e.op == 'delete' &&
         r.code == 'entity_deleted';
     if (r.status == PushStatus.rejected && !converged) {
+      // M9: a real BE dependency_failed (a dependency create is open here)
+      // records which create failed it and waits on it, so retrying or
+      // merging that create revives this row too.
+      final failedBy = r.code == 'dependency_failed'
+          ? await _openDependency(txn, e, r)
+          : null;
       final n = await _outbox.applyResult(
         txn,
         e.mutationId,
         status: OutboxStatus.rejected,
         code: r.code,
-        message: r.message,
+        message: rejectionMessage(r),
+        errorEntityId: r.conflictEntityId,
+        failedBy: failedBy,
         leaseUntil: lease,
       );
       if (n == 0) return false;
+      if (failedBy != null && !e.dependsOn.contains(failedBy)) {
+        await txn.update(
+          SyncTables.outbox,
+          {
+            'depends_on_json': jsonEncode([...e.dependsOn, failedBy]),
+          },
+          where: 'mutation_id = ?',
+          whereArgs: [e.mutationId],
+        );
+      }
       if (applier != null) {
         await applier.onPushResult(txn, e, r);
         touched.addAll(applier.tables);
       }
-      await _outbox.failDependents(txn, e.entityId, scope: e.scope);
+      if (OutboxStore.failsDependents(e)) {
+        await _outbox.failDependents(txn, e.entityId, scope: e.scope);
+      }
       return true;
     }
     final n = await _outbox.applyResult(
@@ -797,6 +836,54 @@ class SyncEngine {
     }
     await _outbox.unblockDependents(txn, e.entityId, scope: e.scope);
     return true;
+  }
+
+  static const _strayDependencyFastRetries = 3;
+
+  /// First dependency of [e] (the server's `depends_on` first, then the
+  /// row's own) that has an open local create, or null.
+  Future<String?> _openDependency(
+    Transaction txn,
+    OutboxEntry e,
+    PushResult r,
+  ) async {
+    final deps = [...r.dependsOn, ...e.dependsOn];
+    if (deps.isEmpty) return null;
+    final open = await _outbox.openCreateIds(txn, deps, scope: e.scope);
+    for (final d in deps) {
+      if (open.contains(d)) return d;
+    }
+    return null;
+  }
+
+  /// A server `dependency_failed` for [e] where neither [e]'s recorded
+  /// dependencies nor the server's `depends_on` has an open (not `done`,
+  /// incl. `rejected`) local create in [e]'s scope. Rows written earlier in
+  /// this results transaction are visible, so a create rejected in the same
+  /// push still counts as open and keeps the real failure.
+  Future<bool> _isStrayDependencyFailure(
+    Transaction txn,
+    OutboxEntry e,
+    PushResult r,
+  ) async {
+    if (r.status != PushStatus.rejected || r.code != 'dependency_failed') {
+      return false;
+    }
+    final deps = {...e.dependsOn, ...r.dependsOn};
+    if (deps.isEmpty) return true;
+    return (await _outbox.openCreateIds(txn, deps, scope: e.scope)).isEmpty;
+  }
+
+  /// Text stored with a rejected row: the server `message`, or (empty
+  /// message) the first message of `errors{field: [msgs]}`.
+  static String? rejectionMessage(PushResult r) {
+    final m = r.message;
+    if (m != null && m.trim().isNotEmpty) return m;
+    for (final v in (r.errors ?? const <String, dynamic>{}).values) {
+      final first = v is List ? (v.isEmpty ? null : v.first) : v;
+      if (first != null && '$first'.trim().isNotEmpty) return '$first';
+    }
+    return m;
   }
 
   /// Fallback when the batch transaction failed: each row in its own
@@ -855,7 +942,9 @@ class SyncEngine {
         message: 'Mutation is too large for the server',
         leaseUntil: e.leaseUntil,
       );
-      if (n > 0) await _outbox.failDependents(txn, e.entityId, scope: e.scope);
+      if (n > 0 && OutboxStore.failsDependents(e)) {
+        await _outbox.failDependents(txn, e.entityId, scope: e.scope);
+      }
     });
     _notifier.notify({SyncTables.outbox});
   }
@@ -961,51 +1050,42 @@ class SyncEngine {
   /// original exception. Never touches the engine's own budget or scope.
   AuthedCall authedFor(String scope) {
     var refreshUsed = false;
-    Future<T> run<T>(Future<T> Function() call) async {
-      try {
-        final r = await call();
-        refreshUsed = false;
-        return r;
-      } on SyncTransportException catch (e, st) {
-        if (!_isAuthExpiry(e) || refreshUsed) rethrow;
-        refreshUsed = true;
-        final refresh = _refreshToken;
-        if (refresh == null) rethrow;
-        RefreshOutcome outcome;
-        try {
-          outcome = await refresh();
-        } catch (err, rst) {
-          _log('token refresh failed', err, rst);
-          outcome = RefreshOutcome.transient;
-        }
-        switch (outcome) {
-          case RefreshOutcome.refreshed:
-            if (_scopeProvider() != scope ||
-                (_readSessionKey != null && await _readSessionKey() != scope)) {
-              throw SyncTransportException(
-                kind: SyncTransportKind.scopeChanged,
-              );
-            }
-            final r = await call();
-            refreshUsed = false;
-            return r;
-          case RefreshOutcome.rejected:
-            throw SyncBlockedException(SyncBlockReason.tokenExpired);
-          case RefreshOutcome.transient:
-            Error.throwWithStackTrace(e, st);
-        }
-      }
-    }
-
-    return run;
+    return <T>(Future<T> Function() call) => _runAuthed<T>(
+      call,
+      scope: () => scope,
+      budgetUsed: () => refreshUsed,
+      setBudgetUsed: (v) => refreshUsed = v,
+      restoreOnSuccess: true,
+    );
   }
 
-  Future<T> _authed<T>(Future<T> Function() call) async {
+  /// The engine's own wrapper: budget is [_refreshAttempted] (once per
+  /// syncNow) and the scope is the running [_scope].
+  Future<T> _authed<T>(Future<T> Function() call) => _runAuthed<T>(
+    call,
+    scope: () => _scope,
+    budgetUsed: () => _refreshAttempted,
+    setBudgetUsed: (v) => _refreshAttempted = v,
+    restoreOnSuccess: false,
+  );
+
+  /// The single refresh/scope-check implementation behind [authed] and
+  /// [authedFor]. On token expiry refreshes once (per budget) and retries
+  /// once; after a refresh the live session must still be [scope].
+  Future<T> _runAuthed<T>(
+    Future<T> Function() call, {
+    required String Function() scope,
+    required bool Function() budgetUsed,
+    required void Function(bool) setBudgetUsed,
+    required bool restoreOnSuccess,
+  }) async {
     try {
-      return await call();
+      final r = await call();
+      if (restoreOnSuccess) setBudgetUsed(false);
+      return r;
     } on SyncTransportException catch (e, st) {
-      if (!_isAuthExpiry(e) || _refreshAttempted) rethrow;
-      _refreshAttempted = true;
+      if (!_isAuthExpiry(e) || budgetUsed()) rethrow;
+      setBudgetUsed(true);
       final refresh = _refreshToken;
       if (refresh == null) rethrow;
       RefreshOutcome outcome;
@@ -1017,8 +1097,14 @@ class SyncEngine {
       }
       switch (outcome) {
         case RefreshOutcome.refreshed:
-          await _assertScope(); // the refresh may have landed on another session
-          return await call();
+          final want = scope();
+          if (_scopeProvider() != want ||
+              (_readSessionKey != null && await _readSessionKey() != want)) {
+            throw SyncTransportException(kind: SyncTransportKind.scopeChanged);
+          }
+          final r = await call();
+          if (restoreOnSuccess) setBudgetUsed(false);
+          return r;
         case RefreshOutcome.rejected:
           throw SyncBlockedException(SyncBlockReason.tokenExpired);
         case RefreshOutcome.transient:

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/sync/decimal3.dart';
@@ -96,6 +99,15 @@ class SaleService {
       tables: tables,
       body: (scope) async {
         final txn = scope.txn;
+        // Fix-wave I2: a cart may still hold a product that a merge, a
+        // discard or a dropped create removed (or another device deleted)
+        // since it was added. Its sale would reach the BE with
+        // product = NULL; refuse it before anything is written.
+        final gone = await unavailableIn(txn, {
+          for (final l in p.lines)
+            if (!l.isCustom) l.productId!,
+        });
+        if (gone.isNotEmpty) throw SaleProductUnavailableException(gone);
         final n = await _state.nextLocalReceiptCounter(txn);
         final prefix = deviceId.length >= 4
             ? deviceId.substring(0, 4)
@@ -142,20 +154,24 @@ class SaleService {
           payments: p.payments,
         );
 
+        final products = {
+          for (final l in p.lines)
+            if (!l.isCustom) l.productId!,
+        };
         await _store.insert(txn, sale);
+        // Never pushed before the create of any of its products is `done`
+        // (the BE would keep the line with product = NULL). Custom lines
+        // reference no product.
         await scope.enqueue(
           entity: 'sale',
           op: 'create',
           entityId: saleId,
           occurredAt: occurredAt,
           payload: _payload(sale, cashier: cashier),
+          dependsOn: products.toList(),
         );
         // The outbox row above now counts as pending; re-derive each touched
         // stock row once (quantity = base + pending, base untouched).
-        final products = {
-          for (final l in p.lines)
-            if (!l.isCustom) l.productId!,
-        };
         for (final productId in products) {
           await _stock.recompute(txn, productId, draft.shopId);
         }
@@ -165,6 +181,51 @@ class SaleService {
     );
     await _hook?.call('afterCommit');
     return sale;
+  }
+
+  /// The subset of [productIds] that cannot be sold: no local `products`
+  /// row (merged away, discarded, dropped never-sent create) or an
+  /// inactive one (deleted).
+  Future<Set<String>> unavailableProductIds(Iterable<String> productIds) {
+    final ids = productIds.toSet();
+    if (ids.isEmpty) return Future.value(<String>{});
+    return _writer.read((db) => unavailableIn(db, ids));
+  }
+
+  /// [unavailableProductIds] on [txn].
+  static Future<Set<String>> unavailableIn(
+    DatabaseExecutor txn,
+    Set<String> ids,
+  ) async {
+    if (ids.isEmpty) return <String>{};
+    final list = ids.toList();
+    final live = <String>{};
+    for (var i = 0; i < list.length; i += 500) {
+      final chunk = list.sublist(
+        i,
+        i + 500 > list.length ? list.length : i + 500,
+      );
+      final rows = await txn.query(
+        'products',
+        columns: ['id', 'json'],
+        where: 'id IN (${List.filled(chunk.length, '?').join(',')})',
+        whereArgs: chunk,
+      );
+      for (final r in rows) {
+        if (!_inactive(r['json'])) live.add(r['id'] as String);
+      }
+    }
+    return ids.difference(live);
+  }
+
+  static bool _inactive(Object? json) {
+    if (json is! String) return false;
+    try {
+      final j = jsonDecode(json);
+      return j is Map && j['is_active'] == false;
+    } on FormatException {
+      return false;
+    }
   }
 
   /// `sale.create` payload, field names exactly as the BE reads them

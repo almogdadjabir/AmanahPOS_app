@@ -12,8 +12,11 @@ import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 
 class _MockUseCase extends Mock implements LoginUseCase {}
+
 class _MockCache extends Mock implements CacheStorage {}
+
 class _MockFcm extends Mock implements FcmTokenService {}
+
 class _MockAuthBloc extends Mock implements AuthBloc {}
 
 void main() {
@@ -39,14 +42,16 @@ void main() {
     when(() => authBloc.add(any())).thenReturn(null);
     when(() => cache.save(any(), any())).thenAnswer((_) async => true);
     when(() => useCase.passwordLogin(any())).thenAnswer(
-      (_) async => Right(OtpVerifyResponse(
-        success: true,
-        loginData: LoginData(
-          access: 'acc',
-          refresh: 'ref',
-          user: const User(id: 'u1', businessId: 'b1', role: 'cashier'),
+      (_) async => Right(
+        OtpVerifyResponse(
+          success: true,
+          loginData: LoginData(
+            access: 'acc',
+            refresh: 'ref',
+            user: const User(id: 'u1', businessId: 'b1', role: 'cashier'),
+          ),
         ),
-      )),
+      ),
     );
   });
 
@@ -56,7 +61,8 @@ void main() {
 
   blocTest<LoginBloc, LoginState>(
     'password login success carries the logged-in user in state',
-    build: () => LoginBloc(useCase: useCase, cacheStorage: cache, fcmTokenService: fcm),
+    build: () =>
+        LoginBloc(useCase: useCase, cacheStorage: cache, fcmTokenService: fcm),
     seed: () => LoginState.initial().copyWith(
       phoneNumber: '912345678',
       isMobileValid: true,

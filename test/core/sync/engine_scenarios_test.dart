@@ -261,7 +261,7 @@ void main() {
         final sale = await h.createWidget(
           's1',
           entity: 'sale',
-          dependsOn: 'p1',
+          dependsOn: const ['p1'],
           payload: {
             'shop': 'sh1',
             'items': [
@@ -411,12 +411,6 @@ void main() {
         name: 'Mine v2',
         baseVersion: 1,
       );
-      final later = await h.createWidget(
-        'w1',
-        op: 'update',
-        name: 'Mine v3',
-        baseVersion: 1,
-      );
       final serverState = {'id': 'w1', 'name': 'Server name', 'version': 3};
       h.transport.scripted[upd.mutationId] = PushResult(
         mutationId: upd.mutationId,
@@ -445,10 +439,20 @@ void main() {
       expect(conflict['code'], 'conflict_version');
       expect(conflict['server_state'], serverState);
 
-      // Per-entity ordering: the later edit of the same row is held back.
-      expect((await h.outboxRow(later.mutationId))['status'], 'pending');
-      expect(h.transport.pushedIds, isNot(contains(later.mutationId)));
-      expect(h.server.tables['product']!['w1']!['name'], 'Mine');
+      final later = await h.createWidget(
+        'w1',
+        op: 'update',
+        name: 'Mine v3',
+        baseVersion: 1,
+      );
+      expect(await engine.syncNow(), SyncOutcome.completed);
+      // Ruling I2 (Phase 3): a rejected catalog UPDATE does not hold the
+      // later edit of the same row; it is sent with its own base_version.
+      // (Non-catalog entities and rejected creates still hold: see
+      // outbox_store_test.)
+      expect((await h.outboxRow(later.mutationId))['status'], 'done');
+      expect(h.transport.pushedIds, contains(later.mutationId));
+      expect(h.server.tables['product']!['w1']!['name'], 'Mine v3');
     });
 
     test(

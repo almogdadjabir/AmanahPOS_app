@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 
 import '../contract/sync_contract.dart';
 import '../outbox/outbox_entry.dart';
+import 'image_upload_transport.dart';
 import 'sync_auth_interceptor.dart';
 import 'sync_transport.dart';
 
@@ -15,7 +16,10 @@ import 'sync_transport.dart';
 /// `mutation_id`, the engine owns retry policy) and must not refresh tokens or
 /// log out on its own: it only attaches headers (see [SyncAuthInterceptor]).
 /// Token refresh is the engine's concern.
-class HttpSyncTransport implements SyncTransport {
+///
+/// Also the [ImageUploadTransport] (catalog image PUT, Task 6): same Dio,
+/// same headers-only interceptor and scope guard, same typed 401s.
+class HttpSyncTransport implements SyncTransport, ImageUploadTransport {
   HttpSyncTransport(this._dio);
 
   /// Builds a dedicated, retry-free Dio for sync with [SyncAuthInterceptor]
@@ -69,6 +73,83 @@ class HttpSyncTransport implements SyncTransport {
   static const _pingTimeout = Duration(seconds: 5);
   static const _syncTimeout = Duration(seconds: 15);
   static const _gzipThresholdBytes = 2048;
+
+  /// Image PUT: connect/receive like the other sync calls; the body is a few
+  /// MB at most (picker caps 2048 px / q88), so sending gets 60 s on a slow
+  /// uplink. A timeout is retried by the uploader with backoff, and a
+  /// replay of the same bytes is a server no-op.
+  static const _imageSendTimeout = Duration(seconds: 60);
+
+  @override
+  Future<ImageUploadResult> putImage({
+    required String entity,
+    required String entityId,
+    required List<int> bytes,
+    required String sha256,
+    required String scope,
+  }) async {
+    final path = switch (entity) {
+      'product' => 'api/v1/products/$entityId/image/',
+      'category' => 'api/v1/products/categories/$entityId/image/',
+      _ => throw ArgumentError.value(entity, 'entity', 'product or category'),
+    };
+    final mime = sniffImageMime(bytes);
+    final ext = mime.startsWith('image/') ? mime.substring(6) : 'bin';
+    return _run(() async {
+      final Response<dynamic> res;
+      try {
+        res = await _dio.fetch<dynamic>(
+          RequestOptions(
+            path: path,
+            method: 'PUT',
+            baseUrl: _dio.options.baseUrl,
+            data: FormData.fromMap({
+              'image': MultipartFile.fromBytes(
+                bytes,
+                filename: 'image.$ext',
+                contentType: DioMediaType.parse(mime),
+              ),
+            }),
+            headers: {'X-Content-SHA256': sha256, 'Idempotency-Key': sha256},
+            extra: {kSyncScopeExtra: scope},
+            responseType: ResponseType.json,
+            connectTimeout: _syncTimeout,
+            sendTimeout: _imageSendTimeout,
+            receiveTimeout: _syncTimeout,
+          ),
+        );
+      } on DioException catch (e) {
+        throw _imageError(e);
+      }
+      final body = _asMap(res.data);
+      final data = body['data'];
+      return ImageUploadResult.fromJson(
+        data is Map ? Map<String, dynamic>.from(data) : body,
+      );
+    });
+  }
+
+  /// As [_map], but a 4xx keeps the BE error code (`hash_mismatch`,
+  /// `forbidden`, ...) the uploader acts on; push/pull keep `http_<status>`.
+  SyncTransportException _imageError(DioException e) {
+    final m = _map(e);
+    final status = m.httpStatus;
+    if (m.kind != SyncTransportKind.server || m.code != 'http_$status') {
+      return m;
+    }
+    final data = e.response?.data;
+    final root = data is Map ? data : const <dynamic, dynamic>{};
+    final nested = root['error'] is Map ? root['error'] as Map : null;
+    final code = nested?['code'] ?? root['code'];
+    if (code is! String || code.isEmpty) return m;
+    return SyncTransportException(
+      kind: m.kind,
+      httpStatus: status,
+      code: code,
+      message: m.message,
+      retryAfterSeconds: m.retryAfterSeconds,
+    );
+  }
 
   @override
   Future<PingResponse> ping() => _run(() async {

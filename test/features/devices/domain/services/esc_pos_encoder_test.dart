@@ -79,8 +79,9 @@ void main() {
     test('58mm width (32 cols) keeps lines at 32 chars', () {
       const narrow = EscPosEncoder(charsPerLine: 32);
       final text = decodeLines(narrow.encodeReceipt(receipt()));
-      final itemLine =
-          text.split('\n').firstWhere((line) => line.contains('Sugar 1kg'));
+      final itemLine = text
+          .split('\n')
+          .firstWhere((line) => line.contains('Sugar 1kg'));
       expect(itemLine.length, 32);
     });
   });

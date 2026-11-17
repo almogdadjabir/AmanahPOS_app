@@ -121,3 +121,9 @@ class PosTaxConfigChanged extends PosEvent {
   @override
   List<Object?> get props => [taxConfig];
 }
+
+/// Internal: the products table changed; drop cart lines whose product is
+/// gone (fix-wave I2).
+final class _PosCatalogChanged extends PosEvent {
+  const _PosCatalogChanged();
+}

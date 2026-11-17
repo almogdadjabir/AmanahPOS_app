@@ -38,19 +38,25 @@ void main() {
 
   setUp(() {
     useCase = MockSalesHistoryUseCase();
-    when(() => useCase.getSalesReport(
-      from: any(named: 'from'),
-      to: any(named: 'to'),
-      shopId: any(named: 'shopId'),
-      timezone: any(named: 'timezone'),
-    )).thenAnswer((_) async => right(_fakeReport()));
+    when(
+      () => useCase.getSalesReport(
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+        shopId: any(named: 'shopId'),
+        timezone: any(named: 'timezone'),
+      ),
+    ).thenAnswer((_) async => right(_fakeReport()));
   });
 
   blocTest<SalesReportBloc, SalesReportState>(
     'emits loading then loaded after Today preset on creation',
     build: () => SalesReportBloc(useCase: useCase),
     expect: () => [
-      isA<SalesReportState>().having((s) => s.status, 'loading', SalesReportBlocStatus.loading),
+      isA<SalesReportState>().having(
+        (s) => s.status,
+        'loading',
+        SalesReportBlocStatus.loading,
+      ),
       isA<SalesReportState>()
           .having((s) => s.status, 'loaded', SalesReportBlocStatus.loaded)
           .having((s) => s.report, 'report not null', isNotNull),
@@ -60,16 +66,22 @@ void main() {
   blocTest<SalesReportBloc, SalesReportState>(
     'emits failure when useCase returns error',
     setUp: () {
-      when(() => useCase.getSalesReport(
-        from: any(named: 'from'),
-        to: any(named: 'to'),
-        shopId: any(named: 'shopId'),
-        timezone: any(named: 'timezone'),
-      )).thenAnswer((_) async => left('Network error'));
+      when(
+        () => useCase.getSalesReport(
+          from: any(named: 'from'),
+          to: any(named: 'to'),
+          shopId: any(named: 'shopId'),
+          timezone: any(named: 'timezone'),
+        ),
+      ).thenAnswer((_) async => left('Network error'));
     },
     build: () => SalesReportBloc(useCase: useCase),
     expect: () => [
-      isA<SalesReportState>().having((s) => s.status, 'loading', SalesReportBlocStatus.loading),
+      isA<SalesReportState>().having(
+        (s) => s.status,
+        'loading',
+        SalesReportBlocStatus.loading,
+      ),
       isA<SalesReportState>()
           .having((s) => s.status, 'failure', SalesReportBlocStatus.failure)
           .having((s) => s.errorMessage, 'error message', 'Network error'),
@@ -79,13 +91,21 @@ void main() {
   blocTest<SalesReportBloc, SalesReportState>(
     'SalesReportRangeChanged fetches with new preset',
     build: () => SalesReportBloc(useCase: useCase),
-    act: (bloc) => bloc.add(
-      const SalesReportRangeChanged(preset: ReportPreset.yesterday),
-    ),
-    skip: 2, // skip loading+loaded emitted by the constructor auto-fire (Today preset)
+    act: (bloc) =>
+        bloc.add(const SalesReportRangeChanged(preset: ReportPreset.yesterday)),
+    skip:
+        2, // skip loading+loaded emitted by the constructor auto-fire (Today preset)
     expect: () => [
-      isA<SalesReportState>().having((s) => s.preset, 'yesterday', ReportPreset.yesterday),
-      isA<SalesReportState>().having((s) => s.status, 'loaded', SalesReportBlocStatus.loaded),
+      isA<SalesReportState>().having(
+        (s) => s.preset,
+        'yesterday',
+        ReportPreset.yesterday,
+      ),
+      isA<SalesReportState>().having(
+        (s) => s.status,
+        'loaded',
+        SalesReportBlocStatus.loaded,
+      ),
     ],
   );
 
@@ -101,14 +121,17 @@ void main() {
         ),
       ),
     ),
-    skip: 2, // skip loading+loaded emitted by the constructor auto-fire (Today preset)
+    skip:
+        2, // skip loading+loaded emitted by the constructor auto-fire (Today preset)
     verify: (_) {
-      verify(() => useCase.getSalesReport(
-        from: DateTime(2026, 6, 1),
-        to: DateTime(2026, 6, 10),
-        shopId: any(named: 'shopId'),
-        timezone: any(named: 'timezone'),
-      )).called(1);
+      verify(
+        () => useCase.getSalesReport(
+          from: DateTime(2026, 6, 1),
+          to: DateTime(2026, 6, 10),
+          shopId: any(named: 'shopId'),
+          timezone: any(named: 'timezone'),
+        ),
+      ).called(1);
     },
   );
 }

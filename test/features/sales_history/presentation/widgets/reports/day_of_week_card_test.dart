@@ -16,11 +16,14 @@ void main() {
   );
 
   testWidgets('renders BarChart with day-of-week title', (tester) async {
-    final days = List.generate(7, (d) => DayOfWeekStat(
-      weekday: d + 1,
-      salesCount: d == 1 ? 3 : 0,
-      amount: d == 1 ? 300.0 : 0.0,
-    ));
+    final days = List.generate(
+      7,
+      (d) => DayOfWeekStat(
+        weekday: d + 1,
+        salesCount: d == 1 ? 3 : 0,
+        amount: d == 1 ? 300.0 : 0.0,
+      ),
+    );
     await tester.pumpWidget(wrap(DayOfWeekCard(dayOfWeek: days)));
     await tester.pumpAndSettle();
     expect(find.text('Day of Week'), findsOneWidget);

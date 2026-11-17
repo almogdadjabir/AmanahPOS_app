@@ -18,21 +18,48 @@ void main() {
       'trend': {
         'interval': 'day',
         'points': [
-          {'label': '2026-06-01', 'gross_amount': 0.0, 'net_amount': 0.0, 'sales_count': 0},
-          {'label': '2026-06-02', 'gross_amount': 16140.0, 'net_amount': 16140.0, 'sales_count': 5},
+          {
+            'label': '2026-06-01',
+            'gross_amount': 0.0,
+            'net_amount': 0.0,
+            'sales_count': 0,
+          },
+          {
+            'label': '2026-06-02',
+            'gross_amount': 16140.0,
+            'net_amount': 16140.0,
+            'sales_count': 5,
+          },
         ],
       },
       'payment_methods': [
         {'method': 'cash', 'amount': 16140.0, 'count': 5},
       ],
       'top_products': [
-        {'product_id': 'p1', 'name': 'ببسي', 'quantity_sold': 269.0, 'gross_amount': 16140.0, 'thumbnail_url': null},
+        {
+          'product_id': 'p1',
+          'name': 'ببسي',
+          'quantity_sold': 269.0,
+          'gross_amount': 16140.0,
+          'thumbnail_url': null,
+        },
       ],
       'top_categories': [
-        {'category_id': 'c1', 'name': 'مشروبات', 'quantity_sold': 269.0, 'gross_amount': 16140.0},
+        {
+          'category_id': 'c1',
+          'name': 'مشروبات',
+          'quantity_sold': 269.0,
+          'gross_amount': 16140.0,
+        },
       ],
-      'peak_hours': List.generate(24, (h) => {'hour': h, 'sales_count': 0, 'amount': 0.0}),
-      'day_of_week': List.generate(7, (d) => {'weekday': d + 1, 'sales_count': 0, 'amount': 0.0}),
+      'peak_hours': List.generate(
+        24,
+        (h) => {'hour': h, 'sales_count': 0, 'amount': 0.0},
+      ),
+      'day_of_week': List.generate(
+        7,
+        (d) => {'weekday': d + 1, 'sales_count': 0, 'amount': 0.0},
+      ),
     };
 
     test('parses summary correctly', () {
@@ -81,8 +108,9 @@ void main() {
     });
 
     test('missing total_tax_collected defaults to 0', () {
-      final report = SalesReportDto.fromJson({'summary': <String, dynamic>{}})
-          .toDomain();
+      final report = SalesReportDto.fromJson({
+        'summary': <String, dynamic>{},
+      }).toDomain();
       expect(report.summary.totalTaxCollected, 0.0);
     });
 

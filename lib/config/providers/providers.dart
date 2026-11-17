@@ -5,6 +5,7 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:amana_pos/common/theme_bloc/theme_bloc.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
+import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/features/business/domain/usecases/business_usecase.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart';
 import 'package:amana_pos/features/category/domain/usecases/category_usecase.dart';
@@ -12,10 +13,10 @@ import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summa
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/devices/domain/usecases/printer_usecase.dart';
 import 'package:amana_pos/features/devices/presentation/bloc/printer_bloc.dart';
-import 'package:amana_pos/features/inventory/domain/usecases/inventory_usecase.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
 import 'package:amana_pos/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:amana_pos/features/pos/domain/sale_service.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
 import 'package:amana_pos/features/products/domain/usecases/product_usecase.dart';
@@ -28,9 +29,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<BlocProvider> getAppProviders(BuildContext context) {
   return [
-    BlocProvider<AuthBloc>(
-      create: (_) => getIt<AuthBloc>(),
-    ),
+    BlocProvider<AuthBloc>(create: (_) => getIt<AuthBloc>()),
 
     BlocProvider<ThemeBloc>(
       create: (_) => ThemeBloc(
@@ -40,19 +39,13 @@ List<BlocProvider> getAppProviders(BuildContext context) {
     ),
 
     BlocProvider<LocaleBloc>(
-      create: (_) => LocaleBloc(
-        cacheStorage: getIt<CacheStorage>(),
-      ),
+      create: (_) => LocaleBloc(cacheStorage: getIt<CacheStorage>()),
     ),
 
-    BlocProvider<OfflineStatusBloc>(
-      create: (_) => getIt<OfflineStatusBloc>(),
-    ),
+    BlocProvider<OfflineStatusBloc>(create: (_) => getIt<OfflineStatusBloc>()),
 
     BlocProvider<NavigationBloc>(
-      create: (_) => NavigationBloc(
-        authBloc: getIt<AuthBloc>(),
-      ),
+      create: (_) => NavigationBloc(authBloc: getIt<AuthBloc>()),
     ),
 
     BlocProvider<BusinessBloc>(
@@ -65,15 +58,20 @@ List<BlocProvider> getAppProviders(BuildContext context) {
     BlocProvider<PosBloc>(
       create: (_) => PosBloc(
         useCase: getIt<PosUseCase>(),
+        // Fix-wave I2: drop cart lines whose product was merged away,
+        // discarded or deleted (at checkout and on every products change).
+        unavailableProducts: (ids) =>
+            getIt<SaleService>().unavailableProductIds(ids),
+        changes: getIt<DbChangeNotifier>().changes,
       ),
     ),
 
     // Global so the POS receipt sheet and Devices settings share one
     // connection to the saved Bluetooth receipt printer.
     BlocProvider<PrinterBloc>(
-      create: (_) => PrinterBloc(
-        useCase: getIt<PrinterUseCase>(),
-      )..add(const PrinterInitialized()),
+      create: (_) =>
+          PrinterBloc(useCase: getIt<PrinterUseCase>())
+            ..add(const PrinterInitialized()),
     ),
 
     BlocProvider<ProductBloc>(
@@ -81,7 +79,8 @@ List<BlocProvider> getAppProviders(BuildContext context) {
         useCase: getIt<ProductUseCase>(),
         offlineLocalCache: getIt<OfflineLocalCache>(),
         categoryUseCase: getIt<CategoryUseCase>(),
-        inventoryUseCase: getIt<InventoryUseCase>(),
+        changes: getIt<DbChangeNotifier>().changes,
+        syncNow: appSyncNow(),
       ),
     ),
 
@@ -101,9 +100,7 @@ List<BlocProvider> getAppProviders(BuildContext context) {
 
     // Keep global because Business workspace reads it directly.
     BlocProvider<UserBloc>(
-      create: (_) => UserBloc(
-        useCase: getIt<UsersUseCase>(),
-      ),
+      create: (_) => UserBloc(useCase: getIt<UsersUseCase>()),
     ),
   ];
 }

@@ -7,8 +7,25 @@
 //    List<String>), `payload['product_id']`, `payload['category_id']`,
 //    `payload['sale_id']`, `payload['items'][i]['product_id']`, or the
 //    mutation's own `entity_id` on a non-create op.
-//  * catalog entities (category/product/customer/vendor/shop): create/update
-//    payload fields are merged into the row; product `barcode` is unique.
+//  * dependency_failed mirrors BE services._apply_one: within ONE push, any
+//    rejected mutation's entity_id is "failed"; a later mutation (seq order)
+//    whose BE `dependencies()` name a failed id is rejected
+//    `dependency_failed` with `depends_on`. Nothing carries over between
+//    pushes (the BE has no cross-batch memory either).
+//  * catalog (category/product/vendor, BE handlers.catalog_*): create keeps
+//    the client id (an existing id -> `conflict_unique` naming itself);
+//    tenant uniqueness (product sku/barcode incl. inactive rows, category
+//    name per parent, vendor name case-insensitive) -> `conflict_unique` +
+//    `conflict_entity_id` + `errors`; update with a stale base_version is
+//    applied and answers `merged` + `server_state`; delete = is_active false
+//    + a `delete` change row (tombstone; the row stays, bootstrap serves it
+//    inactive); update of a tombstoned row -> `entity_deleted`; a second
+//    delete is `applied` (idempotent). Knobs: [productLimit]
+//    (`limit_exceeded`), per-view [role] `cashier` (`forbidden` outside the
+//    BE CASHIER_ALLOWED set). Payloads are not validated (legacy tests send
+//    partial rows). Customer/shop/others stay generic upserts.
+//  * `putImage` (ImageUploadTransport): BE image PUT, idempotent by sha256;
+//    sets `image_hash` = sha256 of the uploaded bytes.
 //  * stock ops (`stock` entity, BE `stock_op`): `product_id`, `shop_id`,
 //    `delta` (decimal string); add needs delta > 0, remove applies
 //    -|delta|, adjust is signed; `count` uses `counted_quantity`;
@@ -46,7 +63,8 @@
 //  * push `next_cursor` is the server head. Engines must NOT adopt it as the
 //    pull cursor: it can skip other devices' changes made before it.
 //  * replaying a mutation_id: previously applied -> `duplicate`; previously
-//    rejected -> the same rejected result (status/code/message unchanged).
+//    rejected -> re-evaluated (BE deviation 6; deterministic, so usually the
+//    same rejection). [applied] keeps the LAST result of every mutation.
 //  * fault knobs (down, failNextWith, latency, flakyRate, lostResponseRate,
 //    dropResponseAfterApply, clockSkew) are PER VIEW; minAppVersion,
 //    fullResyncRequired and capabilities are shared server state.
@@ -57,7 +75,9 @@ import 'dart:math';
 
 import 'package:amana_pos/core/sync/contract/sync_contract.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_entry.dart';
+import 'package:amana_pos/core/sync/transport/image_upload_transport.dart';
 import 'package:amana_pos/core/sync/transport/sync_transport.dart';
+import 'package:crypto/crypto.dart' as crypto;
 
 const _scale = 6;
 final BigInt _one = BigInt.from(10).pow(_scale);
@@ -95,11 +115,12 @@ class _Core {
   final stockIds = <String, String>{};
   final saleItemIds = <String>{};
   final tombstones = <String, int>{};
-  final rejectedCreates = <String>{};
   final refunded = <String, BigInt>{}; // sale|product -> refunded qty
   int seq = 0;
   int receiptCounter = 0;
   bool strictCatalog = false;
+  int? productLimit;
+  int imageStores = 0;
 
   String? minAppVersion;
   bool fullResyncRequired = false;
@@ -128,7 +149,7 @@ class _Core {
   ];
 }
 
-class FakeSyncServer implements SyncTransport {
+class FakeSyncServer implements SyncTransport, ImageUploadTransport {
   FakeSyncServer({
     String deviceId = 'device-1',
     int seed = 42,
@@ -156,6 +177,14 @@ class FakeSyncServer implements SyncTransport {
   String? failNextWith;
   Duration clockSkew = Duration.zero;
 
+  /// Role of the user this view pushes as: `cashier` gets `forbidden` for
+  /// every mutation outside the BE CASHIER_ALLOWED set and for image PUTs.
+  String role = 'owner';
+
+  /// The next N image PUTs store the image, then lose the response.
+  int dropImageResponseAfterApply = 0;
+  int imagePutCalls = 0;
+
   /// The next pull that reaches this view answers `full_resync_required`
   /// (once; the flag clears itself), like a cursor older than the BE's
   /// `pruned_through`.
@@ -167,7 +196,19 @@ class FakeSyncServer implements SyncTransport {
   Map<String, Map<String, Map<String, dynamic>>> get tables => _c.tables;
   List<PullChange> get feed => _c.feed;
   Map<String, PushResult> get applied => _c.applied;
+
+  /// Images actually stored by [putImage] (an idempotent replay is not).
+  int get imageStores => _c.imageStores;
+
+  /// Plan limit on active products (`limit_exceeded`); null = unlimited.
+  int? get productLimit => _c.productLimit;
+  set productLimit(int? v) => _c.productLimit = v;
   int get headSeq => _c.seq;
+
+  /// Every StockLevel: `product|shop` -> quantity.
+  Map<String, String> get stockLevels => {
+    for (final e in _c.stock.entries) e.key: _fmtDec(e.value),
+  };
   String stockQuantity(String productId, String shopId) =>
       _fmtDec(_c.stock['$productId|$shopId'] ?? BigInt.zero);
 
@@ -386,8 +427,9 @@ class FakeSyncServer implements SyncTransport {
         return c != 0 ? c : a.compareTo(b);
       });
     final results = <PushResult>[];
+    final failed = <String>{}; // BE failed_ids: this push only
     for (final i in order) {
-      results.add(_applyOne(mutations[i], deviceId));
+      results.add(_applyOne(mutations[i], deviceId, failed));
     }
     if (dropResponseAfterApply > 0) {
       dropResponseAfterApply--;
@@ -405,10 +447,9 @@ class FakeSyncServer implements SyncTransport {
 
   // ---------------------------------------------------------------- apply
 
-  PushResult _applyOne(OutboxEntry e, String device) {
+  PushResult _applyOne(OutboxEntry e, String device, Set<String> failed) {
     final stored = _c.applied[e.mutationId];
-    if (stored != null) {
-      if (stored.status != PushStatus.applied) return stored;
+    if (stored != null && stored.status == PushStatus.applied) {
       return PushResult(
         mutationId: stored.mutationId,
         status: PushStatus.duplicate,
@@ -432,15 +473,14 @@ class FakeSyncServer implements SyncTransport {
         extra: stored.extra,
       );
     }
+    // Never applied (or rejected before: re-evaluated, BE deviation 6).
     PushResult result;
     try {
-      result = _dispatch(e, device);
+      result = _dispatch(e, device, failed);
     } catch (err) {
       result = _reject(e, 'validation_error', 'Malformed payload: $err');
     }
-    if (result.status == PushStatus.rejected && e.op == 'create') {
-      _c.rejectedCreates.add(e.entityId);
-    }
+    if (result.status == PushStatus.rejected) failed.add(e.entityId);
     if (result.status != PushStatus.retry) {
       _c.applied[e.mutationId] = result;
     }
@@ -455,6 +495,7 @@ class FakeSyncServer implements SyncTransport {
     PushStatus status = PushStatus.rejected,
     String? conflictEntityId,
     List<String> dependsOn = const [],
+    Map<String, dynamic>? errors,
   }) => PushResult(
     mutationId: e.mutationId,
     status: status,
@@ -464,43 +505,70 @@ class FakeSyncServer implements SyncTransport {
     serverState: state,
     conflictEntityId: conflictEntityId,
     dependsOn: dependsOn,
+    errors: errors,
   );
 
-  Iterable<String> _deps(OutboxEntry e) sync* {
+  /// BE `handlers.dependencies(m)`: entity ids this mutation needs.
+  static List<String> _deps(OutboxEntry e) {
     final p = e.payload;
-    final d = p['depends_on'];
-    if (d is String) yield d;
-    if (d is List) yield* d.whereType<String>();
-    for (final k in [
-      'product_id',
-      'category_id',
-      'sale_id',
-      'customer',
-      'customer_id',
-      'shop',
-      'vendor_id',
-    ]) {
-      final v = p[k];
-      if (v is String) yield v;
-    }
-    final items = p['items'];
-    if (items is List) {
-      for (final it in items) {
-        if (it is Map && it['product_id'] is String) {
-          yield it['product_id'] as String;
-        }
+    String? s(Object? v) => v is String && v.isNotEmpty ? v : null;
+    final deps = <String?>[];
+    if (e.op == 'update' || e.op == 'delete') deps.add(e.entityId);
+    final items = p['items'] is List ? p['items'] as List : const [];
+    Iterable<String?> itemProducts() =>
+        items.map((it) => it is Map ? s(it['product_id']) : null);
+    if (e.entity == 'sale' && e.op == 'create') {
+      deps
+        ..addAll(itemProducts())
+        ..add(s(p['customer']))
+        ..add(s(p['shop']));
+    } else if (e.entity == 'sale') {
+      deps.add(s(p['sale_id']) ?? e.entityId);
+    } else if (e.entity == 'stock') {
+      for (final k in const ['product_id', 'shop_id', 'from_shop', 'to_shop']) {
+        deps.add(s(p[k]));
       }
+    } else if (e.entity == 'inbound') {
+      deps
+        ..addAll(itemProducts())
+        ..add(s(p['vendor_id']))
+        ..add(s(p['shop_id']));
+    } else if (e.entity == 'user' && e.op == 'create') {
+      deps.add(s(p['default_shop_id']));
+    } else if (e.entity == 'product') {
+      deps.add(s(p['category']));
     }
-    if (e.op != 'create') yield e.entityId;
+    return deps.whereType<String>().toList();
   }
 
-  PushResult _dispatch(OutboxEntry e, String device) {
+  /// BE handlers.CASHIER_ALLOWED.
+  static const _cashierAllowed = {
+    'sale.create',
+    'sale.refund',
+    'sale.cancel',
+    'customer.create',
+    'customer.update',
+    'stock.add',
+    'stock.remove',
+    'stock.adjust',
+    'notification.mark_read',
+    'notification.mark_all_read',
+  };
+
+  PushResult _dispatch(OutboxEntry e, String device, Set<String> failed) {
+    if (role == 'cashier' && !_cashierAllowed.contains('${e.entity}.${e.op}')) {
+      return _reject(
+        e,
+        'forbidden',
+        'You do not have permission for this action.',
+      );
+    }
     for (final d in _deps(e)) {
-      if (_c.rejectedCreates.contains(d)) {
+      if (failed.contains(d)) {
         return _reject(
           e,
           'dependency_failed',
-          'Depends on rejected $d',
+          'A mutation this one depends on was rejected.',
           dependsOn: [d],
         );
       }
@@ -512,6 +580,8 @@ class FakeSyncServer implements SyncTransport {
         return _saleOp(e, device);
       case 'inbound' when e.op == 'create':
         return _inboundCreate(e, device);
+      case 'category' || 'product' || 'vendor':
+        return _catalogOp(e, device);
       default:
         return _rowOp(e, device);
     }
@@ -538,18 +608,6 @@ class FakeSyncServer implements SyncTransport {
       ),
     );
     return seq;
-  }
-
-  Map<String, dynamic>? _barcodeClash(OutboxEntry e) {
-    if (e.entity != 'product') return null;
-    final bc = e.payload['barcode'];
-    if (bc is! String || bc.isEmpty) return null;
-    for (final r in (_c.tables['product'] ?? {}).values) {
-      if (r['id'] != e.entityId && r['barcode'] == bc) {
-        return Map<String, dynamic>.from(r);
-      }
-    }
-    return null;
   }
 
   PushResult _rowOp(OutboxEntry e, String device) {
@@ -579,16 +637,6 @@ class FakeSyncServer implements SyncTransport {
           ? _reject(e, 'entity_deleted', 'Row was deleted')
           : _reject(e, 'not_found', 'Unknown ${e.entity}');
     }
-    final clash = _barcodeClash(e);
-    if (clash != null) {
-      return _reject(
-        e,
-        'conflict_unique',
-        'Duplicate barcode',
-        state: clash,
-        conflictEntityId: clash['id'] as String?,
-      );
-    }
     final stale =
         e.op == 'update' &&
         e.baseVersion != null &&
@@ -615,6 +663,249 @@ class FakeSyncServer implements SyncTransport {
       serverSeq: s,
       serverState: stale ? Map<String, dynamic>.from(row) : null,
       merged: stale,
+    );
+  }
+
+  // ------------------------------------------------------------ catalog ops
+
+  /// BE `STRIP`: payload keys a sync mutation can never set.
+  static const _strip = {
+    'id',
+    'version',
+    'loyalty_points',
+    'image_pending',
+    'image_upload',
+    'thumbnail',
+    'image',
+    'tenant',
+  };
+
+  /// BE `_unique_conflict`: (field, conflicting row) or null. Every row of
+  /// the tenant counts, inactive and tombstoned ones too. A category's
+  /// parent is the payload's, else (update) the row's own (the BE reads only
+  /// the payload, see the Task 5 report).
+  (String, Map<String, dynamic>)? _uniqueClash(
+    String entity,
+    Map<String, dynamic> p, {
+    String? exclude,
+    Map<String, dynamic>? existing,
+  }) {
+    final rows = (_c.tables[entity] ?? const {}).values;
+    Map<String, dynamic>? first(bool Function(Map<String, dynamic> r) f) {
+      for (final r in rows) {
+        if (r['id'] != exclude && f(r)) return r;
+      }
+      return null;
+    }
+
+    String t(Object? v) => v is String ? v.trim() : '';
+    switch (entity) {
+      case 'product':
+        for (final f in const ['sku', 'barcode']) {
+          final v = t(p[f]);
+          if (v.isEmpty) continue;
+          final r = first((r) => t(r[f]) == v);
+          if (r != null) return (f, r);
+        }
+      case 'vendor':
+        final v = t(p['name']).toLowerCase();
+        if (v.isEmpty) return null;
+        final r = first((r) => t(r['name']).toLowerCase() == v);
+        if (r != null) return ('name', r);
+      case 'category':
+        final name = p['name'];
+        if (name is! String || name.isEmpty) return null;
+        final parent = p.containsKey('parent')
+            ? p['parent']
+            : existing?['parent'];
+        final r = first((r) => r['name'] == name && r['parent'] == parent);
+        if (r != null) return ('name', r);
+    }
+    return null;
+  }
+
+  PushResult _conflictUnique(
+    OutboxEntry e,
+    String field,
+    Map<String, dynamic> row,
+  ) => _reject(
+    e,
+    'conflict_unique',
+    'Another ${e.entity} already uses this $field.',
+    state: Map<String, dynamic>.from(row),
+    conflictEntityId: row['id'] as String?,
+    errors: {
+      field: ['Already exists.'],
+    },
+  );
+
+  /// BE `catalog_create` / `catalog_update` / `catalog_delete`.
+  PushResult _catalogOp(OutboxEntry e, String device) {
+    final table = _c.tables.putIfAbsent(e.entity, () => {});
+    final key = '${e.entity}/${e.entityId}';
+    final existing = table[e.entityId];
+    final tombstoned = _c.tombstones.containsKey(key);
+    final payload = <String, dynamic>{
+      for (final en in e.payload.entries)
+        if (!_strip.contains(en.key)) en.key: en.value,
+    };
+    PushResult applied(int version, int? seq, {Map<String, dynamic>? state}) =>
+        PushResult(
+          mutationId: e.mutationId,
+          status: PushStatus.applied,
+          entityId: e.entityId,
+          version: version,
+          serverSeq: seq,
+          serverState: state,
+          merged: state != null,
+        );
+    switch (e.op) {
+      case 'create':
+        if (existing != null) {
+          return _reject(
+            e,
+            'conflict_unique',
+            'Entity already exists.',
+            state: Map<String, dynamic>.from(existing),
+            conflictEntityId: e.entityId,
+          );
+        }
+        final clash = _uniqueClash(e.entity, payload);
+        if (clash != null) return _conflictUnique(e, clash.$1, clash.$2);
+        final limit = _c.productLimit;
+        if (e.entity == 'product' && limit != null) {
+          final active = table.values.where((r) => r['is_active'] != false);
+          if (active.length >= limit) {
+            return _reject(e, 'limit_exceeded', 'Plan allows $limit products.');
+          }
+        }
+        final row = <String, dynamic>{
+          'id': e.entityId,
+          'is_active': true,
+          ...payload,
+          'version': 1,
+        };
+        table[e.entityId] = row;
+        final s = _emit(e.entity, 'upsert', e.entityId, 1, row, device);
+        return applied(1, s);
+      case 'update':
+        if (existing == null) {
+          return tombstoned
+              ? _reject(e, 'entity_deleted', 'The record was deleted.')
+              : _reject(e, 'not_found', 'Record not found.');
+        }
+        if (tombstoned) {
+          return _reject(
+            e,
+            'entity_deleted',
+            'The record was deleted.',
+            state: Map<String, dynamic>.from(existing),
+          );
+        }
+        final clash = _uniqueClash(
+          e.entity,
+          payload,
+          exclude: e.entityId,
+          existing: existing,
+        );
+        if (clash != null) return _conflictUnique(e, clash.$1, clash.$2);
+        final stale =
+            e.baseVersion != null && e.baseVersion != existing['version'];
+        existing.addAll(payload);
+        final v = (existing['version'] as int) + 1;
+        existing['version'] = v;
+        final s = _emit(e.entity, 'upsert', e.entityId, v, existing, device);
+        return applied(
+          v,
+          s,
+          state: stale ? Map<String, dynamic>.from(existing) : null,
+        );
+      case 'delete':
+        if (existing == null) {
+          return _reject(e, 'not_found', 'Record not found.');
+        }
+        if (tombstoned) {
+          // Already deleted: idempotent, no new change row.
+          return applied(existing['version'] as int, null);
+        }
+        if (existing['is_active'] != false) {
+          existing['is_active'] = false;
+          existing['version'] = (existing['version'] as int) + 1;
+        }
+        final v = existing['version'] as int;
+        _c.tombstones[key] = v;
+        final s = _emit(e.entity, 'delete', e.entityId, v, null, device);
+        return applied(v, s);
+      default:
+        return _reject(
+          e,
+          'validation_error',
+          'Unsupported mutation ${e.entity}.${e.op}.',
+        );
+    }
+  }
+
+  // ------------------------------------------------------------ images
+
+  /// BE `_ImagePutView.put` + `set_entity_image`: same bytes -> no-op
+  /// (`unchanged`), else store, bump `version` and emit a feed row whose
+  /// `image_hash` is the sha256 of the uploaded bytes.
+  @override
+  Future<ImageUploadResult> putImage({
+    required String entity,
+    required String entityId,
+    required List<int> bytes,
+    required String sha256,
+    required String scope,
+  }) async {
+    await _gate();
+    imagePutCalls++;
+    if (entity != 'product' && entity != 'category') {
+      throw ArgumentError.value(entity, 'entity', 'product or category');
+    }
+    SyncTransportException fail(int status, String code, String msg) =>
+        SyncTransportException(
+          kind: SyncTransportKind.server,
+          httpStatus: status,
+          code: code,
+          message: msg,
+        );
+    if (role == 'cashier') {
+      throw fail(403, 'forbidden', 'You do not have permission.');
+    }
+    final row = _c.tables[entity]?[entityId];
+    if (row == null) throw fail(404, 'not_found', 'Not found.');
+    final digest = crypto.sha256.convert(bytes).toString();
+    if (sha256.toLowerCase() != digest) {
+      throw fail(400, 'hash_mismatch', 'Uploaded bytes do not match.');
+    }
+    final unchanged = row['image_hash'] == digest && row['image'] != null;
+    if (!unchanged) {
+      final tag = digest.substring(0, 12);
+      final base = 'https://fake.local/media/$entity/$entityId';
+      row['image'] = '$base/full.webp?v=$tag';
+      row['thumbnail_url'] = '$base/thumb.webp?v=$tag';
+      row['image_hash'] = digest;
+      row['image_bytes'] = bytes.length;
+      row['thumbnail_bytes'] = (bytes.length ~/ 4) + 1;
+      final v = ((row['version'] as int?) ?? 0) + 1;
+      row['version'] = v;
+      _emit(entity, 'upsert', entityId, v, row, 'image');
+      _c.imageStores++;
+    }
+    if (dropImageResponseAfterApply > 0) {
+      dropImageResponseAfterApply--;
+      throw SyncTransportException(kind: SyncTransportKind.timeout);
+    }
+    return ImageUploadResult(
+      entityId: entityId,
+      imageHash: digest,
+      image: row['image'] as String?,
+      thumbnailUrl: row['thumbnail_url'] as String?,
+      version: row['version'] as int?,
+      imageBytes: row['image_bytes'] as int?,
+      thumbnailBytes: row['thumbnail_bytes'] as int?,
+      unchanged: unchanged,
     );
   }
 
@@ -944,7 +1235,6 @@ class FakeSyncServer implements SyncTransport {
     var customer = cust is String ? cust : null;
     if (customer != null &&
         (_c.tombstones.containsKey('customer/$customer') ||
-            _c.rejectedCreates.contains(customer) ||
             (_c.strictCatalog &&
                 !(_c.tables['customer'] ?? const {}).containsKey(customer)))) {
       warnings.add('customer_missing');

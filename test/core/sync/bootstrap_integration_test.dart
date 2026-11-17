@@ -266,6 +266,88 @@ void main() {
     });
   }
 
+  test('M1: logout keeps a local-only (rejected) product and its stock; '
+      'the same account gets it back after its bootstrap, another account '
+      'never sees it', () async {
+    expect(await firstSetup(), SyncOutcome.completed);
+    const local = 'local-1';
+    await h.db.insert('products', {
+      'id': local,
+      'name': 'Juice',
+      'price': '3.00',
+      'stock_level': 4.0,
+      'json': '{"id":"$local","name":"Juice","is_active":true}',
+    });
+    await h.db.insert('stock', {
+      'id': '$local-s1',
+      'product_id': local,
+      'shop_id': 's1',
+      'quantity': 4.0,
+      'base_quantity': '0',
+      'json': '{}',
+    });
+    await h.db.insert('outbox', {
+      'mutation_id': 'm-local',
+      'entity': 'product',
+      'op': 'create',
+      'entity_id': local,
+      'occurred_at': h.clock.toIso8601String(),
+      'payload_json': '{"name":"Juice"}',
+      'status': 'rejected',
+      'error_code': 'conflict_unique',
+      'created_at': h.clock.toIso8601String(),
+      'scope': BootHarness.scope,
+    });
+    await h.db.insert('outbox', {
+      'mutation_id': 'm-local-stock',
+      'entity': 'stock',
+      'op': 'add',
+      'entity_id': 'st-1',
+      'occurred_at': h.clock.toIso8601String(),
+      'payload_json':
+          '{"product_id":"$local","shop_id":"s1","delta":"4","reason":""}',
+      'status': 'rejected',
+      'error_code': 'dependency_failed',
+      'created_at': h.clock.toIso8601String(),
+      'scope': BootHarness.scope,
+    });
+
+    await triggers.stop();
+    await OfflineLocalCache(h.odb).clearAllOnLogout();
+    expect(await h.ids('products'), isEmpty);
+
+    gateOpen = false;
+    await startQuiet();
+    expect(await triggers.syncNow(), SyncOutcome.completed);
+    expect(await h.ids('products'), contains(local));
+    expect(await h.ids('products'), hasLength(6));
+    final stock = (await h.db.query(
+      'stock',
+      where: 'product_id = ?',
+      whereArgs: [local],
+    )).single;
+    expect(stock['shop_id'], 's1');
+    expect(
+      await h.db.query(
+        'sync_state',
+        where: 'key LIKE ?',
+        whereArgs: ['catalog_stash|%'],
+      ),
+      isEmpty,
+      reason: 'stash cleared once restored',
+    );
+  });
+
+  test('M1: a stash is restored only into its own scope', () async {
+    await h.db.insert('sync_state', {
+      'key': 'catalog_stash|u9|t9',
+      'value': '[{"t":"products","r":{"id":"x","name":"X","json":"{}"}}]',
+      'updated_at': '2026-01-01T00:00:00Z',
+    });
+    expect(await firstSetup(), SyncOutcome.completed);
+    expect(await h.ids('products'), isNot(contains('x')));
+  });
+
   test('the background worker never bootstraps: it reports success on '
       'needsBootstrap and leaves first setup to the app', () async {
     h.seedStandard();

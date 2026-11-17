@@ -16,7 +16,12 @@ void main() {
 
   testWidgets('renders category names and title', (tester) async {
     final cats = [
-      const SalesTopCategory(categoryId: 'c1', name: 'مشروبات', quantitySold: 200, grossAmount: 750),
+      const SalesTopCategory(
+        categoryId: 'c1',
+        name: 'مشروبات',
+        quantitySold: 200,
+        grossAmount: 750,
+      ),
     ];
     await tester.pumpWidget(wrap(TopCategoriesCard(categories: cats)));
     await tester.pumpAndSettle();

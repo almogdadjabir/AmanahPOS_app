@@ -169,28 +169,60 @@ class StockService {
             throw const StockValidationException('Quantity is unchanged');
           }
         }
-        // entity_id: a fresh UUID per mutation (BE requires a UUID and only
-        // uses it for the applied-mutation ledger; using the product id would
-        // serialise every stock edit of a product behind a rejected one and
-        // make the BE fail later same-batch mutations of that product with
-        // dependency_failed).
-        await scope.enqueue(
-          entity: 'stock',
+        return enqueueOpIn(
+          scope,
           op: op,
-          entityId: entityId,
+          productId: p,
+          shopId: s,
+          delta: d!,
+          reason: why,
           occurredAt: occurredAt,
-          payload: {
-            'product_id': p,
-            'shop_id': s,
-            'delta': Decimal3.format(d!),
-            'reason': why,
-            'occurred_at': occurredAt.toIso8601String(),
-          },
+          entityId: entityId,
+          stock: _stock,
         );
-        await _stock.recompute(txn, p, s, createIfMissing: true);
-        return Decimal3.format(await _stock.currentUnits(txn, p, s));
       },
     );
+  }
+
+  /// The body of every `stock.*` op, for callers that already hold a
+  /// [WriteScope] (`LocalWriter.write` cannot nest; e.g. `ProductService`
+  /// recording an opening quantity in the product's own write). Enqueues
+  /// the op (depending on [productId], so it waits for an open product
+  /// create), re-derives local stock and returns the new displayed
+  /// quantity. No validation: callers validate first.
+  static Future<String> enqueueOpIn(
+    WriteScope scope, {
+    required String op,
+    required String productId,
+    required String shopId,
+    required BigInt delta,
+    required String reason,
+    required DateTime occurredAt,
+    required String entityId,
+    StockLocalStore stock = const StockLocalStore(),
+  }) async {
+    final txn = scope.txn;
+    // entity_id: a fresh UUID per mutation (BE requires a UUID and only
+    // uses it for the applied-mutation ledger; using the product id would
+    // serialise every stock edit of a product behind a rejected one and
+    // make the BE fail later same-batch mutations of that product with
+    // dependency_failed).
+    await scope.enqueue(
+      entity: 'stock',
+      op: op,
+      entityId: entityId,
+      occurredAt: occurredAt,
+      dependsOn: [productId],
+      payload: {
+        'product_id': productId,
+        'shop_id': shopId,
+        'delta': Decimal3.format(delta),
+        'reason': reason,
+        'occurred_at': occurredAt.toIso8601String(),
+      },
+    );
+    await stock.recompute(txn, productId, shopId, createIfMissing: true);
+    return Decimal3.format(await stock.currentUnits(txn, productId, shopId));
   }
 
   /// After a successful REST add (used only for dated adds, which
@@ -330,6 +362,11 @@ class StockService {
           op: 'create',
           entityId: id,
           occurredAt: occurredAt,
+          // Waits for the create of the vendor and of every product.
+          dependsOn: [
+            dto.vendorId,
+            ...{for (final it in items) it.productId},
+          ],
           payload: {...dto.toJson(), 'client_inbound_id': id},
         );
         for (final productId in {for (final it in items) it.productId}) {
@@ -400,7 +437,10 @@ class StockService {
   }
 
   /// Exact quantity in units of 0.001; more than 3 significant decimals or
-  /// a non-number is refused (never rounded silently).
+  /// a non-number is refused with [StockValidationException] (never rounded
+  /// silently).
+  static BigInt parseQuantity(String raw) => _delta(raw);
+
   static BigInt _delta(String raw) {
     final s = raw.trim();
     final m = RegExp(r'^[+-]?\d*(?:\.(\d*))?$').firstMatch(s);

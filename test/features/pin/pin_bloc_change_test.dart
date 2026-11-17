@@ -8,7 +8,9 @@ import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/features/pin/presentation/bloc/pin_bloc.dart';
 
 class _MockVault extends Mock implements PinVaultService {}
+
 class _MockCache extends Mock implements CacheStorage {}
+
 class _MockAuthBloc extends Mock implements AuthBloc {}
 
 void main() {
@@ -17,11 +19,20 @@ void main() {
   late _MockAuthBloc authBloc;
 
   PinUserRecord rec() => const PinUserRecord(
-        userId: 'u1', businessId: 'b1', tenantId: 't1', fullName: 'U',
-        role: 'cashier', phone: '+1', pinSalt: 's', pinHash: 'h',
-        accessToken: 'acc', refreshToken: 'ref',
-        profileJson: {'id': 'u1'}, enrolledAt: 'n', lastUnlockAt: 'n',
-      );
+    userId: 'u1',
+    businessId: 'b1',
+    tenantId: 't1',
+    fullName: 'U',
+    role: 'cashier',
+    phone: '+1',
+    pinSalt: 's',
+    pinHash: 'h',
+    accessToken: 'acc',
+    refreshToken: 'ref',
+    profileJson: {'id': 'u1'},
+    enrolledAt: 'n',
+    lastUnlockAt: 'n',
+  );
 
   setUp(() {
     vault = _MockVault();
@@ -40,11 +51,15 @@ void main() {
     'verify current -> new -> confirm calls changePin and reaches success',
     build: () {
       when(() => vault.findUserByPin('1111')).thenAnswer((_) async => rec());
-      when(() => vault.changePin('u1', '2222'))
-          .thenAnswer((_) async => ChangePinResult.success);
+      when(
+        () => vault.changePin('u1', '2222'),
+      ).thenAnswer((_) async => ChangePinResult.success);
       return PinBloc(
-        vault: vault, cache: cache, authBloc: authBloc,
-        mode: PinMode.change, changeUserId: 'u1',
+        vault: vault,
+        cache: cache,
+        authBloc: authBloc,
+        mode: PinMode.change,
+        changeUserId: 'u1',
       );
     },
     act: (b) async {
@@ -63,8 +78,11 @@ void main() {
     build: () {
       when(() => vault.findUserByPin('0000')).thenAnswer((_) async => null);
       return PinBloc(
-        vault: vault, cache: cache, authBloc: authBloc,
-        mode: PinMode.change, changeUserId: 'u1',
+        vault: vault,
+        cache: cache,
+        authBloc: authBloc,
+        mode: PinMode.change,
+        changeUserId: 'u1',
       );
     },
     act: (b) => typed(b, '0000'),

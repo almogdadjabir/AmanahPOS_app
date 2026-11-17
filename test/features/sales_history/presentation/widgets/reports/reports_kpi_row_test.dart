@@ -5,15 +5,16 @@ import 'package:amana_pos/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-SalesReportSummary _makeSummary({double totalTaxCollected = 0}) => SalesReportSummary(
-  grossSalesAmount: 16140.0,
-  netSalesAmount: 16140.0,
-  salesCount: 5,
-  averageSaleAmount: 3228.0,
-  refundAmount: 210.0,
-  refundCount: 1,
-  totalTaxCollected: totalTaxCollected,
-);
+SalesReportSummary _makeSummary({double totalTaxCollected = 0}) =>
+    SalesReportSummary(
+      grossSalesAmount: 16140.0,
+      netSalesAmount: 16140.0,
+      salesCount: 5,
+      averageSaleAmount: 3228.0,
+      refundAmount: 210.0,
+      refundCount: 1,
+      totalTaxCollected: totalTaxCollected,
+    );
 
 void main() {
   Widget wrap(Widget w) => MaterialApp(
@@ -24,7 +25,9 @@ void main() {
     home: Scaffold(body: w),
   );
 
-  testWidgets('renders KPI row without tax card when totalTaxCollected is 0', (tester) async {
+  testWidgets('renders KPI row without tax card when totalTaxCollected is 0', (
+    tester,
+  ) async {
     await tester.pumpWidget(wrap(ReportsKpiRow(summary: _makeSummary())));
     await tester.pumpAndSettle();
     // Revenue label — SaleStatCard uppercases labels in en locale
@@ -41,14 +44,19 @@ void main() {
     expect(find.text('5'), findsOneWidget);
   });
 
-  testWidgets('renders refund card with count and amount when refundCount > 0', (tester) async {
-    await tester.pumpWidget(wrap(ReportsKpiRow(summary: _makeSummary())));
-    await tester.pumpAndSettle();
-    // Should show "1 · 210 SDG"
-    expect(find.textContaining('1 ·'), findsOneWidget);
-  });
+  testWidgets(
+    'renders refund card with count and amount when refundCount > 0',
+    (tester) async {
+      await tester.pumpWidget(wrap(ReportsKpiRow(summary: _makeSummary())));
+      await tester.pumpAndSettle();
+      // Should show "1 · 210 SDG"
+      expect(find.textContaining('1 ·'), findsOneWidget);
+    },
+  );
 
-  testWidgets('renders refund card with just amount when refundCount == 0', (tester) async {
+  testWidgets('renders refund card with just amount when refundCount == 0', (
+    tester,
+  ) async {
     const noRefunds = SalesReportSummary(
       grossSalesAmount: 5000.0,
       netSalesAmount: 5000.0,
@@ -64,8 +72,12 @@ void main() {
     expect(find.textContaining('0 ·'), findsNothing);
   });
 
-  testWidgets('renders tax collected card when totalTaxCollected > 0', (tester) async {
-    await tester.pumpWidget(wrap(ReportsKpiRow(summary: _makeSummary(totalTaxCollected: 500))));
+  testWidgets('renders tax collected card when totalTaxCollected > 0', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(ReportsKpiRow(summary: _makeSummary(totalTaxCollected: 500))),
+    );
     await tester.pumpAndSettle();
     // Tax card should be rendered with uppercased label in en locale
     expect(find.text('TAX COLLECTED'), findsOneWidget);

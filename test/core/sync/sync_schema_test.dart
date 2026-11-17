@@ -12,12 +12,7 @@ void main() {
     )).map((r) => r['name']).toList();
     expect(
       cols,
-      containsAll([
-        'mutation_id',
-        'status',
-        'lease_until',
-        'depends_on_entity_id',
-      ]),
+      containsAll(['mutation_id', 'status', 'lease_until', 'depends_on_json']),
     );
     await db.close();
   });

@@ -258,7 +258,18 @@ class _Thumb extends StatelessWidget {
     final colors = context.appColors;
     final imageUrl = product.thumbnailUrl ?? product.image;
     final hasImage = imageUrl?.trim().isNotEmpty == true;
+    final id = product.id;
+    final hasId = id != null && id.isNotEmpty;
     final name = product.name?.trim() ?? '';
+    final letter = Center(
+      child: Text(
+        name.isEmpty ? '·' : name.characters.first,
+        style: Theme.of(context).textTheme.titleMedium!.copyWith(
+          color: colors.textHint,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -267,17 +278,16 @@ class _Thumb extends StatelessWidget {
         height: size,
         child: ColoredBox(
           color: colors.surfaceSoft,
-          child: hasImage
-              ? OfflineCachedImage(imageUrl: imageUrl, fit: BoxFit.cover)
-              : Center(
-                  child: Text(
-                    name.isEmpty ? '·' : name.characters.first,
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      color: colors.textHint,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+          // A staged (not yet uploaded) image shows first (Task 6).
+          child: hasImage || hasId
+              ? OfflineCachedImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  entityType: 'product',
+                  entityId: id,
+                  errorWidget: hasImage ? null : letter,
+                )
+              : letter,
         ),
       ),
     );

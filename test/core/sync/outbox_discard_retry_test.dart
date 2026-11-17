@@ -195,7 +195,7 @@ void main() {
         op: 'add',
         entityId: 'st-p1-s1',
         scope: scope,
-        dependsOnEntityId: 'p1',
+        dependsOn: const ['p1'],
         payload: {'product_id': 'p1', 'shop_id': 's1', 'delta': '4'},
       );
       expect(child.status, OutboxStatus.blocked);

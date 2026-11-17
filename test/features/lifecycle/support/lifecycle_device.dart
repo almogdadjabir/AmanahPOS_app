@@ -4,7 +4,10 @@ import 'dart:math';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/permissions/app_permissions.dart';
+import 'package:amana_pos/core/sync/catalog_support.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
+import 'package:amana_pos/core/sync/images/image_uploader.dart';
+import 'package:amana_pos/core/sync/images/pending_upload_store.dart';
 import 'package:amana_pos/core/sync/decimal3.dart';
 import 'package:amana_pos/core/sync/local_writer.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
@@ -13,11 +16,15 @@ import 'package:amana_pos/core/sync/sync_appliers.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/core/time/business_day.dart';
+import 'package:amana_pos/features/category/domain/category_service.dart';
 import 'package:amana_pos/features/dashboard/data/local/local_dashboard_queries.dart';
 import 'package:amana_pos/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:amana_pos/features/inventory/data/local/stock_local_store.dart';
 import 'package:amana_pos/features/inventory/domain/stock_service.dart';
+import 'package:amana_pos/features/inventory/domain/vendor_service.dart';
 import 'package:amana_pos/features/pos/domain/sale_service.dart';
+import 'package:amana_pos/features/products/domain/product_service.dart';
+import 'package:amana_pos/features/sync/domain/catalog_conflict_service.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -77,6 +84,15 @@ class LifecycleDevice {
   late SaleService sales;
   late StockService stock;
   late LocalDashboardQueries dashboard;
+
+  // Phase 3 catalog stack (owner): services, staged images, the
+  // foreground image uploader and the pending-sync conflict actions.
+  late PendingUploadStore uploads;
+  late CategoryService categories;
+  late ProductService products;
+  late VendorService vendors;
+  late ImageUploader uploader;
+  late CatalogConflictService conflicts;
   final _engines = <SyncEngine>[];
   int relaunches = 0;
 
@@ -164,7 +180,9 @@ class LifecycleDevice {
       scopeProvider: () => kScope,
       readSessionKey: () async => kScope,
       reachability: ServerReachability(view, now: clock.now),
-      appliers: buildSyncAppliers(),
+      // The signed-in scope, as in the app (CategoryApplier needs its
+      // tenant to write a pulled category).
+      appliers: buildSyncAppliers(scopeProvider: () => kScope),
       notifier: notifier,
       appVersion: '1.0.0',
       backoff: Backoff(random: Random(name.hashCode)),
@@ -176,6 +194,41 @@ class LifecycleDevice {
       ),
     );
     _engines.add(engine);
+    const owner = CatalogActor(
+      businessType: AppBusinessType.shop,
+      role: AppUserRole.owner,
+    );
+    uploads = PendingUploadStore(baseDir: () async => '$path.files');
+    categories = CategoryService(
+      writer: writer,
+      actor: () => owner,
+      uploads: uploads,
+      now: clock.now,
+    );
+    products = ProductService(
+      writer: writer,
+      actor: () => owner,
+      uploads: uploads,
+      categories: categories,
+      now: clock.now,
+    );
+    vendors = VendorService(writer: writer, actor: () => owner, now: clock.now);
+    uploader = ImageUploader(
+      db: odb,
+      store: uploads,
+      transport: view,
+      notifier: notifier,
+      scopeProvider: () => kScope,
+      authedFor: engine.authedFor,
+      now: clock.now,
+    );
+    conflicts = CatalogConflictService(
+      db: odb,
+      writer: writer,
+      outbox: outbox,
+      uploads: uploads,
+      scope: () => kScope,
+    );
   }
 
   void _maybeCrash(String where) {

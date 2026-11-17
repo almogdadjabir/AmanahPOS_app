@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../offline/offline_db.dart';
+import '../catalog_stash.dart';
 import '../change_applier.dart';
 import '../contract/sync_contract.dart';
 import '../db_change_notifier.dart';
@@ -538,6 +539,7 @@ class Bootstrapper {
   /// Pull cursor = snapshot, scope bootstrapped (+ completion time),
   /// progress removed: ONE transaction. Deferred pulled changes are kept for the next pull.
   Future<void> _finalCommit(BootstrapProgress expected) async {
+    var restored = const <String>{};
     await (await _db.database).transaction((txn) async {
       final stored = await _st.bootstrapProgress(txn);
       if (!_same(stored, expected) ||
@@ -549,7 +551,11 @@ class Bootstrapper {
       await _st.setBootstrapped(txn, true);
       await _st.setBootstrapCompletedAt(txn, _now());
       await _st.setBootstrapProgress(txn, null);
+      // M1: catalog rows with unsynced changes that the last logout wiped
+      // come back where the bootstrap wrote nothing.
+      restored = await CatalogStash.restore(txn, _scope);
     });
+    if (restored.isNotEmpty) _notifier.notify(restored);
   }
 
   static String? _idOf(Map<String, dynamic> item) {

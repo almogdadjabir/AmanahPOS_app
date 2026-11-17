@@ -10,18 +10,34 @@ class OnCategoryInitial extends CategoryEvent {
   @override List<Object?> get props => [];
 }
 
+/// A local write or a pull touched [CategoryBloc.watchedTables]: re-read.
+class OnCategoriesChanged extends CategoryEvent {
+  const OnCategoriesChanged();
+  @override List<Object?> get props => [];
+}
+
+/// Pull to refresh: ask the server for changes (see `requestCatalogSync`).
+class OnCategoriesSyncRequested extends CategoryEvent {
+  const OnCategoriesSyncRequested();
+  @override List<Object?> get props => [];
+}
+
 class OnAddCategory extends CategoryEvent {
   final String name;
   final String? description;
   final String? parentId;
 
+  /// Staged locally and uploaded in the background.
+  final PickedAppImage? image;
+
   const OnAddCategory({
     required this.name,
     this.description,
     this.parentId,
+    this.image,
   });
 
-  @override List<Object?> get props => [name, description, parentId];
+  @override List<Object?> get props => [name, description, parentId, image];
 }
 
 class OnEditCategory extends CategoryEvent {
@@ -29,13 +45,17 @@ class OnEditCategory extends CategoryEvent {
   final String name;
   final String? description;
 
+  /// A new image (null = unchanged), staged and uploaded in the background.
+  final PickedAppImage? image;
+
   const OnEditCategory({
     required this.categoryId,
     required this.name,
     this.description,
+    this.image,
   });
 
-  @override List<Object?> get props => [categoryId, name, description];
+  @override List<Object?> get props => [categoryId, name, description, image];
 }
 
 class OnToggleCategoryActive extends CategoryEvent {
@@ -54,10 +74,7 @@ class OnLoadCategoryProducts extends CategoryEvent {
   final String categoryId;
   final int page;
 
-  const OnLoadCategoryProducts({
-    required this.categoryId,
-    this.page = 1,
-  });
+  const OnLoadCategoryProducts({required this.categoryId, this.page = 1});
 
   @override List<Object?> get props => [categoryId, page];
 }
@@ -77,6 +94,5 @@ class OnDeleteCategory extends CategoryEvent {
 class OnCategoryReset extends CategoryEvent {
   const OnCategoryReset();
 
-  @override
-  List<Object?> get props => throw UnimplementedError();
+  @override List<Object?> get props => throw UnimplementedError();
 }

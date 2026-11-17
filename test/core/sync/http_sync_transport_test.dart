@@ -5,6 +5,8 @@ import 'dart:typed_data';
 
 import 'package:amana_pos/core/sync/outbox/outbox_entry.dart';
 import 'package:amana_pos/core/sync/transport/http_sync_transport.dart';
+import 'package:amana_pos/core/sync/transport/image_upload_transport.dart';
+import 'package:amana_pos/core/sync/transport/sync_auth_interceptor.dart';
 import 'package:amana_pos/core/sync/transport/sync_transport.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -543,6 +545,96 @@ void main() {
       expect(adapter.last!.options.headers.containsKey('X-Device-ID'), isFalse);
       await make().ping();
       expect(adapter.last!.options.headers.containsKey('X-Device-ID'), isFalse);
+    });
+  });
+
+  group('putImage (Task 6)', () {
+    final jpeg = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 0xFF, 0xD9];
+    final sha = 'ab' * 32;
+
+    Map<String, dynamic> ok({bool unchanged = false}) => {
+      'success': true,
+      'data': {
+        'id': 'p1',
+        'image': 'https://x/full.webp?v=ab',
+        'thumbnail_url': 'https://x/thumb.webp?v=ab',
+        'image_hash': sha,
+        'image_bytes': 9,
+        'thumbnail_bytes': 3,
+        'version': 4,
+        'unchanged': unchanged,
+      },
+    };
+
+    Future<ImageUploadResult> put({String entity = 'product'}) =>
+        transport.putImage(
+          entity: entity,
+          entityId: 'p1',
+          bytes: jpeg,
+          sha256: sha,
+          scope: 'u1|t1',
+        );
+
+    test('multipart PUT, field image, sha headers, content type, scope', () async {
+      adapter.handler = (_) async => _json(200, ok());
+      final r = await put();
+      final o = adapter.last!.options;
+      expect(o.method, 'PUT');
+      expect(o.path, 'api/v1/products/p1/image/');
+      expect(o.headers['X-Content-SHA256'], sha);
+      expect(o.headers['Idempotency-Key'], sha);
+      expect(o.extra[kSyncScopeExtra], 'u1|t1');
+      expect('${o.contentType}', startsWith('multipart/form-data'));
+      expect(o.sendTimeout, const Duration(seconds: 60));
+      expect(o.receiveTimeout, const Duration(seconds: 15));
+      final body = latin1.decode(adapter.last!.body);
+      expect(body, contains('name="image"'));
+      expect(body, contains('content-type: image/jpeg'));
+      expect(r.version, 4);
+      expect(r.imageHash, sha);
+      expect(r.thumbnailUrl, 'https://x/thumb.webp?v=ab');
+      expect(r.unchanged, isFalse);
+    });
+
+    test('category path', () async {
+      adapter.handler = (_) async => _json(200, ok(unchanged: true));
+      final r = await put(entity: 'category');
+      expect(adapter.last!.options.path, 'api/v1/products/categories/p1/image/');
+      expect(r.unchanged, isTrue);
+    });
+
+    Map<String, dynamic> err(String code) => {
+      'success': false,
+      'error': {'code': code, 'message': 'm'},
+    };
+
+    test('400 hash_mismatch keeps the BE code', () async {
+      adapter.handler = (_) async => _json(400, err('hash_mismatch'));
+      final e = await failing(put);
+      expect(e.kind, SyncTransportKind.server);
+      expect(e.httpStatus, 400);
+      expect(e.code, 'hash_mismatch');
+    });
+
+    test('403 / 404 keep their status; 413 tooLarge; 401 typed', () async {
+      adapter.handler = (_) async => _json(403, err('forbidden'));
+      var e = await failing(put);
+      expect((e.httpStatus, e.code), (403, 'forbidden'));
+      adapter.handler = (_) async => _json(404, {'detail': 'Not found.'});
+      e = await failing(put);
+      expect((e.httpStatus, e.code), (404, 'http_404'));
+      adapter.handler = (_) async => _json(413, err('too_large'));
+      e = await failing(put);
+      expect(e.kind, SyncTransportKind.tooLarge);
+      adapter.handler = (_) async => _json(401, err('token_expired'));
+      e = await failing(put);
+      expect(e.kind, SyncTransportKind.tokenExpired);
+      adapter.handler = (_) async => _json(401, err('AUTHENTICATION_FAILED'));
+      e = await failing(put);
+      expect(e.kind, SyncTransportKind.unauthorized);
+      adapter.handler = (_) async => _json(500, {});
+      e = await failing(put);
+      expect((e.kind, e.httpStatus), (SyncTransportKind.server, 500));
     });
   });
 }

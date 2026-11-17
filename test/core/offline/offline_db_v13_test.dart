@@ -11,18 +11,21 @@ Future<bool> _exists(DatabaseExecutor db, String type, String name) async =>
     )).isNotEmpty;
 
 void main() {
-  test('fresh onCreate is v13 without the legacy bootstrap tables', () async {
-    expect(OfflineDb.schemaVersion, 13);
-    final odb = await openTestDb();
-    final db = await odb.database;
-    addTearDown(db.close);
-    for (final t in OfflineDb.legacyBootstrapTables) {
-      expect(await _exists(db, 'table', t), isFalse, reason: t);
-    }
-    expect(await _exists(db, 'table', 'synced_assets'), isTrue);
-    // Wipe paths no longer touch the dropped tables.
-    await odb.clearAllLocalOfflineData();
-  });
+  test(
+    'fresh onCreate (v13+) is without the legacy bootstrap tables',
+    () async {
+      expect(OfflineDb.schemaVersion, greaterThanOrEqualTo(13));
+      final odb = await openTestDb();
+      final db = await odb.database;
+      addTearDown(db.close);
+      for (final t in OfflineDb.legacyBootstrapTables) {
+        expect(await _exists(db, 'table', t), isFalse, reason: t);
+      }
+      expect(await _exists(db, 'table', 'synced_assets'), isTrue);
+      // Wipe paths no longer touch the dropped tables.
+      await odb.clearAllLocalOfflineData();
+    },
+  );
 
   test('v12 -> v13 drops offline_assets + sync_metadata, idempotent, keeps '
       'synced_assets rows', () async {

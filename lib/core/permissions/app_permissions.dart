@@ -61,6 +61,11 @@ class AppPermissions {
   bool get canAccessUsers => _hasSession && role == AppUserRole.owner;
   bool get canAccessBusiness => _hasSession && role == AppUserRole.owner;
 
+  /// Add / edit / delete of products, categories and vendors (BE: owner or
+  /// manager, `forbidden` otherwise). Cashiers get no entry points.
+  bool get canEditCatalog =>
+      role == AppUserRole.owner || role == AppUserRole.manager;
+
   bool get isOwner => role == AppUserRole.owner;
   bool get isManager => role == AppUserRole.manager;
   bool get isCashier => role == AppUserRole.cashier;

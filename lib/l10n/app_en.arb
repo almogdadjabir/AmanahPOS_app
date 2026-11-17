@@ -194,6 +194,14 @@
   "posFailedSale": "Failed to complete sale",
   "posBankakRequired": "Please add your Bankak account number in Settings.",
   "posShopMismatch": "You are not assigned to this shop. Contact your manager.",
+  "posItemsUnavailable": "No longer available, removed from the cart: {names}. It was merged, discarded or deleted. Review the cart and try again.",
+  "@posItemsUnavailable": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
 
   "productsManagement": "Products Management",
   "addProduct": "Add Product",
@@ -1180,7 +1188,6 @@
   "stReceipts": "Receipts",
   "stExpiryReport": "Expiry report",
   "stMore": "More",
-  "fbOpeningStockWarning": "Product created, but its starting stock was not saved. Add it with Update stock.",
   "fbCategoriesErrorTitle": "Could not load categories",
   "fbInvalidNumber": "Enter a number, 0 or more",
   "fbInvalidDays": "Enter whole days, 1 or more",
@@ -1673,5 +1680,38 @@
   "syOxDiscardMaybeOnServer": "This may already be on the server. Sync first, or discarding may lead to a duplicate if you ring it up again.",
   "syOxDiscardOtherMaybeOnServer": "Some of these changes may already be on the server. Sign in as that account and sync first, or discarding may lead to duplicates.",
   "syOxSendNow": "Send now",
-  "syOxDiscardOtherScope": "This change belongs to another account. Use “Discard other account's changes” instead."
+  "syOxDiscardOtherScope": "This change belongs to another account. Use “Discard other account's changes” instead.",
+  "syOxEntityProduct": "Product",
+  "syOxEntityCategory": "Category",
+  "syOxEntityVendor": "Vendor",
+  "syOxEditRetry": "Edit and retry",
+  "syOxMerge": "Merge into existing",
+  "syOxMergeTitle": "Merge into the existing item?",
+  "syOxMergeBody": "“{name}” already exists. This copy's details are dropped and everything recorded for it on this phone moves to the existing one.",
+  "@syOxMergeBody": {"placeholders": {"name": {"type": "String"}}},
+  "syOxMergeCount": "{count, plural, =0{Nothing else changes.} =1{1 record will point to the existing item.} other{{count} records will point to the existing item.}}",
+  "@syOxMergeCount": {"placeholders": {"count": {"type": "int"}}},
+  "syOxMergeExistingFallback": "The existing item",
+  "syOxMergeRefused": "This change can no longer be merged. Refresh and try again.",
+  "syOxEditNotSaved": "Nothing was changed, so it was not sent again.",
+  "syOxEditGone": "This item is no longer on this phone.",
+  "syOxDiscardCatalogCreateBody": "This item and its opening stock will be removed from this phone. Nothing else waits on it.",
+  "syOxDiscardBlockedByDependents": "{count, plural, =1{1 change waits on this item (a sale, stock or a product), so it cannot be discarded. Merge it into the existing item, or edit and retry.} other{{count} changes wait on this item (sales, stock or products), so it cannot be discarded. Merge it into the existing item, or edit and retry.}}",
+  "@syOxDiscardBlockedByDependents": {"placeholders": {"count": {"type": "int"}}},
+  "syOxDiscardHasDependents": "This item was not discarded: other changes (sales, stock or products) wait on it. Merge it into the existing item, or edit and retry.",
+  "syOxDiscardMayBeOnServerFailure": "This item was not discarded: it may already be on the server. Tap Send now first; once it has synced, delete it from its own list.",
+  "syOxRetryMissingTitle": "Send without its item?",
+  "syOxRetryMissingBody": "A product, category or vendor this change refers to is no longer on this phone. If you send it, the server records it without that link: a sale keeps its money, but its product and stock are not updated.",
+  "syOxRetryMissingConfirm": "Send anyway",
+  "syOxRetryMissingHint": "Refers to an item that is no longer on this phone.",
+  "syOxStaleHint": "Could not restore the server copy. It is replaced at the next sync.",
+  "syOxMergeStockAdded": "Its opening stock and other stock changes on this phone are added to the existing item's stock.",
+  "syOxMergeEditsDropped": "Its queued edits and its photo are dropped. The existing item keeps its own details and photo.",
+  "syOxMergeTargetInactive": "The existing item is deleted. Merged sales and stock will belong to an item that the till does not show.",
+  "syOxDiscardCatalogEditBody": "The item goes back to how it is on the server.",
+  "syOxUploadFailed": "Image upload failed",
+  "invNoVendorsYet": "No vendors yet",
+  "invAddVendor": "Add Vendor",
+  "invEditVendor": "Edit Vendor",
+  "invVendorNameLabel": "Name *"
 }

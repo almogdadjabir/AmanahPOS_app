@@ -1,5 +1,6 @@
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/data/repository_impl/pos_repo_impl.dart';
+import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,6 +66,21 @@ void main() {
     expect(items.first['unit_cost'], '1.20');
     expect(items.last['is_custom'], 1);
     expect(items.last['product_id'], isNull);
+  });
+
+  test('a gone product is rethrown (not a Left) so PosBloc can drop the '
+      'line and say why (fix-wave I2)', () async {
+    await f.db.delete('products', where: 'id = ?', whereArgs: [kP1]);
+    await expectLater(
+      repo().submitSale(
+        shopId: kShop,
+        customerId: null,
+        paymentMethod: 'cash',
+        items: cart,
+      ),
+      throwsA(isA<SaleProductUnavailableException>()),
+    );
+    expect(await f.count('sales'), 0);
   });
 
   test('validation error surfaces as Left, nothing saved', () async {

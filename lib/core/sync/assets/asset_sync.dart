@@ -399,8 +399,12 @@ class AssetSync {
       'type = ? AND id = ? AND variant = ? AND url = ? AND '
       "IFNULL(expected_hash, '') = ?";
 
-  Duration _backoff(int attempts) {
-    final factor = math.pow(2, math.min(attempts - 1, 20)).toInt();
+  Duration _backoff(int attempts) => backoffFor(attempts);
+
+  /// [backoffBase] doubling per attempt, capped at [backoffCap] (1 min ..
+  /// 24 h). Shared with the image uploader.
+  static Duration backoffFor(int attempts) {
+    final factor = math.pow(2, math.min(math.max(attempts, 1) - 1, 20)).toInt();
     final d = backoffBase * factor;
     return d > backoffCap ? backoffCap : d;
   }

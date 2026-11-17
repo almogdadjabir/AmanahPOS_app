@@ -10,7 +10,6 @@ import 'package:amana_pos/features/inventory/data/models/responses/expiry_report
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
-import 'package:amana_pos/features/inventory/data/models/responses/vendor_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/vendor_summary_dto.dart';
 import 'package:amana_pos/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -74,24 +73,16 @@ class InventoryUseCase {
     pageSize: pageSize,
   );
 
-  Future<Either<String?, VendorListResponseDto>> getVendors({
-    bool activeOnly = true,
-    int pageSize = 200,
-  }) => repository.getVendors(activeOnly: activeOnly, pageSize: pageSize);
-
-  Future<Either<String?, VendorData>> getVendorById(String id) =>
-      repository.getVendorById(id);
-
-  Future<Either<String?, VendorData>> createVendor(
+  Future<Either<String?, String>> createVendor(
     CreateVendorRequestDto request,
   ) => repository.createVendor(request);
 
-  Future<Either<String?, VendorData>> updateVendor(
+  Future<Either<String?, Unit>> updateVendor(
     String id,
     UpdateVendorRequestDto request,
   ) => repository.updateVendor(id, request);
 
-  Future<Either<String?, bool>> deleteVendor(String id) =>
+  Future<Either<String?, Unit>> deleteVendor(String id) =>
       repository.deleteVendor(id);
 
   Future<Either<String?, VendorSummaryData>> getVendorSummary({

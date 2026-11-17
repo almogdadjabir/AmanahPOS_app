@@ -54,14 +54,16 @@ void main() {
 
   group('receipt snapshot — server/preview fallback', () {
     test('online sale prefers server values', () async {
-      when(() => mockUseCase.submitSale(
-            shopId: any(named: 'shopId'),
-            customerId: any(named: 'customerId'),
-            paymentMethod: any(named: 'paymentMethod'),
-            items: any(named: 'items'),
-            discountAmount: any(named: 'discountAmount'),
-            taxConfig: any(named: 'taxConfig'),
-          )).thenAnswer(
+      when(
+        () => mockUseCase.submitSale(
+          shopId: any(named: 'shopId'),
+          customerId: any(named: 'customerId'),
+          paymentMethod: any(named: 'paymentMethod'),
+          items: any(named: 'items'),
+          discountAmount: any(named: 'discountAmount'),
+          taxConfig: any(named: 'taxConfig'),
+        ),
+      ).thenAnswer(
         (_) async => Right(
           PosSubmitResult.synced(
             clientSaleId: 'c1',
@@ -92,33 +94,54 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final state = bloc.state;
-      expect(state.submitStatus, PosSubmitStatus.success,
-          reason: 'submit should succeed');
-      expect(state.lastTaxAmount, closeTo(13.49, 0.001),
-          reason: 'server tax amount used');
-      expect(state.lastTotal, closeTo(103.49, 0.001),
-          reason: 'server net amount used');
-      expect(state.lastSubtotal, closeTo(90.00, 0.001),
-          reason: 'subtotal = net - tax (exclusive mode)');
-      expect(state.lastTaxRate, closeTo(15.0, 0.001),
-          reason: 'server tax rate used');
-      expect(state.lastTaxInclusive, isFalse,
-          reason: 'server tax inclusive flag used');
-      expect(state.lastSaleWasOffline, isFalse,
-          reason: 'online sale flag correct');
+      expect(
+        state.submitStatus,
+        PosSubmitStatus.success,
+        reason: 'submit should succeed',
+      );
+      expect(
+        state.lastTaxAmount,
+        closeTo(13.49, 0.001),
+        reason: 'server tax amount used',
+      );
+      expect(
+        state.lastTotal,
+        closeTo(103.49, 0.001),
+        reason: 'server net amount used',
+      );
+      expect(
+        state.lastSubtotal,
+        closeTo(90.00, 0.001),
+        reason: 'subtotal = net - tax (exclusive mode)',
+      );
+      expect(
+        state.lastTaxRate,
+        closeTo(15.0, 0.001),
+        reason: 'server tax rate used',
+      );
+      expect(
+        state.lastTaxInclusive,
+        isFalse,
+        reason: 'server tax inclusive flag used',
+      );
+      expect(
+        state.lastSaleWasOffline,
+        isFalse,
+        reason: 'online sale flag correct',
+      );
     });
 
     test('offline-queued sale falls back to local preview', () async {
-      when(() => mockUseCase.submitSale(
-            shopId: any(named: 'shopId'),
-            customerId: any(named: 'customerId'),
-            paymentMethod: any(named: 'paymentMethod'),
-            items: any(named: 'items'),
-            discountAmount: any(named: 'discountAmount'),
-            taxConfig: any(named: 'taxConfig'),
-          )).thenAnswer(
-        (_) async => Right(PosSubmitResult.offlineQueued('c1')),
-      );
+      when(
+        () => mockUseCase.submitSale(
+          shopId: any(named: 'shopId'),
+          customerId: any(named: 'customerId'),
+          paymentMethod: any(named: 'paymentMethod'),
+          items: any(named: 'items'),
+          discountAmount: any(named: 'discountAmount'),
+          taxConfig: any(named: 'taxConfig'),
+        ),
+      ).thenAnswer((_) async => Right(PosSubmitResult.offlineQueued('c1')));
 
       final bloc = buildBloc();
       addTearDown(bloc.close);
@@ -136,19 +159,33 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final state = bloc.state;
-      expect(state.submitStatus, PosSubmitStatus.success,
-          reason: 'submit should succeed (queued)');
+      expect(
+        state.submitStatus,
+        PosSubmitStatus.success,
+        reason: 'submit should succeed (queued)',
+      );
       // Local preview: 90.00 * 15% = 13.50 (exclusive)
-      expect(state.lastTaxAmount, closeTo(13.50, 0.001),
-          reason: 'local preview tax amount used');
-      expect(state.lastTotal, closeTo(103.50, 0.001),
-          reason: 'local preview total used');
-      expect(state.lastSubtotal, closeTo(90.00, 0.001),
-          reason: 'local subtotal preserved');
-      expect(state.lastTaxRate, closeTo(15.0, 0.001),
-          reason: 'local tax rate from config used');
-      expect(state.lastSaleWasOffline, isTrue,
-          reason: 'offline flag set');
+      expect(
+        state.lastTaxAmount,
+        closeTo(13.50, 0.001),
+        reason: 'local preview tax amount used',
+      );
+      expect(
+        state.lastTotal,
+        closeTo(103.50, 0.001),
+        reason: 'local preview total used',
+      );
+      expect(
+        state.lastSubtotal,
+        closeTo(90.00, 0.001),
+        reason: 'local subtotal preserved',
+      );
+      expect(
+        state.lastTaxRate,
+        closeTo(15.0, 0.001),
+        reason: 'local tax rate from config used',
+      );
+      expect(state.lastSaleWasOffline, isTrue, reason: 'offline flag set');
     });
   });
 }

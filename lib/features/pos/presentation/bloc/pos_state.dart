@@ -9,6 +9,11 @@ class PosState extends Equatable {
   final String paymentMethod;
   final PosSubmitStatus submitStatus;
   final String? submitError;
+
+  /// Fix-wave I2, transient like [submitError]: names of cart lines just
+  /// dropped because their product no longer exists locally (merged,
+  /// discarded) or was deleted. The screen shows a localized notice.
+  final List<String> removedUnavailable;
   final bool cartExpanded;
   final Map<String, int> lastSoldQuantities;
   final String? selectedShopId;
@@ -36,6 +41,7 @@ class PosState extends Equatable {
     this.paymentMethod = 'cash',
     this.submitStatus = PosSubmitStatus.idle,
     this.submitError,
+    this.removedUnavailable = const [],
     this.cartExpanded = false,
     this.lastSoldQuantities = const {},
     this.selectedShopId,
@@ -95,6 +101,7 @@ class PosState extends Equatable {
     String? paymentMethod,
     PosSubmitStatus? submitStatus,
     String? submitError,
+    List<String>? removedUnavailable,
     bool? cartExpanded,
     Map<String, int>? lastSoldQuantities,
     String? selectedShopId,
@@ -123,6 +130,7 @@ class PosState extends Equatable {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: submitError,
+      removedUnavailable: removedUnavailable ?? const [],
       cartExpanded: cartExpanded ?? this.cartExpanded,
       lastSoldQuantities: lastSoldQuantities ?? this.lastSoldQuantities,
       selectedShopId: clearShop
@@ -155,6 +163,7 @@ class PosState extends Equatable {
     paymentMethod,
     submitStatus,
     submitError,
+    removedUnavailable,
     cartExpanded,
     lastSoldQuantities,
     selectedShopId,

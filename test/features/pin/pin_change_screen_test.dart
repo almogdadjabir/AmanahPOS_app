@@ -15,17 +15,22 @@ void main() {
     final bloc = _FakePinBloc();
     when(() => bloc.state).thenReturn(PinState.initial(PinMode.change));
     when(() => bloc.stream).thenAnswer((_) => const Stream.empty());
-    await tester.pumpWidget(MaterialApp(
-      theme: AppTheme.light,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider<PinBloc>.value(value: bloc, child: const PinChangeScreen()),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<PinBloc>.value(
+          value: bloc,
+          child: const PinChangeScreen(),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Enter current PIN'), findsWidgets);
   });

@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/category/presentation/bloc/category_bloc.dart';
@@ -37,16 +38,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<void> _refresh() async {
-    final bloc = context.read<CategoryBloc>();
-    bloc.add(const OnCategoryInitial(force: true));
+    final bloc = context.read<CategoryBloc>()
+      ..add(const OnCategoryInitial(force: true))
+      ..add(const OnCategoriesSyncRequested());
     try {
+      // A local re-read (SQLite); an unchanged list emits nothing.
       await bloc.stream
           .firstWhere(
             (s) =>
                 s.categoryStatus == CategoryStatus.failure ||
-                (s.categoryStatus == CategoryStatus.success && !s.isFromCache),
+                s.categoryStatus == CategoryStatus.success,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 1));
     } catch (_) {
       // Timed out: let the control settle, cached data stays on screen.
     }
@@ -55,6 +58,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final canEdit = context.select<AuthBloc, bool>(
+      (b) => b.state.permissions.canEditCatalog,
+    );
     final bottomInset =
         (widget.isWithAppbar ? 0 : NavShell.contentHeight) +
         MediaQuery.viewPaddingOf(context).bottom +
@@ -72,6 +78,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 buildWhen: (prev, curr) =>
                     prev.categoryStatus != curr.categoryStatus ||
                     prev.categoryList != curr.categoryList ||
+                    prev.syncMarks != curr.syncMarks ||
                     prev.responseError != curr.responseError,
                 builder: (context, state) => CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
@@ -86,7 +93,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         AppDims.s4,
                         bottomInset,
                       ),
-                      sliver: SliverToBoxAdapter(child: _content(state)),
+                      sliver: SliverToBoxAdapter(
+                        child: _content(state, canEdit: canEdit),
+                      ),
                     ),
                   ],
                 ),
@@ -98,7 +107,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _content(CategoryState state) {
+  Widget _content(CategoryState state, {required bool canEdit}) {
     final tr = context.tr;
     final loading =
         state.categoryStatus == CategoryStatus.initial ||
@@ -143,8 +152,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             icon: PhosphorIconsRegular.stack,
             title: tr.noCategoriesYet,
             body: tr.ctEmptyBody,
-            actionLabel: tr.pfNewCategory,
-            onAction: () => openCategoryForm(context),
+            actionLabel: canEdit ? tr.pfNewCategory : null,
+            onAction: canEdit ? () => openCategoryForm(context) : null,
           ),
         ],
       );
@@ -157,7 +166,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           title: tr.fbCategoriesTitle,
           subtitle: tr.ctCountTitle('${state.categoryList.length}'),
         ),
-        CategoryListGroup(categories: state.categoryList),
+        CategoryListGroup(
+          categories: state.categoryList,
+          syncMarks: state.syncMarks,
+          canEdit: canEdit,
+        ),
       ],
     );
   }
@@ -205,18 +218,23 @@ class _NavBar extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Pressable(
-              onTap: () => openCategoryForm(context),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(
-                  PhosphorIconsRegular.plus,
-                  size: 26,
-                  color: colors.primary,
+            // Catalog writes are owner/manager only.
+            if (context.select<AuthBloc, bool>(
+              (b) => b.state.permissions.canEditCatalog,
+            ))
+              Pressable(
+                key: const ValueKey('categories-add'),
+                onTap: () => openCategoryForm(context),
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Icon(
+                    PhosphorIconsRegular.plus,
+                    size: 26,
+                    color: colors.primary,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

@@ -62,14 +62,14 @@ void main() {
       setUp: () {
         when(() => useCase.getSavedPrinter()).thenAnswer((_) async => printer);
         when(() => useCase.isConnected()).thenAnswer((_) async => false);
-        when(() => useCase.connect(printer)).thenThrow(
-            const PrinterException(PrinterError.connectionFailed));
+        when(
+          () => useCase.connect(printer),
+        ).thenThrow(const PrinterException(PrinterError.connectionFailed));
       },
       act: (bloc) => bloc.add(const PrinterInitialized()),
       expect: () => const [
         PrinterState(savedPrinter: printer, status: PrinterStatus.connecting),
-        PrinterState(
-            savedPrinter: printer, status: PrinterStatus.notConnected),
+        PrinterState(savedPrinter: printer, status: PrinterStatus.notConnected),
       ],
     );
   });
@@ -78,8 +78,9 @@ void main() {
     blocTest<PrinterBloc, PrinterState>(
       'emits scanning then discovered devices',
       build: build,
-      setUp: () => when(() => useCase.scanForDevices())
-          .thenAnswer((_) async => [printer, otherPrinter]),
+      setUp: () => when(
+        () => useCase.scanForDevices(),
+      ).thenAnswer((_) async => [printer, otherPrinter]),
       act: (bloc) => bloc.add(const PrinterScanRequested()),
       expect: () => const [
         PrinterState(isScanning: true),
@@ -90,8 +91,9 @@ void main() {
     blocTest<PrinterBloc, PrinterState>(
       'surfaces typed error when Bluetooth is off',
       build: build,
-      setUp: () => when(() => useCase.scanForDevices())
-          .thenThrow(const PrinterException(PrinterError.bluetoothOff)),
+      setUp: () => when(
+        () => useCase.scanForDevices(),
+      ).thenThrow(const PrinterException(PrinterError.bluetoothOff)),
       act: (bloc) => bloc.add(const PrinterScanRequested()),
       expect: () => const [
         PrinterState(isScanning: true),
@@ -142,9 +144,7 @@ void main() {
       'errors with noPrinterSaved when nothing is saved',
       build: build,
       act: (bloc) => bloc.add(const PrinterConnectRequested()),
-      expect: () => const [
-        PrinterState(error: PrinterError.noPrinterSaved),
-      ],
+      expect: () => const [PrinterState(error: PrinterError.noPrinterSaved)],
     );
   });
 
@@ -153,12 +153,13 @@ void main() {
       'disconnects and returns to notConnected',
       build: build,
       seed: () => const PrinterState(
-          savedPrinter: printer, status: PrinterStatus.connected),
+        savedPrinter: printer,
+        status: PrinterStatus.connected,
+      ),
       setUp: () => when(() => useCase.disconnect()).thenAnswer((_) async {}),
       act: (bloc) => bloc.add(const PrinterDisconnectRequested()),
       expect: () => const [
-        PrinterState(
-            savedPrinter: printer, status: PrinterStatus.notConnected),
+        PrinterState(savedPrinter: printer, status: PrinterStatus.notConnected),
       ],
     );
   });
@@ -168,15 +169,15 @@ void main() {
       'removes the saved printer',
       build: build,
       seed: () => const PrinterState(
-          savedPrinter: printer, status: PrinterStatus.connected),
+        savedPrinter: printer,
+        status: PrinterStatus.connected,
+      ),
       setUp: () {
         when(() => useCase.disconnect()).thenAnswer((_) async {});
         when(() => useCase.removeSavedPrinter()).thenAnswer((_) async {});
       },
       act: (bloc) => bloc.add(const PrinterForgotten()),
-      expect: () => const [
-        PrinterState(status: PrinterStatus.notConnected),
-      ],
+      expect: () => const [PrinterState(status: PrinterStatus.notConnected)],
       verify: (_) => verify(() => useCase.removeSavedPrinter()).called(1),
     );
   });
@@ -186,14 +187,15 @@ void main() {
       'walks printing -> printSuccess -> connected on success',
       build: build,
       seed: () => const PrinterState(
-          savedPrinter: printer, status: PrinterStatus.connected),
+        savedPrinter: printer,
+        status: PrinterStatus.connected,
+      ),
       setUp: () =>
           when(() => useCase.printReceipt(receipt)).thenAnswer((_) async {}),
       act: (bloc) => bloc.add(const PrinterReceiptPrintRequested(receipt)),
       expect: () => const [
         PrinterState(savedPrinter: printer, status: PrinterStatus.printing),
-        PrinterState(
-            savedPrinter: printer, status: PrinterStatus.printSuccess),
+        PrinterState(savedPrinter: printer, status: PrinterStatus.printSuccess),
         PrinterState(savedPrinter: printer, status: PrinterStatus.connected),
       ],
     );
@@ -202,10 +204,13 @@ void main() {
       'walks printing -> printFailed -> notConnected when the link died',
       build: build,
       seed: () => const PrinterState(
-          savedPrinter: printer, status: PrinterStatus.connected),
+        savedPrinter: printer,
+        status: PrinterStatus.connected,
+      ),
       setUp: () {
-        when(() => useCase.printReceipt(receipt))
-            .thenThrow(const PrinterException(PrinterError.printFailed));
+        when(
+          () => useCase.printReceipt(receipt),
+        ).thenThrow(const PrinterException(PrinterError.printFailed));
         when(() => useCase.isConnected()).thenAnswer((_) async => false);
       },
       act: (bloc) => bloc.add(const PrinterReceiptPrintRequested(receipt)),

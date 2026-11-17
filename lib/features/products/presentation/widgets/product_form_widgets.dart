@@ -108,18 +108,26 @@ class FormPhotoTile extends StatelessWidget {
   final String? imageUrl;
   final VoidCallback onTap;
 
+  /// The edited entity's id: its staged (not yet uploaded) image shows
+  /// when there is no new pick (Task 6). Null for a new product/category.
+  final String? productId;
+
+  /// `product` or `category` (Task 7: the category form reuses the tile).
+  final String entityType;
+
   const FormPhotoTile({
     super.key,
     required this.picked,
     required this.imageUrl,
     required this.onTap,
+    this.productId,
+    this.entityType = 'product',
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final tr = context.tr;
     final hasUrl = imageUrl?.trim().isNotEmpty == true;
+    final hasId = productId?.isNotEmpty == true;
     final hasImage = picked != null || hasUrl;
 
     return Center(
@@ -128,7 +136,7 @@ class FormPhotoTile extends StatelessWidget {
         child: SizedBox(
           width: 104,
           height: 104,
-          child: hasImage
+          child: hasImage || hasId
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(26),
                   child: picked != null
@@ -136,36 +144,42 @@ class FormPhotoTile extends StatelessWidget {
                       : OfflineCachedImage(
                           imageUrl: imageUrl,
                           fit: BoxFit.cover,
+                          entityType: entityType,
+                          entityId: productId,
+                          // No url and nothing staged: the empty tile.
+                          errorWidget: hasUrl ? null : _emptyTile(context),
                         ),
                 )
-              : CustomPaint(
-                  painter: _DashedRRectPainter(
-                    color: colors.borderStrong,
-                    radius: 26,
-                    fill: colors.surface,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          PhosphorIconsRegular.camera,
-                          size: 30,
-                          color: colors.primary,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          tr.pfAddPhoto,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: colors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              : _emptyTile(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyTile(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+    return CustomPaint(
+      painter: _DashedRRectPainter(
+        color: colors.borderStrong,
+        radius: 26,
+        fill: colors.surface,
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(PhosphorIconsRegular.camera, size: 30, color: colors.primary),
+            const SizedBox(height: 6),
+            Text(
+              tr.pfAddPhoto,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colors.primary,
+              ),
+            ),
+          ],
         ),
       ),
     );

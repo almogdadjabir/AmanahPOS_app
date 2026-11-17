@@ -43,3 +43,32 @@ class OnPendingSyncDiscardScope extends PendingSyncEvent {
 class OnPendingSyncSendNow extends PendingSyncEvent {
   const OnPendingSyncSendNow();
 }
+
+/// Catalog row: "Merge into existing" (the UI showed the counts of
+/// [PendingSyncBloc.previewMerge] and the user confirmed).
+class OnPendingSyncMerge extends PendingSyncEvent {
+  final String mutationId;
+  const OnPendingSyncMerge(this.mutationId);
+  @override
+  List<Object?> get props => [mutationId];
+}
+
+/// Catalog row: "Edit and retry", sent after the entity's edit form closed.
+/// [editedAfterSeq]: the entity's last outbox seq before the form opened
+/// (nothing is retried when the user saved no edit).
+class OnPendingSyncEditRetry extends PendingSyncEvent {
+  final String mutationId;
+  final int? editedAfterSeq;
+  const OnPendingSyncEditRetry(this.mutationId, {this.editedAfterSeq});
+  @override
+  List<Object?> get props => [mutationId, editedAfterSeq];
+}
+
+/// A parked (failed) image upload: back to the queue, sent right away.
+class OnPendingSyncRetryUpload extends PendingSyncEvent {
+  final String entity;
+  final String entityId;
+  const OnPendingSyncRetryUpload(this.entity, this.entityId);
+  @override
+  List<Object?> get props => [entity, entityId];
+}

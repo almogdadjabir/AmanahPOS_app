@@ -1,140 +1,47 @@
-import 'dart:async';
-
-import 'package:amana_pos/core/api/request_handler.dart';
-import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
+import 'package:amana_pos/core/sync/catalog_result.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/add_product_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
+import 'package:amana_pos/features/products/domain/product_service.dart';
 import 'package:amana_pos/features/products/domain/repositories/product_repository.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:amana_pos/core/network/multipart_image_helper.dart';
-import 'package:dio/dio.dart';
 
+/// Local-only: every write goes through [ProductService] (row + outbox in
+/// one transaction). No REST client.
 class ProductRepoImpl extends ProductRepository {
-  final RequestHandler requestHandler;
-  ProductRepoImpl(this.requestHandler);
+  ProductRepoImpl({required ProductService Function() service})
+    : _service = service;
 
-
-  @override
-  Future<Either<String?, CategoryProductsResponseDto>> getCategoryProducts({
-    required String categoryId,
-    required int page,
-    required int pageSize,
-  }) {
-    return requestHandler.handleGetRequest(
-      'api/v1/products/categories/$categoryId/products/?page=$page&page_size=$pageSize',
-          (data) => CategoryProductsResponseDto.fromJson(data as Map<String, dynamic>),
-    );
-  }
+  /// Lazy so the sync core is only constructed on the first write.
+  final ProductService Function() _service;
 
   @override
-  Future<Either<String?, CategoryResponseDto>> getCategories() {
-    return requestHandler.handleGetRequest(
-      'api/v1/products/categories/',
-          (data) => CategoryResponseDto.fromJson(data as Map<String, dynamic>),
-    );
-  }
+  Future<Either<String, String>> addProduct(
+    AddProductRequestDto request, {
+    String? initialQuantity,
+    String? shopId,
+    String? newCategoryName,
+  }) => catalogResult(
+    () => _service().create(
+      request,
+      initialQuantity: initialQuantity,
+      shopId: shopId,
+      newCategoryName: newCategoryName,
+    ),
+  );
 
   @override
-  Future<Either<String?, ProductListResponseDto>> getProducts({
-    required int page,
-    int pageSize = 20,
-    String? search,
-    String? isActive,
-  }) {
-    final query = <String>['page=$page', 'page_size=$pageSize'];
-    final cleanSearch = search?.trim();
-    if (cleanSearch != null && cleanSearch.isNotEmpty) {
-      query.add('search=${Uri.encodeQueryComponent(cleanSearch)}');
-    }
-    if (isActive != null && isActive.isNotEmpty) {
-      query.add('is_active=$isActive');
-    }
-    return requestHandler.handleGetRequest(
-      'api/v1/products/?${query.join('&')}',
-          (data) => ProductListResponseDto.fromJson(data as Map<String, dynamic>),
-    );
-  }
+  Future<Either<String, Unit>> editProduct(
+    String productId,
+    UpdateProductRequestDto request,
+  ) => catalogResult(() async {
+    await _service().update(productId, request);
+    return unit;
+  });
 
   @override
-  Future<Either<String?, CategoryProductsResponseDto>> getProductsByCategory({
-    required String categoryId,
-    required int page,
-    int pageSize = 20,
-  }) {
-    return requestHandler.handleGetRequest(
-      'api/v1/products/categories/$categoryId/products/?page=$page&page_size=$pageSize',
-          (data) => CategoryProductsResponseDto.fromJson(data as Map<String, dynamic>),
-    );
-  }
-
-  @override
-  Future<Either<String?, AddProductResponseDto>> addProduct(
-      AddProductRequestDto request,
-      ) async {
-    final imageFile = await MultipartImageHelper.toMultipartFile(
-      request.imageUpload,
-    );
-
-    if (imageFile == null) {
-      return requestHandler.handlePostRequest(
-        'api/v1/products/',
-            (data) => AddProductResponseDto.fromJson(data as Map<String, dynamic>),
-        data: request.toJson(),
-      );
-    }
-
-    final formData = FormData.fromMap({
-      ...request.toJson(),
-      'image_upload': imageFile,
-    });
-
-    return requestHandler.handlePostRequest(
-      'api/v1/products/',
-          (data) => AddProductResponseDto.fromJson(data as Map<String, dynamic>),
-      data: formData,
-    );
-  }
-
-  @override
-  Future<Either<String?, bool>> editProduct(
-      String productId,
-      UpdateProductRequestDto request,
-      ) async {
-    final imageFile = await MultipartImageHelper.toMultipartFile(
-      request.imageUpload,
-    );
-
-    if (imageFile == null) {
-      return requestHandler.handlePatchRequest(
-        'api/v1/products/$productId/',
-            (_) => true,
-        data: request.toJson(),
-      );
-    }
-
-    final formData = FormData.fromMap({
-      ...request.toJson(),
-      'image_upload': imageFile,
-    });
-
-    return requestHandler.handlePatchRequest(
-      'api/v1/products/$productId/',
-          (_) => true,
-      data: formData,
-    );
-  }
-
-
-
-  @override
-  Future<Either<String?, bool>> deactivateProduct(String productId) {
-    return requestHandler.handleDeleteRequest(
-      'api/v1/products/$productId/',
-          (_) => true,
-    );
-  }
-
+  Future<Either<String, Unit>> deleteProduct(String productId) =>
+      catalogResult(() async {
+        await _service().delete(productId);
+        return unit;
+      });
 }

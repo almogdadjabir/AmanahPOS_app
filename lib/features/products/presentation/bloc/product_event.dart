@@ -10,6 +10,20 @@ class OnProductInitial extends ProductEvent {
   @override List<Object?> get props => [];
 }
 
+/// A local write or a pull touched [ProductBloc.watchedTables]: re-read.
+/// [tables]: what changed (empty = unknown, re-read everything).
+class OnProductsChanged extends ProductEvent {
+  const OnProductsChanged([this.tables = const {}]);
+  final Set<String> tables;
+  @override List<Object?> get props => [tables];
+}
+
+/// Pull to refresh: ask the server for changes (see `requestCatalogSync`).
+class OnProductsSyncRequested extends ProductEvent {
+  const OnProductsSyncRequested();
+  @override List<Object?> get props => [];
+}
+
 class OnProductCategorySelected extends ProductEvent {
   // null = All
   final String? categoryId;
@@ -27,16 +41,16 @@ class OnProductQuery extends ProductEvent {
   @override List<Object?> get props => [search, inactiveOnly];
 }
 
-/// Loads every remaining page so client-side filters (Low / Out of stock)
-/// see the whole catalog.
+/// Kept for the Low / Out filters. The list is read from SQLite in full, so
+/// there is nothing left to load.
 class OnProductsLoadAll extends ProductEvent {
   const OnProductsLoadAll();
   @override List<Object?> get props => [];
 }
 
-/// Creates a category from inside the product form. The new category is
-/// appended to [ProductState.categories] and handed back through
-/// [completer] (null on failure).
+/// Creates a category (locally, outbox) from inside the product form. The
+/// new category shows in [ProductState.categories] and is handed back
+/// through [completer] (null on failure).
 class OnCreateProductCategory extends ProductEvent {
   final String name;
   final Completer<CategoryData?> completer;
@@ -57,7 +71,8 @@ class OnToggleProductLayout extends ProductEvent {
 class OnAddProduct extends ProductEvent {
   final AddProductRequestDto dto;
 
-  /// Raw opening-stock quantity string. Null/empty = no opening stock.
+  /// Raw opening-stock quantity string. Null/empty = no opening stock. It
+  /// is a dependent `stock.add` in the same write as the product create.
   final String? openingStock;
 
   /// Shop the opening stock is recorded against. Required when
@@ -70,10 +85,10 @@ class OnAddProduct extends ProductEvent {
     this.openingShopId,
   });
 
-  @override
-  List<Object?> get props => [dto, openingStock, openingShopId];
+  @override List<Object?> get props => [dto, openingStock, openingShopId];
 }
 
+/// No category picked: "General" is reused or created in the same write.
 class OnAddProductWithAutoCategory extends ProductEvent {
   final AddProductRequestDto dto;
 
@@ -90,48 +105,36 @@ class OnAddProductWithAutoCategory extends ProductEvent {
     this.openingShopId,
   });
 
-  @override
-  List<Object?> get props => [dto, openingStock, openingShopId];
+  @override List<Object?> get props => [dto, openingStock, openingShopId];
 }
 
 class OnUpdateProduct extends ProductEvent {
   final String productId;
   final UpdateProductRequestDto dto;
 
-  const OnUpdateProduct({
-    required this.productId,
-    required this.dto,
-  });
+  const OnUpdateProduct({required this.productId, required this.dto});
 
-  @override
-  List<Object?> get props => [productId, dto];
+  @override List<Object?> get props => [productId, dto];
 }
 
 class OnDeleteProduct extends ProductEvent {
   final String productId;
 
-  const OnDeleteProduct({
-    required this.productId,
-  });
+  const OnDeleteProduct({required this.productId});
 
-  @override
-  List<Object?> get props => [productId];
+  @override List<Object?> get props => [productId];
 }
 
 class OnProductsSoldLocally extends ProductEvent {
   final Map<String, int> soldQuantities;
 
-  const OnProductsSoldLocally({
-    required this.soldQuantities,
-  });
+  const OnProductsSoldLocally({required this.soldQuantities});
 
-  @override
-  List<Object?> get props => [soldQuantities];
+  @override List<Object?> get props => [soldQuantities];
 }
 
 class OnProductReset extends ProductEvent {
   const OnProductReset();
 
-  @override
-  List<Object?> get props => throw UnimplementedError();
+  @override List<Object?> get props => throw UnimplementedError();
 }

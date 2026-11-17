@@ -10,6 +10,17 @@ class SaleValidationException implements Exception {
   String toString() => 'SaleValidationException: $message';
 }
 
+/// Fix-wave I2: a product line names a product that no longer exists
+/// locally (merged into another row, discarded, never-sent create dropped)
+/// or is inactive (deleted). The sale is refused before anything is
+/// written; [productIds] are the offending lines' product ids.
+class SaleProductUnavailableException extends SaleValidationException {
+  const SaleProductUnavailableException(this.productIds)
+    : super('Some products in the cart are no longer available');
+
+  final Set<String> productIds;
+}
+
 /// One cart line handed to `SaleService.createSale`. Money and quantity are
 /// decimal strings (never doubles).
 class SaleDraftLine {

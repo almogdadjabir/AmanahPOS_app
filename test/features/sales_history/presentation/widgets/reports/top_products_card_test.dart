@@ -16,8 +16,18 @@ void main() {
 
   testWidgets('renders product names and title', (tester) async {
     final products = [
-      const SalesTopProduct(productId: 'p1', name: 'ببسي', quantitySold: 100, grossAmount: 500),
-      const SalesTopProduct(productId: 'p2', name: 'ماء', quantitySold: 50, grossAmount: 250),
+      const SalesTopProduct(
+        productId: 'p1',
+        name: 'ببسي',
+        quantitySold: 100,
+        grossAmount: 500,
+      ),
+      const SalesTopProduct(
+        productId: 'p2',
+        name: 'ماء',
+        quantitySold: 50,
+        grossAmount: 250,
+      ),
     ];
     await tester.pumpWidget(wrap(TopProductsCard(products: products)));
     await tester.pumpAndSettle();

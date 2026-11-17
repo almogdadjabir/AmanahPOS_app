@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:amana_pos/core/sync/catalog_stash.dart';
+import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/core/offline/data/local_image_resolver.dart';
 import 'package:amana_pos/core/offline/offline_constants.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
@@ -9,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/sync/catalog_sync_marks.dart';
 import 'package:amana_pos/core/sync/decimal3.dart';
 import 'package:amana_pos/core/sync/sync_schema.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
@@ -43,20 +46,30 @@ class OfflineLocalCache {
     return rows.map(ShopData.fromJson).toList();
   }
 
-  Future<List<CategoryData>> getCategories() async {
+  /// Soft-deleted categories (`is_active == false`, a local delete waiting to
+  /// sync) are hidden unless [includeInactive].
+  Future<List<CategoryData>> getCategories({
+    bool includeInactive = false,
+  }) async {
     final db = await _db.database;
     final rows = await db.query(
       OfflineConstants.categoriesTable,
       orderBy: 'name COLLATE NOCASE ASC',
     );
-    return rows
-        .map((row) => CategoryData.fromJson(jsonDecode(row['json'] as String)))
-        .toList();
+    final all = rows
+        .map((row) => jsonDecode(row['json'] as String))
+        .where((j) => includeInactive || j is! Map || j['is_active'] != false);
+    return all.map((j) => CategoryData.fromJson(j)).toList();
   }
 
+  /// Local products by name. [isActive]: null = all rows, true = active
+  /// only (lists and pickers: a local delete is `is_active == false` until
+  /// the server confirms it), false = inactive only (the inactive filter;
+  /// history stays resolvable).
   Future<List<ProductData>> getProducts({
     String? categoryId,
     String? search,
+    bool? isActive,
   }) async {
     final db = await _db.database;
 
@@ -81,10 +94,21 @@ class OfflineLocalCache {
       orderBy: 'name COLLATE NOCASE ASC',
     );
 
-    return rows
-        .map((row) => ProductData.fromJson(jsonDecode(row['json'] as String)))
-        .toList();
+    final all = rows.map(
+      (row) => ProductData.fromJson(jsonDecode(row['json'] as String)),
+    );
+    if (isActive == null) return all.toList();
+    return all.where((p) => (p.isActive != false) == isActive).toList();
   }
+
+  /// "Waiting to sync" / "Sync failed" row markers of a catalog [entity]
+  /// (`product`, `category`, `vendor`), from the outbox and staged uploads.
+  Future<CatalogSyncMarks> getCatalogSyncMarks(String entity) async =>
+      CatalogSyncMarks.load(
+        await _db.database,
+        entity,
+        scope: SyncScope.current,
+      );
 
   Future<List<CustomerData>> getCustomers({String? search}) async {
     final db = await _db.database;
@@ -119,79 +143,6 @@ class OfflineLocalCache {
     return rows
         .map((row) => StockData.fromJson(jsonDecode(row['json'] as String)))
         .toList();
-  }
-
-  Map<String, dynamic> _categoryToJson(CategoryData data) {
-    return {
-      'id': data.id,
-      'tenant': data.tenant,
-      'parent': data.parent,
-      'name': data.name,
-      'description': data.description,
-      'image': data.image,
-      'thumbnail_url': data.thumbnailUrl,
-      'is_active': data.isActive,
-      'sort_order': data.sortOrder,
-      'product_count': data.productCount,
-      'children': data.children?.map(_categoryToJson).toList(),
-      'created_at': data.createdAt,
-      'updated_at': data.updatedAt,
-    };
-  }
-
-  Future<void> saveCategoriesToCache(List<CategoryData> categories) async {
-    final db = await _db.database;
-
-    await db.transaction((txn) async {
-      Future<void> saveOne(CategoryData category) async {
-        final id = category.id;
-        if (id == null || id.isEmpty) return;
-
-        await txn.insert(
-          OfflineConstants.categoriesTable,
-          {
-            'id': id,
-            'tenant_id': category.tenant,
-            'parent_id': category.parent,
-            'name': category.name,
-            'json': jsonEncode(_categoryToJson(category)),
-            'updated_at': category.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-
-        for (final child in category.children ?? const <CategoryData>[]) {
-          await saveOne(child);
-        }
-      }
-
-      for (final category in categories) {
-        await saveOne(category);
-      }
-    });
-  }
-
-  Map<String, dynamic> _productToJson(ProductData data) {
-    return {
-      'id': data.id,
-      'category': data.category,
-      'category_name': data.categoryName,
-      'name': data.name,
-      'description': data.description,
-      'sku': data.sku,
-      'barcode': data.barcode,
-      'price': data.price,
-      'cost_price': data.costPrice,
-      'image': data.image,
-      'unit': data.unit,
-      'is_active': data.isActive,
-      'track_inventory': data.trackInventory,
-      'min_stock_level': data.minStockLevel,
-      'stock_level': data.stockLevel,
-      'expiry_alert_days': data.expiryAlertDays,
-      'created_at': data.createdAt,
-      'thumbnail_url': data.thumbnailUrl,
-    };
   }
 
   Map<String, dynamic> _stockToJson(StockData data) {
@@ -285,58 +236,6 @@ class OfflineLocalCache {
         if (r['url'] is String && r['local_path'] is String)
           (url: r['url'] as String, path: r['local_path'] as String),
     ];
-  }
-
-  Future<void> saveProductsToCache(List<ProductData> products) async {
-    final db = await _db.database;
-
-    await db.transaction((txn) async {
-      for (final product in products) {
-        final id = product.id;
-        if (id == null || id.isEmpty) continue;
-
-        final stockRows = await txn.query(
-          OfflineConstants.stockTable,
-          columns: ['quantity'],
-          where: 'product_id = ?',
-          whereArgs: [id],
-          limit: 1,
-        );
-        final cachedStock = stockRows.isEmpty
-            ? null
-            : (stockRows.first['quantity'] as num?)?.toDouble();
-
-        final resolvedStockLevel = product.stockLevel ?? cachedStock ?? 0.0;
-
-        final normalizedProduct = product.copyWith(
-          stockLevel: resolvedStockLevel,
-        );
-
-        // Images: `synced_assets` is keyed by the feed's image_hash change
-        // token (registerAsset); a REST url change needs no invalidation
-        // here (the image widget falls back to the network for an unknown
-        // url).
-        final newThumbnailUrl = product.thumbnailUrl;
-
-        await txn.insert(
-          OfflineConstants.productsTable,
-          {
-            'id': id,
-            'category_id': product.category,
-            'name': product.name,
-            'sku': product.sku,
-            'barcode': product.barcode,
-            'price': product.price,
-            'stock_level': resolvedStockLevel,
-            'thumbnail_url': newThumbnailUrl,
-            'image_url': product.image,
-            'json': jsonEncode(_productToJson(normalizedProduct)),
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-    });
   }
 
   Future<void> saveStockToCache(List<StockData> stockList) async {
@@ -454,6 +353,13 @@ class OfflineLocalCache {
     }
 
     await db.transaction((txn) async {
+      // M1: catalog rows with unsynced outbox rows come back when the same
+      // account signs in again (restored at the end of its bootstrap).
+      try {
+        await CatalogStash.stashForLogout(txn);
+      } catch (_) {
+        // Never block logout on the stash (outbox is kept either way).
+      }
       await safeDeleteTable(txn, OfflineConstants.businessesTable);
       await safeDeleteTable(txn, OfflineConstants.shopsTable);
       await safeDeleteTable(txn, OfflineConstants.categoriesTable);
@@ -465,8 +371,10 @@ class OfflineLocalCache {
       await safeDeleteTable(txn, 'synced_assets');
       await safeDeleteTable(txn, 'synced_entities');
 
-      // Unsynced data is never destroyed here: the sync outbox and deferred
-      // pulls are untouched (explicit discard is OutboxStore.discardAll).
+      // Unsynced data is never destroyed here: the sync outbox, deferred
+      // pulls and `pending_uploads` (staged images of unsent creates/edits,
+      // and their files under pending_images/) are untouched (explicit
+      // discard is OutboxStore.discardAll).
       await safeDeleteTable(txn, OfflineConstants.vendorsTable);
       await safeDeleteTable(txn, OfflineConstants.premiumSummaryTable);
       await safeDeleteTable(txn, OfflineConstants.inboundTransactionsTable);
@@ -486,8 +394,8 @@ class OfflineLocalCache {
     await _deleteLegacyAssetsDirectory();
   }
 
-  /// Active vendors only, matching the REST list. Inactive rows (written by
-  /// the sync `VendorApplier` or a REST deactivation) stay in the table so
+  /// Active vendors only. Inactive rows (a local delete/deactivation waiting
+  /// to sync, or written by the sync `VendorApplier`) stay in the table so
   /// inbound history keeps its vendor names; they are just not listed.
   Future<List<VendorData>> getVendors() async {
     final rows = await _db.getJsonList(OfflineConstants.vendorsTable);
@@ -495,49 +403,6 @@ class OfflineLocalCache {
         .where((r) => r['is_active'] != false)
         .map(VendorData.fromJson)
         .toList();
-  }
-
-  /// REST vendor writer (vendors screen). UPSERT only: the REST list is
-  /// active-only and paged, so it is NOT the full set and must never delete
-  /// rows the sync `VendorApplier` wrote (inactive vendors, inbound vendor
-  /// names). An existing row keeps its feed `version` (REST content is the
-  /// current server state, at least as new), so an older feed row can never
-  /// roll it back. Removal goes through [removeVendorFromCache].
-  Future<void> saveVendors(List<VendorData> vendors) async {
-    final db = await _db.database;
-    final now = DateTime.now().toUtc().toIso8601String();
-    await db.transaction((txn) async {
-      for (final vendor in vendors) {
-        final id = vendor.id;
-        if (id.isEmpty) continue;
-        final values = {'json': jsonEncode(vendor.toJson()), 'updated_at': now};
-        final updated = await txn.update(
-          OfflineConstants.vendorsTable,
-          values,
-          where: 'id = ?',
-          whereArgs: [id],
-        );
-        if (updated == 0) {
-          await txn.insert(
-            OfflineConstants.vendorsTable,
-            {'id': id, ...values},
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
-      }
-    });
-  }
-
-  /// A vendor the user deleted through REST (the feed's `delete` later
-  /// confirms it).
-  Future<void> removeVendorFromCache(String id) async {
-    if (id.isEmpty) return;
-    final db = await _db.database;
-    await db.delete(
-      OfflineConstants.vendorsTable,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
   }
 
   Future<PremiumSummaryData?> getPremiumSummary({String? shopId}) async {
@@ -633,26 +498,5 @@ class OfflineLocalCache {
     } catch (_) {
       // Do not block logout if file cleanup fails.
     }
-  }
-
-  Future<void> deleteProductFromCache(String productId) async {
-    final cleanId = productId.trim();
-    if (cleanId.isEmpty) return;
-
-    final db = await _db.database;
-
-    await db.transaction((txn) async {
-      await txn.delete(
-        OfflineConstants.productsTable,
-        where: 'id = ?',
-        whereArgs: [cleanId],
-      );
-
-      await txn.delete(
-        OfflineConstants.stockTable,
-        where: 'product_id = ?',
-        whereArgs: [cleanId],
-      );
-    });
   }
 }

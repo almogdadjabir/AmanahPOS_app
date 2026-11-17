@@ -16,11 +16,14 @@ void main() {
   );
 
   testWidgets('renders BarChart with peak hours title', (tester) async {
-    final hours = List.generate(24, (h) => PeakHourStat(
-      hour: h,
-      salesCount: h == 14 ? 5 : 0,
-      amount: h == 14 ? 500.0 : 0.0,
-    ));
+    final hours = List.generate(
+      24,
+      (h) => PeakHourStat(
+        hour: h,
+        salesCount: h == 14 ? 5 : 0,
+        amount: h == 14 ? 500.0 : 0.0,
+      ),
+    );
     await tester.pumpWidget(wrap(PeakHoursCard(peakHours: hours)));
     await tester.pumpAndSettle();
     expect(find.text('Peak Hours'), findsOneWidget);

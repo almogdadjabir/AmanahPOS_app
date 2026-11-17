@@ -182,8 +182,22 @@ class _PosScreenState extends State<PosScreen> {
         BlocListener<PosBloc, PosState>(
           listenWhen: (prev, curr) =>
               prev.submitStatus != curr.submitStatus ||
-              prev.submitError != curr.submitError,
+              prev.submitError != curr.submitError ||
+              prev.removedUnavailable != curr.removedUnavailable,
           listener: (context, state) {
+            if (state.removedUnavailable.isNotEmpty) {
+              // Fix-wave I2: lines whose product was merged, discarded or
+              // deleted were dropped (at checkout or while the cart was open).
+              GlobalSnackBar.show(
+                message: context.tr.posItemsUnavailable(
+                  state.removedUnavailable.join(', '),
+                ),
+                isError: true,
+                isAutoDismiss: false,
+              );
+              context.read<PosBloc>().add(const PosAcknowledgeSubmit());
+              return;
+            }
             if (state.submitStatus == PosSubmitStatus.idle &&
                 state.submitError?.isNotEmpty == true) {
               GlobalSnackBar.show(message: state.submitError!, isError: true);

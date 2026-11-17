@@ -1,34 +1,26 @@
-import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
 import 'package:amana_pos/features/products/data/model/request/update_product_request_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/add_product_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
-import 'package:amana_pos/features/products/data/model/response/product_response_dto.dart';
 import 'package:fpdart/fpdart.dart';
 
+/// Product writes (Phase 3): local row + outbox through `ProductService`,
+/// never REST. Reads come from SQLite (`OfflineLocalCache`); the sync feed
+/// is the only source of server changes. Left = a user-facing message.
 abstract class ProductRepository {
-  Future<Either<String?, CategoryProductsResponseDto>> getCategoryProducts({
-    required String categoryId,
-    required int page,
-    required int pageSize,
+  /// Returns the new product id. [initialQuantity] + [shopId]: an opening
+  /// `stock.add` in the same write. [newCategoryName]: when the dto has no
+  /// category, that category is reused or created in the same write.
+  Future<Either<String, String>> addProduct(
+    AddProductRequestDto request, {
+    String? initialQuantity,
+    String? shopId,
+    String? newCategoryName,
   });
 
-  Future<Either<String?, CategoryResponseDto>> getCategories();
+  Future<Either<String, Unit>> editProduct(
+    String productId,
+    UpdateProductRequestDto request,
+  );
 
-  Future<Either<String?, ProductListResponseDto>> getProducts({
-    required int page,
-    int pageSize = 20,
-    String? search,
-    String? isActive,
-  });
-
-  Future<Either<String?, CategoryProductsResponseDto>> getProductsByCategory({
-    required String categoryId,
-    required int page,
-    int pageSize = 20,
-  });
-  Future<Either<String?, AddProductResponseDto>> addProduct(AddProductRequestDto request);
-
-  Future<Either<String?, bool>> deactivateProduct(String productId);
-  Future<Either<String?, bool>> editProduct(String productId, UpdateProductRequestDto request);
+  /// Soft delete (hidden at once) until the server confirms it.
+  Future<Either<String, Unit>> deleteProduct(String productId);
 }
