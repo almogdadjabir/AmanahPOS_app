@@ -4,7 +4,12 @@ import 'package:amana_pos/common/services/notifications/notification_permission.
 import 'package:flutter_test/flutter_test.dart';
 
 class _Fake implements NotificationPermissionGateway {
-  _Fake({this.supported = true, this.ios = false, this.denied = true, this.boom = false});
+  _Fake({
+    this.supported = true,
+    this.ios = false,
+    this.denied = true,
+    this.boom = false,
+  });
   final bool supported, ios, denied, boom;
   int iosCalls = 0, androidCalls = 0;
   @override
@@ -53,7 +58,9 @@ void main() {
   });
 
   test('a throwing platform call never escapes', () async {
-    await requestNotificationPermissionInContext(gateway: _Fake(ios: true, boom: true));
+    await requestNotificationPermissionInContext(
+      gateway: _Fake(ios: true, boom: true),
+    );
     resetNotificationPermissionAskedForTest();
     await requestNotificationPermissionInContext(gateway: _Fake(boom: true));
   });
@@ -78,17 +85,21 @@ void main() {
       }
     });
     test('the main screen asks after sign-in', () {
-      final s = File('lib/features/main_screen/presentation/main_screen.dart')
-          .readAsStringSync();
+      final s = File(
+        'lib/features/main_screen/presentation/main_screen.dart',
+      ).readAsStringSync();
       expect(s.contains('requestNotificationPermissionInContext'), isTrue);
     });
     test('release builds never default to a LAN address', () {
-      final e = File('lib/config/environment/environment.dart').readAsStringSync();
+      final e = File(
+        'lib/config/environment/environment.dart',
+      ).readAsStringSync();
       expect(e.contains('!kDebugMode) return prodBaseURL'), isTrue);
     });
     test('login sends the real platform', () {
-      final s = File('lib/features/login/presentation/bloc/login_bloc.dart')
-          .readAsStringSync();
+      final s = File(
+        'lib/features/login/presentation/bloc/login_bloc.dart',
+      ).readAsStringSync();
       expect(s.contains("platform: 'android'"), isFalse);
     });
   });

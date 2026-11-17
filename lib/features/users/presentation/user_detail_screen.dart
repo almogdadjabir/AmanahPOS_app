@@ -2,6 +2,7 @@ import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_actions.dart';
+import 'package:amana_pos/features/users/presentation/widgets/user_conflict_banner.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_format.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_pickers.dart';
 import 'package:amana_pos/features/users/presentation/widgets/user_row.dart';
@@ -115,10 +116,12 @@ class _Body extends StatelessWidget {
     final shops = activeShops(context);
     final last = user.lastLogin;
     final joined = user.joinedAt;
+    final editable = canEditTeamMember(context, user);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        UserConflictBanner(user: user),
         Column(
           children: [
             UserAvatar(user: user, size: 84),
@@ -151,13 +154,13 @@ class _Body extends StatelessWidget {
             _KvRow(
               label: tr.tmRole,
               value: userRoleLabel(context, user.role),
-              onTap: () => _pickRole(context),
+              onTap: editable ? () => _pickRole(context) : null,
             ),
             if (multiShop)
               _KvRow(
                 label: tr.tmBranch,
                 value: shopName(shops, user.defaultShopId) ?? '-',
-                onTap: () => _pickBranch(context),
+                onTap: editable ? () => _pickBranch(context) : null,
               ),
           ],
         ),
@@ -174,23 +177,24 @@ class _Body extends StatelessWidget {
               _KvRow(label: tr.tmJoined, value: userJoined(context, joined)),
           ],
         ),
-        const SizedBox(height: 22),
-        AppFormGroup(
-          footer: tr.tmCanSignInFoot,
-          children: [
-            _KvRow(
-              label: tr.tmCanSignIn,
-              trailing: CupertinoSwitch(
-                value: user.isActiveUser,
-                activeTrackColor: colors.primary,
-                onChanged: (v) {
-                  HapticFeedback.selectionClick();
-                  _toggleActive(context, v);
-                },
+        if (editable) const SizedBox(height: 22),
+        if (editable)
+          AppFormGroup(
+            footer: tr.tmCanSignInFoot,
+            children: [
+              _KvRow(
+                label: tr.tmCanSignIn,
+                trailing: CupertinoSwitch(
+                  value: user.isActiveUser,
+                  activeTrackColor: colors.primary,
+                  onChanged: (v) {
+                    HapticFeedback.selectionClick();
+                    _toggleActive(context, v);
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
       ],
     );
   }

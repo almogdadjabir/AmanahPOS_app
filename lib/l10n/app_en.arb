@@ -1715,5 +1715,17 @@
   "invNoVendorsYet": "No vendors yet",
   "invAddVendor": "Add Vendor",
   "invEditVendor": "Edit Vendor",
-  "invVendorNameLabel": "Name *"
+  "invVendorNameLabel": "Name *",
+  "userInvitePending": "Invite pending",
+  "userSyncPending": "Waiting to sync",
+  "userSyncFailed": "Not applied",
+  "userConflictTitle": "Change not applied",
+  "userConflictBody": "{name} was changed on another device. Now: {current}. Your change: {yours}.",
+  "@userConflictBody": {"placeholders": {"name": {"type": "String"}, "current": {"type": "String"}, "yours": {"type": "String"}}},
+  "userConflictApplyMine": "Apply mine again",
+  "userConflictDismiss": "Dismiss",
+  "userPhoneExists": "A team member with this phone number already exists.",
+  "userChangeRefused": "The server refused this change: {reason}",
+  "@userChangeRefused": {"placeholders": {"reason": {"type": "String"}}},
+  "userChangeReactivate": "Reactivate member"
 }

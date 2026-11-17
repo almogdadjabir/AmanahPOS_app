@@ -144,7 +144,9 @@ class _Dev {
 BigInt _units(String s) {
   final p = s.split('.');
   return BigInt.parse(p[0]) * BigInt.from(1000) +
-      BigInt.parse((p.length > 1 ? p[1] : '0').padRight(3, '0').substring(0, 3));
+      BigInt.parse(
+        (p.length > 1 ? p[1] : '0').padRight(3, '0').substring(0, 3),
+      );
 }
 
 void main() {
@@ -167,102 +169,126 @@ void main() {
     return d;
   }
 
-  test('offline sale then offline refund: both reach the server, refund counted once', () async {
-    final a = await dev('dev-a');
-    final sale = await a.sell(['3']);
-    final line = (await a.lineIds(sale.id)).single;
-    await a.refunds.refund(
-      saleId: sale.id,
-      quantitiesByLineId: {line: '2'},
-      method: 'cash',
-    );
-    await a.sync();
-    await a.sync();
-    expect(await a.states('pending'), 0);
-    expect(await a.db.query('sale_refunds'), hasLength(1));
-    expect((await a.counted(sale.id))[line], _units('2'));
-    expect(await a.db.query('outbox', where: "status != 'done'"), isEmpty);
-    expect(server.tables['sale']![sale.id]!['status'], 'partial_refund');
-  });
+  test(
+    'offline sale then offline refund: both reach the server, refund counted once',
+    () async {
+      final a = await dev('dev-a');
+      final sale = await a.sell(['3']);
+      final line = (await a.lineIds(sale.id)).single;
+      await a.refunds.refund(
+        saleId: sale.id,
+        quantitiesByLineId: {line: '2'},
+        method: 'cash',
+      );
+      await a.sync();
+      await a.sync();
+      expect(await a.states('pending'), 0);
+      expect(await a.db.query('sale_refunds'), hasLength(1));
+      expect((await a.counted(sale.id))[line], _units('2'));
+      expect(await a.db.query('outbox', where: "status != 'done'"), isEmpty);
+      expect(server.tables['sale']![sale.id]!['status'], 'partial_refund');
+    },
+  );
 
-  test('two devices refund the same line: one applied, the other voided and flagged', () async {
-    final a = await dev('dev-a');
-    final b = await dev('dev-b');
-    final sale = await a.sell(['3']);
-    await a.sync();
-    await b.sync();
-    final line = (await a.lineIds(sale.id)).single;
-    await a.refunds.refund(saleId: sale.id, quantitiesByLineId: {line: '3'}, method: 'cash');
-    await b.refunds.refund(saleId: sale.id, quantitiesByLineId: {line: '3'}, method: 'cash');
-    await a.sync();
-    await b.sync();
-    await a.sync();
-    await b.sync();
-    expect(await a.states('synced'), 1);
-    expect(await b.states('rejected'), 1);
-    expect(await b.states('synced'), 1, reason: "A's refund pulled onto B");
-    expect((await b.counted(sale.id))[line], _units('3'));
-    expect((await a.counted(sale.id))[line], _units('3'));
-    final sb = (await b.db.query('sales', where: 'id = ?', whereArgs: [sale.id])).single;
-    expect(sb['status'], 'refunded');
-  });
-
-  test('randomized refunds from two devices never exceed sold, never double count', () async {
-    final seeds = int.tryParse(Platform.environment['CONV_SEEDS'] ?? '') ?? 15;
-    for (var seed = 0; seed < seeds; seed++) {
-      final r = Random(seed);
-      for (final d in devs) {
-        await d.dispose();
-      }
-      devs.clear();
-      server = FakeSyncServer(now: () => DateTime.utc(2026, 11, 17, 9));
+  test(
+    'two devices refund the same line: one applied, the other voided and flagged',
+    () async {
       final a = await dev('dev-a');
       final b = await dev('dev-b');
-      final qtys = [for (var i = 0; i < 3; i++) '${r.nextInt(5) + 1}'];
-      final sale = await a.sell(qtys);
+      final sale = await a.sell(['3']);
       await a.sync();
       await b.sync();
-      final lines = await a.lineIds(sale.id);
-      for (var step = 0; step < 6; step++) {
-        final d = r.nextBool() ? a : b;
-        final i = r.nextInt(lines.length);
-        final q = '${r.nextInt(3) + 1}';
-        try {
-          await d.refunds.refund(
-            saleId: sale.id,
-            quantitiesByLineId: {lines[i]: q},
-            method: r.nextBool() ? 'cash' : 'bankak',
-          );
-        } on RefundValidationException {
-          // refused locally: the guard held.
+      final line = (await a.lineIds(sale.id)).single;
+      await a.refunds.refund(
+        saleId: sale.id,
+        quantitiesByLineId: {line: '3'},
+        method: 'cash',
+      );
+      await b.refunds.refund(
+        saleId: sale.id,
+        quantitiesByLineId: {line: '3'},
+        method: 'cash',
+      );
+      await a.sync();
+      await b.sync();
+      await a.sync();
+      await b.sync();
+      expect(await a.states('synced'), 1);
+      expect(await b.states('rejected'), 1);
+      expect(await b.states('synced'), 1, reason: "A's refund pulled onto B");
+      expect((await b.counted(sale.id))[line], _units('3'));
+      expect((await a.counted(sale.id))[line], _units('3'));
+      final sb = (await b.db.query(
+        'sales',
+        where: 'id = ?',
+        whereArgs: [sale.id],
+      )).single;
+      expect(sb['status'], 'refunded');
+    },
+  );
+
+  test(
+    'randomized refunds from two devices never exceed sold, never double count',
+    () async {
+      final seeds =
+          int.tryParse(Platform.environment['CONV_SEEDS'] ?? '') ?? 15;
+      for (var seed = 0; seed < seeds; seed++) {
+        final r = Random(seed);
+        for (final d in devs) {
+          await d.dispose();
         }
-        if (r.nextInt(3) == 0) await (r.nextBool() ? a : b).sync();
-      }
-      for (var k = 0; k < 3; k++) {
+        devs.clear();
+        server = FakeSyncServer(now: () => DateTime.utc(2026, 11, 17, 9));
+        final a = await dev('dev-a');
+        final b = await dev('dev-b');
+        final qtys = [for (var i = 0; i < 3; i++) '${r.nextInt(5) + 1}'];
+        final sale = await a.sell(qtys);
         await a.sync();
         await b.sync();
-      }
-      for (final d in [a, b]) {
-        expect(await d.states('pending'), 0, reason: 'seed $seed ${d.name}');
-        final counted = await d.counted(sale.id);
-        for (var i = 0; i < lines.length; i++) {
-          final onServer = server.refundedQuantity(sale.id, lines[i]);
-          expect(
-            counted[lines[i]] ?? BigInt.zero,
-            onServer,
-            reason: 'seed $seed ${d.name} line $i',
-          );
-          expect(onServer <= _units(qtys[i]), isTrue, reason: 'seed $seed');
+        final lines = await a.lineIds(sale.id);
+        for (var step = 0; step < 6; step++) {
+          final d = r.nextBool() ? a : b;
+          final i = r.nextInt(lines.length);
+          final q = '${r.nextInt(3) + 1}';
+          try {
+            await d.refunds.refund(
+              saleId: sale.id,
+              quantitiesByLineId: {lines[i]: q},
+              method: r.nextBool() ? 'cash' : 'bankak',
+            );
+          } on RefundValidationException {
+            // refused locally: the guard held.
+          }
+          if (r.nextInt(3) == 0) await (r.nextBool() ? a : b).sync();
         }
-        // One counted row per refund the server holds.
-        final counts = Sqflite.firstIntValue(
-          await d.db.rawQuery(
-            "SELECT COUNT(*) FROM sale_refunds WHERE sync_state != 'rejected'",
-          ),
-        )!;
-        final serverRefunds = server.feed.where((c) => c.entity == 'refund').length;
-        expect(counts, serverRefunds, reason: 'seed $seed ${d.name} rows');
+        for (var k = 0; k < 3; k++) {
+          await a.sync();
+          await b.sync();
+        }
+        for (final d in [a, b]) {
+          expect(await d.states('pending'), 0, reason: 'seed $seed ${d.name}');
+          final counted = await d.counted(sale.id);
+          for (var i = 0; i < lines.length; i++) {
+            final onServer = server.refundedQuantity(sale.id, lines[i]);
+            expect(
+              counted[lines[i]] ?? BigInt.zero,
+              onServer,
+              reason: 'seed $seed ${d.name} line $i',
+            );
+            expect(onServer <= _units(qtys[i]), isTrue, reason: 'seed $seed');
+          }
+          // One counted row per refund the server holds.
+          final counts = Sqflite.firstIntValue(
+            await d.db.rawQuery(
+              "SELECT COUNT(*) FROM sale_refunds WHERE sync_state != 'rejected'",
+            ),
+          )!;
+          final serverRefunds = server.feed
+              .where((c) => c.entity == 'refund')
+              .length;
+          expect(counts, serverRefunds, reason: 'seed $seed ${d.name} rows');
+        }
       }
-    }
-  });
+    },
+  );
 }

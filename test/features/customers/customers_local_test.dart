@@ -49,19 +49,26 @@ void main() {
 
   test('search, active filter and paging work from local rows', () async {
     for (final n in ['Zed', 'Amal', 'Bashir']) {
-      await repo.createCustomer(request: CustomerRequestDto(name: n, phone: '09$n'));
+      await repo.createCustomer(
+        request: CustomerRequestDto(name: n, phone: '09$n'),
+      );
     }
     final amal = (await list(search: 'amal')).single;
     await repo.setCustomerActive(customerId: amal.id!, isActive: false);
     expect((await list()).map((c) => c.name), ['Bashir', 'Zed']);
-    expect((await list(filter: CustomerActiveFilter.inactive)).single.name, 'Amal');
+    expect(
+      (await list(filter: CustomerActiveFilter.inactive)).single.name,
+      'Amal',
+    );
     expect(await list(filter: CustomerActiveFilter.all), hasLength(3));
     expect((await list(size: 1, page: 2)).single.name, 'Zed');
     expect(await list(search: '100%'), isEmpty);
   });
 
   test('empty name is refused locally', () async {
-    final r = await repo.createCustomer(request: const CustomerRequestDto(name: ' '));
+    final r = await repo.createCustomer(
+      request: const CustomerRequestDto(name: ' '),
+    );
     expect(r.isLeft(), isTrue);
   });
 }

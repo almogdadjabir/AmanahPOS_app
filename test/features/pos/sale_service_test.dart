@@ -520,11 +520,14 @@ void main() {
       expect(sale.items.single.productId, isNull);
     });
 
-    test('unavailableProductIds reports missing and inactive ids only', () async {
-      await f.db.delete('products', where: 'id = ?', whereArgs: [kP2]);
-      expect(await service.unavailableProductIds({kP1, kP2}), {kP2});
-      expect(await service.unavailableProductIds(const []), isEmpty);
-    });
+    test(
+      'unavailableProductIds reports missing and inactive ids only',
+      () async {
+        await f.db.delete('products', where: 'id = ?', whereArgs: [kP2]);
+        expect(await service.unavailableProductIds({kP1, kP2}), {kP2});
+        expect(await service.unavailableProductIds(const []), isEmpty);
+      },
+    );
   });
 
   group('schema v9', () {

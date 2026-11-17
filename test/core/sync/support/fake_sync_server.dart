@@ -182,6 +182,11 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
   /// every mutation outside the BE CASHIER_ALLOWED set and for image PUTs.
   String role = 'owner';
 
+  /// The signed-in user of this view and the tenant owner (BE `_staff`
+  /// refuses edits of either).
+  String callerUserId = 'owner-1';
+  String ownerUserId = 'owner-1';
+
   /// The next N image PUTs store the image, then lose the response.
   int dropImageResponseAfterApply = 0;
   int imagePutCalls = 0;
@@ -282,7 +287,16 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
       );
     }
     final after = _decode(cursor);
-    final newer = _c.feed.where((c) => c.seq > after).toList();
+    // BE cashier scope: only themself as `user` (other filters not modelled).
+    final newer = _c.feed
+        .where(
+          (c) =>
+              c.seq > after &&
+              !(role == 'cashier' &&
+                  c.entity == 'user' &&
+                  c.id != callerUserId),
+        )
+        .toList();
     final page = newer.take(limit).toList();
     return PullResponse(
       serverTime: _serverTime,
@@ -583,6 +597,8 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
         return _inboundCreate(e, device);
       case 'category' || 'product' || 'vendor':
         return _catalogOp(e, device);
+      case 'user':
+        return _userOp(e, device);
       default:
         return _rowOp(e, device);
     }
@@ -609,6 +625,127 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
       ),
     );
     return seq;
+  }
+
+  /// BE `handlers.user_create` / `user_update`: owner-only (the cashier gate
+  /// above), owner/self untouchable, role/shop need a fresh `base_version`.
+  PushResult _userOp(OutboxEntry e, String device) {
+    final table = _c.tables.putIfAbsent('user', () => {});
+    final p = e.payload;
+    Map<String, dynamic> snap(Map<String, dynamic> r) => {
+      ...r,
+      'status': r['status'] ?? 'active',
+    };
+    if (e.op == 'create') {
+      final existing = table[e.entityId];
+      if (existing != null) {
+        return _reject(
+          e,
+          'conflict_unique',
+          'User already exists.',
+          state: snap(existing),
+          conflictEntityId: e.entityId,
+        );
+      }
+      for (final r in table.values) {
+        if (r['phone'] == p['phone']) {
+          return _reject(
+            e,
+            'conflict_unique',
+            'A user with this phone already exists.',
+            conflictEntityId: r['id'] as String,
+            errors: {
+              'phone': ['Already exists.'],
+            },
+          );
+        }
+      }
+      final row = <String, dynamic>{
+        'id': e.entityId,
+        'version': 1,
+        'phone': p['phone'],
+        'full_name': p['full_name'],
+        'role': p['role'],
+        'default_shop': p['default_shop_id'],
+        'is_active': true,
+        'status': 'invited',
+        'last_login_at': null,
+        'created_at': _serverTime.toIso8601String(),
+      };
+      table[e.entityId] = row;
+      final s = _emit('user', 'upsert', e.entityId, 1, row, device);
+      return PushResult(
+        mutationId: e.mutationId,
+        status: PushStatus.applied,
+        entityId: e.entityId,
+        version: 1,
+        serverSeq: s,
+        inviteSent: true,
+      );
+    }
+    final u = table[e.entityId];
+    if (u == null) return _reject(e, 'not_found', 'User not found.');
+    if (e.entityId == callerUserId || e.entityId == ownerUserId) {
+      return _reject(e, 'forbidden', 'Use profile settings.');
+    }
+    final changes = <String, dynamic>{};
+    switch (e.op) {
+      case 'deactivate':
+        changes['is_active'] = false;
+      case 'set_role':
+        changes['role'] = p['role'];
+      case 'set_shop':
+        changes['default_shop'] = p['default_shop_id'];
+      default:
+        for (final (k, to) in const [
+          ('full_name', 'full_name'),
+          ('role', 'role'),
+          ('is_active', 'is_active'),
+          ('default_shop_id', 'default_shop'),
+        ]) {
+          if (p.containsKey(k)) changes[to] = p[k];
+        }
+    }
+    if ((e.op == 'set_role' || e.op == 'set_shop') && e.baseVersion == null) {
+      return _reject(
+        e,
+        'validation_error',
+        'base_version is required for role/shop changes.',
+        errors: {
+          'base_version': ['Required.'],
+        },
+      );
+    }
+    final guarded =
+        e.op == 'set_role' ||
+        e.op == 'set_shop' ||
+        changes.containsKey('role') ||
+        changes.containsKey('default_shop');
+    if (guarded && e.baseVersion != null && e.baseVersion != u['version']) {
+      return _reject(
+        e,
+        'conflict_version',
+        'This user changed since you edited it.',
+        state: snap(u),
+      );
+    }
+    u.addAll(changes);
+    u['version'] = (u['version'] as int) + 1;
+    final s = _emit(
+      'user',
+      'upsert',
+      e.entityId,
+      u['version'] as int,
+      u,
+      device,
+    );
+    return PushResult(
+      mutationId: e.mutationId,
+      status: PushStatus.applied,
+      entityId: e.entityId,
+      version: u['version'] as int,
+      serverSeq: s,
+    );
   }
 
   PushResult _rowOp(OutboxEntry e, String device) {
@@ -1607,8 +1744,7 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
 
   /// Cumulative refunded quantity of a sale line, thousandths.
   BigInt refundedQuantity(String saleId, String saleItemId) =>
-      (_c.refunded['$saleId|$saleItemId'] ?? BigInt.zero) ~/
-      BigInt.from(1000);
+      (_c.refunded['$saleId|$saleItemId'] ?? BigInt.zero) ~/ BigInt.from(1000);
 
   PushResult _saleCancel(OutboxEntry e, String device) {
     final table = _c.tables.putIfAbsent('sale', () => {});

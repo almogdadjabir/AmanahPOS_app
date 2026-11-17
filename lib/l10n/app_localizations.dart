@@ -8305,6 +8305,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name *'**
   String get invVendorNameLabel;
+
+  /// No description provided for @userInvitePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite pending'**
+  String get userInvitePending;
+
+  /// No description provided for @userSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync'**
+  String get userSyncPending;
+
+  /// No description provided for @userSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not applied'**
+  String get userSyncFailed;
+
+  /// No description provided for @userConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change not applied'**
+  String get userConflictTitle;
+
+  /// No description provided for @userConflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} was changed on another device. Now: {current}. Your change: {yours}.'**
+  String userConflictBody(String name, String current, String yours);
+
+  /// No description provided for @userConflictApplyMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply mine again'**
+  String get userConflictApplyMine;
+
+  /// No description provided for @userConflictDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get userConflictDismiss;
+
+  /// No description provided for @userPhoneExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A team member with this phone number already exists.'**
+  String get userPhoneExists;
+
+  /// No description provided for @userChangeRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'The server refused this change: {reason}'**
+  String userChangeRefused(String reason);
+
+  /// No description provided for @userChangeReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate member'**
+  String get userChangeReactivate;
 }
 
 class _AppLocalizationsDelegate

@@ -910,11 +910,13 @@ void main() {
     );
     final saleRow = (await d.rows(sale.id)).single;
     expect(saleRow.status, OutboxStatus.pending, reason: 'create is done');
-    Future<num?> localQty() async => (await d.db.query(
-      'stock',
-      where: 'product_id = ? AND shop_id = ?',
-      whereArgs: [p, _shop],
-    )).firstOrNull?['quantity'] as num?;
+    Future<num?> localQty() async =>
+        (await d.db.query(
+              'stock',
+              where: 'product_id = ? AND shop_id = ?',
+              whereArgs: [p, _shop],
+            )).firstOrNull?['quantity']
+            as num?;
     expect(await localQty(), 3);
 
     expect(await d.sync(), SyncOutcome.completed);
@@ -969,7 +971,10 @@ void main() {
     );
     expect(await d.sync(), SyncOutcome.completed);
     final r = await d.rowOf(row.mutationId);
-    expect([r.status, r.errorCode], [OutboxStatus.rejected, 'dependency_failed']);
+    expect(
+      [r.status, r.errorCode],
+      [OutboxStatus.rejected, 'dependency_failed'],
+    );
 
     // M9: the row the BE failed (with its own message) is revived when the
     // create it named is retried; matched by column, not by message text.

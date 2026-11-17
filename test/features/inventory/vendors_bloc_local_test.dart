@@ -109,7 +109,9 @@ void main() {
     expect(s.vendors.map((v) => v.name), containsAll(['Acme', 'Bolt']));
 
     done = submitted();
-    bloc.add(const OnVendorUpdate(kVendor, UpdateVendorRequestDto(phone: '09')));
+    bloc.add(
+      const OnVendorUpdate(kVendor, UpdateVendorRequestDto(phone: '09')),
+    );
     s = await done;
     expect(s.vendors.singleWhere((v) => v.id == kVendor).phone, '09');
 
@@ -119,9 +121,10 @@ void main() {
     expect(s.submitStatus, VendorsSubmitStatus.success);
     expect(s.vendors.map((v) => v.id), isNot(contains(kVendor)));
 
-    final ops = (await f.db.query('outbox', orderBy: 'seq'))
-        .map((r) => '${r['entity']}.${r['op']}')
-        .toList();
+    final ops = (await f.db.query(
+      'outbox',
+      orderBy: 'seq',
+    )).map((r) => '${r['entity']}.${r['op']}').toList();
     expect(ops, ['vendor.create', 'vendor.update', 'vendor.delete']);
     verifyZeroInteractions(handler);
   });

@@ -45,44 +45,54 @@ void main() {
     await f.db.close();
   });
 
-  test('submit offline succeeds without network and shows a pending refund', () async {
-    final r = await repo.processRefund(
-      saleId: _sale,
-      request: const RefundRequestDto(
-        items: [RefundItemDto(itemId: _item, quantity: 1)],
-        notes: 'broken',
-      ),
-    );
-    final dto = r.getOrElse((_) => throw StateError('failed'));
-    expect(dto.refundTotal, '2.50');
-    expect(dto.returnedItems!.single.productName, 'Tea');
-    expect(dto.isFullRefund, isFalse);
-    final sale = (await history.byId(_sale))!;
-    expect(sale.refunds.single.isPending, isTrue);
-    expect(sale.refundedTotal, 2.5);
-    expect(sale.items.single.returnableQuantity, 2);
-  });
+  test(
+    'submit offline succeeds without network and shows a pending refund',
+    () async {
+      final r = await repo.processRefund(
+        saleId: _sale,
+        request: const RefundRequestDto(
+          items: [RefundItemDto(itemId: _item, quantity: 1)],
+          notes: 'broken',
+        ),
+      );
+      final dto = r.getOrElse((_) => throw StateError('failed'));
+      expect(dto.refundTotal, '2.50');
+      expect(dto.returnedItems!.single.productName, 'Tea');
+      expect(dto.isFullRefund, isFalse);
+      final sale = (await history.byId(_sale))!;
+      expect(sale.refunds.single.isPending, isTrue);
+      expect(sale.refundedTotal, 2.5);
+      expect(sale.items.single.returnableQuantity, 2);
+    },
+  );
 
-  test('returnable quantity excludes pending refunds; a voided one is flagged, not counted', () async {
-    await repo.processRefund(
-      saleId: _sale,
-      request: const RefundRequestDto(items: [RefundItemDto(itemId: _item, quantity: 3)]),
-    );
-    expect((await history.byId(_sale))!.items.single.returnableQuantity, 0);
-    await f.db.update('sale_refunds', {
-      'sync_state': 'rejected',
-      'error_code': 'refund_exceeds_sold',
-    });
-    final sale = (await history.byId(_sale))!;
-    expect(sale.hasRejectedRefund, isTrue);
-    expect(sale.refundedTotal, 0);
-    expect(sale.items.single.returnableQuantity, 3);
-  });
+  test(
+    'returnable quantity excludes pending refunds; a voided one is flagged, not counted',
+    () async {
+      await repo.processRefund(
+        saleId: _sale,
+        request: const RefundRequestDto(
+          items: [RefundItemDto(itemId: _item, quantity: 3)],
+        ),
+      );
+      expect((await history.byId(_sale))!.items.single.returnableQuantity, 0);
+      await f.db.update('sale_refunds', {
+        'sync_state': 'rejected',
+        'error_code': 'refund_exceeds_sold',
+      });
+      final sale = (await history.byId(_sale))!;
+      expect(sale.hasRejectedRefund, isTrue);
+      expect(sale.refundedTotal, 0);
+      expect(sale.items.single.returnableQuantity, 3);
+    },
+  );
 
   test('RefundValidationException surfaces as a failure message', () async {
     final r = await repo.processRefund(
       saleId: _sale,
-      request: const RefundRequestDto(items: [RefundItemDto(itemId: _item, quantity: 9)]),
+      request: const RefundRequestDto(
+        items: [RefundItemDto(itemId: _item, quantity: 9)],
+      ),
     );
     expect(r.isLeft(), isTrue);
   });

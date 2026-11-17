@@ -845,39 +845,42 @@ void main() {
       });
     });
 
-    test('returns are offered for synced and pending local sales, not rejected', () async {
-      final ok = await saleAt(
-        DateTime.utc(2026, 11, 16, 8),
-        _cash([_tea('1')]),
-      );
-      final pending = await saleAt(
-        DateTime.utc(2026, 11, 16, 9),
-        _cash([_tea('1')]),
-      );
-      final rejected = await saleAt(
-        DateTime.utc(2026, 11, 16, 10),
-        _cash([_tea('1')]),
-      );
-      await f.db.update(
-        'sales',
-        {'sync_state': 'synced'},
-        where: 'id = ?',
-        whereArgs: [ok.id],
-      );
-      await f.db.update(
-        'sales',
-        {'sync_state': 'rejected'},
-        where: 'id = ?',
-        whereArgs: [rejected.id],
-      );
-      final items = {
-        for (final i in (await history.page(page: 1, timezone: _tz)).items)
-          i.id: i,
-      };
-      expect(items[ok.id]!.canBeReturned, isTrue);
-      expect(items[pending.id]!.canBeReturned, isTrue);
-      expect(items[rejected.id]!.canBeReturned, isFalse);
-    });
+    test(
+      'returns are offered for synced and pending local sales, not rejected',
+      () async {
+        final ok = await saleAt(
+          DateTime.utc(2026, 11, 16, 8),
+          _cash([_tea('1')]),
+        );
+        final pending = await saleAt(
+          DateTime.utc(2026, 11, 16, 9),
+          _cash([_tea('1')]),
+        );
+        final rejected = await saleAt(
+          DateTime.utc(2026, 11, 16, 10),
+          _cash([_tea('1')]),
+        );
+        await f.db.update(
+          'sales',
+          {'sync_state': 'synced'},
+          where: 'id = ?',
+          whereArgs: [ok.id],
+        );
+        await f.db.update(
+          'sales',
+          {'sync_state': 'rejected'},
+          where: 'id = ?',
+          whereArgs: [rejected.id],
+        );
+        final items = {
+          for (final i in (await history.page(page: 1, timezone: _tz)).items)
+            i.id: i,
+        };
+        expect(items[ok.id]!.canBeReturned, isTrue);
+        expect(items[pending.id]!.canBeReturned, isTrue);
+        expect(items[rejected.id]!.canBeReturned, isFalse);
+      },
+    );
 
     test('filters: unsynced, payment, status', () async {
       final a = await saleAt(DateTime.utc(2026, 11, 16, 8), _cash([_tea('1')]));

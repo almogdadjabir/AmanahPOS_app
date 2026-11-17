@@ -131,6 +131,7 @@ class CatalogConflictService {
     'product': 'products',
     'category': 'categories',
     'vendor': 'vendors',
+    'customer': 'customers',
   };
 
   /// `json` key set on a row whose discarded change could not be reverted
@@ -160,6 +161,8 @@ class CatalogConflictService {
     'categories.id',
     'categories.parent_id',
     'vendors.id',
+    'customers.id',
+    'sales.customer_id',
     'stock.id',
     'stock.product_id',
     'sale_items.product_id',
@@ -432,6 +435,14 @@ class CatalogConflictService {
             );
           }
         }
+      case 'customer':
+        // Sales of the never-synced copy now belong to the existing one.
+        saleLines = await txn.update(
+          'sales',
+          {'customer_id': serverId},
+          where: 'customer_id = ?',
+          whereArgs: [localId],
+        );
       case 'category':
         products = await txn.update(
           'products',
@@ -852,7 +863,7 @@ class CatalogConflictService {
       await txn.delete('stock', where: 'product_id = ?', whereArgs: [id]);
     }
     await txn.delete(table, where: 'id = ?', whereArgs: [id]);
-    if (entity != 'vendor') {
+    if (entity != 'vendor' && entity != 'customer') {
       await unregisterAssets(txn, entity, id);
       files.addAll(await _uploads.cancel(txn, entity, id));
     }

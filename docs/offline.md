@@ -915,6 +915,38 @@ with the server stopped), confirm the badge shows 3 unsynced, then:
 10. **Logout with unsynced sales, other user logs in.** The worker must not
     push user A's sales under B (A's rows stay pending until A signs in).
 
+**Checklist additions (Phases 3-5, run once on real devices).**
+
+11. **Android 11 vs Android 12+ (`getSdkInt`).** On one Android 11 (or lower)
+    and one Android 12+ device: background the app with 3 unsynced sales.
+    Android 12+: the one-off `amana.sync.now` runs expedited; Android 11: it
+    runs as a normal one-off (no crash, no "foreground info" error in logcat).
+    Both: sales arrive once. First ever `./gradlew assembleDebug` of
+    `MainActivity.getSdkInt` has never been Gradle-built: confirm it builds.
+12. **iOS background.** After a user swipe-away iOS may never run the BGTask:
+    open the app, confirm the badge settles to 0 and nothing duplicated. Check
+    `amana.sync` / `amana.sync.processing` appear in a BGTask debug launch
+    (Xcode: Debug > Simulate Background Fetch / `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"amana.sync"]`).
+13. **Team offline.** Owner, airplane mode: add a member, change a role and a
+    branch, deactivate another. Rows show "Invite pending" / "Waiting to
+    sync". Reconnect: chips clear, the member can sign in, the deactivated
+    member's own device is signed out at its next sync.
+14. **Team conflict.** Two owner devices: A (offline) changes member X's role;
+    B changes X's name and syncs; A reconnects. A shows "Change not applied"
+    with the server's role; "Apply mine again" applies; "Dismiss" shows the
+    server state. Nothing is applied without a tap.
+15. **Refunds offline.** Refund a synced sale in airplane mode: "Refund
+    pending sync", drawer and dashboard net it once; reconnect: it settles,
+    no double refund; refund the same line from a second device: the later one
+    is rejected "refund rejected" and the local refund is reversed.
+16. **Duplicate phone merge.** Create a customer offline with the phone of an
+    existing one on another device, reconnect: the create is rejected;
+    "Merge into existing" moves its sales to the existing customer.
+17. **Ghost rows after a full resync.** Delete a product on the server, keep
+    the phone offline longer than the retention window, reconnect: after the
+    re-bootstrap the product is gone from the list (a local-only or
+    pending-edit item is never removed).
+
 ### How to add an entity
 
 1. Implement `ChangeApplier` (see `lib/core/sync/change_applier.dart`):

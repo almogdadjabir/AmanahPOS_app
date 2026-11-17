@@ -66,3 +66,19 @@ class OnReactivateUser extends UserEvent {
   @override
   List<Object?> get props => [userId];
 }
+
+/// "Apply mine again" on a refused role/shop change.
+class OnApplyUserConflict extends UserEvent {
+  final String mutationId;
+  const OnApplyUserConflict(this.mutationId);
+  @override
+  List<Object?> get props => [mutationId];
+}
+
+/// "Dismiss" on a refused team change.
+class OnDismissUserConflict extends UserEvent {
+  final String mutationId;
+  const OnDismissUserConflict(this.mutationId);
+  @override
+  List<Object?> get props => [mutationId];
+}

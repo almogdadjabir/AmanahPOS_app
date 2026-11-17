@@ -9,8 +9,11 @@ import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/login/data/models/otp_verify_response.dart';
 
 class _MockLoginUseCase extends Mock implements LoginUseCase {}
+
 class _MockBusinessUseCase extends Mock implements BusinessUseCase {}
+
 class _MockOfflineCache extends Mock implements OfflineLocalCache {}
+
 class _MockOfflineStatusBloc extends Mock implements OfflineStatusBloc {}
 
 void main() {
@@ -29,9 +32,11 @@ void main() {
   });
 
   AuthBloc make() => AuthBloc(
-        useCase: login, businessUseCase: business,
-        offlineLocalCache: offline, offlineStatusBloc: offlineStatus,
-      );
+    useCase: login,
+    businessUseCase: business,
+    offlineLocalCache: offline,
+    offlineStatusBloc: offlineStatus,
+  );
 
   const u1 = User(id: 'u1', businessId: 'b1', role: 'owner');
   const u2 = User(id: 'u2', businessId: 'b1', role: 'cashier');

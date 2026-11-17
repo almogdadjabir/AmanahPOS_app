@@ -10,6 +10,7 @@ import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/features/category/domain/category_service.dart';
 import 'package:amana_pos/features/inventory/data/local/stock_local_store.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_vendor_request_dto.dart';
+import 'package:amana_pos/features/customers/domain/customer_service.dart';
 import 'package:amana_pos/features/inventory/domain/vendor_service.dart';
 import 'package:amana_pos/features/pos/domain/sale_service.dart';
 import 'package:amana_pos/features/products/data/model/request/add_product_request_dto.dart';
@@ -112,12 +113,15 @@ void main() {
   Future<List<Map<String, Object?>>> outbox() =>
       f.db.query('outbox', orderBy: 'seq');
 
-  Future<Map<String, Object?>> rowOf(String entity, String id, String op) async =>
-      (await f.db.query(
-        'outbox',
-        where: 'entity = ? AND entity_id = ? AND op = ?',
-        whereArgs: [entity, id, op],
-      )).single;
+  Future<Map<String, Object?>> rowOf(
+    String entity,
+    String id,
+    String op,
+  ) async => (await f.db.query(
+    'outbox',
+    where: 'entity = ? AND entity_id = ? AND op = ?',
+    whereArgs: [entity, id, op],
+  )).single;
 
   /// What the engine does for a rejected create (SyncEngine._writeResult).
   Future<void> reject(
@@ -380,8 +384,10 @@ void main() {
         'sale_refunds.json',
       });
 
-      expect(await f.db.query('products', where: 'id = ?', whereArgs: [pid]),
-          isEmpty);
+      expect(
+        await f.db.query('products', where: 'id = ?', whereArgs: [pid]),
+        isEmpty,
+      );
       final line = (await f.db.query('sale_items')).single;
       expect(line['product_id'], kServerProduct);
       expect(
@@ -462,7 +468,9 @@ void main() {
       final j = jsonDecode(row['json'] as String) as Map;
       await f.db.update(
         'products',
-        {'json': jsonEncode({...j, 'is_active': false})},
+        {
+          'json': jsonEncode({...j, 'is_active': false}),
+        },
         where: 'id = ?',
         whereArgs: [kServerProduct],
       );
@@ -538,8 +546,7 @@ void main() {
     });
 
     test('merge when the server product is not local yet: the local row '
-        'takes the server id until the pull brings the server state',
-        () async {
+        'takes the server id until the pull brings the server state', () async {
       final pid = await products.create(
         const AddProductRequestDto(
           name: 'Cola',
@@ -561,10 +568,7 @@ void main() {
       )).single;
       expect(row['version'], isNull);
       expect(row['server_json'], isNull);
-      expect(
-        (jsonDecode(row['json'] as String) as Map)['id'],
-        kServerProduct,
-      );
+      expect((jsonDecode(row['json'] as String) as Map)['id'], kServerProduct);
       expect(await cellsContaining(pid), isEmpty);
       final stockRow = (await f.db.query(
         'stock',
@@ -647,6 +651,56 @@ void main() {
       expect(report.childCategories, 1);
     });
 
+    test('customer merge: sales and the queued sale follow the existing '
+        'customer, the copy is gone', () async {
+      final cust = CustomerService(writer: f.writer, now: () => f.clock);
+      final cid = await cust.create(name: 'Ali', phone: '0912');
+      const server = 'aaaaaaaa-0000-4000-8000-0000000000c1';
+      await f.db.insert('customers', {
+        'id': server,
+        'name': 'Ali',
+        'phone': '0912',
+        'version': 4,
+        'json': jsonEncode({'id': server, 'name': 'Ali', 'phone': '0912'}),
+      });
+      await f.db.insert('sales', {
+        'id': 's-1',
+        'shop_id': kShop,
+        'customer_id': cid,
+        'status': 'pending',
+        'subtotal': '1',
+        'discount': '0',
+        'tax_amount': '0',
+        'net_amount': '1',
+        'occurred_at': f.clock.toIso8601String(),
+        'sync_state': 'pending',
+      });
+      await rawEnqueue(
+        entity: 'sale',
+        op: 'create',
+        entityId: 's-1',
+        payload: {'client_sale_id': 's-1', 'customer': cid, 'shop': kShop},
+        dependsOn: [cid],
+      );
+      await reject('customer', cid, conflictId: server);
+      final report = await service.mergeInto(cid, server, entity: 'customer');
+      expect(await cellsContaining(cid), isEmpty);
+      expect(report.saleLines, 1);
+      expect(
+        (await f.db.query(
+          'sales',
+          where: 'id = ?',
+          whereArgs: ['s-1'],
+        )).single['customer_id'],
+        server,
+      );
+      expect(
+        await f.db.query('customers', where: 'id = ?', whereArgs: [cid]),
+        isEmpty,
+      );
+      expect((await rowOf('sale', 's-1', 'create'))['status'], 'pending');
+    });
+
     test('vendor merge rewrites inbound vendor ids', () async {
       final vid = await vendors.create(
         const CreateVendorRequestDto(name: 'Nile Foods'),
@@ -692,8 +746,10 @@ void main() {
         (jsonDecode(inbound['payload_json'] as String) as Map)['vendor_id'],
         kServerVendor,
       );
-      expect(await f.db.query('vendors', where: 'id = ?', whereArgs: [vid]),
-          isEmpty);
+      expect(
+        await f.db.query('vendors', where: 'id = ?', whereArgs: [vid]),
+        isEmpty,
+      );
       expect(report.inbound, 1);
       expect(report.requeued, 1);
     });
@@ -718,16 +774,22 @@ void main() {
           final key = '$name.$col';
           final isCatalogPk =
               col == 'id' &&
-              const {'products', 'categories', 'vendors', 'stock'}
-                  .contains(name);
-          if ((idLike.hasMatch(col) || isCatalogPk) &&
-              !covered.contains(key)) {
+              const {
+                'products',
+                'categories',
+                'vendors',
+                'stock',
+              }.contains(name);
+          if ((idLike.hasMatch(col) || isCatalogPk) && !covered.contains(key)) {
             missing.add(key);
           }
         }
       }
-      expect(missing, isEmpty,
-          reason: 'add new id columns to CatalogConflictService');
+      expect(
+        missing,
+        isEmpty,
+        reason: 'add new id columns to CatalogConflictService',
+      );
       expect(CatalogConflictService.notRewritten, {
         'sale_refunds.json',
         'sales.warnings_json',
@@ -845,8 +907,10 @@ void main() {
         await service.discardRejected(create['mutation_id'] as String),
         DiscardOutcome.hasDependents,
       );
-      expect(await f.db.query('categories', where: 'id = ?', whereArgs: [cid]),
-          hasLength(1));
+      expect(
+        await f.db.query('categories', where: 'id = ?', whereArgs: [cid]),
+        hasLength(1),
+      );
       expect((await rowOf('product', pid, 'create'))['status'], 'blocked');
     });
 
@@ -900,23 +964,30 @@ void main() {
         await service.discardRejected(create['mutation_id'] as String),
         DiscardOutcome.mayBeOnServer,
       );
-      expect(await f.db.query('vendors', where: 'id = ?', whereArgs: [vid]),
-          hasLength(1));
+      expect(
+        await f.db.query('vendors', where: 'id = ?', whereArgs: [vid]),
+        hasLength(1),
+      );
     });
 
-    test('a create with no dependents (never sent) is still discarded', () async {
-      final vid = await vendors.create(
-        const CreateVendorRequestDto(name: 'Nile Foods'),
-      );
-      final create = await rowOf('vendor', vid, 'create');
-      expect(
-        await service.discardRejected(create['mutation_id'] as String),
-        DiscardOutcome.discarded,
-      );
-      expect(await outbox(), isEmpty);
-      expect(await f.db.query('vendors', where: 'id = ?', whereArgs: [vid]),
-          isEmpty);
-    });
+    test(
+      'a create with no dependents (never sent) is still discarded',
+      () async {
+        final vid = await vendors.create(
+          const CreateVendorRequestDto(name: 'Nile Foods'),
+        );
+        final create = await rowOf('vendor', vid, 'create');
+        expect(
+          await service.discardRejected(create['mutation_id'] as String),
+          DiscardOutcome.discarded,
+        );
+        expect(await outbox(), isEmpty);
+        expect(
+          await f.db.query('vendors', where: 'id = ?', whereArgs: [vid]),
+          isEmpty,
+        );
+      },
+    );
 
     test('discard rejected update restores server_json', () async {
       await seedServerProduct();
@@ -950,46 +1021,43 @@ void main() {
       expect(await outbox(), isEmpty);
     });
 
-    test('discard of a rejected update keeps a later queued edit on top',
-        () async {
-      await seedServerProduct();
-      await products.update(
-        kServerProduct,
-        const UpdateProductRequestDto(price: '12.00'),
-      );
-      await reject(
-        'product',
-        kServerProduct,
-        op: 'update',
-        code: 'validation_error',
-      );
-      await products.update(
-        kServerProduct,
-        const UpdateProductRequestDto(name: 'Cola Zero'),
-      );
-      final rejected = (await outbox()).firstWhere(
-        (r) => r['status'] == 'rejected',
-      );
-      await service.discardRejected(rejected['mutation_id'] as String);
-      final row = (await f.db.query(
-        'products',
-        where: 'id = ?',
-        whereArgs: [kServerProduct],
-      )).single;
-      expect(row['price'], '9.00');
-      expect(row['name'], 'Cola Zero');
-      expect((await outbox()).single['status'], 'pending');
-    });
+    test(
+      'discard of a rejected update keeps a later queued edit on top',
+      () async {
+        await seedServerProduct();
+        await products.update(
+          kServerProduct,
+          const UpdateProductRequestDto(price: '12.00'),
+        );
+        await reject(
+          'product',
+          kServerProduct,
+          op: 'update',
+          code: 'validation_error',
+        );
+        await products.update(
+          kServerProduct,
+          const UpdateProductRequestDto(name: 'Cola Zero'),
+        );
+        final rejected = (await outbox()).firstWhere(
+          (r) => r['status'] == 'rejected',
+        );
+        await service.discardRejected(rejected['mutation_id'] as String);
+        final row = (await f.db.query(
+          'products',
+          where: 'id = ?',
+          whereArgs: [kServerProduct],
+        )).single;
+        expect(row['price'], '9.00');
+        expect(row['name'], 'Cola Zero');
+        expect((await outbox()).single['status'], 'pending');
+      },
+    );
 
     test('discard of a rejected delete brings the row back', () async {
       await seedServerProduct();
       await products.delete(kServerProduct);
-      await reject(
-        'product',
-        kServerProduct,
-        op: 'delete',
-        code: 'forbidden',
-      );
+      await reject('product', kServerProduct, op: 'delete', code: 'forbidden');
       final del = await rowOf('product', kServerProduct, 'delete');
       await service.discardRejected(del['mutation_id'] as String);
       final row = (await f.db.query(
@@ -1012,10 +1080,9 @@ void main() {
         where: 'entity_id = ?',
         whereArgs: [vid],
       );
-      await f.db.rawUpdate(
-        'UPDATE vendors SET version = 1 WHERE id = ?',
-        [vid],
-      );
+      await f.db.rawUpdate('UPDATE vendors SET version = 1 WHERE id = ?', [
+        vid,
+      ]);
       await rawEnqueue(
         entity: 'vendor',
         op: 'update',
@@ -1077,42 +1144,44 @@ void main() {
   // ------------------------------------------------------- edit and retry
 
   group('editAndRetry', () {
-    test('M5 / T8-9 concern 4: the user\'s edit was already sent on its own; '
-        'it counts as saved and the old rejected price is never resent',
-        () async {
-      await seedServerProduct();
-      await products.update(
-        kServerProduct,
-        const UpdateProductRequestDto(price: '12.00'),
-      );
-      await reject(
-        'product',
-        kServerProduct,
-        op: 'update',
-        code: 'validation_error',
-      );
-      final rejected = await rowOf('product', kServerProduct, 'update');
-      final mid = rejected['mutation_id'] as String;
-      final since = await service.lastSeqOf('product', kServerProduct);
-      await products.update(
-        kServerProduct,
-        const UpdateProductRequestDto(price: '14.00'),
-      );
-      // The engine sent the new edit within the debounce: it is done.
-      await f.db.update(
-        'outbox',
-        {'status': 'done'},
-        where: "entity_id = ? AND seq > ?",
-        whereArgs: [kServerProduct, since],
-      );
-      expect(await service.editAndRetry(mid, editedAfterSeq: since), isTrue);
-      final open = await f.db.query(
-        'outbox',
-        where: "entity_id = ? AND status != 'done'",
-        whereArgs: [kServerProduct],
-      );
-      expect(open, isEmpty, reason: 'nothing left to resend the old 12.00');
-    });
+    test(
+      'M5 / T8-9 concern 4: the user\'s edit was already sent on its own; '
+      'it counts as saved and the old rejected price is never resent',
+      () async {
+        await seedServerProduct();
+        await products.update(
+          kServerProduct,
+          const UpdateProductRequestDto(price: '12.00'),
+        );
+        await reject(
+          'product',
+          kServerProduct,
+          op: 'update',
+          code: 'validation_error',
+        );
+        final rejected = await rowOf('product', kServerProduct, 'update');
+        final mid = rejected['mutation_id'] as String;
+        final since = await service.lastSeqOf('product', kServerProduct);
+        await products.update(
+          kServerProduct,
+          const UpdateProductRequestDto(price: '14.00'),
+        );
+        // The engine sent the new edit within the debounce: it is done.
+        await f.db.update(
+          'outbox',
+          {'status': 'done'},
+          where: "entity_id = ? AND seq > ?",
+          whereArgs: [kServerProduct, since],
+        );
+        expect(await service.editAndRetry(mid, editedAfterSeq: since), isTrue);
+        final open = await f.db.query(
+          'outbox',
+          where: "entity_id = ? AND status != 'done'",
+          whereArgs: [kServerProduct],
+        );
+        expect(open, isEmpty, reason: 'nothing left to resend the old 12.00');
+      },
+    );
 
     test('M5: fields the sent edit did not cover are still retried', () async {
       await seedServerProduct();

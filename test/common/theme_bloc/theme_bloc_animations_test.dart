@@ -31,20 +31,21 @@ void main() {
     Motion.animationsEnabled.value = true;
   });
 
-  ThemeBloc build({int? memMb = 4096}) => ThemeBloc(
-        cacheStorage: cache,
-        memoryProbe: _FakeMemoryProbe(memMb),
-      );
+  ThemeBloc build({int? memMb = 4096}) =>
+      ThemeBloc(cacheStorage: cache, memoryProbe: _FakeMemoryProbe(memMb));
 
   group('OnAnimationsPreferenceChanged', () {
     blocTest<ThemeBloc, ThemeState>(
       'alwaysOff disables animations and persists',
       build: () => build(),
-      act: (bloc) =>
-          bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOff)),
+      act: (bloc) => bloc.add(
+        const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOff),
+      ),
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {
-        verify(() => cache.save(Constants.animationPreference, 'alwaysOff')).called(1);
+        verify(
+          () => cache.save(Constants.animationPreference, 'alwaysOff'),
+        ).called(1);
         expect(Motion.on, isFalse);
         expect(bloc.state.animationPreference, AnimationPreference.alwaysOff);
         expect(bloc.state.animationsEnabled, isFalse);
@@ -54,8 +55,9 @@ void main() {
     blocTest<ThemeBloc, ThemeState>(
       'auto on a 1 GB device resolves to off',
       build: () => build(memMb: 1024),
-      act: (bloc) =>
-          bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.auto)),
+      act: (bloc) => bloc.add(
+        const OnAnimationsPreferenceChanged(AnimationPreference.auto),
+      ),
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {
         expect(bloc.state.animationsEnabled, isFalse);
@@ -67,8 +69,9 @@ void main() {
     blocTest<ThemeBloc, ThemeState>(
       'auto on a 4 GB device resolves to on',
       build: () => build(memMb: 4096),
-      act: (bloc) =>
-          bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.auto)),
+      act: (bloc) => bloc.add(
+        const OnAnimationsPreferenceChanged(AnimationPreference.auto),
+      ),
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {
         expect(bloc.state.animationsEnabled, isTrue);
@@ -80,8 +83,9 @@ void main() {
     blocTest<ThemeBloc, ThemeState>(
       'alwaysOn enables animations even on a low-RAM device',
       build: () => build(memMb: 1024),
-      act: (bloc) =>
-          bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOn)),
+      act: (bloc) => bloc.add(
+        const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOn),
+      ),
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {
         expect(bloc.state.animationsEnabled, isTrue);
@@ -94,14 +98,18 @@ void main() {
       'user change beats the startup auto-load (guard test)',
       build: () => build(),
       act: (bloc) async {
-        bloc.add(const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOff));
+        bloc.add(
+          const OnAnimationsPreferenceChanged(AnimationPreference.alwaysOff),
+        );
         // Wait for the user preference handler to complete before firing the
         // startup-style load event.
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        bloc.add(const OnAnimationsLoadedEvent(
-          preference: AnimationPreference.auto,
-          animationsEnabled: true,
-        ));
+        bloc.add(
+          const OnAnimationsLoadedEvent(
+            preference: AnimationPreference.auto,
+            animationsEnabled: true,
+          ),
+        );
       },
       wait: const Duration(milliseconds: 10),
       verify: (bloc) {

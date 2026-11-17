@@ -4577,4 +4577,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invVendorNameLabel => 'الاسم *';
+
+  @override
+  String get userInvitePending => 'الدعوة قيد الانتظار';
+
+  @override
+  String get userSyncPending => 'بانتظار المزامنة';
+
+  @override
+  String get userSyncFailed => 'لم يُطبَّق';
+
+  @override
+  String get userConflictTitle => 'لم يُطبَّق التغيير';
+
+  @override
+  String userConflictBody(String name, String current, String yours) {
+    return 'تم تغيير $name على جهاز آخر. الآن: $current. تغييرك: $yours.';
+  }
+
+  @override
+  String get userConflictApplyMine => 'تطبيق تغييري مرة أخرى';
+
+  @override
+  String get userConflictDismiss => 'تجاهل';
+
+  @override
+  String get userPhoneExists => 'يوجد عضو في الفريق بهذا الرقم بالفعل.';
+
+  @override
+  String userChangeRefused(String reason) {
+    return 'رفض الخادم هذا التغيير: $reason';
+  }
+
+  @override
+  String get userChangeReactivate => 'إعادة تفعيل العضو';
 }

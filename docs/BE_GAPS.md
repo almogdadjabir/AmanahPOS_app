@@ -333,7 +333,7 @@ Found while building offline catalog writes (mobile spec `docs/superpowers/specs
 - **`sale.refund` shape mobile sends:** `{sale_id, reference (client UUID), items:[{sale_item_id, quantity}], method, reason?, occurred_at}`, mutation `entity_id` = the sale id. The refund row in the feed (`ser_refund`) must keep echoing the client `reference`: mobile replaces its local pending copy of a refund with the pulled server row by matching `(sale, reference)`, so a refund counts once. Please keep `reference`, `sale`, `shop`, `total`, `method`, `items[].sale_item/quantity/amount` stable.
 - **Refund `method` for cash drawer:** mobile splits refund cash/bankak by the refund's own `method` (falling back to the sale's method for old rows). Please confirm refunds of split-payment sales: mobile sends `cash` when the sale was split; say if the BE wants something else.
 - **Provisional refund total:** mobile computes the refund total locally (line_total x qty / sold qty, half-up to cents) and replaces it with the server's `refund_total` on `applied`. Please keep the server rounding rule documented so the two can agree.
-- **Duplicate customer phone (`conflict_unique`)** returns `conflict_entity_id`; mobile v1 shows the rejected create in the pending-sync screen (discard) but has no "merge into existing" for customers yet (catalog entities do).
+- **Duplicate customer phone (`conflict_unique`)** returns `conflict_entity_id`; mobile now offers "Merge into existing" for customers as it does for catalog entities (sales of the copy move to the existing customer); it keys off `conflict_entity_id`, so please keep it on every `customer.create` collision.
 
 ## Acceptance checklist for the BE agent
 
@@ -361,3 +361,39 @@ Mobile will test against these. Please add backend tests for each.
 4. Sections 7, 9, 11, 12, 13.
 
 Mobile will build against this contract with a fake server in tests, so the BE agent can ship in the order above and mobile switches on feature by feature (capabilities are advertised in `sync/ping`: add `"capabilities": ["push","pull","bootstrap_paged","image_hash","devices","checksum"]` so the app enables only what the server supports).
+
+---
+
+## Follow-ups found by the mobile Phase 5 work
+
+- **`user.create` duplicate phone**: `conflict_unique` already returns `conflict_entity_id` for a phone inside the tenant. Mobile parks it and shows "a member with this phone exists"; Dismiss is the merge (the invite references nothing else locally). Please keep `conflict_entity_id` stable.
+- **Role/shop via `update`**: `update` only checks `base_version` when it is sent. Mobile always sends it for role/shop, but a client that omits it is applied silently. Recommend requiring `base_version` whenever `role` or `default_shop_id` is in an `update` payload (same rule as `set_role`/`set_shop`).
+- **Version bumps by `deactivate` / reactivate**: both bump `version` and are not guarded. Mobile re-bases its own queued role/shop edits when `version == base + 1`; please keep one bump per applied mutation so that rule stays valid.
+- **Cashier feed**: confirm a cashier's feed carries exactly their own `user` row, including a `delete` tombstone if they are deactivated (the device then gets `account_disabled` anyway).
+- **`last_login_at` freshness**: the feed row only changes when something else bumps the version; the "Last sign in" line can be stale on other devices. Acceptable, or bump version on login?
+
+---
+
+## Consolidated open list for the BE agent (mobile Phases 1-5)
+
+One list, most important first. Detail for each is in the "Follow-ups found by the mobile Phase N work" sections above.
+
+**Money / correctness (do first)**
+1. A sale must never fail because a product edit in the same push was rejected (`dependency_failed` on a sale line). Mobile retries alone, older clients lose the sale (Phase 3).
+2. Category rename uniqueness must use the row's parent when `parent` is not in the payload (Phase 3).
+3. Dashboard revenue basis: `total_amount` vs `net_amount`, and payment breakdown by `payment_method` vs `payments[]` (Phase 1).
+4. Document the refund rounding rule and confirm the refund `method` for split-payment sales; keep echoing the client `reference` in the refund feed row (Phase 4).
+5. `update` carrying `role` or `default_shop_id` must require `base_version` (same as `set_role`/`set_shop`); keep exactly one version bump per applied mutation, including `deactivate` and reactivate (Phase 5).
+
+**Missing fields / behaviour mobile is waiting on**
+6. `stock.add` accepts `expiry_date` / `batch_number` (creates a batch). Until then dated adds need a connection; this cannot be done on mobile alone (Phase 1).
+7. `conflict_entity_id` on category and vendor name collisions (and keep it on customer / user / product collisions) (Phases 3-5).
+8. `customer.update` accepts `is_active` and bumps `version` (Phase 4).
+9. `image_pending` accepted on create; image `PUT` honours `Idempotency-Key` and returns `version` (Phase 3).
+10. Per-variant image hash and size of the SERVED files; backfill empty `image_hash` (Phase 2).
+11. `stock_after` omitted (or null) when no stock level changed (Phase 2).
+
+**Nice to have**
+12. `bootstrap_page` / manifest answer `full_resync_required` for a stale snapshot; row counts per entity in the manifest (Phase 2).
+13. Confirm the cashier catalog rule (push is stricter than REST) and the `category.delete` rule (Phase 3).
+14. Feed row for a cashier carries exactly their own `user` row; `last_login_at` freshness (Phase 5).

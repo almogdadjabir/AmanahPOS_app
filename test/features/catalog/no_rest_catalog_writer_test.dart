@@ -26,8 +26,7 @@ bool _allowed(String line) => line.contains("/image/'");
 List<String> _scan(String path, List<String> lines) => [
   for (var i = 0; i < lines.length; i++)
     for (final b in _banned)
-      if (lines[i].contains(b) && !_allowed(lines[i]))
-        '$path:${i + 1}: $b',
+      if (lines[i].contains(b) && !_allowed(lines[i])) '$path:${i + 1}: $b',
 ];
 
 void main() {

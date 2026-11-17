@@ -53,29 +53,38 @@ void main() {
         ),
       );
 
-  test('create writes row (version NULL) and a customer.create outbox row atomically', () async {
-    final id = await svc.create(name: ' Ali ', phone: '0912');
-    final r = await row(id);
-    expect(r['name'], 'Ali');
-    expect(r['version'], isNull);
-    expect(jsonDecode(r['json'] as String)['loyalty_points'], 0);
-    final o = (await outbox()).single;
-    expect(o.entity, 'customer');
-    expect(o.op, 'create');
-    expect(o.entityId, id);
-    expect(o.payload, {'id': id, 'name': 'Ali', 'phone': '0912'});
-    expect(o.payload.containsKey('loyalty_points'), isFalse);
-  });
+  test(
+    'create writes row (version NULL) and a customer.create outbox row atomically',
+    () async {
+      final id = await svc.create(name: ' Ali ', phone: '0912');
+      final r = await row(id);
+      expect(r['name'], 'Ali');
+      expect(r['version'], isNull);
+      expect(jsonDecode(r['json'] as String)['loyalty_points'], 0);
+      final o = (await outbox()).single;
+      expect(o.entity, 'customer');
+      expect(o.op, 'create');
+      expect(o.entityId, id);
+      expect(o.payload, {'id': id, 'name': 'Ali', 'phone': '0912'});
+      expect(o.payload.containsKey('loyalty_points'), isFalse);
+    },
+  );
 
-  test('update sends only changed fields with base_version, never loyalty_points', () async {
-    await serverRow('c1');
-    await svc.update('c1', name: 'Ali B', phone: '0912');
-    final o = (await outbox()).single;
-    expect(o.op, 'update');
-    expect(o.baseVersion, 3);
-    expect(o.payload, {'name': 'Ali B'});
-    expect(jsonDecode((await row('c1'))['json'] as String)['loyalty_points'], 40);
-  });
+  test(
+    'update sends only changed fields with base_version, never loyalty_points',
+    () async {
+      await serverRow('c1');
+      await svc.update('c1', name: 'Ali B', phone: '0912');
+      final o = (await outbox()).single;
+      expect(o.op, 'update');
+      expect(o.baseVersion, 3);
+      expect(o.payload, {'name': 'Ali B'});
+      expect(
+        jsonDecode((await row('c1'))['json'] as String)['loyalty_points'],
+        40,
+      );
+    },
+  );
 
   test('update with no change writes nothing', () async {
     await serverRow('c1');
@@ -90,14 +99,17 @@ void main() {
     expect((await outbox()).single.payload, {'is_active': false});
   });
 
-  test('empty name throws CatalogValidationException and writes nothing', () async {
-    await expectLater(
-      svc.create(name: '  '),
-      throwsA(isA<CatalogValidationException>()),
-    );
-    expect(await f.db.query('customers'), isEmpty);
-    expect(await outbox(), isEmpty);
-  });
+  test(
+    'empty name throws CatalogValidationException and writes nothing',
+    () async {
+      await expectLater(
+        svc.create(name: '  '),
+        throwsA(isA<CatalogValidationException>()),
+      );
+      expect(await f.db.query('customers'), isEmpty);
+      expect(await outbox(), isEmpty);
+    },
+  );
 
   test('unknown customer cannot be edited', () async {
     await expectLater(
@@ -145,27 +157,30 @@ void main() {
     expect(r['version'], isNull);
   });
 
-  test('a sale for an unsent customer queues after the create and is NOT blocked by it', () async {
-    final id = await svc.create(name: 'Ali');
-    await f.service().createSale(
-      SaleDraft(
-        shopId: kShop,
-        paymentMethod: 'cash',
-        customerId: id,
-        lines: const [
-          SaleDraftLine.product(
-            productId: kP1,
-            productName: 'Tea',
-            quantity: '1',
-            unitPrice: '2.50',
-          ),
-        ],
-      ),
-    );
-    final rows = await f.db.query('outbox', orderBy: 'seq');
-    expect(rows.map((r) => r['entity']), ['customer', 'sale']);
-    // A rejected customer create must never fail a sale (money taken).
-    expect(rows.last['status'], 'pending');
-    expect(rows.last['depends_on_json'], isNull);
-  });
+  test(
+    'a sale for an unsent customer queues after the create and is NOT blocked by it',
+    () async {
+      final id = await svc.create(name: 'Ali');
+      await f.service().createSale(
+        SaleDraft(
+          shopId: kShop,
+          paymentMethod: 'cash',
+          customerId: id,
+          lines: const [
+            SaleDraftLine.product(
+              productId: kP1,
+              productName: 'Tea',
+              quantity: '1',
+              unitPrice: '2.50',
+            ),
+          ],
+        ),
+      );
+      final rows = await f.db.query('outbox', orderBy: 'seq');
+      expect(rows.map((r) => r['entity']), ['customer', 'sale']);
+      // A rejected customer create must never fail a sale (money taken).
+      expect(rows.last['status'], 'pending');
+      expect(rows.last['depends_on_json'], isNull);
+    },
+  );
 }

@@ -172,11 +172,9 @@ void main() {
       );
       expect(stock.canEditRetry, isFalse);
 
-      await f.db.update(
-        'outbox',
-        {'error_entity_id': kServer},
-        where: "entity = 'product'",
-      );
+      await f.db.update('outbox', {
+        'error_entity_id': kServer,
+      }, where: "entity = 'product'");
       await seedServer();
       row = createRow(await load());
       expect(row.canMerge, isTrue);
@@ -283,11 +281,10 @@ void main() {
 
     test('M8: a claimed, unanswered create is not discarded', () async {
       await rejectedCreate();
-      await f.db.update(
-        'outbox',
-        {'status': 'pending', 'claimed_at': '2026-11-16T00:00:00Z'},
-        where: "entity = 'product'",
-      );
+      await f.db.update('outbox', {
+        'status': 'pending',
+        'claimed_at': '2026-11-16T00:00:00Z',
+      }, where: "entity = 'product'");
       final row = createRow(await load());
       bloc.add(OnPendingSyncDiscardRow(row.entry.mutationId));
       final s = await bloc.stream.firstWhere((s) => s.failure != null);
@@ -307,15 +304,11 @@ void main() {
           scope: kScope,
         ),
       );
-      await f.db.update(
-        'outbox',
-        {
-          'status': 'rejected',
-          'error_code': 'dependency_failed',
-          'depends_on_json': jsonEncode(['gone-product']),
-        },
-        where: "entity_id = 's-gone'",
-      );
+      await f.db.update('outbox', {
+        'status': 'rejected',
+        'error_code': 'dependency_failed',
+        'depends_on_json': jsonEncode(['gone-product']),
+      }, where: "entity_id = 's-gone'");
       final pid = await rejectedCreate();
       final s = await load();
       final sale = s.rows.firstWhere((r) => r.entry.entity == 'sale');
@@ -324,7 +317,9 @@ void main() {
       bloc.add(const OnPendingSyncRetryAll());
       final after = await bloc.stream.firstWhere(
         (s) => s.rows.any(
-          (r) => r.entry.entityId == pid && r.entry.status != OutboxStatus.rejected,
+          (r) =>
+              r.entry.entityId == pid &&
+              r.entry.status != OutboxStatus.rejected,
         ),
       );
       expect(
@@ -537,7 +532,10 @@ void main() {
       await pump(t, mock(), [row(dependents: 2)]);
       expect(find.text('Discard'), findsNothing);
       expect(find.text('Merge into existing'), findsOneWidget);
-      expect(find.textContaining('2 changes wait on this item'), findsOneWidget);
+      expect(
+        find.textContaining('2 changes wait on this item'),
+        findsOneWidget,
+      );
       await pump(t, mock(), [row(dependents: 2)], locale: const Locale('ar'));
       expect(find.textContaining('تغييران ينتظران'), findsOneWidget);
       // An update with the same count is unaffected.
@@ -545,8 +543,9 @@ void main() {
       expect(find.text('Discard'), findsOneWidget);
     });
 
-    testWidgets('T5 I4: retry of a row naming a gone item asks first',
-        (t) async {
+    testWidgets('T5 I4: retry of a row naming a gone item asks first', (
+      t,
+    ) async {
       final bloc = mock();
       await pump(t, bloc, [
         row(
@@ -625,7 +624,10 @@ void main() {
       await pump(t, bloc, [row()]);
       await t.tap(find.text('Merge into existing'));
       await t.pumpAndSettle();
-      expect(find.textContaining('The existing item is deleted'), findsOneWidget);
+      expect(
+        find.textContaining('The existing item is deleted'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('edit and retry opens the editor, then retries with the '

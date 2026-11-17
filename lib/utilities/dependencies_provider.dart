@@ -102,6 +102,9 @@ import 'package:amana_pos/features/registration/domain/usecases/registration_use
 import 'package:amana_pos/features/notification/data/repository_impl/notification_repo_impl.dart';
 import 'package:amana_pos/features/notification/domain/repository/notification_repository.dart';
 import 'package:amana_pos/features/notification/domain/usecase/notification_usecases.dart';
+import 'package:amana_pos/features/users/data/local/user_local_store.dart';
+import 'package:amana_pos/features/users/domain/user_conflict_service.dart';
+import 'package:amana_pos/features/users/domain/user_service.dart';
 import 'package:amana_pos/features/users/data/repository_impl/users_repo_impl.dart';
 import 'package:amana_pos/features/users/domain/repositories/users_repository.dart';
 import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
@@ -244,7 +247,11 @@ class DependenciesProvider {
     );
 
     getIt.registerLazySingleton<UsersRepository>(
-      () => UsersRepoImpl(getIt<RequestHandler>()),
+      () => UsersRepoImpl(
+        store: getIt<UserLocalStore>(),
+        service: () => getIt<UserService>(),
+        conflicts: () => getIt<UserConflictService>(),
+      ),
     );
 
     // Catalog (Phase 3): local writes only (row + outbox); no REST client.
@@ -598,6 +605,20 @@ class DependenciesProvider {
           final i = scope.indexOf('|');
           return i <= 0 ? null : scope.substring(0, i);
         },
+      ),
+    );
+
+    // Team (Phase 5): local writes only (row + outbox); no REST client.
+    getIt.registerLazySingleton<UserLocalStore>(
+      () => UserLocalStore(getIt<LocalWriter>()),
+    );
+    getIt.registerLazySingleton<UserService>(
+      () => UserService(writer: getIt<LocalWriter>()),
+    );
+    getIt.registerLazySingleton<UserConflictService>(
+      () => UserConflictService(
+        writer: getIt<LocalWriter>(),
+        outbox: getIt<OutboxStore>(),
       ),
     );
 

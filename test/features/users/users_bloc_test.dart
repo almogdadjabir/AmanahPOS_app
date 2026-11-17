@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:amana_pos/features/users/domain/usecases/users_usecase.dart';
 import 'package:amana_pos/features/users/presentation/bloc/users_bloc.dart';
@@ -201,6 +203,68 @@ void main() {
     verify: (b) {
       expect(b.state.submitStatus, UserSubmitStatus.failure);
       expect(b.state.submitError, 'nope');
+    },
+  );
+
+  blocTest<UserBloc, UserState>(
+    'OnApplyUserConflict / OnDismissUserConflict call the use case and reload',
+    build: () {
+      when(
+        () => useCase.applyMineAgain(any()),
+      ).thenAnswer((_) async => const Right(true));
+      when(
+        () => useCase.dismissConflict(any()),
+      ).thenAnswer((_) async => const Right(true));
+      return UserBloc(useCase: useCase);
+    },
+    act: (b) async {
+      b.add(const OnApplyUserConflict('m1'));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      b.add(const OnDismissUserConflict('m2'));
+    },
+    wait: const Duration(milliseconds: 80),
+    verify: (b) {
+      verify(() => useCase.applyMineAgain('m1')).called(1);
+      verify(() => useCase.dismissConflict('m2')).called(1);
+      verify(() => useCase.getUsers()).called(2);
+    },
+  );
+
+  test('a team/outbox table change re-reads the list silently', () async {
+    final ctrl = StreamController<Set<String>>();
+    final b = UserBloc(useCase: useCase, changes: ctrl.stream);
+    b.add(const OnUserInitial());
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    ctrl.add({'products'});
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+    verify(() => useCase.getUsers()).called(1);
+    ctrl.add({'synced_entities'});
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    verify(() => useCase.getUsers()).called(1);
+    await b.close();
+    await ctrl.close();
+  });
+
+  blocTest<UserBloc, UserState>(
+    'OnAddUser does not list the member twice when a reload already did',
+    build: () {
+      when(
+        () => useCase.addUser(
+          phone: any(named: 'phone'),
+          fullName: any(named: 'fullName'),
+          role: any(named: 'role'),
+          shopId: any(named: 'shopId'),
+        ),
+      ).thenAnswer((_) async => const Right(UserData(id: 'u1')));
+      return UserBloc(useCase: useCase);
+    },
+    seed: () =>
+        const UserState(userStatus: UserStatus.success, userList: [_omar]),
+    act: (b) =>
+        b.add(const OnAddUser(phone: '+1', fullName: 'Omar', role: 'cashier')),
+    wait: const Duration(milliseconds: 50),
+    verify: (b) {
+      expect(b.state.userList.where((u) => u.id == 'u1'), hasLength(1));
     },
   );
 }

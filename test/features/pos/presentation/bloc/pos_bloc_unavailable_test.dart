@@ -86,7 +86,8 @@ void main() {
     });
   }
 
-  Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 50));
+  Future<void> settle() =>
+      Future<void>.delayed(const Duration(milliseconds: 50));
 
   test('checkout refuses a line whose product is gone: it is dropped with a '
       'notice and nothing is submitted', () async {
@@ -134,26 +135,29 @@ void main() {
     await bloc.close();
   });
 
-  test('a products change prunes the open cart and reports the names', () async {
-    final bloc = build();
-    bloc
-      ..add(PosAddProduct(_p('a', 'Juice')))
-      ..add(PosAddProduct(_p('b', 'Tea')));
-    await settle();
-    gone = {'a'};
-    changes.add({'customers'});
-    await settle();
-    expect(bloc.state.items, hasLength(2), reason: 'unrelated table');
-    changes.add({'products', 'outbox'});
-    await settle();
-    expect(bloc.state.items.map((i) => i.product.id), ['b']);
-    expect(bloc.state.removedUnavailable, ['Juice']);
-    expect(bloc.state.submitStatus, PosSubmitStatus.idle);
-    bloc.add(const PosAcknowledgeSubmit());
-    await settle();
-    expect(bloc.state.removedUnavailable, isEmpty);
-    await bloc.close();
-  });
+  test(
+    'a products change prunes the open cart and reports the names',
+    () async {
+      final bloc = build();
+      bloc
+        ..add(PosAddProduct(_p('a', 'Juice')))
+        ..add(PosAddProduct(_p('b', 'Tea')));
+      await settle();
+      gone = {'a'};
+      changes.add({'customers'});
+      await settle();
+      expect(bloc.state.items, hasLength(2), reason: 'unrelated table');
+      changes.add({'products', 'outbox'});
+      await settle();
+      expect(bloc.state.items.map((i) => i.product.id), ['b']);
+      expect(bloc.state.removedUnavailable, ['Juice']);
+      expect(bloc.state.submitStatus, PosSubmitStatus.idle);
+      bloc.add(const PosAcknowledgeSubmit());
+      await settle();
+      expect(bloc.state.removedUnavailable, isEmpty);
+      await bloc.close();
+    },
+  );
 
   test('an empty cart is never checked', () async {
     final bloc = build();

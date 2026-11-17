@@ -23,4 +23,11 @@ abstract class UsersRepository {
 
   /// DELETE = deactivate.
   Future<Either<String?, bool>> deactivateUser(String userId);
+
+  /// Re-sends a refused role/shop change against the member's current
+  /// server version (the server may refuse it again).
+  Future<Either<String?, bool>> applyMineAgain(String mutationId);
+
+  /// Drops a refused team change; the member shows the server state.
+  Future<Either<String?, bool>> dismissConflict(String mutationId);
 }

@@ -52,9 +52,7 @@ void main() {
       changes: notifier.changes,
       load: () async {
         loads++;
-        return PendingImageResolver.pathsOf(
-          await store.all(db, scope: _scope),
-        );
+        return PendingImageResolver.pathsOf(await store.all(db, scope: _scope));
       },
     );
     getIt.registerSingleton<PendingImageResolver>(pending);
@@ -140,17 +138,18 @@ void main() {
     expect((image.image as ResizeImage).width, lessThanOrEqualTo(40 * 3));
   });
 
-  testWidgets('the staged file wins over a synced_assets file and the network', (
-    tester,
-  ) async {
-    final up = (await tester.runAsync(() async {
-      await syncedRow();
-      return stage('p1');
-    }))!;
-    await tester.pumpWidget(app(url: _url));
-    await settle(tester);
-    expect(shownFile(tester), up.localPath);
-  });
+  testWidgets(
+    'the staged file wins over a synced_assets file and the network',
+    (tester) async {
+      final up = (await tester.runAsync(() async {
+        await syncedRow();
+        return stage('p1');
+      }))!;
+      await tester.pumpWidget(app(url: _url));
+      await settle(tester);
+      expect(shownFile(tester), up.localPath);
+    },
+  );
 
   testWidgets('no pending row: the synced file as before; no url: the error '
       'widget', (tester) async {

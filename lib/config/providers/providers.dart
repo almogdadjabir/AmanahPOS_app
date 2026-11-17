@@ -100,7 +100,10 @@ List<BlocProvider> getAppProviders(BuildContext context) {
 
     // Keep global because Business workspace reads it directly.
     BlocProvider<UserBloc>(
-      create: (_) => UserBloc(useCase: getIt<UsersUseCase>()),
+      create: (_) => UserBloc(
+        useCase: getIt<UsersUseCase>(),
+        changes: getIt<DbChangeNotifier>().changes,
+      ),
     ),
   ];
 }

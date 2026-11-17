@@ -36,4 +36,10 @@ class UsersUseCase {
 
   Future<Either<String?, bool>> deactivateUser(String userId) =>
       repository.deactivateUser(userId);
+
+  Future<Either<String?, bool>> applyMineAgain(String mutationId) =>
+      repository.applyMineAgain(mutationId);
+
+  Future<Either<String?, bool>> dismissConflict(String mutationId) =>
+      repository.dismissConflict(mutationId);
 }

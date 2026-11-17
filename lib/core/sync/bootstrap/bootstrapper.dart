@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
+import 'package:sqflite/sqflite.dart' show Transaction;
 import 'package:uuid/uuid.dart';
 
 import '../../offline/offline_db.dart';
@@ -248,9 +249,13 @@ class Bootstrapper {
       await _assertScope();
 
       var progress = await _st.bootstrapProgress(await _db.database);
+      // Ids the snapshot served per sweepable entity. Only a run that saw the
+      // whole snapshot (no resume) may sweep ghost rows (F3).
+      Map<String, Set<String>>? seen;
       if (progress == null) {
         if (await _notNeeded()) return _finish(BootstrapOutcome.notNeeded);
         progress = await _start();
+        seen = {for (final e in sweepEntities) e: <String>{}};
       } else {
         progress = await _dropUnhandled(progress);
       }
@@ -291,6 +296,13 @@ class Bootstrapper {
             ),
           );
           _checkPage(entity, sent, page, p);
+          final served = seen?[entity];
+          if (served != null) {
+            for (final item in page.items) {
+              final id = _idOf(item);
+              if (id != null) served.add(id);
+            }
+          }
           await _ensureLock(); // a runner that lost the lease writes nothing
           final (next, touched, applied) = await _commitPage(entity, page, p);
           progress = next;
@@ -302,7 +314,7 @@ class Bootstrapper {
 
       if (_cancelRequested) throw _Stop(BootstrapOutcome.interrupted);
       await _ensureLock();
-      await _finalCommit(progress);
+      await _finalCommit(progress, seen);
       _notifier.notify({SyncTables.syncState});
       return _finish(BootstrapOutcome.completed);
     } on CrashSimulation {
@@ -538,8 +550,12 @@ class Bootstrapper {
 
   /// Pull cursor = snapshot, scope bootstrapped (+ completion time),
   /// progress removed: ONE transaction. Deferred pulled changes are kept for the next pull.
-  Future<void> _finalCommit(BootstrapProgress expected) async {
+  Future<void> _finalCommit(
+    BootstrapProgress expected,
+    Map<String, Set<String>>? seen,
+  ) async {
     var restored = const <String>{};
+    var swept = const <String>{};
     await (await _db.database).transaction((txn) async {
       final stored = await _st.bootstrapProgress(txn);
       if (!_same(stored, expected) ||
@@ -551,11 +567,62 @@ class Bootstrapper {
       await _st.setBootstrapped(txn, true);
       await _st.setBootstrapCompletedAt(txn, _now());
       await _st.setBootstrapProgress(txn, null);
+      if (seen != null) swept = await _sweepGhosts(txn, expected, seen);
       // M1: catalog rows with unsynced changes that the last logout wiped
       // come back where the bootstrap wrote nothing.
       restored = await CatalogStash.restore(txn, _scope);
     });
     if (restored.isNotEmpty) _notifier.notify(restored);
+    if (swept.isNotEmpty) _notifier.notify(swept);
+  }
+
+  /// Catalog entities whose server rows are tombstoned, never silently
+  /// omitted: a synced local row the full snapshot does not contain is a
+  /// ghost (deleted on the server while this device was away, F3).
+  static const Set<String> sweepEntities = {'product', 'category', 'vendor'};
+
+  /// Deletes local rows of [sweepEntities] that were synced before (version
+  /// set), are absent from the complete snapshot [seen] and have no open
+  /// outbox row (never a local-only create or an edit in flight). Goes
+  /// through the applier's own delete so counts / assets stay right.
+  Future<Set<String>> _sweepGhosts(
+    Transaction txn,
+    BootstrapProgress done,
+    Map<String, Set<String>> seen,
+  ) async {
+    final touched = <String>{};
+    const tables = {
+      'product': 'products',
+      'category': 'categories',
+      'vendor': 'vendors',
+    };
+    for (final entity in sweepEntities) {
+      if (!done.entities.contains(entity)) continue; // not in this snapshot
+      final applier = _appliers.of(entity);
+      if (applier == null) continue;
+      final served = seen[entity] ?? const <String>{};
+      final rows = await txn.query(
+        tables[entity]!,
+        columns: ['id'],
+        where: 'version IS NOT NULL',
+      );
+      for (final r in rows) {
+        final id = r['id'] as String;
+        if (served.contains(id)) continue;
+        final open = await txn.rawQuery(
+          'SELECT 1 FROM ${SyncTables.outbox} WHERE entity = ? '
+          "AND entity_id = ? AND scope = ? AND status != 'done' LIMIT 1",
+          [entity, id, _scope],
+        );
+        if (open.isNotEmpty) continue;
+        await applier.apply(
+          txn,
+          PullChange(seq: 0, entity: entity, op: 'delete', id: id),
+        );
+        touched.addAll(applier.tables);
+      }
+    }
+    return touched;
   }
 
   static String? _idOf(Map<String, dynamic> item) {

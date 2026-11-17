@@ -267,7 +267,8 @@ void main() {
     expect(server.tables['product']![p]!['name'], 'Cola Zero');
     expect(server.tables['product']![p]!['price'], '15.00');
     final after = await settle(
-      (s) => !s.syncMarks.isPendingSync(p) &&
+      (s) =>
+          !s.syncMarks.isPendingSync(p) &&
           s.products.any((x) => x.id == p && x.price == '15.00'),
     );
     expect(after.products.singleWhere((x) => x.id == p).name, 'Cola Zero');

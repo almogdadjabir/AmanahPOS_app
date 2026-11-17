@@ -1597,5 +1597,17 @@
   "invNoVendorsYet": "لا يوجد موردون بعد",
   "invAddVendor": "إضافة مورّد",
   "invEditVendor": "تعديل المورّد",
-  "invVendorNameLabel": "الاسم *"
+  "invVendorNameLabel": "الاسم *",
+  "userInvitePending": "الدعوة قيد الانتظار",
+  "userSyncPending": "بانتظار المزامنة",
+  "userSyncFailed": "لم يُطبَّق",
+  "userConflictTitle": "لم يُطبَّق التغيير",
+  "userConflictBody": "تم تغيير {name} على جهاز آخر. الآن: {current}. تغييرك: {yours}.",
+  "@userConflictBody": {"placeholders": {"name": {"type": "String"}, "current": {"type": "String"}, "yours": {"type": "String"}}},
+  "userConflictApplyMine": "تطبيق تغييري مرة أخرى",
+  "userConflictDismiss": "تجاهل",
+  "userPhoneExists": "يوجد عضو في الفريق بهذا الرقم بالفعل.",
+  "userChangeRefused": "رفض الخادم هذا التغيير: {reason}",
+  "@userChangeRefused": {"placeholders": {"reason": {"type": "String"}}},
+  "userChangeReactivate": "إعادة تفعيل العضو"
 }

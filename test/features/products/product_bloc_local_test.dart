@@ -48,6 +48,7 @@ class _CountingCache extends OfflineLocalCache {
     );
   }
 }
+
 const kSynced = 'd0000000-0000-4000-8000-000000000001';
 
 void main() {
@@ -149,9 +150,7 @@ void main() {
 
   Future<ProductState> settle(bool Function(ProductState) test) async {
     if (test(bloc.state)) return bloc.state;
-    return bloc.stream
-        .firstWhere(test)
-        .timeout(const Duration(seconds: 5));
+    return bloc.stream.firstWhere(test).timeout(const Duration(seconds: 5));
   }
 
   /// The NEXT finished submit (call before adding the event).
@@ -166,20 +165,24 @@ void main() {
   Future<List<Map<String, Object?>>> outbox() =>
       f.db.query('outbox', orderBy: 'seq');
 
-  test('list shows an unsynced created product without any REST call', () async {
-    final id = await products.create(dto());
-    bloc.add(const OnProductInitial());
-    final s = await settle(
-      (s) => s.productStatus == ProductStatus.success && s.products.length == 2,
-    );
-    expect(s.products.map((p) => p.name), ['Cola', 'Tea']);
-    expect(s.isFromCache, isFalse);
-    expect(s.hasMorePages, isFalse);
-    expect(s.categories.single.id, kCat);
-    expect(s.syncMarks.isPendingSync(id), isTrue);
-    expect(s.syncMarks.isPendingSync(kSynced), isFalse);
-    expect(s.syncMarks.syncFailed(id), isFalse);
-  });
+  test(
+    'list shows an unsynced created product without any REST call',
+    () async {
+      final id = await products.create(dto());
+      bloc.add(const OnProductInitial());
+      final s = await settle(
+        (s) =>
+            s.productStatus == ProductStatus.success && s.products.length == 2,
+      );
+      expect(s.products.map((p) => p.name), ['Cola', 'Tea']);
+      expect(s.isFromCache, isFalse);
+      expect(s.hasMorePages, isFalse);
+      expect(s.categories.single.id, kCat);
+      expect(s.syncMarks.isPendingSync(id), isTrue);
+      expect(s.syncMarks.isPendingSync(kSynced), isFalse);
+      expect(s.syncMarks.syncFailed(id), isFalse);
+    },
+  );
 
   test('a write elsewhere (pull or another screen) re-reads the list via the '
       'change notifier', () async {
@@ -309,9 +312,7 @@ void main() {
     expect(s.submitStatus, ProductSubmitStatus.success);
     expect(s.products, isEmpty);
     final json =
-        jsonDecode(
-              (await f.db.query('products')).single['json'] as String,
-            )
+        jsonDecode((await f.db.query('products')).single['json'] as String)
             as Map;
     expect(json['is_active'], isFalse, reason: 'soft delete until synced');
     expect((await outbox()).single['op'], 'delete');

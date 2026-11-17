@@ -828,7 +828,12 @@ void main() {
         'shop': 'sh',
         'payment_method': 'cash',
         'items': [
-          {'id': 'L1', 'product_id': 'p1', 'quantity': '3', 'unit_price': '2.50'},
+          {
+            'id': 'L1',
+            'product_id': 'p1',
+            'quantity': '3',
+            'unit_price': '2.50',
+          },
         ],
       }),
     ]);
@@ -875,11 +880,19 @@ void main() {
           'shop': 'sh',
           'payment_method': 'cash',
           'items': [
-            {'id': 'L1', 'product_id': 'p1', 'quantity': '3', 'unit_price': '2.50'},
+            {
+              'id': 'L1',
+              'product_id': 'p1',
+              'quantity': '3',
+              'unit_price': '2.50',
+            },
           ],
         }, seq: 1),
       ]);
-      expect(r.results.map((e) => e.status), [PushStatus.applied, PushStatus.applied]);
+      expect(r.results.map((e) => e.status), [
+        PushStatus.applied,
+        PushStatus.applied,
+      ]);
       expect(s.tables['sale']!['S1']!['status'], 'refunded');
     });
   });

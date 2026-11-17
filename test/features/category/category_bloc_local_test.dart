@@ -108,19 +108,22 @@ void main() {
     return PickedAppImage(file: file, path: file.path, name: 'c.jpg');
   }
 
-  test('list shows an unsynced created category without any REST call', () async {
-    final id = await categories.create(name: 'Snacks');
-    bloc.add(const OnCategoryInitial());
-    final s = await settle(
-      (s) =>
-          s.categoryStatus == CategoryStatus.success &&
-          s.categoryList.length == 2,
-    );
-    expect(s.categoryList.map((c) => c.name), ['Drinks', 'Snacks']);
-    expect(s.isFromCache, isFalse);
-    expect(s.syncMarks.isPendingSync(id), isTrue);
-    expect(s.syncMarks.isPendingSync(kCat), isFalse);
-  });
+  test(
+    'list shows an unsynced created category without any REST call',
+    () async {
+      final id = await categories.create(name: 'Snacks');
+      bloc.add(const OnCategoryInitial());
+      final s = await settle(
+        (s) =>
+            s.categoryStatus == CategoryStatus.success &&
+            s.categoryList.length == 2,
+      );
+      expect(s.categoryList.map((c) => c.name), ['Drinks', 'Snacks']);
+      expect(s.isFromCache, isFalse);
+      expect(s.syncMarks.isPendingSync(id), isTrue);
+      expect(s.syncMarks.isPendingSync(kCat), isFalse);
+    },
+  );
 
   test('add with an image stages a category upload and returns at once; the '
       'create carries image_pending', () async {

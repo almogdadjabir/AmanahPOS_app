@@ -1,5 +1,6 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
+import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/users/data/models/responses/user_response_dto.dart';
 import 'package:flutter/material.dart';
@@ -116,4 +117,41 @@ String? shopName(List<ShopData> shops, String? id) {
     if (s.id == id) return s.name?.trim();
   }
   return null;
+}
+
+/// The owner row and the signed-in user are managed elsewhere: the BE
+/// refuses their edits, so no edit entry points are offered.
+bool canEditTeamMember(BuildContext context, UserData user) {
+  // The profile may not be hydrated yet: the signed-in scope names the user
+  // (`userId|tenantId`) without it. Nobody known -> offer nothing.
+  final me =
+      context.read<AuthBloc>().state.profile?.id ??
+      SyncScope.current?.split('|').first;
+  return me != null && user.role != 'owner' && user.id != me;
+}
+
+/// "Now: Manager" / "Your change: Cashier": what a refused change was about.
+String userChangeSummary(
+  BuildContext context,
+  Map<String, dynamic> payload,
+  List<ShopData> shops,
+) {
+  final parts = <String>[];
+  final tr = context.tr;
+  if (payload['role'] is String) {
+    parts.add(
+      '${tr.tmRole}: ${userRoleLabel(context, payload['role'] as String)}',
+    );
+  }
+  final shop = payload['default_shop_id'];
+  if (shop is String) {
+    parts.add('${tr.tmBranch}: ${shopName(shops, shop) ?? shop}');
+  }
+  if (payload['full_name'] is String) parts.add(payload['full_name'] as String);
+  if (payload['is_active'] is bool) {
+    parts.add(
+      payload['is_active'] == true ? tr.userChangeReactivate : tr.tmInactive,
+    );
+  }
+  return parts.join(', ');
 }

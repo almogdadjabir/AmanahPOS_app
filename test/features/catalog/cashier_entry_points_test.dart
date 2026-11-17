@@ -187,9 +187,7 @@ void main() {
           find.byIcon(PhosphorIconsRegular.plus),
           canEdit ? findsOneWidget : findsNothing,
         );
-        final menus = find.byWidgetPredicate(
-          (w) => w is PopupMenuButton,
-        );
+        final menus = find.byWidgetPredicate((w) => w is PopupMenuButton);
         expect(menus, canEdit ? findsOneWidget : findsNothing);
       });
 
@@ -231,8 +229,10 @@ void main() {
       (null, false),
     ]) {
       expect(
-        AppPermissions.from(businessType: 'shop', userRole: role)
-            .canEditCatalog,
+        AppPermissions.from(
+          businessType: 'shop',
+          userRole: role,
+        ).canEditCatalog,
         can,
         reason: '$role',
       );

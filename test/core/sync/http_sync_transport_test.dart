@@ -575,31 +575,37 @@ void main() {
           scope: 'u1|t1',
         );
 
-    test('multipart PUT, field image, sha headers, content type, scope', () async {
-      adapter.handler = (_) async => _json(200, ok());
-      final r = await put();
-      final o = adapter.last!.options;
-      expect(o.method, 'PUT');
-      expect(o.path, 'api/v1/products/p1/image/');
-      expect(o.headers['X-Content-SHA256'], sha);
-      expect(o.headers['Idempotency-Key'], sha);
-      expect(o.extra[kSyncScopeExtra], 'u1|t1');
-      expect('${o.contentType}', startsWith('multipart/form-data'));
-      expect(o.sendTimeout, const Duration(seconds: 60));
-      expect(o.receiveTimeout, const Duration(seconds: 15));
-      final body = latin1.decode(adapter.last!.body);
-      expect(body, contains('name="image"'));
-      expect(body, contains('content-type: image/jpeg'));
-      expect(r.version, 4);
-      expect(r.imageHash, sha);
-      expect(r.thumbnailUrl, 'https://x/thumb.webp?v=ab');
-      expect(r.unchanged, isFalse);
-    });
+    test(
+      'multipart PUT, field image, sha headers, content type, scope',
+      () async {
+        adapter.handler = (_) async => _json(200, ok());
+        final r = await put();
+        final o = adapter.last!.options;
+        expect(o.method, 'PUT');
+        expect(o.path, 'api/v1/products/p1/image/');
+        expect(o.headers['X-Content-SHA256'], sha);
+        expect(o.headers['Idempotency-Key'], sha);
+        expect(o.extra[kSyncScopeExtra], 'u1|t1');
+        expect('${o.contentType}', startsWith('multipart/form-data'));
+        expect(o.sendTimeout, const Duration(seconds: 60));
+        expect(o.receiveTimeout, const Duration(seconds: 15));
+        final body = latin1.decode(adapter.last!.body);
+        expect(body, contains('name="image"'));
+        expect(body, contains('content-type: image/jpeg'));
+        expect(r.version, 4);
+        expect(r.imageHash, sha);
+        expect(r.thumbnailUrl, 'https://x/thumb.webp?v=ab');
+        expect(r.unchanged, isFalse);
+      },
+    );
 
     test('category path', () async {
       adapter.handler = (_) async => _json(200, ok(unchanged: true));
       final r = await put(entity: 'category');
-      expect(adapter.last!.options.path, 'api/v1/products/categories/p1/image/');
+      expect(
+        adapter.last!.options.path,
+        'api/v1/products/categories/p1/image/',
+      );
       expect(r.unchanged, isTrue);
     });
 

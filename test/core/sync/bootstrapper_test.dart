@@ -656,4 +656,40 @@ void main() {
       expect((await lockValue())!.startsWith('other|'), isTrue);
     });
   });
+
+  group('(F3) ghost sweep after a full snapshot', () {
+    test('a synced local product absent from the snapshot is removed; '
+        'served, pending-edit and never-synced rows stay', () async {
+      h.seedStandard();
+      await h.localProduct('ghost', version: 3);
+      await h.localProduct('p1', version: 1);
+      await h.localProduct('edited', version: 2);
+      await h.pendingOutbox('product', 'edited');
+      await h.db.insert('products', {
+        'id': 'local-new',
+        'name': 'New',
+        'json': '{}',
+      });
+      expect(await h.build().run(), BootstrapOutcome.completed);
+      final ids = await h.ids('products');
+      expect(ids, isNot(contains('ghost')));
+      expect(ids, containsAll(['p1', 'p2', 'edited', 'local-new']));
+    });
+
+    test(
+      'a resumed bootstrap never sweeps (it did not see every page)',
+      () async {
+        h.seedStandard();
+        await h.localProduct('ghost', version: 3);
+        final b = h.build();
+        h.transport.beforePage = (call, entity) {
+          if (call == 3) b.cancel();
+        };
+        expect(await b.run(), BootstrapOutcome.interrupted);
+        h.transport.beforePage = null;
+        expect(await h.build().run(), BootstrapOutcome.completed);
+        expect(await h.ids('products'), contains('ghost'));
+      },
+    );
+  });
 }

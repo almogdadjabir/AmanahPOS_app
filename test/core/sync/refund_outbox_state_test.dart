@@ -45,16 +45,27 @@ void main() {
   Future<String> mutation() async =>
       '${(await f.db.query('outbox', where: "op = 'refund'")).single['mutation_id']}';
 
-  test('discarding a queued refund voids it and restores the sale status', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '3'}, method: 'cash');
-    expect(await status(), 'refunded');
-    await f.outbox.discard(await mutation());
-    expect(await state(), 'rejected');
-    expect(await status(), 'completed');
-  });
+  test(
+    'discarding a queued refund voids it and restores the sale status',
+    () async {
+      await svc.refund(
+        saleId: _sale,
+        quantitiesByLineId: {_item: '3'},
+        method: 'cash',
+      );
+      expect(await status(), 'refunded');
+      await f.outbox.discard(await mutation());
+      expect(await state(), 'rejected');
+      expect(await status(), 'completed');
+    },
+  );
 
   test('retrying a rejected refund makes it pending (counted) again', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
+    await svc.refund(
+      saleId: _sale,
+      quantitiesByLineId: {_item: '1'},
+      method: 'cash',
+    );
     final m = await mutation();
     await f.db.update('outbox', {'status': 'rejected', 'error_code': 'x'});
     await f.db.update('sale_refunds', {'sync_state': 'rejected'});
@@ -66,8 +77,16 @@ void main() {
   test('discarding a never-sent customer create leaves no ghost row', () async {
     final c = CustomerService(writer: f.writer, now: () => f.clock);
     final id = await c.create(name: 'Ali');
-    final m = (await f.db.query('outbox', where: "entity = 'customer'")).single['mutation_id'] as String;
+    final m =
+        (await f.db.query(
+              'outbox',
+              where: "entity = 'customer'",
+            )).single['mutation_id']
+            as String;
     await f.outbox.discard(m);
-    expect(await f.db.query('customers', where: 'id = ?', whereArgs: [id]), isEmpty);
+    expect(
+      await f.db.query('customers', where: 'id = ?', whereArgs: [id]),
+      isEmpty,
+    );
   });
 }

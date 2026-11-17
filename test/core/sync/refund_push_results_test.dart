@@ -121,20 +121,31 @@ void main() {
   Future<String> status() async =>
       '${(await f.db.query('sales', where: 'id = ?', whereArgs: [_sale])).single['status']}';
 
-  test('applied marks synced; server pull afterwards leaves ONE counted row', () async {
-    final ref = await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
-    expect(await refundAmount(), 2.5);
-    await result(res(PushStatus.applied, total: '2.50'));
-    expect((await f.db.query('sale_refunds')).single['sync_state'], 'synced');
-    await pullRefund(ref);
-    expect(await f.db.query('sale_refunds'), hasLength(1));
-    expect((await f.db.query('sale_refunds')).single['id'], 'server-rf');
-    expect(await refundAmount(), 2.5);
-    expect(await refundedQty(), '1000');
-  });
+  test(
+    'applied marks synced; server pull afterwards leaves ONE counted row',
+    () async {
+      final ref = await svc.refund(
+        saleId: _sale,
+        quantitiesByLineId: {_item: '1'},
+        method: 'cash',
+      );
+      expect(await refundAmount(), 2.5);
+      await result(res(PushStatus.applied, total: '2.50'));
+      expect((await f.db.query('sale_refunds')).single['sync_state'], 'synced');
+      await pullRefund(ref);
+      expect(await f.db.query('sale_refunds'), hasLength(1));
+      expect((await f.db.query('sale_refunds')).single['id'], 'server-rf');
+      expect(await refundAmount(), 2.5);
+      expect(await refundedQty(), '1000');
+    },
+  );
 
   test('pull arriving before the push result still counts once', () async {
-    final ref = await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
+    final ref = await svc.refund(
+      saleId: _sale,
+      quantitiesByLineId: {_item: '1'},
+      method: 'cash',
+    );
     await pullRefund(ref);
     expect(await refundAmount(), 2.5);
     await result(res(PushStatus.applied, total: '2.50'));
@@ -143,28 +154,50 @@ void main() {
     expect(await refundedQty(), '1000');
   });
 
-  test('applied adopts the server total and re-bases stock only on applied', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
-    await result(res(PushStatus.applied, total: '2.60'));
-    expect((await f.db.query('sale_refunds')).single['total'], '2.60');
-  });
+  test(
+    'applied adopts the server total and re-bases stock only on applied',
+    () async {
+      await svc.refund(
+        saleId: _sale,
+        quantitiesByLineId: {_item: '1'},
+        method: 'cash',
+      );
+      await result(res(PushStatus.applied, total: '2.60'));
+      expect((await f.db.query('sale_refunds')).single['total'], '2.60');
+    },
+  );
 
-  test('refund_exceeds_sold voids the refund: totals, status and guard ignore it', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '3'}, method: 'cash');
-    expect(await status(), 'refunded');
-    await result(res(PushStatus.rejected, code: 'refund_exceeds_sold'));
-    final r = (await f.db.query('sale_refunds')).single;
-    expect(r['sync_state'], 'rejected');
-    expect(r['error_code'], 'refund_exceeds_sold');
-    expect(await refundAmount(), 0);
-    expect(await status(), 'completed');
-    expect(await refundedQty(), 'null');
-    // The line is returnable again.
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
-  });
+  test(
+    'refund_exceeds_sold voids the refund: totals, status and guard ignore it',
+    () async {
+      await svc.refund(
+        saleId: _sale,
+        quantitiesByLineId: {_item: '3'},
+        method: 'cash',
+      );
+      expect(await status(), 'refunded');
+      await result(res(PushStatus.rejected, code: 'refund_exceeds_sold'));
+      final r = (await f.db.query('sale_refunds')).single;
+      expect(r['sync_state'], 'rejected');
+      expect(r['error_code'], 'refund_exceeds_sold');
+      expect(await refundAmount(), 0);
+      expect(await status(), 'completed');
+      expect(await refundedQty(), 'null');
+      // The line is returnable again.
+      await svc.refund(
+        saleId: _sale,
+        quantitiesByLineId: {_item: '1'},
+        method: 'cash',
+      );
+    },
+  );
 
   test('duplicate replay changes nothing and does not re-base', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
+    await svc.refund(
+      saleId: _sale,
+      quantitiesByLineId: {_item: '1'},
+      method: 'cash',
+    );
     await result(res(PushStatus.applied, total: '2.50'));
     await result(res(PushStatus.duplicate, total: '2.50'));
     expect((await f.db.query('sale_refunds')).single['sync_state'], 'synced');
@@ -172,13 +205,21 @@ void main() {
   });
 
   test('retry leaves the refund pending', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'cash');
+    await svc.refund(
+      saleId: _sale,
+      quantitiesByLineId: {_item: '1'},
+      method: 'cash',
+    );
     await result(res(PushStatus.retry, code: 'dependency_pending'));
     expect((await f.db.query('sale_refunds')).single['sync_state'], 'pending');
   });
 
   test('refund cash/bankak split follows the refund method', () async {
-    await svc.refund(saleId: _sale, quantitiesByLineId: {_item: '1'}, method: 'bankak');
+    await svc.refund(
+      saleId: _sale,
+      quantitiesByLineId: {_item: '1'},
+      method: 'bankak',
+    );
     final s = (await q.summaryFor(
       day: BusinessDay.of(f.clock, 'Africa/Khartoum'),
       shopId: kShop,

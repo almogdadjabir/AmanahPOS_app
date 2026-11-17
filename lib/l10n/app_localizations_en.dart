@@ -4612,4 +4612,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invVendorNameLabel => 'Name *';
+
+  @override
+  String get userInvitePending => 'Invite pending';
+
+  @override
+  String get userSyncPending => 'Waiting to sync';
+
+  @override
+  String get userSyncFailed => 'Not applied';
+
+  @override
+  String get userConflictTitle => 'Change not applied';
+
+  @override
+  String userConflictBody(String name, String current, String yours) {
+    return '$name was changed on another device. Now: $current. Your change: $yours.';
+  }
+
+  @override
+  String get userConflictApplyMine => 'Apply mine again';
+
+  @override
+  String get userConflictDismiss => 'Dismiss';
+
+  @override
+  String get userPhoneExists =>
+      'A team member with this phone number already exists.';
+
+  @override
+  String userChangeRefused(String reason) {
+    return 'The server refused this change: $reason';
+  }
+
+  @override
+  String get userChangeReactivate => 'Reactivate member';
 }

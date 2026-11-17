@@ -80,22 +80,28 @@ class UserListGroup extends StatelessWidget {
                   indent: 68,
                   color: colors.border,
                 ),
-              UserSwipe(
-                action: users[i].isActiveUser
-                    ? AppSwipeAction(
-                        label: tr.tmSwipeDeactivate,
-                        icon: PhosphorIconsRegular.prohibit,
-                        color: colors.danger,
-                        onTap: () => confirmDeactivateUser(context, users[i]),
-                      )
-                    : AppSwipeAction(
-                        label: tr.cuReactivate,
-                        icon: PhosphorIconsRegular.userCheck,
-                        color: colors.primary,
-                        onTap: () => reactivateUser(context, users[i]),
-                      ),
-                child: UserRow(key: ValueKey(users[i].id ?? i), user: users[i]),
-              ),
+              if (!canEditTeamMember(context, users[i]))
+                UserRow(key: ValueKey(users[i].id ?? i), user: users[i])
+              else
+                UserSwipe(
+                  action: users[i].isActiveUser
+                      ? AppSwipeAction(
+                          label: tr.tmSwipeDeactivate,
+                          icon: PhosphorIconsRegular.prohibit,
+                          color: colors.danger,
+                          onTap: () => confirmDeactivateUser(context, users[i]),
+                        )
+                      : AppSwipeAction(
+                          label: tr.cuReactivate,
+                          icon: PhosphorIconsRegular.userCheck,
+                          color: colors.primary,
+                          onTap: () => reactivateUser(context, users[i]),
+                        ),
+                  child: UserRow(
+                    key: ValueKey(users[i].id ?? i),
+                    user: users[i],
+                  ),
+                ),
             ],
           ],
         ),
@@ -276,7 +282,33 @@ class UserRow extends StatelessWidget {
     final last = user.lastLogin;
 
     Widget? right;
-    if (active) {
+    Widget chip(String text, Color bg, Color fg) => DecoratedBox(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            height: 1.3,
+            fontWeight: FontWeight.w600,
+            color: fg,
+          ),
+        ),
+      ),
+    );
+    if (user.syncMark == UserSyncMark.failed) {
+      right = chip(tr.userSyncFailed, colors.dangerContainer, colors.danger);
+    } else if (user.syncMark == UserSyncMark.pending) {
+      right = chip(
+        user.isLocalOnly ? tr.userInvitePending : tr.userSyncPending,
+        colors.warningContainer,
+        colors.warning,
+      );
+    } else if (active) {
       if (user.isInvited) {
         right = DecoratedBox(
           decoration: BoxDecoration(
