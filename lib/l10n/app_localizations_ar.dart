@@ -3102,6 +3102,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shReturnedTotal => 'المرتجع';
 
   @override
+  String get shRefundPending => 'الإرجاع بانتظار المزامنة';
+
+  @override
+  String get shRefundRejected => 'تم رفض الإرجاع';
+
+  @override
   String get shNet => 'الصافي';
 
   @override

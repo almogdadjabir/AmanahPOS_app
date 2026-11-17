@@ -52,6 +52,7 @@ class CustomerApplier implements ChangeApplier {
       'email': d['email'],
       'json': jsonEncode({...d, 'id': id}),
       'updated_at': d['updated_at'] is String ? d['updated_at'] : null,
+      'server_json': jsonEncode({...d, 'id': id, 'version': version}),
     });
   }
 
@@ -60,5 +61,29 @@ class CustomerApplier implements ChangeApplier {
     Transaction txn,
     OutboxEntry sent,
     PushResult result,
-  ) async {}
+  ) async {
+    final replaced = await catalogPushResult(txn, 'customers', sent, result);
+    if (!replaced) return;
+    // The row's fields came from `server_state`: refresh the searchable
+    // columns derived from the json.
+    final rows = await txn.query(
+      'customers',
+      columns: ['json'],
+      where: 'id = ?',
+      whereArgs: [sent.entityId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return;
+    final j = decodeJsonMap(rows.first['json']);
+    await txn.update(
+      'customers',
+      {
+        if (j['name'] is String) 'name': j['name'],
+        'phone': j['phone'] is String ? j['phone'] : null,
+        'email': j['email'] is String ? j['email'] : null,
+      },
+      where: 'id = ?',
+      whereArgs: [sent.entityId],
+    );
+  }
 }

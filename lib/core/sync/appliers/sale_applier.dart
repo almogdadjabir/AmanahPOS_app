@@ -81,6 +81,7 @@ class SaleApplier implements ChangeApplier {
     OutboxEntry sent,
     PushResult result,
   ) async {
+    if (sent.op == 'refund') return _onRefundResult(txn, sent, result);
     switch (result.status) {
       case PushStatus.applied:
         await _store.markSynced(
@@ -120,6 +121,55 @@ class SaleApplier implements ChangeApplier {
       case PushStatus.retry:
         break;
     }
+  }
+
+  /// Settles the local refund (`sale_refunds.reference` = payload
+  /// `reference`) of a pushed `sale.refund`. `applied`/`duplicate`: synced,
+  /// adopting the server total; stock re-based from `stock_after` ONLY on
+  /// `applied`. `rejected` (e.g. `refund_exceeds_sold`): the refund is
+  /// voided, never deleted, and the sale status is recomputed without it.
+  Future<void> _onRefundResult(
+    Transaction txn,
+    OutboxEntry sent,
+    PushResult result,
+  ) async {
+    final reference = sent.payload['reference'];
+    if (reference is! String) return;
+    final where = 'sale_id = ? AND reference = ?';
+    final args = [sent.entityId, reference];
+    switch (result.status) {
+      case PushStatus.applied:
+      case PushStatus.duplicate:
+        final total = result.refundTotal;
+        await txn.update(
+          'sale_refunds',
+          {
+            'sync_state': 'synced',
+            'error_code': null,
+            'error_message': null,
+            'total': ?total,
+          },
+          where: where,
+          whereArgs: args,
+        );
+        if (result.status == PushStatus.applied) {
+          await _stock.rebaseFromStockAfter(txn, result.stockAfter);
+        }
+      case PushStatus.rejected:
+        await txn.update(
+          'sale_refunds',
+          {
+            'sync_state': 'rejected',
+            'error_code': result.code,
+            'error_message': result.message,
+          },
+          where: where,
+          whereArgs: args,
+        );
+      case PushStatus.retry:
+        return;
+    }
+    await _store.recomputeRefundStatus(txn, sent.entityId);
   }
 
   Future<void> _recomputeLines(Transaction txn, OutboxEntry sent) async {

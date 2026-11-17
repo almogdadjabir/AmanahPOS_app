@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 
+import '../../../../core/sync/decimal3.dart';
 import '../../domain/sale.dart';
 
 /// Local sales tables (authoritative for the POS UI, dashboard and history).
@@ -191,6 +192,101 @@ class SaleLocalStore {
     where: "id = ? AND sync_state = 'rejected'",
     whereArgs: [id],
   );
+
+  /// Refunded quantity per sale line (`sale_items.id`, thousandths), from
+  /// every non-voided refund row of [saleId]: synced (pulled or settled) and
+  /// pending ones. A `rejected` (voided) refund counts for nothing. Reads the
+  /// `items: [{sale_item, quantity}]` of each row's `json`.
+  Future<Map<String, BigInt>> refundedQuantities(
+    DatabaseExecutor db,
+    String saleId,
+  ) async {
+    final rows = await db.query(
+      'sale_refunds',
+      columns: ['json'],
+      where: "sale_id = ? AND sync_state != 'rejected'",
+      whereArgs: [saleId],
+    );
+    final out = <String, BigInt>{};
+    for (final r in rows) {
+      final raw = r['json'];
+      if (raw is! String) continue;
+      final Object? j;
+      try {
+        j = jsonDecode(raw);
+      } on FormatException {
+        continue;
+      }
+      final items = j is Map ? j['items'] : null;
+      if (items is! List) continue;
+      for (final it in items) {
+        if (it is! Map) continue;
+        final id = it['sale_item'];
+        final q = Decimal3.tryParse(it['quantity']);
+        if (id is! String || q == null) continue;
+        out[id] = (out[id] ?? BigInt.zero) + q;
+      }
+    }
+    return out;
+  }
+
+  /// Sets the sale status from its lines and non-voided refunds:
+  /// `refunded` when every line is fully returned, `partial_refund` when
+  /// something is, else [baseStatus] (the pre-refund status, `completed`).
+  /// A cancelled sale is left alone.
+  Future<void> recomputeRefundStatus(
+    DatabaseExecutor db,
+    String saleId, {
+    String baseStatus = 'completed',
+  }) async {
+    final sale = await db.query(
+      sales,
+      columns: ['status'],
+      where: 'id = ?',
+      whereArgs: [saleId],
+      limit: 1,
+    );
+    if (sale.isEmpty) return;
+    final current = sale.first['status'] as String?;
+    if (current == 'cancelled') return;
+    final done = await refundedQuantities(db, saleId);
+    final lines = await db.query(
+      items,
+      columns: ['id', 'quantity'],
+      where: 'sale_id = ?',
+      whereArgs: [saleId],
+    );
+    var any = false;
+    var all = lines.isNotEmpty;
+    for (final l in lines) {
+      final sold = Decimal3.tryParse(l['quantity']) ?? BigInt.zero;
+      final back = done[l['id'] as String] ?? BigInt.zero;
+      if (back > BigInt.zero) any = true;
+      if (back < sold) all = false;
+    }
+    var next = !any ? baseStatus : (all ? 'refunded' : 'partial_refund');
+    if (!any && (current == 'partial_refund' || current == 'refunded')) {
+      // No local refund counts. Only step back when WE voided one; else the
+      // status came from the server (another device's refund whose rows are
+      // not pulled yet) and must not be downgraded.
+      final voided = await db.query(
+        'sale_refunds',
+        columns: ['id'],
+        where: "sale_id = ? AND sync_state = 'rejected'",
+        whereArgs: [saleId],
+        limit: 1,
+      );
+      if (voided.isEmpty) next = current!;
+    }
+    if (next != current) {
+      await db.update(
+        sales,
+        {'status': next},
+        where: 'id = ?',
+        whereArgs: [saleId],
+      );
+    }
+  }
 
   Future<Sale?> read(DatabaseExecutor db, String id) async {
     final rows = await db.query(

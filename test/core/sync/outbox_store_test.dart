@@ -133,6 +133,28 @@ void main() {
     },
   );
 
+  test('a rejected sale.refund does NOT hold a later refund of the same sale', () async {
+    Future<OutboxEntry> refund() => store.enqueue(
+      db,
+      entity: 'sale',
+      op: 'refund',
+      entityId: 's1',
+      payload: const {'reference': 'r'},
+      scope: 'u1|t1',
+    );
+    final first = await refund();
+    final second = await refund();
+    await store.claimBatch(scope: 'u1|t1');
+    await store.applyResult(
+      db,
+      first.mutationId,
+      status: OutboxStatus.rejected,
+      code: 'refund_exceeds_sold',
+    );
+    final claimed = await store.claimBatch(scope: 'u1|t1');
+    expect(claimed.map((e) => e.mutationId), [second.mutationId]);
+  });
+
   test('rejected earlier mutation holds later same-entity mutations '
       '(non-catalog entity, or a rejected create)', () async {
     Future<OutboxEntry> row(String entity, String op) => store.enqueue(
@@ -144,7 +166,7 @@ void main() {
       scope: 'u1|t1',
     );
     for (final (entity, op) in [
-      ('sale', 'refund'),
+      ('sale', 'cancel'),
       ('customer', 'update'),
       ('product', 'create'),
     ]) {

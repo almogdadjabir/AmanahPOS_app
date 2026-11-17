@@ -3126,6 +3126,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shReturnedTotal => 'Returned';
 
   @override
+  String get shRefundPending => 'Refund pending sync';
+
+  @override
+  String get shRefundRejected => 'Refund rejected';
+
+  @override
   String get shNet => 'Net';
 
   @override

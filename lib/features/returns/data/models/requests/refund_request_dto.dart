@@ -2,7 +2,14 @@ class RefundRequestDto {
   final List<RefundItemDto> items;
   final String? notes;
 
-  const RefundRequestDto({required this.items, this.notes});
+  /// How the money goes back: `cash`, `bankak`, ... (BE refund method).
+  final String method;
+
+  const RefundRequestDto({
+    required this.items,
+    this.notes,
+    this.method = 'cash',
+  });
 
   Map<String, dynamic> toJson() => {
         'items': items.map((i) => i.toJson()).toList(),

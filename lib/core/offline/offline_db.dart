@@ -166,6 +166,25 @@ class OfflineDb {
       if ((await db.rawQuery('PRAGMA table_info($t)')).isEmpty) continue;
       await _addColumnIfMissing(db, t, 'server_json', 'TEXT');
     }
+    // Phase 4: local-first refunds. `sync_state` pending|synced|rejected
+    // (pulled rows are `synced`); a `rejected` row is voided: kept for the
+    // flag but excluded from every total.
+    if ((await db.rawQuery('PRAGMA table_info(sale_refunds)')).isNotEmpty) {
+      await _addColumnIfMissing(db, 'sale_refunds', 'reference', 'TEXT');
+      await _addColumnIfMissing(
+        db,
+        'sale_refunds',
+        'sync_state',
+        "TEXT NOT NULL DEFAULT 'synced'",
+      );
+      await _addColumnIfMissing(db, 'sale_refunds', 'error_code', 'TEXT');
+      await _addColumnIfMissing(db, 'sale_refunds', 'error_message', 'TEXT');
+      await _addColumnIfMissing(db, 'sale_refunds', 'reason', 'TEXT');
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_sale_refunds_sale_state '
+        'ON sale_refunds(sale_id, sync_state)',
+      );
+    }
   }
 
   /// Catalog tables that keep their last server state in `server_json`.
@@ -173,6 +192,7 @@ class OfflineDb {
     'categories',
     'products',
     'vendors',
+    'customers',
   ];
 
   /// Tables of the retired legacy bulk bootstrap (`sync_metadata`) and asset

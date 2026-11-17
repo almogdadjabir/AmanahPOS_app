@@ -30,6 +30,9 @@ class CustomerResponseDto {
   }
 }
 
+/// Local-first sync state of a customer row (outbox-derived).
+enum CustomerSyncMark { synced, pending, failed }
+
 class CustomerData {
   final String? id;
   final String? tenant;
@@ -44,6 +47,9 @@ class CustomerData {
   final String? createdAt;
   final String? updatedAt;
 
+  /// Waiting to sync / refused by the server. `synced` for server rows.
+  final CustomerSyncMark syncMark;
+
   const CustomerData({
     this.id,
     this.tenant,
@@ -57,6 +63,7 @@ class CustomerData {
     this.totalPurchases,
     this.createdAt,
     this.updatedAt,
+    this.syncMark = CustomerSyncMark.synced,
   });
 
   factory CustomerData.fromJson(Map<String, dynamic> json) {
@@ -89,6 +96,7 @@ class CustomerData {
     String? totalPurchases,
     String? createdAt,
     String? updatedAt,
+    CustomerSyncMark? syncMark,
   }) {
     return CustomerData(
       id: id ?? this.id,
@@ -103,6 +111,7 @@ class CustomerData {
       totalPurchases: totalPurchases ?? this.totalPurchases,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      syncMark: syncMark ?? this.syncMark,
     );
   }
 }

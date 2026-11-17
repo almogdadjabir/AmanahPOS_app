@@ -83,7 +83,11 @@ class ReturnsBloc extends Bloc<ReturnsEvent, ReturnsState> {
 
     final result = await _useCase.processRefund(
       saleId: sale.id!,
-      request: RefundRequestDto(items: items, notes: event.notes),
+      request: RefundRequestDto(
+        items: items,
+        notes: event.notes,
+        method: _methodFor(sale.paymentMethod),
+      ),
     );
 
     result.fold(
@@ -97,6 +101,13 @@ class ReturnsBloc extends Bloc<ReturnsEvent, ReturnsState> {
       )),
     );
   }
+
+  /// The sale's own method when it was a single one, else cash.
+  static String _methodFor(String paymentMethod) =>
+      const {'cash', 'bankak', 'card', 'bank_transfer', 'mobile_wallet'}
+              .contains(paymentMethod)
+          ? paymentMethod
+          : 'cash';
 
   void _onReset(ReturnsReset event, Emitter<ReturnsState> emit) {
     emit(ReturnsState.initial());

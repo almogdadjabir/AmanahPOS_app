@@ -407,8 +407,8 @@ class LocalDashboardQueries {
     ];
   }
 
-  /// PHASE 4 MUST LAND BEFORE REAL USE: refunds made on THIS device are
-  /// still REST-only, so they appear here only once pulled back.
+  /// Refunds made on this device count as soon as they are saved (pending);
+  /// a voided (`sync_state = 'rejected'`) refund counts for nothing.
   ///
   /// Refunds are subtracted on the REFUND date (endpoint: SaleRefund by
   /// `created_at` in the window, method of the original sale). Rows come
@@ -433,12 +433,13 @@ class LocalDashboardQueries {
     final r = (await db.rawQuery(
       '''
       SELECT COUNT(*) AS n, COALESCE(SUM(${_cents('r.total')}), 0) AS a,
-        COALESCE(SUM(CASE WHEN s.payment_method = 'cash'
+        COALESCE(SUM(CASE WHEN COALESCE(r.method, s.payment_method) = 'cash'
           THEN ${_cents('r.total')} END), 0) AS cash,
-        COALESCE(SUM(CASE WHEN s.payment_method = 'bankak'
+        COALESCE(SUM(CASE WHEN COALESCE(r.method, s.payment_method) = 'bankak'
           THEN ${_cents('r.total')} END), 0) AS bankak
       FROM $refundsTable r LEFT JOIN sales s ON s.id = r.sale_id
       WHERE r.occurred_at >= ? AND r.occurred_at < ?
+        AND r.sync_state != 'rejected'
         ${shopId == null ? '' : 'AND r.shop_id = ?'}
         AND ${visible.sql}
     ''',

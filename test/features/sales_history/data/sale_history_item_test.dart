@@ -42,10 +42,10 @@ void main() {
       }
     });
 
-    test('an unsynced sale cannot, even when completed', () {
+    test('an unsynced completed sale can (the refund queues behind it)', () {
       expect(
         _sale(SaleHistoryStatus.completed, offline: true).canBeReturned,
-        isFalse,
+        isTrue,
       );
       expect(
         _sale(SaleHistoryStatus.completed, id: null).canBeReturned,

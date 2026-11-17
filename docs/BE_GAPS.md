@@ -327,6 +327,14 @@ Found while building offline catalog writes (mobile spec `docs/superpowers/specs
 - **Category delete rule.** Please document what `category.delete` does when the category still has products or child categories: refuse (protected) or cascade (deactivate them / set NULL). Mobile refuses locally while it has active products or active children (safe default) and shows the server's rejection otherwise; if the BE cascades, mobile must mirror that locally.
 - **Cleared product fields (confirmed, keep stable).** On `product.update` mobile clears `cost_price` with `"0"` (NOT NULL, default 0), `barcode` with `""` (blank allowed, skipped by the unique check), and `expiry_alert_days` with `null`. Please keep these accepted.
 
+## Follow-ups found by the mobile Phase 4 work
+
+- **`customer.update` must accept `is_active`.** Mobile deactivates/reactivates a customer as `customer.update {is_active}` (the REST PATCH did the same). Please confirm the sync apply path accepts it (not only `customer.delete`), and that an update carrying `is_active` bumps `version`.
+- **`sale.refund` shape mobile sends:** `{sale_id, reference (client UUID), items:[{sale_item_id, quantity}], method, reason?, occurred_at}`, mutation `entity_id` = the sale id. The refund row in the feed (`ser_refund`) must keep echoing the client `reference`: mobile replaces its local pending copy of a refund with the pulled server row by matching `(sale, reference)`, so a refund counts once. Please keep `reference`, `sale`, `shop`, `total`, `method`, `items[].sale_item/quantity/amount` stable.
+- **Refund `method` for cash drawer:** mobile splits refund cash/bankak by the refund's own `method` (falling back to the sale's method for old rows). Please confirm refunds of split-payment sales: mobile sends `cash` when the sale was split; say if the BE wants something else.
+- **Provisional refund total:** mobile computes the refund total locally (line_total x qty / sold qty, half-up to cents) and replaces it with the server's `refund_total` on `applied`. Please keep the server rounding rule documented so the two can agree.
+- **Duplicate customer phone (`conflict_unique`)** returns `conflict_entity_id`; mobile v1 shows the rejected create in the pending-sync screen (discard) but has no "merge into existing" for customers yet (catalog entities do).
+
 ## Acceptance checklist for the BE agent
 
 Mobile will test against these. Please add backend tests for each.

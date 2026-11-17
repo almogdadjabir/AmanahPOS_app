@@ -845,7 +845,7 @@ void main() {
       });
     });
 
-    test('returns are offered only for synced local sales', () async {
+    test('returns are offered for synced and pending local sales, not rejected', () async {
       final ok = await saleAt(
         DateTime.utc(2026, 11, 16, 8),
         _cash([_tea('1')]),
@@ -875,7 +875,7 @@ void main() {
           i.id: i,
       };
       expect(items[ok.id]!.canBeReturned, isTrue);
-      expect(items[pending.id]!.canBeReturned, isFalse);
+      expect(items[pending.id]!.canBeReturned, isTrue);
       expect(items[rejected.id]!.canBeReturned, isFalse);
     });
 

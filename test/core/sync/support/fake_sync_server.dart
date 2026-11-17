@@ -47,8 +47,8 @@
 //    `applied` with no stock_after. Feed/table rows are `ser_sale` shaped
 //    (shop, customer, total_amount, net_amount, payments, items[].product,
 //    ...), version 0 (Sale is unversioned); push results carry no version.
-//    `sale.refund` (fake shape): `sale_id`, `items: [{product_id,
-//    quantity}]`. `sale.cancel`: entity_id is the sale.
+//    `sale.refund` (BE shape): `sale_id`, `reference`, `items:
+//    [{sale_item_id, quantity}]`, `method`, `reason`, `occurred_at`. `sale.cancel`: entity_id is the sale.
 //  * `inbound.create` mirrors BE `inbound_create` (stock increment,
 //    `stock_after`, `ser_inbound` feed row, reference unique).
 //  * [strictCatalog] (off by default for legacy tests): UUID ids, unknown
@@ -115,7 +115,8 @@ class _Core {
   final stockIds = <String, String>{};
   final saleItemIds = <String>{};
   final tombstones = <String, int>{};
-  final refunded = <String, BigInt>{}; // sale|product -> refunded qty
+  final refunded = <String, BigInt>{}; // sale|sale_item -> refunded qty
+  final refundRefs = <String, String>{}; // sale|reference -> total
   int seq = 0;
   int receiptCounter = 0;
   bool strictCatalog = false;
@@ -1483,7 +1484,12 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
     'returned_quantity': '0',
   };
 
-  /// Fake refund (payload `sale_id`, `items: [{product_id, quantity}]`).
+  /// Fake refund, BE contract shape: payload `sale_id`, `reference`,
+  /// `items: [{sale_item_id, quantity}]`, `method`, `reason`, `occurred_at`.
+  /// Unknown sale -> `retry` `dependency_pending`; same `(sale, reference)`
+  /// -> `duplicate`; cumulative qty per line above sold ->
+  /// `rejected` `refund_exceeds_sold` + `server_state`. Applied: restocks,
+  /// emits a `refund` feed row (`ser_refund` shape) and the updated sale.
   PushResult _saleRefund(OutboxEntry e, String device) {
     final p = e.payload;
     final table = _c.tables.putIfAbsent('sale', () => {});
@@ -1497,22 +1503,34 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
         status: PushStatus.retry,
       );
     }
-    final sold = <String, BigInt>{};
+    final reference = '${p['reference'] ?? ''}';
+    final refKey = '$saleId|$reference';
+    final known = _c.refundRefs[refKey];
+    if (known != null) {
+      return PushResult(
+        mutationId: e.mutationId,
+        status: PushStatus.duplicate,
+        entityId: e.entityId,
+        refundReference: reference,
+        refundTotal: known,
+      );
+    }
+    final lines = <String, Map>{};
     for (final it in (sale['items'] as List)) {
       final m = it as Map;
-      final pid = m['product'];
-      if (pid is! String) continue;
-      sold[pid] = (sold[pid] ?? BigInt.zero) + _parseDec(m['quantity']);
+      lines['${m['id']}'] = m;
     }
     final req = <String, BigInt>{};
     for (final it in (p['items'] as List? ?? const [])) {
       final m = it as Map;
-      req[m['product_id'] as String] =
-          (req[m['product_id']] ?? BigInt.zero) + _parseDec(m['quantity']);
+      final id = '${m['sale_item_id']}';
+      req[id] = (req[id] ?? BigInt.zero) + _parseDec(m['quantity']);
     }
     for (final en in req.entries) {
+      final line = lines[en.key];
+      final sold = line == null ? BigInt.zero : _parseDec(line['quantity']);
       final done = _c.refunded['$saleId|${en.key}'] ?? BigInt.zero;
-      if (done + en.value > (sold[en.key] ?? BigInt.zero)) {
+      if (line == null || done + en.value > sold) {
         return _reject(
           e,
           'refund_exceeds_sold',
@@ -1522,14 +1540,59 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
       }
     }
     final shop = sale['shop'] as String;
+    var total = BigInt.zero;
+    final pairs = <(String, String)>[];
+    final refundItems = <Map<String, dynamic>>[];
     var seq = 0;
     for (final en in req.entries) {
+      final line = lines[en.key]!;
+      final sold = _parseDec(line['quantity']);
+      final lineNet = _parseDec(line['subtotal']) - _parseDec(line['discount']);
+      final amount = _divHalfUp(lineNet * en.value, sold);
+      total += amount;
+      refundItems.add({
+        'sale_item': en.key,
+        'quantity': _fixed(en.value, 3),
+        'amount': _fixed(amount, 2),
+      });
       _c.refunded['$saleId|${en.key}'] =
           (_c.refunded['$saleId|${en.key}'] ?? BigInt.zero) + en.value;
-      seq = _moveStock(en.key, shop, en.value, device) ?? seq;
+      final pid = line['product'];
+      if (pid is String) {
+        pairs.add((pid, shop));
+        seq = _moveStock(pid, shop, en.value, device) ?? seq;
+      }
     }
+    final totalStr = _fixed(total, 2);
+    _c.refundRefs[refKey] = totalStr;
+    var allBack = true;
+    for (final en in lines.entries) {
+      final back = _c.refunded['$saleId|${en.key}'] ?? BigInt.zero;
+      if (back < _parseDec(en.value['quantity'])) allBack = false;
+    }
+    sale['status'] = allBack ? 'refunded' : 'partial_refund';
+    sale['updated_at'] = _iso(_serverTime);
+    final occurredRaw = p['occurred_at'];
+    final occurred = occurredRaw is String
+        ? DateTime.tryParse(occurredRaw)?.toUtc()
+        : null;
+    final createdAt = occurred ?? _serverTime;
+    final refundId = 'rf-${_c.refundRefs.length}-$saleId';
+    seq = _emit('refund', 'upsert', refundId, null, {
+      'id': refundId,
+      'sale': saleId,
+      'shop': shop,
+      'reference': reference,
+      'total': totalStr,
+      'method': p['method'],
+      'notes': p['reason'] ?? '',
+      'refunded_by': null,
+      'occurred_at': _iso(createdAt),
+      'created_at': _iso(createdAt),
+      'items': refundItems,
+    }, device);
     seq = _emit('sale', 'upsert', saleId as String, 0, sale, device);
-    final after = _stockAfter([for (final k in req.keys) (k, shop)]);
+    final after = _stockAfter(pairs);
     return PushResult(
       mutationId: e.mutationId,
       status: PushStatus.applied,
@@ -1537,8 +1600,15 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
       serverSeq: seq,
       warnings: _negativeWarning(after),
       stockAfter: after,
+      refundReference: reference,
+      refundTotal: totalStr,
     );
   }
+
+  /// Cumulative refunded quantity of a sale line, thousandths.
+  BigInt refundedQuantity(String saleId, String saleItemId) =>
+      (_c.refunded['$saleId|$saleItemId'] ?? BigInt.zero) ~/
+      BigInt.from(1000);
 
   PushResult _saleCancel(OutboxEntry e, String device) {
     final table = _c.tables.putIfAbsent('sale', () => {});

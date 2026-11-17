@@ -821,4 +821,66 @@ void main() {
       },
     );
   });
+
+  group('sale.refund (BE shape)', () {
+    Future<void> seedSale() => push(s, [
+      m('sale', 'create', 'S1', {
+        'shop': 'sh',
+        'payment_method': 'cash',
+        'items': [
+          {'id': 'L1', 'product_id': 'p1', 'quantity': '3', 'unit_price': '2.50'},
+        ],
+      }),
+    ]);
+    Map<String, dynamic> refund(String ref, String qty) => {
+      'sale_id': 'S1',
+      'reference': ref,
+      'items': [
+        {'sale_item_id': 'L1', 'quantity': qty},
+      ],
+      'method': 'cash',
+      'reason': 'r',
+      'occurred_at': '2026-11-16T10:00:00Z',
+    };
+
+    test('refund_exceeds_sold when two devices refund the same line', () async {
+      await seedSale();
+      final a = await push(s, [m('sale', 'refund', 'S1', refund('A', '2'))]);
+      final b = await push(s, [m('sale', 'refund', 'S1', refund('B', '2'))]);
+      expect(a.results.single.status, PushStatus.applied);
+      expect(a.results.single.refundTotal, '5.00');
+      expect(b.results.single.status, PushStatus.rejected);
+      expect(b.results.single.code, 'refund_exceeds_sold');
+      expect(b.results.single.serverState, isNotNull);
+    });
+
+    test('replay same reference returns duplicate', () async {
+      await seedSale();
+      await push(s, [m('sale', 'refund', 'S1', refund('A', '1'))]);
+      final r = await push(s, [m('sale', 'refund', 'S1', refund('A', '1'))]);
+      expect(r.results.single.status, PushStatus.duplicate);
+      expect(s.tables['sale']!['S1']!['status'], 'partial_refund');
+    });
+
+    test('unknown sale returns retry dependency_pending', () async {
+      final r = await push(s, [m('sale', 'refund', 'S1', refund('A', '1'))]);
+      expect(r.results.single.status, PushStatus.retry);
+      expect(r.results.single.code, 'dependency_pending');
+    });
+
+    test('refund before sale in same batch applies in seq order', () async {
+      final r = await push(s, [
+        m('sale', 'refund', 'S1', refund('A', '3'), seq: 2),
+        m('sale', 'create', 'S1', {
+          'shop': 'sh',
+          'payment_method': 'cash',
+          'items': [
+            {'id': 'L1', 'product_id': 'p1', 'quantity': '3', 'unit_price': '2.50'},
+          ],
+        }, seq: 1),
+      ]);
+      expect(r.results.map((e) => e.status), [PushStatus.applied, PushStatus.applied]);
+      expect(s.tables['sale']!['S1']!['status'], 'refunded');
+    });
+  });
 }

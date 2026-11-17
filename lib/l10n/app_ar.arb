@@ -1177,6 +1177,8 @@
   "shTax": "الضريبة",
   "shTotal": "الإجمالي",
   "shReturnedTotal": "المرتجع",
+  "shRefundPending": "الإرجاع بانتظار المزامنة",
+  "shRefundRejected": "تم رفض الإرجاع",
   "shNet": "الصافي",
   "shReturnsHeader": "المرتجعات",
   "shReturnItems": "إرجاع منتجات",

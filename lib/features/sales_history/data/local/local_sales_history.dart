@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../../core/offline/offline_db.dart';
@@ -122,11 +123,18 @@ class LocalSalesHistory {
       keys[page] = (last['occurred_at'] as String, last['id'] as String);
     }
 
-    final lines = await _lines(db, [
-      for (final r in pageRows) r['id'] as String,
-    ]);
+    final ids = [for (final r in pageRows) r['id'] as String];
+    final lines = await _lines(db, ids);
+    final refunds = await _refunds(db, ids);
     return SalesHistoryPage(
-      items: [for (final r in pageRows) _item(r, lines[r['id']] ?? const [])],
+      items: [
+        for (final r in pageRows)
+          _item(
+            r,
+            lines[r['id']] ?? const [],
+            refunds[r['id']] ?? const [],
+          ),
+      ],
       hasMore: hasMore,
       totalCount: total,
     );
@@ -150,10 +158,68 @@ class LocalSalesHistory {
     return out;
   }
 
+  /// One sale with its lines and refunds (pending and voided included), or
+  /// null when it is not in the local tables.
+  Future<SaleHistoryItem?> byId(String id) async {
+    final db = await _db.database;
+    final rows = await db.query('sales', where: 'id = ?', whereArgs: [id]);
+    if (rows.isEmpty) return null;
+    final lines = await _lines(db, [id]);
+    final refunds = await _refunds(db, [id]);
+    return _item(rows.single, lines[id] ?? const [], refunds[id] ?? const []);
+  }
+
+  /// Refund rows per sale id, newest first. A `rejected` row is kept (the
+  /// UI flags it) but never counted: see [SaleHistoryItem.refundedTotal].
+  Future<Map<String, List<Map<String, Object?>>>> _refunds(
+    Database db,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const {};
+    final rows = await db.query(
+      'sale_refunds',
+      where: 'sale_id IN (${List.filled(ids.length, '?').join(',')})',
+      whereArgs: ids,
+      orderBy: 'occurred_at DESC, id DESC',
+    );
+    final out = <String, List<Map<String, Object?>>>{};
+    for (final r in rows) {
+      (out[r['sale_id'] as String] ??= []).add(r);
+    }
+    return out;
+  }
+
+  /// Refunded quantity per line id from the non-voided refund rows.
+  static Map<String, double> _returned(List<Map<String, Object?>> refunds) {
+    final out = <String, double>{};
+    for (final r in refunds) {
+      if (r['sync_state'] == 'rejected') continue;
+      final raw = r['json'];
+      if (raw is! String) continue;
+      final Object? j;
+      try {
+        j = jsonDecode(raw);
+      } on FormatException {
+        continue;
+      }
+      final items = j is Map ? j['items'] : null;
+      if (items is! List) continue;
+      for (final it in items) {
+        if (it is! Map || it['sale_item'] is! String) continue;
+        out[it['sale_item'] as String] =
+            (out[it['sale_item'] as String] ?? 0) +
+            (double.tryParse('${it['quantity']}') ?? 0);
+      }
+    }
+    return out;
+  }
+
   static SaleHistoryItem _item(
     Map<String, Object?> r,
     List<Map<String, Object?>> lines,
+    List<Map<String, Object?>> refunds,
   ) {
+    final returned = _returned(refunds);
     final syncState = r['sync_state'] as String? ?? 'pending';
     final receipt = (r['receipt_number'] as String?)?.isNotEmpty == true
         ? r['receipt_number'] as String
@@ -184,6 +250,7 @@ class LocalSalesHistory {
         for (final l in lines)
           SaleHistoryLineItem(
             lineId: l['id'] as String,
+            returnedQuantity: returned[l['id'] as String] ?? 0,
             isCustom: l['is_custom'] == 1,
             productId: (l['product_id'] as String?) ?? '',
             productName: (l['product_name'] as String?) ?? '',
@@ -193,6 +260,19 @@ class LocalSalesHistory {
           ),
       ],
       discount: _d(r['discount']),
+      refunds: [
+        for (final f in refunds)
+          SaleHistoryRefund(
+            reference: (f['reference'] as String?) ?? (f['id'] as String),
+            total: _d(f['total']),
+            createdAt:
+                DateTime.tryParse('${f['occurred_at']}')?.toUtc() ??
+                DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+            syncState: (f['sync_state'] as String?) ?? 'synced',
+            errorMessage: (f['error_message'] as String?) ??
+                (f['error_code'] as String?),
+          ),
+      ],
     );
   }
 

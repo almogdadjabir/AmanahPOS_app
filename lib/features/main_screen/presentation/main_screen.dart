@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:amana_pos/common/services/notifications/notification_permission.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/offline_preparation_listener.dart';
@@ -20,10 +21,20 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     // Ask for notifications only after the user is inside the app.
-    Future<void>.delayed(
+    _notifTimer = Timer(
       const Duration(seconds: 3),
-      () => requestNotificationPermissionInContext(),
+      () {
+        if (mounted) requestNotificationPermissionInContext();
+      },
     );
+  }
+
+  Timer? _notifTimer;
+
+  @override
+  void dispose() {
+    _notifTimer?.cancel();
+    super.dispose();
   }
 
   static const double _appBarHeight = 44;

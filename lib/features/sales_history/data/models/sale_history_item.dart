@@ -35,11 +35,22 @@ class SaleHistoryRefund {
   final double total;
   final DateTime createdAt;
 
+  /// `pending` (not confirmed by the server yet), `synced`, or `rejected`
+  /// (voided: the server refused it, e.g. `refund_exceeds_sold`; the money
+  /// is NOT counted as returned).
+  final String syncState;
+  final String? errorMessage;
+
   const SaleHistoryRefund({
     required this.reference,
     required this.total,
     required this.createdAt,
+    this.syncState = 'synced',
+    this.errorMessage,
   });
+
+  bool get isRejected => syncState == 'rejected';
+  bool get isPending => syncState == 'pending';
 
   factory SaleHistoryRefund.fromDto(SaleRefundDto dto) => SaleHistoryRefund(
     reference: dto.reference,
@@ -184,14 +195,17 @@ class SaleHistoryItem {
     _ => paymentMethod,
   };
 
-  /// A sale can only be returned when it is fully synced and completed.
+  /// A sale can be returned when it is completed (or partly returned), even
+  /// while its own sync is pending: the refund queues behind the sale.
   bool get canBeReturned =>
-      !isOfflinePending &&
       id != null &&
       (status == SaleHistoryStatus.completed ||
           status == SaleHistoryStatus.partialRefund);
 
-  double get refundedTotal => refunds.fold(0.0, (a, r) => a + r.total);
+  double get refundedTotal =>
+      refunds.where((r) => !r.isRejected).fold(0.0, (a, r) => a + r.total);
+
+  bool get hasRejectedRefund => refunds.any((r) => r.isRejected);
 
   SaleHistoryItem copyWith({SaleHistoryStatus? status}) => SaleHistoryItem(
     id: id,

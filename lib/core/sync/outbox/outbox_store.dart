@@ -176,12 +176,16 @@ class OutboxStore {
           // catalog update/delete does not hold later rows of its row
           // ([catalogEntities]; ruling I2): they carry their own
           // base_version and the BE merges field-wise. Every other rejected
-          // row (a create, any sale/stock/inbound row) still holds them.
+          // row (a create, any sale/stock/inbound row) still holds them,
+          // except a rejected `sale.refund`: refunds are independent and
+          // append-only, a voided one must not strand later refunds of the
+          // same sale (Phase 4).
           final blockers = await txn.rawQuery(
             "SELECT 1 FROM $_t WHERE entity_id = ? AND seq < ? "
             "AND status != 'done' AND scope = ? "
-            "AND NOT (status = 'rejected' AND op IN ('update','delete') "
-            'AND entity IN ($_catalogIn)) LIMIT 1',
+            "AND NOT (status = 'rejected' AND ("
+            "(op IN ('update','delete') AND entity IN ($_catalogIn)) "
+            "OR (op = 'refund' AND entity = 'sale'))) LIMIT 1",
             [row['entity_id'], seq, scope],
           );
           if (blockers.isNotEmpty) continue;
@@ -414,7 +418,17 @@ class OutboxStore {
           where: 'seq = ?',
           whereArgs: [r['seq']],
         );
-        failed.add(OutboxEntry.fromRow(r));
+        final fe = OutboxEntry.fromRow(r);
+        failed.add(fe);
+        if (_isRefund(fe)) {
+          await _refundState(
+            txn,
+            fe,
+            'rejected',
+            code: 'dependency_failed',
+            message: dependencyFailedMessage(id),
+          );
+        }
         // Only a failed create is itself a dependency.
         if (r['op'] == 'create') queue.add(r['entity_id'] as String);
       }
@@ -482,6 +496,7 @@ class OutboxStore {
           whereArgs: [e.seq],
         );
         if (_isSaleCreate(e)) await _sales.markPendingAgain(txn, e.entityId);
+        if (_isRefund(e)) await _refundState(txn, e, 'pending');
         revived.add(e);
         if (e.op == 'create') queue.add(e.entityId);
       }
@@ -663,6 +678,7 @@ class OutboxStore {
     if (_isSaleCreate(e)) {
       await _sales.markPendingAgain(txn, e.entityId);
     }
+    if (_isRefund(e)) await _refundState(txn, e, 'pending');
     final revived = failsDependents(e)
         ? await _reviveDependents(txn, e.entityId, scope: e.scope)
         : const <OutboxEntry>[];
@@ -807,6 +823,32 @@ class OutboxStore {
   static bool _isSaleCreate(OutboxEntry e) =>
       e.entity == 'sale' && e.op == 'create';
 
+  static bool _isRefund(OutboxEntry e) =>
+      e.entity == 'sale' && e.op == 'refund';
+
+  /// Keeps the local refund (`sale_refunds.reference` = payload
+  /// `reference`) in step with its outbox row when the OUTBOX settles it
+  /// outside a push result: voided (`rejected`) when it is failed by a
+  /// dependency or discarded, `pending` again when revived / retried. The
+  /// sale status is recomputed from the non-voided refunds.
+  Future<void> _refundState(
+    DatabaseExecutor txn,
+    OutboxEntry e,
+    String state, {
+    String? code,
+    String? message,
+  }) async {
+    final ref = e.payload['reference'];
+    if (ref is! String) return;
+    await txn.update(
+      'sale_refunds',
+      {'sync_state': state, 'error_code': code, 'error_message': message},
+      where: 'sale_id = ? AND reference = ?',
+      whereArgs: [e.entityId, ref],
+    );
+    await _sales.recomputeRefundStatus(txn, e.entityId);
+  }
+
   /// Local consequences of user-removed rows ([removed]) and of the
   /// dependents that failed with them ([failed]).
   Future<void> _afterRemoved(
@@ -815,6 +857,25 @@ class OutboxStore {
     List<OutboxEntry> failed,
   ) async {
     for (final e in removed) {
+      if (_isRefund(e)) {
+        await _refundState(
+          txn,
+          e,
+          'rejected',
+          code: e.errorCode ?? 'discarded',
+          message: e.errorMessage ?? 'Discarded by user',
+        );
+        continue;
+      }
+      if (e.entity == 'customer' && e.op == 'create') {
+        // A never-sent customer the user discarded leaves no ghost row.
+        await txn.delete(
+          'customers',
+          where: 'id = ? AND version IS NULL',
+          whereArgs: [e.entityId],
+        );
+        continue;
+      }
       if (!_isSaleCreate(e)) continue;
       await _sales.markRejected(
         txn,

@@ -410,46 +410,71 @@ class SaleRefundsCard extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 46),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(
-                      r.reference,
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: colors.textPrimary,
-                        fontFeatures: AppTextStyles.tabularFigures,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppDims.s3),
-                  Expanded(
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Directionality(
+                  Row(
+                    children: [
+                      Directionality(
                         textDirection: TextDirection.ltr,
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '−${saleMoney(context, r.total)}',
-                                style: TextStyle(color: colors.danger),
-                              ),
-                              TextSpan(
-                                text: '  ${saleTime(r.createdAt)}',
-                                style: TextStyle(color: colors.textHint),
-                              ),
-                            ],
-                          ),
+                        child: Text(
+                          r.reference,
                           style: TextStyle(
                             fontSize: 17,
+                            color: colors.textPrimary,
                             fontFeatures: AppTextStyles.tabularFigures,
                           ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: AppDims.s3),
+                      Expanded(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '−${saleMoney(context, r.total)}',
+                                    style: TextStyle(
+                                      color: colors.danger,
+                                      decoration: r.isRejected
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: '  ${saleTime(r.createdAt)}',
+                                    style: TextStyle(color: colors.textHint),
+                                  ),
+                                ],
+                              ),
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontFeatures: AppTextStyles.tabularFigures,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (r.isPending || r.isRejected)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppDims.s2),
+                      child: Text(
+                        r.isRejected
+                            ? '${context.tr.shRefundRejected}'
+                                  '${(r.errorMessage ?? '').isEmpty ? '' : ': ${r.errorMessage}'}'
+                            : context.tr.shRefundPending,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: r.isRejected ? colors.danger : colors.textHint,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

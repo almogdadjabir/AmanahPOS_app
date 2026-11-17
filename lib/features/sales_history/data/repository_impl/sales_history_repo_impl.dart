@@ -2,7 +2,6 @@ import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/features/sales_history/data/local/local_sales_history.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
-import 'package:amana_pos/features/sales_history/data/models/sales_list_response_dto.dart';
 import 'package:amana_pos/features/sales_history/data/models/sales_report_dto.dart';
 import 'package:amana_pos/features/sales_history/domain/repositories/sales_history_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -95,11 +94,8 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
   @override
   Future<Either<String?, SaleHistoryItem>> getSaleById(String saleId) async {
     try {
-      final result = await _requestHandler.handleGetRequest(
-        'api/v1/sales/$saleId/',
-        (data) => SaleDto.fromJson(data as Map<String, dynamic>),
-      );
-      return result.map(SaleHistoryItem.fromDto);
+      final sale = await _localHistory.byId(saleId);
+      return sale == null ? const Left('Sale not found') : Right(sale);
     } catch (e) {
       return Left(e.toString());
     }

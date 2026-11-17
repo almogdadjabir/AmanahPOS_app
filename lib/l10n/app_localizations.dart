@@ -5798,6 +5798,18 @@ abstract class AppLocalizations {
   /// **'Returned'**
   String get shReturnedTotal;
 
+  /// No description provided for @shRefundPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund pending sync'**
+  String get shRefundPending;
+
+  /// No description provided for @shRefundRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund rejected'**
+  String get shRefundRejected;
+
   /// No description provided for @shNet.
   ///
   /// In en, this message translates to:

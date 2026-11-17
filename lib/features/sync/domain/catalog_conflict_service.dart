@@ -191,6 +191,7 @@ class CatalogConflictService {
     'businesses.json',
     'shops.json',
     'customers.json',
+    'customers.server_json',
   };
 
   /// Every column a merge rewrites (the schema-grep test checks the live

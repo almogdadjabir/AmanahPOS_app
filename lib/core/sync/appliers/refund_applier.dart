@@ -58,6 +58,19 @@ class RefundApplier implements ChangeApplier {
     final when = _utcIso(d['created_at']) ?? _utcIso(d['occurred_at']);
     if (when == null) return logSkip(entity, id, 'no date');
     final method = d['method'];
+    final reference = d['reference'];
+    if (reference is String && reference.isNotEmpty) {
+      // The local twin of a refund made on THIS device (same client
+      // `reference`, different local id): the server row replaces it, so the
+      // refund counts once.
+      await txn.delete(
+        table,
+        where:
+            "sale_id = ? AND reference = ? AND id != ? "
+            "AND sync_state != 'rejected'",
+        whereArgs: [sale, reference, id],
+      );
+    }
     await txn.insert(table, {
       'id': id,
       'sale_id': sale,
@@ -65,6 +78,8 @@ class RefundApplier implements ChangeApplier {
       'total': total,
       'occurred_at': when,
       'method': method is String ? method : null,
+      'reference': reference is String ? reference : null,
+      'sync_state': 'synced',
       'json': jsonEncode({...d, 'id': id}),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }

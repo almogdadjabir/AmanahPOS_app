@@ -1257,6 +1257,8 @@
   "shTax": "Tax",
   "shTotal": "Total",
   "shReturnedTotal": "Returned",
+  "shRefundPending": "Refund pending sync",
+  "shRefundRejected": "Refund rejected",
   "shNet": "Net",
   "shReturnsHeader": "Returns",
   "shReturnItems": "Return items",

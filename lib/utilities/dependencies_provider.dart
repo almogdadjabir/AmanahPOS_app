@@ -54,6 +54,8 @@ import 'package:amana_pos/features/dashboard/data/repositories/dashboard_reposit
 import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
 import 'package:amana_pos/features/returns/data/repository_impl/returns_repo_impl.dart';
+import 'package:amana_pos/features/customers/domain/customer_service.dart';
+import 'package:amana_pos/features/returns/domain/refund_service.dart';
 import 'package:amana_pos/features/returns/domain/repositories/returns_repository.dart';
 import 'package:amana_pos/features/returns/domain/usecases/returns_usecase.dart';
 import 'package:amana_pos/features/sales_history/data/local/local_sales_history.dart';
@@ -270,7 +272,10 @@ class DependenciesProvider {
     );
 
     getIt.registerLazySingleton<CustomerRepository>(
-      () => CustomerRepoImpl(getIt<RequestHandler>()),
+      () => CustomerRepoImpl(
+        writer: getIt<LocalWriter>(),
+        service: () => getIt<CustomerService>(),
+      ),
     );
 
     getIt.registerLazySingleton<NotificationRepository>(
@@ -378,7 +383,7 @@ class DependenciesProvider {
 
     // Returns
     getIt.registerLazySingleton<ReturnsRepository>(
-      () => ReturnsRepoImpl(requestHandler: getIt<RequestHandler>()),
+      () => ReturnsRepoImpl(refunds: getIt<RefundService>()),
     );
     getIt.registerLazySingleton<ReturnsUseCase>(
       () => ReturnsUseCase(repository: getIt<ReturnsRepository>()),
@@ -594,6 +599,15 @@ class DependenciesProvider {
           return i <= 0 ? null : scope.substring(0, i);
         },
       ),
+    );
+
+    getIt.registerLazySingleton<CustomerService>(
+      () => CustomerService(writer: getIt<LocalWriter>()),
+    );
+
+    // The only writer of local refunds (refund row + sale status + outbox).
+    getIt.registerLazySingleton<RefundService>(
+      () => RefundService(writer: getIt<LocalWriter>()),
     );
 
     getIt.registerLazySingleton<SyncTokenRefresher>(

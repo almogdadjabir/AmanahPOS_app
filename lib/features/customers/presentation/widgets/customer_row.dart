@@ -235,6 +235,23 @@ class CustomerRow extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (customer.syncMark != CustomerSyncMark.synced) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              customer.syncMark == CustomerSyncMark.failed
+                                  ? tr.shPillSyncFailed
+                                  : tr.shPillNotSynced,
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.3,
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    customer.syncMark == CustomerSyncMark.failed
+                                    ? colors.danger
+                                    : colors.textHint,
+                              ),
+                            ),
+                          ],
                           if (!active) ...[
                             const SizedBox(width: 6),
                             DecoratedBox(
