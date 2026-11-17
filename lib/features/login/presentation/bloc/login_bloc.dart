@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'dart:developer';
@@ -263,7 +264,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             phone: '${state.country.dialCode}$digits',
             otp: code,
             fcmToken: await fcmTokenService.getToken(),
-            platform: 'android',
+            platform: Platform.isIOS ? 'ios' : 'android',
             deviceId: deviceInfo.deviceId,
             appVersion: deviceInfo.appVersion
         ),

@@ -27,10 +27,10 @@ Flavor? get env => selectedEnv;
 String get baseUrl {
   switch (selectedEnv) {
     case Flavor.prod:
-      return devBaseURL;
+      return prodBaseURL;
     case Flavor.dev:
-      return devBaseURL;
+      return prodBaseURL;
     default:
-      return devBaseURL;
+      return prodBaseURL;
   }
 }

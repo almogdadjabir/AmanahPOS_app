@@ -14,7 +14,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // kIsWeb is checked first to avoid dart:io Platform calls on web.
@@ -80,8 +79,6 @@ Future<void> main() async {
 
 Future<void> _initializeFirebaseMessaging() async {
   try {
-    await _requestNotificationPermission();
-
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
           alert: true,
@@ -118,41 +115,6 @@ Future<void> _initializeFirebaseMessaging() async {
     if (kDebugMode) {
       log('[FCM] initialization failed: $e');
       log('$s');
-    }
-  }
-}
-
-Future<void> _requestNotificationPermission() async {
-  try {
-    // iOS and web use FirebaseMessaging's permission request (APNs / browser).
-    if (kIsWeb || Platform.isIOS) {
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      if (kDebugMode) {
-        log('[FCM] permission=${settings.authorizationStatus}');
-      }
-
-      return;
-    }
-
-    if (Platform.isAndroid) {
-      final status = await Permission.notification.status;
-
-      if (status.isDenied || status.isRestricted || status.isLimited) {
-        final result = await Permission.notification.request();
-
-        if (kDebugMode) {
-          log('[FCM] Android notification permission=$result');
-        }
-      }
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      log('[FCM] permission request failed: $e');
     }
   }
 }

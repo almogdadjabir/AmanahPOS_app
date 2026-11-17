@@ -1,3 +1,4 @@
+import 'package:amana_pos/common/services/notifications/notification_permission.dart';
 import 'package:amana_pos/features/main_screen/presentation/bloc/navigation_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/offline_preparation_listener.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/main_bottom_area.dart';
@@ -7,8 +8,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Ask for notifications only after the user is inside the app.
+    Future<void>.delayed(
+      const Duration(seconds: 3),
+      () => requestNotificationPermissionInContext(),
+    );
+  }
 
   static const double _appBarHeight = 44;
 
