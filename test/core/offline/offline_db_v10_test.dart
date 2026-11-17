@@ -10,7 +10,7 @@ Future<Set<String>> _tables(DatabaseExecutor db) async => (await db.rawQuery(
 
 void main() {
   test('schema v10: fresh onCreate never creates the legacy queues', () async {
-    expect(OfflineDb.schemaVersion, 10);
+    expect(OfflineDb.schemaVersion, greaterThanOrEqualTo(10));
     final odb = await openTestDb();
     final db = await odb.database;
     addTearDown(db.close);

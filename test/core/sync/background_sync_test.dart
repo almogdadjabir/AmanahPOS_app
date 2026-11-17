@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/sync/background/background_entry.dart';
 import 'package:amana_pos/core/sync/background/background_sync.dart';
+import 'package:amana_pos/core/sync/contract/sync_contract.dart';
+import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -190,6 +193,56 @@ void main() {
     expect(report.result, BackgroundSyncResult.retryLater);
   });
 
+  // Task 7: the background worker NEVER bootstraps (spec, call 1).
+  test('needsBootstrap: pushes, reports success, never bootstraps', () async {
+    await h.state.clear(); // no cursor: first setup still to do
+    h.server.capabilities = {'push', 'pull', 'bootstrap_paged'};
+    await h.createWidget('w1');
+
+    final report = await BackgroundSyncRunner.runOnce(
+      readSessionKey: session,
+      engineFactory: factory,
+    );
+
+    expect(report.outcome, SyncOutcome.needsBootstrap);
+    expect(report.result, BackgroundSyncResult.success);
+    expect(report.shouldRetry, isFalse);
+    expect(await unsynced(), 0, reason: 'the push half ran');
+    expect(h.transport.bootstrapManifestCalls, 0);
+    expect(h.transport.bootstrapPageCalls, 0);
+    expect(h.server.bootstrapManifestCalls, 0);
+    expect(h.server.bootstrapPageCalls, 0);
+    expect(await h.state.cursor(), isNull);
+    expect(await h.state.isBootstrapped(), isTrue, reason: 'flag untouched');
+  });
+
+  test(
+    'the worker builds its appliers for ITS scope, not SyncScope.current',
+    () async {
+      final prev = SyncScope.current;
+      SyncScope.current = 'someone|other-tenant';
+      addTearDown(() => SyncScope.current = prev);
+      final registry = backgroundSyncAppliers('u9|t9');
+      await h.db.transaction(
+        (t) => registry
+            .of('shop')!
+            .apply(
+              t,
+              const PullChange(
+                seq: 1,
+                entity: 'shop',
+                op: 'upsert',
+                id: 's1',
+                version: 1,
+                data: {'id': 's1', 'name': 'Main', 'version': 1},
+              ),
+            ),
+      );
+      final row = (await h.db.query('shops', where: "id = 's1'")).single;
+      expect(row['business_id'], 't9');
+    },
+  );
+
   group('storageSessionKey', () {
     test('user_id claim + tenant', () {
       expect(
@@ -215,7 +268,8 @@ void main() {
   });
 
   test(
-    'OfflineDb.onConfigure sets WAL and busy_timeout on a file db',
+    'OfflineDb.onConfigure sets WAL, synchronous=FULL and busy_timeout on a '
+    'file db',
     () async {
       sqfliteFfiInit();
       final dir = await Directory.systemTemp.createTemp('amana_wal');
@@ -234,6 +288,10 @@ void main() {
         final busy = await db.rawQuery('PRAGMA busy_timeout');
         expect(mode.single.values.single.toString().toLowerCase(), 'wal');
         expect(busy.single.values.single, OfflineDb.busyTimeoutMs);
+        // Review I5: FULL (2), not NORMAL (1): with WAL, NORMAL can roll back
+        // a committed (printed) sale on power loss / OS crash.
+        final sync = await db.rawQuery('PRAGMA synchronous');
+        expect(sync.single.values.single, 2);
 
         // A second connection on the same file (the other isolate) can read
         // and write while the first one is open.

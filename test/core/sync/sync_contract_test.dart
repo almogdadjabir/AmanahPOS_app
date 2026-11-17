@@ -423,4 +423,18 @@ class _Spy implements SyncTransport {
       nextCursor: 'c',
     );
   }
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  }) => throw UnimplementedError();
 }

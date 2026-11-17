@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amana_pos/core/sync/sync_engine.dart';
+import 'package:amana_pos/core/sync/sync_schema.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,14 +28,21 @@ class SyncBadgeCubit extends Cubit<SyncBadgeState> {
     required Stream<SyncStatus> status,
     required SyncStatus initial,
     required Future<int> Function() unsyncedCount,
+    Stream<Set<String>>? tableChanges,
   }) : _unsynced = unsyncedCount,
        super(SyncBadgeState(unsynced: 0, status: initial)) {
     _sub = status.listen(_onStatus);
+    // Local outbox writes (a sale, a discard / retry on the pending screen)
+    // change the count without any engine status change (review M3).
+    _tablesSub = tableChanges?.listen((t) {
+      if (t.contains(SyncTables.outbox)) _onStatus(state.status);
+    });
     _onStatus(initial);
   }
 
   final Future<int> Function() _unsynced;
   late final StreamSubscription<SyncStatus> _sub;
+  StreamSubscription<Set<String>>? _tablesSub;
 
   Future<void> _onStatus(SyncStatus s) async {
     try {
@@ -48,6 +56,7 @@ class SyncBadgeCubit extends Cubit<SyncBadgeState> {
   @override
   Future<void> close() async {
     await _sub.cancel();
+    await _tablesSub?.cancel();
     return super.close();
   }
 }

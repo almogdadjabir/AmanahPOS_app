@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:amana_pos/core/offline/models/offline_asset_record.dart';
+import 'package:amana_pos/core/offline/data/local_image_resolver.dart';
 import 'package:amana_pos/core/offline/offline_constants.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/inbound_response_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/premium_summary_dto.dart';
@@ -8,10 +8,10 @@ import 'package:amana_pos/features/inventory/data/models/responses/vendor_respon
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'package:amana_pos/core/offline/models/offline_asset_manifest_dto.dart';
-import 'package:amana_pos/core/offline/models/offline_bootstrap_dto.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/sync/decimal3.dart';
+import 'package:amana_pos/core/sync/sync_schema.dart';
+import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/features/inventory/data/local/stock_local_store.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/category/data/models/responses/category_response_dto.dart';
@@ -32,198 +32,6 @@ class OfflineLocalCache {
       Decimal3.tryParse(item.quantity) ??
       Decimal3.tryParse(item.qty) ??
       BigInt.zero;
-
-  Future<bool> hasBootstrapCache() => _db.hasBootstrapCache();
-
-  Future<void> saveBootstrap(OfflineBootstrapDto dto) async {
-    final db = await _db.database;
-    final now = DateTime.now().toUtc().toIso8601String();
-
-    await db.transaction((txn) async {
-      await txn.delete(OfflineConstants.shopsTable);
-      await txn.delete(OfflineConstants.categoriesTable);
-      await txn.delete(OfflineConstants.productsTable);
-      await txn.delete(OfflineConstants.customersTable);
-      await txn.delete(OfflineConstants.stockTable);
-
-      final batch = txn.batch();
-
-      for (final shop in dto.shops) {
-        final id = shop.id;
-        if (id == null || id.isEmpty) continue;
-
-        batch.insert(
-          OfflineConstants.shopsTable,
-          {
-            'id': id,
-            'business_id': shop.business,
-            'json': jsonEncode(shop.toJson()),
-            'updated_at': shop.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-
-      void addCategory(CategoryData category) {
-        final id = category.id;
-        if (id == null || id.isEmpty) return;
-
-        batch.insert(
-          OfflineConstants.categoriesTable,
-          {
-            'id': id,
-            'tenant_id': category.tenant,
-            'parent_id': category.parent,
-            'name': category.name,
-            'json': jsonEncode(_categoryToJson(category)),
-            'updated_at': category.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-
-        for (final child in category.children ?? const <CategoryData>[]) {
-          addCategory(child);
-        }
-      }
-
-      for (final category in dto.categories) {
-        addCategory(category);
-      }
-
-      // Important:
-      // Stock is the source of truth for offline quantity.
-      // We build this map before saving products so product.stock_level
-      // is never cached as 0 when stock endpoint/bootstrap has the real quantity.
-      final stockByProductId = <String, double>{};
-
-      for (final item in dto.stock) {
-        final productId = item.product;
-        final shopId = item.shop;
-
-        if (productId == null || productId.isEmpty) continue;
-        if (shopId == null || shopId.isEmpty) continue;
-
-        // Server quantity is the base; this device's unsent deltas stay on
-        // top (sync core: quantity = base + pending).
-        final base = _baseUnits(item);
-        final pending = await _stockStore.pendingDeltaUnits(
-          txn,
-          productId,
-          shopId,
-        );
-        final quantity = Decimal3.toDouble(base + pending);
-        stockByProductId[productId] = quantity;
-
-        final stockJson = _stockToJson(item);
-        stockJson['quantity'] = quantity;
-        stockJson['is_out_of_stock'] = quantity <= 0;
-
-        batch.insert(
-          OfflineConstants.stockTable,
-          {
-            'id': item.id ?? '$productId-$shopId',
-            'product_id': productId,
-            'shop_id': shopId,
-            'quantity': quantity,
-            'base_quantity': Decimal3.format(base),
-            'json': jsonEncode(stockJson),
-            'updated_at': item.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-
-      for (final product in dto.products) {
-        final id = product.id;
-        if (id == null || id.isEmpty) continue;
-
-        // Same behavior as your old post-stock update logic:
-        // stock table quantity overrides product.stockLevel.
-        final resolvedStockLevel =
-            stockByProductId[id] ?? product.stockLevel ?? 0.0;
-
-        final productJson = _productToJson(product);
-        productJson['stock_level'] = resolvedStockLevel;
-
-        batch.insert(
-          OfflineConstants.productsTable,
-          {
-            'id': id,
-            'category_id': product.category,
-            'name': product.name,
-            'sku': product.sku,
-            'barcode': product.barcode,
-            'price': product.price,
-            'stock_level': resolvedStockLevel,
-            'thumbnail_url': product.thumbnailUrl,
-            'image_url': product.image,
-            'json': jsonEncode(productJson),
-            'updated_at': product.createdAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-
-      for (final customer in dto.customers) {
-        final id = customer.id;
-        if (id == null || id.isEmpty) continue;
-
-        batch.insert(
-          OfflineConstants.customersTable,
-          {
-            'id': id,
-            'name': customer.name,
-            'phone': customer.phone,
-            'email': customer.email,
-            'json': jsonEncode(_customerToJson(customer)),
-            'updated_at': customer.updatedAt,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-
-      batch.insert('sync_metadata', {
-        'key': 'bootstrap_last_synced_at',
-        'value': now,
-        'updated_at': now,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-
-      if (dto.serverTime != null) {
-        batch.insert('sync_metadata', {
-          'key': 'bootstrap_server_time',
-          'value': dto.serverTime,
-          'updated_at': now,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-
-      await batch.commit(noResult: true);
-    });
-    _db.notifyTablesChanged(const {OfflineConstants.shopsTable});
-  }
-
-  Future<void> saveAssetManifest(OfflineAssetManifestDto dto) async {
-    final db = await _db.database;
-
-    await db.transaction((txn) async {
-      for (final asset in dto.assets.where((e) => e.isValid)) {
-        await txn.insert('offline_assets', {
-          'id': asset.id,
-          'type': asset.type,
-          'url': asset.url,
-          'hash': asset.hash,
-          'updated_at': asset.updatedAt,
-          'local_path': null,
-          'downloaded_at': null,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-
-      await txn.insert('sync_metadata', {
-        'key': 'asset_manifest_version',
-        'value': dto.version ?? '',
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-    });
-  }
 
   Future<List<BusinessData>> getBusinesses() async {
     final rows = await _db.getJsonList(OfflineConstants.businessesTable);
@@ -386,23 +194,6 @@ class OfflineLocalCache {
     };
   }
 
-  Map<String, dynamic> _customerToJson(CustomerData data) {
-    return {
-      'id': data.id,
-      'tenant': data.tenant,
-      'name': data.name,
-      'phone': data.phone,
-      'email': data.email,
-      'address': data.address,
-      'loyalty_points': data.loyaltyPoints,
-      'notes': data.notes,
-      'is_active': data.isActive,
-      'total_purchases': data.totalPurchases,
-      'created_at': data.createdAt,
-      'updated_at': data.updatedAt,
-    };
-  }
-
   Map<String, dynamic> _stockToJson(StockData data) {
     return {
       'id': data.id,
@@ -440,138 +231,60 @@ class OfflineLocalCache {
         shopName: shop.name,
         quantity: qty.toStringAsFixed(2),
         isOutOfStock: qty <= 0,
-        isLowStock: qty > 0 && qty <= (product.minStockLevel ?? 0),
+        // BE rule (StockLevel.is_low_stock): out-of-stock is also low.
+        isLowStock: qty <= (product.minStockLevel ?? 0),
         updatedAt: DateTime.now().toUtc().toIso8601String(),
       );
     }).toList();
   }
 
-  Future<void> saveAssetManifestPreservingDownloads(
-    OfflineAssetManifestDto dto,
-  ) async {
+  /// Local file of a downloaded image in `synced_assets` (AssetSync), by
+  /// url. Feed urls carry `?v=<hash12>`, so the url is matched without its
+  /// query: an exact match wins, then the newest row (rowid) of the same
+  /// path. Any row whose `local_path` file exists, whatever its state:
+  /// AssetSync only ever sets `local_path` to a completed, verified final
+  /// file (never a temp), and a `pending` row keeps the PREVIOUS good file
+  /// until the new one is adopted, so offline still shows an image.
+  /// Null when none.
+  Future<String?> getSyncedAssetPathByUrl(String? url) async {
+    final raw = url?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    final q = raw.indexOf('?');
+    final base = q < 0 ? raw : raw.substring(0, q);
+    if (base.isEmpty) return null;
+
     final db = await _db.database;
-
-    await db.transaction((txn) async {
-      for (final asset in dto.assets.where((e) => e.isValid)) {
-        final existing = await txn.query(
-          'offline_assets',
-          where: 'id = ? AND type = ?',
-          whereArgs: [asset.id, asset.type],
-          limit: 1,
-        );
-
-        String? localPath;
-        String? downloadedAt;
-
-        if (existing.isNotEmpty) {
-          final oldHash = existing.first['hash']?.toString();
-          final oldUrl = existing.first['url']?.toString();
-          final oldLocalPath = existing.first['local_path']?.toString();
-
-          final sameAsset = oldHash == asset.hash && oldUrl == asset.url;
-
-          if (sameAsset && oldLocalPath != null && oldLocalPath.isNotEmpty) {
-            final file = File(oldLocalPath);
-            if (await file.exists()) {
-              localPath = oldLocalPath;
-              downloadedAt = existing.first['downloaded_at']?.toString();
-            }
-          }
-        }
-
-        await txn.insert('offline_assets', {
-          'id': asset.id,
-          'type': asset.type,
-          'url': asset.url,
-          'hash': asset.hash,
-          'updated_at': asset.updatedAt,
-          'local_path': localPath,
-          'downloaded_at': downloadedAt,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-
-      await txn.insert('sync_metadata', {
-        'key': 'asset_manifest_version',
-        'value': dto.version ?? '',
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-    });
-  }
-
-  Future<List<OfflineAssetRecord>> getAssetsMissingLocalFiles({
-    int limit = 50,
-  }) async {
-    final db = await _db.database;
-
-    final rows = await db.query(
-      'offline_assets',
-      where: 'local_path IS NULL OR local_path = ?',
-      whereArgs: [''],
-      limit: limit,
+    // `base?...` sorts between `base?` and `base@` ('?' 0x3F, '@' 0x40):
+    // an index range on url instead of LIKE (no wildcard escaping).
+    final rows = await db.rawQuery(
+      'SELECT local_path FROM synced_assets '
+      'WHERE local_path IS NOT NULL '
+      'AND (url = ? OR url = ? OR (url >= ? AND url < ?)) '
+      'ORDER BY CASE WHEN url = ? THEN 0 ELSE 1 END, rowid DESC '
+      'LIMIT 4',
+      [raw, base, '$base?', '$base@', raw],
     );
-
-    return rows.map(OfflineAssetRecord.fromDb).toList();
-  }
-
-  Future<List<OfflineAssetRecord>> getAllAssets() async {
-    final db = await _db.database;
-
-    final rows = await db.query('offline_assets');
-
-    return rows.map(OfflineAssetRecord.fromDb).toList();
-  }
-
-  Future<void> markAssetDownloaded({
-    required String id,
-    required String type,
-    required String localPath,
-  }) async {
-    final db = await _db.database;
-
-    await db.update(
-      'offline_assets',
-      {
-        'local_path': localPath,
-        'downloaded_at': DateTime.now().toUtc().toIso8601String(),
-      },
-      where: 'id = ? AND type = ?',
-      whereArgs: [id, type],
-    );
-  }
-
-  Future<String?> getLocalAssetPathByUrl(String? url) async {
-    if (url == null || url.trim().isEmpty) return null;
-
-    final db = await _db.database;
-
-    final rows = await db.query(
-      'offline_assets',
-      columns: ['local_path'],
-      where: 'url = ?',
-      whereArgs: [url],
-      limit: 1,
-    );
-
-    if (rows.isEmpty) return null;
-
-    final path = rows.first['local_path']?.toString();
-    if (path == null || path.isEmpty) return null;
-
-    final file = File(path);
-    if (!await file.exists()) return null;
-
-    return path;
-  }
-
-  Future<Directory> getOfflineAssetsDirectory() async {
-    final dir = await getApplicationSupportDirectory();
-    final assetsDir = Directory(p.join(dir.path, 'offline_assets'));
-
-    if (!await assetsDir.exists()) {
-      await assetsDir.create(recursive: true);
+    for (final r in rows) {
+      final path = r['local_path']?.toString();
+      if (path == null || path.isEmpty) continue;
+      if (await File(path).exists()) return path;
     }
+    return null;
+  }
 
-    return assetsDir;
+  /// Every `synced_assets` row holding a file, newest first: the single
+  /// query behind the shared image resolver ([LocalImageResolver]).
+  Future<List<SyncedAssetPath>> getSyncedAssetPaths() async {
+    final db = await _db.database;
+    final rows = await db.rawQuery(
+      'SELECT url, local_path FROM synced_assets '
+      'WHERE local_path IS NOT NULL ORDER BY rowid DESC',
+    );
+    return [
+      for (final r in rows)
+        if (r['url'] is String && r['local_path'] is String)
+          (url: r['url'] as String, path: r['local_path'] as String),
+    ];
   }
 
   Future<void> saveProductsToCache(List<ProductData> products) async {
@@ -599,39 +312,11 @@ class OfflineLocalCache {
           stockLevel: resolvedStockLevel,
         );
 
-        final existingRows = await txn.query(
-          OfflineConstants.productsTable,
-          columns: ['thumbnail_url'],
-          where: 'id = ?',
-          whereArgs: [id],
-          limit: 1,
-        );
-
-        final oldThumbnailUrl = existingRows.isEmpty
-            ? null
-            : existingRows.first['thumbnail_url']?.toString();
-
+        // Images: `synced_assets` is keyed by the feed's image_hash change
+        // token (registerAsset); a REST url change needs no invalidation
+        // here (the image widget falls back to the network for an unknown
+        // url).
         final newThumbnailUrl = product.thumbnailUrl;
-
-        if (oldThumbnailUrl != null && oldThumbnailUrl.isNotEmpty) {
-          if (oldThumbnailUrl != newThumbnailUrl) {
-            await txn.update(
-              'offline_assets',
-              {'local_path': null, 'downloaded_at': null},
-              where: 'url = ?',
-              whereArgs: [oldThumbnailUrl],
-            );
-          }
-        }
-
-        if (newThumbnailUrl != null && newThumbnailUrl.isNotEmpty) {
-          await txn.update(
-            'offline_assets',
-            {'local_path': null, 'downloaded_at': null},
-            where: 'url = ?',
-            whereArgs: [newThumbnailUrl],
-          );
-        }
 
         await txn.insert(
           OfflineConstants.productsTable,
@@ -776,41 +461,83 @@ class OfflineLocalCache {
       await safeDeleteTable(txn, OfflineConstants.customersTable);
       await safeDeleteTable(txn, OfflineConstants.stockTable);
 
-      await safeDeleteTable(txn, 'offline_assets');
-      await safeDeleteTable(txn, 'sync_metadata');
+      // Files are removed by the next AssetSync orphan sweep.
+      await safeDeleteTable(txn, 'synced_assets');
+      await safeDeleteTable(txn, 'synced_entities');
 
-      // Unsynced data is never destroyed here: the sync outbox / sync_state
-      // are untouched (explicit discard is OutboxStore.discardAll).
+      // Unsynced data is never destroyed here: the sync outbox and deferred
+      // pulls are untouched (explicit discard is OutboxStore.discardAll).
       await safeDeleteTable(txn, OfflineConstants.vendorsTable);
       await safeDeleteTable(txn, OfflineConstants.premiumSummaryTable);
       await safeDeleteTable(txn, OfflineConstants.inboundTransactionsTable);
-    });
-    _db.notifyTablesChanged(const {OfflineConstants.shopsTable});
 
-    await _deleteOfflineAssetsDirectory();
+      // Same transaction as the rows: every scope's cursor, `bootstrapped`
+      // flag and bootstrap progress go too (ruling T1-d), so the next login
+      // sets up again instead of pulling on top of an empty catalog. Outbox,
+      // deferred pulls, sales and sale_refunds are kept (T5-a).
+      await SyncStateStore.resetSetupOfAllScopes(txn);
+    });
+    _db.notifyTablesChanged(const {
+      OfflineConstants.shopsTable,
+      'synced_assets',
+      SyncTables.syncState,
+    });
+
+    await _deleteLegacyAssetsDirectory();
   }
 
+  /// Active vendors only, matching the REST list. Inactive rows (written by
+  /// the sync `VendorApplier` or a REST deactivation) stay in the table so
+  /// inbound history keeps its vendor names; they are just not listed.
   Future<List<VendorData>> getVendors() async {
     final rows = await _db.getJsonList(OfflineConstants.vendorsTable);
-    return rows.map(VendorData.fromJson).toList();
+    return rows
+        .where((r) => r['is_active'] != false)
+        .map(VendorData.fromJson)
+        .toList();
   }
 
+  /// REST vendor writer (vendors screen). UPSERT only: the REST list is
+  /// active-only and paged, so it is NOT the full set and must never delete
+  /// rows the sync `VendorApplier` wrote (inactive vendors, inbound vendor
+  /// names). An existing row keeps its feed `version` (REST content is the
+  /// current server state, at least as new), so an older feed row can never
+  /// roll it back. Removal goes through [removeVendorFromCache].
   Future<void> saveVendors(List<VendorData> vendors) async {
     final db = await _db.database;
+    final now = DateTime.now().toUtc().toIso8601String();
     await db.transaction((txn) async {
-      await txn.delete(OfflineConstants.vendorsTable);
       for (final vendor in vendors) {
-        await txn.insert(
+        final id = vendor.id;
+        if (id.isEmpty) continue;
+        final values = {'json': jsonEncode(vendor.toJson()), 'updated_at': now};
+        final updated = await txn.update(
           OfflineConstants.vendorsTable,
-          {
-            'id': vendor.id,
-            'json': jsonEncode(vendor.toJson()),
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
+          values,
+          where: 'id = ?',
+          whereArgs: [id],
         );
+        if (updated == 0) {
+          await txn.insert(
+            OfflineConstants.vendorsTable,
+            {'id': id, ...values},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
       }
     });
+  }
+
+  /// A vendor the user deleted through REST (the feed's `delete` later
+  /// confirms it).
+  Future<void> removeVendorFromCache(String id) async {
+    if (id.isEmpty) return;
+    final db = await _db.database;
+    await db.delete(
+      OfflineConstants.vendorsTable,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<PremiumSummaryData?> getPremiumSummary({String? shopId}) async {
@@ -893,7 +620,9 @@ class OfflineLocalCache {
     });
   }
 
-  Future<void> _deleteOfflineAssetsDirectory() async {
+  /// Removes the folder the retired legacy downloader used (`offline_assets`)
+  /// if an earlier build left one behind. Nothing writes it any more.
+  Future<void> _deleteLegacyAssetsDirectory() async {
     try {
       final dir = await getApplicationSupportDirectory();
       final assetsDir = Directory(p.join(dir.path, 'offline_assets'));

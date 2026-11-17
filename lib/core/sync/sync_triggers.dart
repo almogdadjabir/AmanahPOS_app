@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import '../network/network_monitor.dart';
+import 'assets/asset_sync.dart';
+import 'bootstrap/bootstrapper.dart';
 import 'db_change_notifier.dart';
 import 'outbox/outbox_store.dart';
 import 'sync_engine.dart';
@@ -34,8 +36,28 @@ import 'sync_scope.dart';
 ///    may cut a network backoff short but never a maintenance window;
 ///  * `blocked` / `needsBootstrap` schedule nothing.
 ///
+/// First setup (spec 2026-11-16 phase 2, section 2): when the engine answers
+/// `needsBootstrap` and a [Bootstrapper] is given, the same run (still the
+/// one in-flight run, so engine and bootstrapper never overlap; both also
+/// hold `sync_lock`) runs it while the app is in the foreground and then
+/// runs the engine ONCE more (`completed` / `notNeeded`). Outcomes:
+///  * `interrupted` (offline, server error, cancel): any later trigger
+///    retries it (connectivity regained and resume included);
+///  * `blocked` (server not ready, refresh rejected, account disabled, ...):
+///    held; only a manual [syncNow] (or a new session, [start]) retries it.
+///    Exception: "server not ready" is also retried by app resume (T7 M1).
+///    The engine itself still runs (pushes) on every trigger;
+///  * `alreadyRunning`: handled like the engine's (one retry after the TTL).
+///
 /// [canSync] gates every run (session present, server capabilities); when
 /// it says no, nothing is scheduled.
+///
+/// Images (spec phase 2, section 4): [assetSync] (`AssetSync.run()`) is
+/// started after a run that ends `completed`, once after a bootstrap
+/// `completed`, and on app resume, only while [assetsReachable] says the
+/// server answers. Fire-and-forget: never awaited by the run, never changes
+/// its outcome, every failure is swallowed and logged. AssetSync is
+/// single-flight itself, so overlapping starts collapse.
 class SyncTriggers {
   SyncTriggers(
     this._engine,
@@ -51,8 +73,14 @@ class SyncTriggers {
     DateTime Function()? now,
     this.onBackgroundWork,
     this.resumeRefreshTables = const {},
+    Bootstrapper? bootstrapper,
+    Future<AssetSync?> Function()? assetSync,
+    Future<bool> Function()? assetsReachable,
   }) : _canSync = canSync,
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now,
+       _bootstrapper = bootstrapper,
+       _assetSync = assetSync,
+       _assetsReachable = assetsReachable;
 
   final SyncEngine _engine;
   final NetworkMonitor _network;
@@ -71,6 +99,18 @@ class SyncTriggers {
   final Duration maxBackoffWait;
   final Future<bool> Function()? _canSync;
   final DateTime Function() _now;
+  final Bootstrapper? _bootstrapper;
+  final Future<AssetSync?> Function()? _assetSync;
+  final Future<bool> Function()? _assetsReachable;
+
+  /// The last bootstrap ended `blocked`: only manual runs retry it (and app
+  /// resume when the block is "server not ready", see [onAppResumed]).
+  bool _bootstrapBlocked = false;
+
+  /// The held block is the server's missing `bootstrap_paged` capability:
+  /// a server deploy can fix it while the app is away, so app resume
+  /// clears this hold (ledger T7 M1). Token / account blocks stay held.
+  bool _bootstrapBlockedServerNotReady = false;
 
   /// Optional: asks the OS background worker for a sync soon. Called at most
   /// once per background period, when the app is paused (or written to
@@ -110,6 +150,8 @@ class SyncTriggers {
     _generation++;
     _foreground = true;
     _lastOnline = null;
+    _bootstrapBlocked = false;
+    _bootstrapBlockedServerNotReady = false;
     _netSub = _network.onStatusChanged.listen(_onConnectivity);
     _dbSub = _notifier.changes.listen(_onTablesChanged);
     _startPeriodic();
@@ -129,6 +171,13 @@ class SyncTriggers {
     _cancelTimers();
     _followUpRequested = false;
     _backoffUntil = null;
+    // Ask the run in flight (engine or bootstrap) to stop right away, before
+    // any await, so it winds down while the listeners are detached.
+    final running = _runDone;
+    if (running != null && !running.isCompleted) {
+      _engine.cancel();
+      _bootstrapper?.cancel();
+    }
     final net = _netSub;
     final db = _dbSub;
     _netSub = null;
@@ -141,6 +190,7 @@ class SyncTriggers {
     final done = _runDone;
     if (done != null && !done.isCompleted) {
       _engine.cancel();
+      _bootstrapper?.cancel();
       await done.future;
     }
   }
@@ -149,9 +199,14 @@ class SyncTriggers {
     if (!_started) return;
     _foreground = true;
     _backgroundRequested = false;
+    if (_bootstrapBlocked && _bootstrapBlockedServerNotReady) {
+      _bootstrapBlocked = false;
+      _bootstrapBlockedServerNotReady = false;
+    }
     if (resumeRefreshTables.isNotEmpty) _notifier.notify(resumeRefreshTables);
     _startPeriodic();
     _kick(SyncReason.resume);
+    _kickAssets('resume');
   }
 
   void onAppPaused() {
@@ -276,6 +331,9 @@ class SyncTriggers {
       }
       try {
         outcome = await _engine.syncNow(reason: reason);
+        if (outcome == SyncOutcome.needsBootstrap) {
+          outcome = await _bootstrapThenSync(reason, gen);
+        }
       } catch (e, st) {
         _log('syncNow threw', e, st);
         outcome = null;
@@ -290,12 +348,45 @@ class SyncTriggers {
     return outcome;
   }
 
+  /// Runs the bootstrapper (foreground only, not while held `blocked`
+  /// unless manual), then the engine once more. Returns the run's outcome.
+  Future<SyncOutcome> _bootstrapThenSync(SyncReason reason, int gen) async {
+    final boot = _bootstrapper;
+    if (boot == null || !_started || gen != _generation || !_foreground) {
+      return SyncOutcome.needsBootstrap;
+    }
+    if (_bootstrapBlocked && reason != SyncReason.manual) {
+      return SyncOutcome.needsBootstrap;
+    }
+    _bootstrapBlocked = false;
+    _bootstrapBlockedServerNotReady = false;
+    final r = await boot.run();
+    switch (r) {
+      case BootstrapOutcome.completed:
+        if (!_started || gen != _generation) return SyncOutcome.cancelled;
+        _kickAssets('bootstrap completed');
+        return _engine.syncNow(reason: reason);
+      case BootstrapOutcome.notNeeded:
+        if (!_started || gen != _generation) return SyncOutcome.cancelled;
+        return _engine.syncNow(reason: reason);
+      case BootstrapOutcome.blocked:
+        _bootstrapBlocked = true;
+        _bootstrapBlockedServerNotReady = boot.current.serverNotReady;
+        return SyncOutcome.needsBootstrap;
+      case BootstrapOutcome.interrupted:
+        return SyncOutcome.needsBootstrap;
+      case BootstrapOutcome.alreadyRunning:
+        return SyncOutcome.alreadyRunning;
+    }
+  }
+
   void _afterRun(SyncOutcome? outcome) {
     final followUp = _followUpRequested;
     final followUpReason = followUp ? _followUpReason : SyncReason.afterWrite;
     _followUpRequested = false;
     switch (outcome) {
       case SyncOutcome.completed:
+        _kickAssets('sync completed');
         _backoffUntil = null;
         _backoffTimer?.cancel();
         _backoffTimer = null;
@@ -340,6 +431,25 @@ class SyncTriggers {
       _backoffUntil = null;
       _kick(SyncReason.periodic);
     });
+  }
+
+  /// Starts an image run without waiting for it. Never throws.
+  void _kickAssets(String why) {
+    final provider = _assetSync;
+    if (provider == null || !_started) return;
+    final gen = _generation;
+    unawaited(() async {
+      try {
+        final gate = _assetsReachable;
+        if (gate != null && !await gate()) return;
+        if (!_started || gen != _generation) return;
+        final assets = await provider();
+        if (assets == null) return;
+        await assets.run();
+      } catch (e, st) {
+        _log('asset sync ($why) failed', e, st);
+      }
+    }());
   }
 
   void _cancelTimers() {

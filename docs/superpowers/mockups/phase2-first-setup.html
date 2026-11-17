@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Setup Sketch</title>
+<!--
+  Phase 2 Task 11 sketch (NOT an approval gate: ruling R4, user asleep).
+  Mirrors lib/core/offline/presentation/first_setup_screen.dart, built from
+  existing Nile Ledger pieces: OfflineHero, AppGroup/AppGroupRow, AppButton,
+  tinted icon tiles, theme tokens from lib/theme/app_colors.dart.
+  Five states: running, offline, server not ready, required, done (+images),
+  plus the running state in Arabic (RTL).
+-->
+<style>
+  :root {
+    --bg: #F6F4EF; --surface: #FFFFFF; --border: #E5E1D8; --text: #1C1A17;
+    --text2: #58534A; --hint: #958E80; --primary: #0F766E; --primaryC: #E8F5F2;
+    --success: #0E6B4E; --successC: #E5F3EB; --danger: #B3261E; --dangerC: #FBE9E7;
+    --warning: #9A4508; --warningC: #FCEDE0; --track: #EEEBE4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0B1211; --surface: #152120; --border: #24312F; --text: #F6F4EF;
+      --text2: #CFC9BC; --hint: #958E80; --primary: #2BB3A6; --primaryC: #12302D;
+      --success: #4CC38A; --successC: #11291F; --danger: #F08A80; --dangerC: #3A1715;
+      --warning: #F0A35E; --warningC: #3A2412; --track: #24312F;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px; background: #d9d5cc; font: 15px/1.4 -apple-system, "SF Pro Text", "Segoe UI", Tahoma, sans-serif; color: var(--text); }
+  h1.page { font-size: 18px; margin: 0 0 4px; color: #1C1A17; }
+  p.lead { margin: 0 0 20px; color: #58534A; max-width: 720px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 24px; }
+  .phone { width: 320px; max-width: 100%; background: var(--bg); border-radius: 28px; padding: 28px 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .cap { font-size: 12px; font-weight: 600; color: #58534A; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .hero { width: 96px; height: 96px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, var(--surface) 42%, var(--primaryC) 43%); border: 1px solid var(--border); color: var(--primary); font-size: 34px; }
+  .tile { width: 72px; height: 72px; margin: 0 auto; border-radius: 20px; display: grid; place-items: center; font-size: 30px; }
+  h2 { font-size: 20px; text-align: center; margin: 18px 0 6px; }
+  .sub { text-align: center; color: var(--text2); margin: 0 0 16px; }
+  .notice { display: flex; gap: 12px; padding: 14px; border-radius: 16px; margin-bottom: 16px; }
+  .notice b { display: block; color: var(--text); }
+  .notice span { color: var(--text2); font-size: 14px; }
+  .bar { height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; margin-bottom: 14px; }
+  .bar i { display: block; height: 100%; background: var(--primary); }
+  .group { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--border); }
+  .row:first-child { border-top: 0; }
+  .row.cur { background: color-mix(in srgb, var(--primaryC) 60%, transparent); }
+  .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 15px; flex: none; }
+  .ic.done { background: var(--successC); color: var(--success); }
+  .ic.cur { background: var(--primaryC); color: var(--primary); }
+  .ic.wait { background: var(--track); color: var(--hint); }
+  .row .t { flex: 1; min-width: 0; }
+  .row .t small { display: block; color: var(--text2); font-size: 12px; }
+  .ok { color: var(--success); }
+  .spin { width: 14px; height: 14px; border: 2px solid var(--primaryC); border-top-color: var(--primary); border-radius: 50%; }
+  .btn { margin-top: 16px; height: 52px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; }
+  .btn.p { background: var(--primary); color: #fff; }
+  .btn.s { background: var(--primaryC); color: var(--primary); }
+  .note { text-align: center; color: var(--hint); font-size: 12px; margin-top: 14px; }
+  [dir="rtl"] { font-family: Tahoma, "SF Arabic", sans-serif; }
+</style>
+</head>
+<body>
+<h1 class="page">First setup (Phase 2, Task 11)</h1>
+<p class="lead">Blocking screen shown only while the signed-in scope was never bootstrapped. Closes when the final bootstrap transaction commits; images never block. A later refresh of a bootstrapped scope never shows it.</p>
+<div class="grid">
+
+  <div><p class="cap">Running</p><div class="phone">
+    <div class="hero">&#9729;</div>
+    <h2>Setting up your business</h2>
+    <p class="sub">Downloading your business data once so AmanaPOS can work offline.</p>
+    <div class="bar"><i style="width:20%"></i></div>
+    <div class="group">
+      <div class="row"><div class="ic done">&#127978;</div><div class="t">Business and shops</div><span class="ok">&#10003;</span></div>
+      <div class="row cur"><div class="ic cur">&#128230;</div><div class="t">Products and categories<small>Step 4 of 15 · 120 records saved</small></div><div class="spin"></div></div>
+      <div class="row"><div class="ic wait">&#128101;</div><div class="t">Customers, suppliers and team</div></div>
+      <div class="row"><div class="ic wait">&#128218;</div><div class="t">Stock and expiry dates</div></div>
+      <div class="row"><div class="ic wait">&#129534;</div><div class="t">Recent sales and activity</div></div>
+    </div>
+    <p class="note">If the app closes, setup continues where it stopped.</p>
+  </div></div>
+
+  <div><p class="cap">Offline</p><div class="phone">
+    <div class="tile" style="background:var(--warningC);color:var(--warning)">&#8856;</div>
+    <h2>Setting up your business</h2>
+    <p class="sub">Getting ready to download your business data.</p>
+    <div class="notice" style="background:var(--warningC)"><span style="color:var(--warning)">&#8856;</span><div><b>You're offline</b><span>Internet is required only for first setup. Connect once and setup continues where it stopped.</span></div></div>
+    <div class="group">
+      <div class="row"><div class="ic wait">&#127978;</div><div class="t">Business and shops</div></div>
+      <div class="row"><div class="ic wait">&#128230;</div><div class="t">Products and categories</div></div>
+      <div class="row"><div class="ic wait">&#128101;</div><div class="t">Customers, suppliers and team</div></div>
+    </div>
+    <div class="btn p">&#8635; Try again</div>
+  </div></div>
+
+  <div><p class="cap">Server not ready</p><div class="phone">
+    <div class="tile" style="background:var(--dangerC);color:var(--danger)">!</div>
+    <h2>Setting up your business</h2>
+    <p class="sub">Getting ready to download your business data.</p>
+    <div class="notice" style="background:var(--dangerC)"><span style="color:var(--danger)">!</span><div><b>Server not ready</b><span>The server can't run first setup yet. Try again later or contact support.</span></div></div>
+    <div class="btn p">&#8635; Try again</div>
+    <p class="note">Also retried automatically when the app returns to the foreground.</p>
+  </div></div>
+
+  <div><p class="cap">Done (non-blocking images)</p><div class="phone">
+    <div class="tile" style="background:var(--successC);color:var(--success)">&#10003;</div>
+    <h2>All set</h2>
+    <p class="sub">Images keep downloading in the background.</p>
+    <div class="group">
+      <div class="row"><div class="ic done">&#127978;</div><div class="t">Business and shops</div><span class="ok">&#10003;</span></div>
+      <div class="row"><div class="ic done">&#128230;</div><div class="t">Products and categories</div><span class="ok">&#10003;</span></div>
+      <div class="row"><div class="ic done">&#129534;</div><div class="t">Recent sales and activity</div><span class="ok">&#10003;</span></div>
+    </div>
+  </div></div>
+
+  <div><p class="cap">Running, Arabic (RTL)</p><div class="phone" dir="rtl" lang="ar">
+    <div class="hero">&#9729;</div>
+    <h2>تجهيز نشاطك التجاري</h2>
+    <p class="sub">يتم تنزيل بيانات نشاطك مرة واحدة ليعمل AmanaPOS دون اتصال.</p>
+    <div class="bar" style="direction:rtl"><i style="width:20%;margin-inline-start:0"></i></div>
+    <div class="group">
+      <div class="row"><div class="ic done">&#127978;</div><div class="t">النشاط والفروع</div><span class="ok">&#10003;</span></div>
+      <div class="row cur"><div class="ic cur">&#128230;</div><div class="t">المنتجات والفئات<small>الخطوة 4 من 15 · تم حفظ 120 سجلًا</small></div><div class="spin"></div></div>
+      <div class="row"><div class="ic wait">&#128101;</div><div class="t">العملاء والموردون والفريق</div></div>
+    </div>
+    <p class="note">إذا أُغلق التطبيق، يكمل الإعداد من حيث توقف.</p>
+  </div></div>
+
+</div>
+</body>
+</html>

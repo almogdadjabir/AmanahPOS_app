@@ -162,4 +162,112 @@ void main() {
     expect(await store.acquireLock('b', ttl), isFalse);
     expect(await store.renewLock('a', ttl), isTrue);
   });
+
+  group('bootstrap state', () {
+    BootstrapProgress sample() => BootstrapProgress(
+      snapshotCursor: 'snap1',
+      entities: const ['business', 'shop', 'product'],
+      done: const ['business'],
+      pageCursor: 'pc1',
+      startedAt: DateTime.utc(2026, 11, 16, 9),
+    );
+
+    test('progress roundtrips per scope; other scope sees none', () async {
+      final db = await odb.database;
+      expect(await store.bootstrapProgress(db), isNull);
+      await db.transaction((t) => store.setBootstrapProgress(t, sample()));
+      final p = (await store.bootstrapProgress(db))!;
+      expect(p.snapshotCursor, 'snap1');
+      expect(p.entities, ['business', 'shop', 'product']);
+      expect(p.done, ['business']);
+      expect(p.pageCursor, 'pc1');
+      expect(p.startedAt, DateTime.utc(2026, 11, 16, 9));
+      final other = store.forScope('u2|t1');
+      expect(await other.bootstrapProgress(db), isNull);
+      await db.transaction((t) => store.setBootstrapProgress(t, null));
+      expect(await store.bootstrapProgress(db), isNull);
+    });
+
+    test(
+      'bootstrapped flag is scoped; clear() drops progress, keeps flag',
+      () async {
+        final db = await odb.database;
+        expect(await store.isBootstrapped(), isFalse);
+        await db.transaction((t) async {
+          await store.setBootstrapProgress(t, sample());
+          await store.setBootstrapped(t, true);
+        });
+        expect(await store.isBootstrapped(), isTrue);
+        expect(await store.forScope('u2|t1').isBootstrapped(), isFalse);
+        await store.clear();
+        expect(await store.bootstrapProgress(db), isNull);
+        expect(await store.isBootstrapped(), isTrue);
+        await db.transaction((t) => store.setBootstrapped(t, false));
+        expect(await store.isBootstrapped(), isFalse);
+      },
+    );
+
+    test(
+      'progress write rolls back with its transaction; corrupt value is null',
+      () async {
+        final db = await odb.database;
+        try {
+          await db.transaction((t) async {
+            await store.setBootstrapProgress(t, sample());
+            throw StateError('boom');
+          });
+        } on StateError {
+          // expected
+        }
+        expect(await store.bootstrapProgress(db), isNull);
+        await db.insert('sync_state', {
+          'key': 'bootstrap_progress|u1|t1',
+          'value': 'not json',
+          'updated_at': 'x',
+        });
+        expect(await store.bootstrapProgress(db), isNull);
+      },
+    );
+
+    // Ruling T11-a: the first-setup gate is per TENANT (catalog tables are
+    // shared by the tenant's users on this device).
+    test('isTenantBootstrapped: any scope of the tenant, exact parsing',
+        () async {
+      final db = await odb.database;
+      expect(await store.isTenantBootstrapped('t1'), isFalse);
+      await db.transaction((t) => store.setBootstrapped(t, true));
+      expect(await store.isTenantBootstrapped('t1'), isTrue);
+      expect(await store.forScope('u9|t1').isTenantBootstrapped('t1'), isTrue,
+          reason: 'any scope of the tenant');
+      expect(await store.isTenantBootstrapped('t2'), isFalse);
+      expect(await store.isTenantBootstrapped('t'), isFalse, reason: 'prefix');
+      expect(await store.isTenantBootstrapped('t_'), isFalse,
+          reason: 'no LIKE wildcard');
+      expect(await store.isTenantBootstrapped('%'), isFalse);
+      expect(await store.isTenantBootstrapped(''), isFalse);
+      // Look-alike / malformed keys never count.
+      for (final k in [
+        'bootstrapped|u1|t1x',
+        'bootstrapped|t3',
+        'bootstrapped||t3',
+        'bootstrapped|a|b|t3',
+        'bootstrappedX|u1|t3',
+        'bootstrapped_|u1|t3',
+      ]) {
+        await db.insert('sync_state', {'key': k, 'value': '1', 'updated_at': 'x'});
+      }
+      expect(await store.isTenantBootstrapped('t1x'), isTrue);
+      expect(await store.isTenantBootstrapped('t3'), isFalse);
+      await db.insert('sync_state', {
+        'key': 'bootstrapped|u5|t4',
+        'value': '0',
+        'updated_at': 'x',
+      });
+      expect(await store.isTenantBootstrapped('t4'), isFalse);
+      // The logout / business-switch wipe resets the tenant gate too.
+      await db.transaction(SyncStateStore.resetSetupOfAllScopes);
+      expect(await store.isTenantBootstrapped('t1'), isFalse);
+      expect(await store.isTenantBootstrapped('t1x'), isFalse);
+    });
+  });
 }

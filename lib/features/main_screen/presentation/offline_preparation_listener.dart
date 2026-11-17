@@ -9,7 +9,7 @@ import 'package:amana_pos/features/inventory/presentation/bloc/inbound_bloc.dart
 import 'package:amana_pos/features/inventory/presentation/bloc/vendors_bloc.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_report_bloc.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
-import 'package:amana_pos/core/offline/presentation/preparing_offline_screen.dart';
+import 'package:amana_pos/core/offline/presentation/first_setup_screen.dart';
 import 'package:amana_pos/features/business/presentation/fancy_business_bottom_sheet.dart';
 import 'package:amana_pos/features/business/presentation/subscription_expired_screen.dart';
 import 'package:amana_pos/features/business/presentation/bloc/business_bloc.dart' hide BusinessStatus;
@@ -36,8 +36,8 @@ class _OfflinePreparationListenerState
   bool _pendingShow = false;
   bool _pendingClose = false;
 
-  // ── PreparingOfflineScreen race-condition flags ───────────────────────────
-  // PreparingOfflineScreen.show() is deferred to a postFrameCallback.
+  // ── FirstSetupScreen race-condition flags ─────────────────────────────────
+  // FirstSetupScreen.show() is deferred to a postFrameCallback.
   // Without these flags, a close that arrives before the frame runs is a
   // no-op (isShowing is still false), and the screen gets stuck permanently.
   bool _pendingShowPreparing = false;
@@ -50,6 +50,11 @@ class _OfflinePreparationListenerState
       if (!mounted) return;
       _syncSession(context.read<AuthBloc>().state.sessionId);
       _handleSubscriptionState(context, context.read<AuthBloc>().state);
+      // The readiness may have been decided before this widget mounted.
+      _handleOfflineStateChange(
+        context,
+        context.read<OfflineStatusBloc>().state,
+      );
     });
   }
 
@@ -88,11 +93,11 @@ class _OfflinePreparationListenerState
           listener: _handleBusinessStateChange,
         ),
 
+        // First setup gate: only the PHASE decides show / close; the screen
+        // itself rebuilds on progress.
         BlocListener<OfflineStatusBloc, OfflineStatusState>(
           listenWhen: (prev, curr) =>
-          prev.bootstrapStatus != curr.bootstrapStatus ||
-              prev.hasCache != curr.hasCache ||
-              prev.canUseAppOffline != curr.canUseAppOffline,
+              prev.setupStatus.phase != curr.setupStatus.phase,
           listener: _handleOfflineStateChange,
         ),
 
@@ -158,57 +163,56 @@ class _OfflinePreparationListenerState
         FancyBusinessBottomSheet.reset();
       });
     }
+
+    // A business that arrives after the readiness check must still gate.
+    if (hasBusiness) {
+      _handleOfflineStateChange(
+        context,
+        context.read<OfflineStatusBloc>().state,
+      );
+    }
   }
 
-  // ── Offline / bootstrap state ─────────────────────────────────────────────
+  // ── First setup (sync bootstrap) ──────────────────────────────────────────
 
+  /// Spec 2026-11-16 phase 2, section 5: while the signed-in scope was never
+  /// bootstrapped (required / running / offline / server not ready) POS is
+  /// hidden behind [FirstSetupScreen]. It closes only when the final
+  /// bootstrap transaction committed (`done`). A later refresh of a
+  /// bootstrapped scope never shows it.
   void _handleOfflineStateChange(
-      BuildContext context,
-      OfflineStatusState offlineState,
-      ) {
+    BuildContext context,
+    OfflineStatusState offlineState,
+  ) {
     final authState = context.read<AuthBloc>().state;
 
-    // Business not loaded yet — dismiss any overlay so the app isn't blocked.
-    if (authState.defaultBusiness == null) {
+    // Business not loaded yet: no scope to set up; never block here.
+    if (authState.defaultBusiness == null ||
+        !offlineState.setupStatus.blocksApp) {
       _closePreparingScreen(context);
       return;
     }
 
-    final bootstrapReady =
-        offlineState.bootstrapStatus == OfflineBootstrapStatus.success ||
-            offlineState.hasCache ||
-            offlineState.canUseAppOffline;
+    // Guard against double-show, including a show that's already pending.
+    if (FirstSetupScreen.isShowing || _pendingShowPreparing) return;
 
-    if (bootstrapReady) {
-      // Has local data — always safe to proceed, dismiss overlay.
-      _closePreparingScreen(context);
-      return;
-    }
+    _pendingShowPreparing = true;
+    _pendingClosePreparing = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pendingShowPreparing = false;
+      if (!context.mounted) return;
 
-    // No cache. Only block the UI while a bootstrap is actively in progress.
-    if (offlineState.bootstrapStatus == OfflineBootstrapStatus.loading) {
-      // Guard against double-show, including a show that's already pending.
-      if (PreparingOfflineScreen.isShowing || _pendingShowPreparing) return;
+      // If a close arrived before this frame, honour it and skip the show.
+      if (_pendingClosePreparing) {
+        _pendingClosePreparing = false;
+        return;
+      }
+      if (!context.read<OfflineStatusBloc>().state.setupStatus.blocksApp) {
+        return;
+      }
 
-      _pendingShowPreparing = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pendingShowPreparing = false;
-        if (!context.mounted) return;
-
-        // If a close arrived before this frame, honour it and skip the show.
-        if (_pendingClosePreparing) {
-          _pendingClosePreparing = false;
-          return;
-        }
-
-        PreparingOfflineScreen.show(context);
-      });
-      return;
-    }
-
-    // Not ready AND not loading (failure / initial) — dismiss so the user
-    // is never permanently blocked. The error is visible in the main UI.
-    _closePreparingScreen(context);
+      FirstSetupScreen.show(context);
+    });
   }
 
   // ── Subscription state ────────────────────────────────────────────────────
@@ -255,12 +259,12 @@ class _OfflinePreparationListenerState
     // Cancel any pending show so it doesn't re-appear after this close.
     _pendingClosePreparing = true;
 
-    if (!PreparingOfflineScreen.isShowing) return;
+    if (!FirstSetupScreen.isShowing) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _pendingClosePreparing = false;
       if (!context.mounted) return;
-      PreparingOfflineScreen.close(context);
+      FirstSetupScreen.close(context);
     });
   }
 }

@@ -4320,106 +4320,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get poTitle => 'Preparing offline mode';
-
-  @override
-  String get poDescOffline =>
-      'Internet is required only for the first setup. Please connect once so AmanaPOS can prepare your business for offline use.';
-
-  @override
-  String get poDescBootstrap =>
-      'Please keep the app open while we download your business data, products, categories, stock, and customers.';
-
-  @override
-  String get poDescAssets =>
-      'Your business data is ready. We are updating product and category assets in the background.';
-
-  @override
-  String get poDescFailure =>
-      'Something went wrong while preparing offline mode.';
-
-  @override
-  String get poDescDefault =>
-      'Almost done. AmanaPOS is getting your workspace ready for poor internet and offline sales.';
-
-  @override
-  String get poStepBusiness => 'Business workspace';
-
-  @override
-  String get poStepBusinessSub => 'Business and shops';
-
-  @override
-  String get poStepSales => 'Sales data';
-
-  @override
-  String get poStepSalesSub => 'Products, categories, customers, and stock';
-
-  @override
-  String get poStepPending => 'Pending sales';
-
-  @override
-  String get poPendingNone => 'No pending sales';
-
-  @override
-  String get poStepAssets => 'Product assets';
-
-  @override
-  String get poStepAssetsSub => 'Images and thumbnails';
-
-  @override
-  String get poFooterNote =>
-      'This setup is required only once. After that, AmanaPOS can keep working during poor internet.';
-
-  @override
-  String get poTryAgain => 'Try again';
-
-  @override
-  String get poOnline => 'Online';
-
-  @override
-  String get poOffline => 'Offline';
-
-  @override
-  String get poChecking => 'Checking';
-
-  @override
-  String get poUpdatingData => 'Updating data';
-
-  @override
-  String get poUpdatingAssets => 'Updating assets';
-
-  @override
-  String get poSyncingSales => 'Syncing sales';
-
-  @override
-  String get poOfflineReady => 'Offline ready';
-
-  @override
-  String get poSyncFailed => 'Sync failed';
-
-  @override
-  String get poSynced => 'Synced';
-
-  @override
-  String get poReady => 'Ready';
-
-  @override
-  String poPendingWaiting(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count sales waiting to sync',
-      one: '1 sale waiting to sync',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String poPendingCount(int count) {
-    return '$count pending';
-  }
-
-  @override
   String get mrSalesReturns => 'Sales & returns';
 
   @override
@@ -4430,4 +4330,156 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usExpiryNeedsConnection => 'Expiry tracking needs a connection';
+
+  @override
+  String get fsTitle => 'Setting up your business';
+
+  @override
+  String get fsSubRequired => 'Getting ready to download your business data.';
+
+  @override
+  String get fsSubRunning =>
+      'Downloading your business data once so AmanaPOS can work offline.';
+
+  @override
+  String get fsOfflineTitle => 'You\'re offline';
+
+  @override
+  String get fsOfflineBody =>
+      'Internet is required only for first setup. Connect once and setup continues where it stopped.';
+
+  @override
+  String get fsServerTitle => 'Server not ready';
+
+  @override
+  String get fsServerBody =>
+      'The server can\'t run first setup yet. Try again later or contact support.';
+
+  @override
+  String get fsRetry => 'Try again';
+
+  @override
+  String fsStepOf(int index, int count) {
+    return 'Step $index of $count';
+  }
+
+  @override
+  String fsRowsSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records saved',
+      one: '1 record saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fsStepBusiness => 'Business and shops';
+
+  @override
+  String get fsStepCatalog => 'Products and categories';
+
+  @override
+  String get fsStepPeople => 'Customers, suppliers and team';
+
+  @override
+  String get fsStepStock => 'Stock and expiry dates';
+
+  @override
+  String get fsStepHistory => 'Recent sales and activity';
+
+  @override
+  String get fsResumeNote =>
+      'If the app closes, setup continues where it stopped.';
+
+  @override
+  String get fsDoneTitle => 'All set';
+
+  @override
+  String get fsImagesDownloading =>
+      'Images keep downloading in the background.';
+
+  @override
+  String get fsSignOut => 'Sign out / use another account';
+
+  @override
+  String get fsSubBlockedAccount => 'Setup can\'t continue with this sign-in.';
+
+  @override
+  String get fsTokenExpiredTitle => 'Session expired';
+
+  @override
+  String get fsTokenExpiredBody =>
+      'Your sign-in has expired. Sign out and sign in again to continue setup.';
+
+  @override
+  String get fsAccountDisabledTitle => 'Account disabled';
+
+  @override
+  String get fsAccountDisabledBody =>
+      'This account has been disabled. Contact the business owner or support, or sign in with another account.';
+
+  @override
+  String get fsDeviceRevokedTitle => 'Device removed';
+
+  @override
+  String get fsDeviceRevokedBody =>
+      'This device was removed from the business. Sign out and sign in again, or contact the business owner.';
+
+  @override
+  String get fsNoSessionTitle => 'Not signed in';
+
+  @override
+  String get fsNoSessionBody =>
+      'There is no active session. Sign out and sign in again to continue setup.';
+
+  @override
+  String get syOxRetryAll => 'Retry all rejected';
+
+  @override
+  String get syOxDiscardSending =>
+      'This change is being sent right now, so it was not discarded. Check again in a moment.';
+
+  @override
+  String get syOxDiscardAlreadySynced =>
+      'This change already reached the server, so it was not discarded.';
+
+  @override
+  String get syOxActionFailed =>
+      'Could not update this change. Please try again.';
+
+  @override
+  String get authLogoutOffline =>
+      'You are offline. Connect to the internet and sync all unsynced changes before signing out.';
+
+  @override
+  String authLogoutUnsynced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You have $count unsynced changes',
+      one: 'You have 1 unsynced change',
+    );
+    return '$_temp0 that have not been sent yet. Please sync or go online before signing out.';
+  }
+
+  @override
+  String get authLogoutFailed =>
+      'Logout failed. Please try again while connected to the internet.';
+
+  @override
+  String get syOxDiscardMaybeOnServer =>
+      'This may already be on the server. Sync first, or discarding may lead to a duplicate if you ring it up again.';
+
+  @override
+  String get syOxDiscardOtherMaybeOnServer =>
+      'Some of these changes may already be on the server. Sign in as that account and sync first, or discarding may lead to duplicates.';
+
+  @override
+  String get syOxSendNow => 'Send now';
+
+  @override
+  String get syOxDiscardOtherScope =>
+      'This change belongs to another account. Use “Discard other account\'s changes” instead.';
 }

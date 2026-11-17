@@ -1,8 +1,9 @@
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'dart:io';
 
-import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
+import 'package:amana_pos/core/offline/data/local_image_resolver.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
 
@@ -24,13 +25,47 @@ class OfflineCachedImage extends StatefulWidget {
   State<OfflineCachedImage> createState() => _OfflineCachedImageState();
 }
 
+/// Image source order: the file AssetSync downloaded (`synced_assets`, by
+/// url, file exists), then the network exactly as before. Resolved through
+/// the ONE shared [LocalImageResolver] (one query per `synced_assets`
+/// notify for all images on screen), so a thumbnail downloaded while the
+/// screen is open appears without a reload. Never blocks a screen and never
+/// throws (lookup errors = network).
 class _OfflineCachedImageState extends State<OfflineCachedImage> {
-  late String? _resolvedUrl;
+  String? _resolvedUrl;
+  LocalImageResolver? _resolver;
+  ValueListenable<LocalImageLookup>? _lookup;
+
+  static const ValueListenable<LocalImageLookup> _network = _ConstLookup(
+    LocalImageLookup.resolved(null),
+  );
 
   @override
   void initState() {
     super.initState();
-    _resolvedUrl = widget.imageUrl?.trim();
+    _subscribe(widget.imageUrl?.trim());
+  }
+
+  void _subscribe(String? url) {
+    _resolvedUrl = url;
+    _lookup = null;
+    _resolver = null;
+    if (url == null || url.isEmpty) return;
+    try {
+      if (getIt.isRegistered<LocalImageResolver>()) {
+        final resolver = getIt<LocalImageResolver>();
+        _lookup = resolver.acquire(url);
+        _resolver = resolver;
+        return;
+      }
+    } catch (_) {}
+    _lookup = _network; // no resolver (tests, early boot): network
+  }
+
+  void _unsubscribe() {
+    final url = _resolvedUrl;
+    if (url != null && url.isNotEmpty) _resolver?.release(url);
+    _resolver = null;
   }
 
   @override
@@ -48,37 +83,32 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
         imageCache.evict(NetworkImage(newUrl));
       }
       setState(() {
-        _resolvedUrl = newUrl;
+        _unsubscribe();
+        _subscribe(newUrl);
       });
     }
   }
 
-  String _stripQuery(String url) {
-    try {
-      final stripped = Uri.parse(url).replace(query: '').toString();
-      return stripped.endsWith('?')
-          ? stripped.substring(0, stripped.length - 1)
-          : stripped;
-    } catch (_) {
-      return url;
-    }
+  @override
+  void dispose() {
+    _unsubscribe();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final url = _resolvedUrl;
+    final lookup = _lookup;
 
-    if (url == null || url.isEmpty) {
+    if (url == null || url.isEmpty || lookup == null) {
       return widget.errorWidget ?? const _DefaultImageFallback();
     }
 
-    return FutureBuilder<String?>(
+    return ValueListenableBuilder<LocalImageLookup>(
       key: ValueKey(url),
-      future: getIt<OfflineLocalCache>().getLocalAssetPathByUrl(
-        _stripQuery(url),
-      ),
-      builder: (context, snapshot) {
-        final localPath = snapshot.data;
+      valueListenable: lookup,
+      builder: (context, value, _) {
+        final localPath = value.path;
 
         if (localPath != null && localPath.isNotEmpty) {
           return Image.file(
@@ -93,7 +123,7 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
           );
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!value.resolved) {
           return widget.placeholder ?? const _DefaultImagePlaceholder();
         }
 
@@ -106,6 +136,20 @@ class _OfflineCachedImageState extends State<OfflineCachedImage> {
       },
     );
   }
+}
+
+/// A lookup that never changes (no resolver registered).
+class _ConstLookup implements ValueListenable<LocalImageLookup> {
+  const _ConstLookup(this.value);
+
+  @override
+  final LocalImageLookup value;
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
 }
 
 class _NetworkFallbackImage extends StatelessWidget {

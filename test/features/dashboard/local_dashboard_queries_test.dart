@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
-import 'package:amana_pos/core/offline/models/offline_bootstrap_dto.dart';
+import 'package:amana_pos/core/sync/appliers/refund_applier.dart';
+import 'package:amana_pos/core/sync/contract/sync_contract.dart';
 import 'package:amana_pos/core/time/business_day.dart';
 import 'package:amana_pos/features/business/data/models/responses/business_response_dto.dart';
 import 'package:amana_pos/features/dashboard/data/local/local_dashboard_queries.dart';
@@ -119,6 +120,48 @@ void main() {
       expect(s.today.comparison, isNull);
       expect(s.sparkline.firstSaleHour, isNull);
       expect(s.includesLocalPendingSales, isFalse);
+    });
+
+    test('a pulled refund (RefundApplier) is subtracted on its refund date '
+        'by the sale payment method', () async {
+      final sale = await saleAt(
+        DateTime.utc(2026, 11, 15, 9),
+        _cash([_tea('3')]),
+      );
+      await f.db.transaction(
+        (txn) => RefundApplier().apply(
+          txn,
+          PullChange(
+            seq: 0,
+            entity: 'refund',
+            op: 'upsert',
+            id: 'rf-1',
+            data: {
+              'id': 'rf-1',
+              'sale': sale.id,
+              'shop': kShop,
+              'reference': 'RF-1',
+              'total': '500.00',
+              'method': 'cash',
+              'notes': '',
+              'refunded_by': null,
+              'occurred_at': '2026-11-15T09:30:00Z',
+              // Refund recorded on the 16th (Khartoum day), BE created_at.
+              'created_at': '2026-11-16T08:00:00.000000+00:00',
+              'items': const [],
+            },
+          ),
+        ),
+      );
+      final s = await day('2026-11-16');
+      expect(s.today.refundCount, 1);
+      expect(s.today.refundAmount, 500);
+      expect(s.today.refundCashAmount, 500);
+      expect(s.today.netSalesAmount, -500);
+      // The sale's own day carries no refund.
+      final before = await day('2026-11-15');
+      expect(before.today.refundAmount, 0);
+      expect(before.today.grossSalesAmount, 1500);
     });
 
     test(
@@ -612,13 +655,9 @@ void main() {
           shops: [ShopData(id: kShop)],
         ),
       ]);
-      await cache.saveBootstrap(
-        OfflineBootstrapDto.fromJson(<String, dynamic>{}),
-      );
       await cache.clearAllOnLogout();
       await f.odb.clearAllLocalOfflineData();
-      await f.odb.clearBootstrapCache();
-      expect(seen.where((t) => t.contains('shops')), hasLength(5));
+      expect(seen.where((t) => t.contains('shops')), hasLength(3));
     });
 
     test('no notifier hook: writers still work (flag off)', () async {

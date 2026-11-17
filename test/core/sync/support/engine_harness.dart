@@ -98,6 +98,39 @@ class ScenarioTransport implements SyncTransport {
     pullCalls++;
     return inner.pull(cursor: cursor, limit: limit, scope: scope);
   }
+
+  int bootstrapManifestCalls = 0;
+  int bootstrapPageCalls = 0;
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) async {
+    await onBeforeSend?.call('bootstrapManifest');
+    _guard(scope);
+    bootstrapManifestCalls++;
+    return inner.bootstrapManifest(scope: scope);
+  }
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  }) async {
+    await onBeforeSend?.call('bootstrapPage');
+    _guard(scope);
+    bootstrapPageCalls++;
+    return inner.bootstrapPage(
+      entity: entity,
+      pageCursor: pageCursor,
+      limit: limit,
+      snapshotCursor: snapshotCursor,
+      salesSinceDays: salesSinceDays,
+      scope: scope,
+    );
+  }
 }
 
 /// Applier over the scratch `widgets` table. Records the last conflict
@@ -230,8 +263,12 @@ class EngineHarness {
     h.registry.register(h.applier);
     h.transport.sessionKey = () => h.liveScope ?? h.activeScope;
     h._rebuildStores();
-    // Bootstrapped device: a cursor at the start of the feed.
-    await h.db.transaction((t) => h.state.setCursor(t, seedCursor));
+    // Bootstrapped device: a cursor at the start of the feed and the
+    // scope's `bootstrapped` flag (set by the final bootstrap transaction).
+    await h.db.transaction((t) async {
+      await h.state.setCursor(t, seedCursor);
+      await h.state.setBootstrapped(t, true);
+    });
     return h;
   }
 

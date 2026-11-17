@@ -1,4 +1,5 @@
 import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_entry.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/features/sync/presentation/bloc/pending_sync_bloc.dart';
@@ -14,6 +15,9 @@ void main() {
   late Database db;
   late OutboxStore outbox;
   late PendingSyncBloc bloc;
+  late DbChangeNotifier notifier;
+  late List<Set<String>> notified;
+  var syncNowCalls = 0;
 
   Future<OutboxEntry> enq(
     String entity,
@@ -64,7 +68,17 @@ void main() {
     db = await odb.database;
     outbox = OutboxStore(odb);
     await db.insert('products', {'id': 'p1', 'name': 'Tea', 'json': '{}'});
-    bloc = PendingSyncBloc(outbox: outbox, db: odb, scope: () => mine);
+    syncNowCalls = 0;
+    notifier = DbChangeNotifier();
+    notified = [];
+    notifier.changes.listen(notified.add);
+    bloc = PendingSyncBloc(
+      outbox: outbox,
+      db: odb,
+      scope: () => mine,
+      notifier: notifier,
+      syncNow: () async => syncNowCalls++,
+    );
   });
   tearDown(() async {
     await bloc.close();
@@ -156,4 +170,118 @@ void main() {
     );
     expect(s.rows.single.otherScope, isFalse);
   });
+
+  group('review fixes', () {
+    Future<PendingSyncState> next(bool Function(PendingSyncState) p) =>
+        bloc.stream.firstWhere(p);
+
+    test('I1: a row claimed by the engine between list load and confirm is '
+        'NOT discarded; the bloc reports it and shows it as sending', () async {
+      await insertSale('sale1');
+      final e = await enq('sale', 'sale1');
+      final s0 = await load();
+      expect(s0.rows.single.entry.status, OutboxStatus.pending);
+
+      // The engine claims (and sends) the row while the sheet is open.
+      final claimed = await outbox.claimBatch(scope: mine);
+      expect(claimed.single.mutationId, e.mutationId);
+
+      bloc.add(OnPendingSyncDiscardRow(e.mutationId));
+      final s = await next((s) => s.failure != null);
+      expect(s.failure, PendingSyncFailure.discardSending);
+      expect(s.rows.single.entry.mutationId, e.mutationId);
+      expect(s.rows.single.entry.status, OutboxStatus.inflight);
+      final sale = await db.query('sales', where: "id = 'sale1'");
+      expect(sale.single['sync_state'], 'pending');
+    });
+
+    test('M4: if removing the outbox row fails, the sale is NOT marked '
+        'rejected (one transaction) and the failure is reported', () async {
+      await insertSale('sale1');
+      final e = await enq('sale', 'sale1');
+      await load();
+      await db.execute(
+        'CREATE TRIGGER t_fail BEFORE DELETE ON outbox '
+        "BEGIN SELECT RAISE(ABORT, 'boom'); END",
+      );
+      bloc.add(OnPendingSyncDiscardRow(e.mutationId));
+      final s = await next((s) => s.failure != null);
+      expect(s.failure, PendingSyncFailure.actionFailed);
+      expect(s.errorMessage, contains('boom'));
+      final sale = await db.query('sales', where: "id = 'sale1'");
+      expect(sale.single['sync_state'], 'pending');
+      expect(s.rows.single.entry.mutationId, e.mutationId);
+    });
+
+    test('M3: discard, retry and retry-all notify outbox + sales + stock '
+        'listeners', () async {
+      final a = await enq('stock', 'st1');
+      final b = await enq('stock', 'st2');
+      final c = await enq('stock', 'st3');
+      await reject(a);
+      await reject(b);
+      await load();
+
+      bloc.add(OnPendingSyncRetryRow(a.mutationId));
+      await next((s) => s.status == PendingSyncStatus.loaded);
+      bloc.add(const OnPendingSyncRetryAll());
+      await next((s) => s.status == PendingSyncStatus.loaded);
+      bloc.add(OnPendingSyncDiscardRow(c.mutationId));
+      await next((s) => s.rows.length == 2);
+
+      expect(notified, hasLength(3));
+      for (final t in notified) {
+        expect(t, containsAll(<String>['outbox', 'sales', 'stock']));
+      }
+    });
+
+    test('retry-all retries only the signed-in scope rejected rows', () async {
+      final a = await enq('stock', 'st1');
+      final f = await enq('stock', 'st2', scope: other);
+      await reject(a);
+      await reject(f);
+      await load();
+      bloc.add(const OnPendingSyncRetryAll());
+      final s = await next(
+        (s) => s.rows.any(
+          (r) =>
+              r.entry.mutationId == a.mutationId &&
+              r.entry.status == OutboxStatus.pending,
+        ),
+      );
+      expect(
+        s.rows
+            .firstWhere((r) => r.entry.mutationId == f.mutationId)
+            .entry
+            .status,
+        OutboxStatus.rejected,
+      );
+    });
+  });
+
+  test(
+    'fix round 1: Send now runs the existing sync-now and reloads',
+    () async {
+      await enq('stock', 'st1');
+      await load();
+      bloc.add(const OnPendingSyncSendNow());
+      // Same rows => no new state; wait for the handler instead.
+      for (var i = 0; i < 50 && syncNowCalls == 0; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(syncNowCalls, 1);
+    },
+  );
+
+  test(
+    'fix round 1: discarding another scope row one by one is refused',
+    () async {
+      final f = await enq('stock', 'st9', scope: other);
+      await load();
+      bloc.add(OnPendingSyncDiscardRow(f.mutationId));
+      final s = await bloc.stream.firstWhere((s) => s.failure != null);
+      expect(s.failure, PendingSyncFailure.discardOtherScope);
+      expect(s.rows.single.entry.mutationId, f.mutationId);
+    },
+  );
 }

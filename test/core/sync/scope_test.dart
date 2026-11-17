@@ -106,9 +106,10 @@ void main() {
         h.activeScope = _a;
         // A's cursor is not bootstrapped (seed cursor lives under u1|t1), so
         // seed it for A to let the pull phase finish.
-        await h.db.transaction(
-          (t) => h.state.forScope(_a).setCursor(t, EngineHarness.seedCursor),
-        );
+        await h.db.transaction((t) async {
+          await h.state.forScope(_a).setCursor(t, EngineHarness.seedCursor);
+          await h.state.forScope(_a).setBootstrapped(t, true);
+        });
         h.advance(const Duration(minutes: 10));
         expect(await e.syncNow(), SyncOutcome.completed);
         expect(h.server.feed, hasLength(2));

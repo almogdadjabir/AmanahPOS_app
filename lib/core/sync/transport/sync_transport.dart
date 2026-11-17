@@ -56,4 +56,18 @@ abstract class SyncTransport {
     int limit = 500,
     required String scope,
   });
+
+  /// Bootstrap manifest: visible entities + the snapshot cursor.
+  Future<BootstrapManifest> bootstrapManifest({required String scope});
+
+  /// One keyset page of [entity]. [snapshotCursor] is echoed from the
+  /// manifest; [salesSinceDays] only affects sale/refund.
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  });
 }

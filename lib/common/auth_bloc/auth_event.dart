@@ -16,7 +16,13 @@ class OnLoadBusinessEvent extends AuthEvent {
 }
 
 class OnLogoutEvent extends AuthEvent {
-  const OnLogoutEvent();
+  /// Local-only sign-out, used ONLY by the blocking first-setup screen: the
+  /// device may be offline there (nothing synced yet), so the online
+  /// requirement is skipped. Still refused while any outbox row is unsynced;
+  /// sync is still paused before the wipe. No server call is made.
+  final bool localOnly;
+  const OnLogoutEvent({this.localOnly = false});
+  @override List<Object?> get props => [localOnly];
 }
 
 class OnProfileUpdated extends AuthEvent {

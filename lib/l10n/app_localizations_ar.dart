@@ -4275,109 +4275,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get poTitle => 'تجهيز وضع العمل دون اتصال';
-
-  @override
-  String get poDescOffline =>
-      'الإنترنت مطلوب للإعداد الأول فقط. اتصل مرة واحدة ليجهّز أمانة بوس نشاطك للعمل دون اتصال.';
-
-  @override
-  String get poDescBootstrap =>
-      'أبقِ التطبيق مفتوحًا ريثما ننزّل بيانات نشاطك ومنتجاتك وتصنيفاتك ومخزونك وعملائك.';
-
-  @override
-  String get poDescAssets =>
-      'بيانات نشاطك جاهزة. نحدّث صور المنتجات والتصنيفات في الخلفية.';
-
-  @override
-  String get poDescFailure => 'حدث خطأ أثناء تجهيز وضع العمل دون اتصال.';
-
-  @override
-  String get poDescDefault =>
-      'أوشكنا على الانتهاء. يجهّز أمانة بوس مساحة عملك للإنترنت الضعيف والبيع دون اتصال.';
-
-  @override
-  String get poStepBusiness => 'مساحة النشاط';
-
-  @override
-  String get poStepBusinessSub => 'النشاط والمتاجر';
-
-  @override
-  String get poStepSales => 'بيانات المبيعات';
-
-  @override
-  String get poStepSalesSub => 'المنتجات والتصنيفات والعملاء والمخزون';
-
-  @override
-  String get poStepPending => 'المبيعات المعلّقة';
-
-  @override
-  String get poPendingNone => 'لا توجد مبيعات معلّقة';
-
-  @override
-  String get poStepAssets => 'صور المنتجات';
-
-  @override
-  String get poStepAssetsSub => 'الصور والصور المصغّرة';
-
-  @override
-  String get poFooterNote =>
-      'هذا الإعداد مطلوب مرة واحدة فقط. بعدها يواصل أمانة بوس العمل مع الإنترنت الضعيف.';
-
-  @override
-  String get poTryAgain => 'حاول مرة أخرى';
-
-  @override
-  String get poOnline => 'متصل';
-
-  @override
-  String get poOffline => 'غير متصل';
-
-  @override
-  String get poChecking => 'جارٍ الفحص';
-
-  @override
-  String get poUpdatingData => 'تحديث البيانات';
-
-  @override
-  String get poUpdatingAssets => 'تحديث الصور';
-
-  @override
-  String get poSyncingSales => 'مزامنة المبيعات';
-
-  @override
-  String get poOfflineReady => 'جاهز دون اتصال';
-
-  @override
-  String get poSyncFailed => 'فشلت المزامنة';
-
-  @override
-  String get poSynced => 'تمت المزامنة';
-
-  @override
-  String get poReady => 'جاهز';
-
-  @override
-  String poPendingWaiting(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count بيع ينتظر المزامنة',
-      many: '$count بيعًا ينتظر المزامنة',
-      few: '$count مبيعات تنتظر المزامنة',
-      two: 'بيعان ينتظران المزامنة',
-      one: 'بيع واحد ينتظر المزامنة',
-      zero: 'لا مبيعات تنتظر المزامنة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String poPendingCount(int count) {
-    return '$count معلّق';
-  }
-
-  @override
   String get mrSalesReturns => 'المبيعات والمرتجعات';
 
   @override
@@ -4389,4 +4286,158 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get usExpiryNeedsConnection =>
       'تتبّع تاريخ الانتهاء يحتاج إلى اتصال بالإنترنت';
+
+  @override
+  String get fsTitle => 'تجهيز نشاطك التجاري';
+
+  @override
+  String get fsSubRequired => 'جارٍ الاستعداد لتنزيل بيانات نشاطك.';
+
+  @override
+  String get fsSubRunning =>
+      'يتم تنزيل بيانات نشاطك مرة واحدة ليعمل AmanaPOS دون اتصال.';
+
+  @override
+  String get fsOfflineTitle => 'أنت غير متصل';
+
+  @override
+  String get fsOfflineBody =>
+      'الإنترنت مطلوب فقط للإعداد الأول. اتصل مرة واحدة وسيكمل الإعداد من حيث توقف.';
+
+  @override
+  String get fsServerTitle => 'الخادم غير جاهز';
+
+  @override
+  String get fsServerBody =>
+      'لا يستطيع الخادم تنفيذ الإعداد الأول حاليًا. حاول لاحقًا أو تواصل مع الدعم.';
+
+  @override
+  String get fsRetry => 'إعادة المحاولة';
+
+  @override
+  String fsStepOf(int index, int count) {
+    return 'الخطوة $index من $count';
+  }
+
+  @override
+  String fsRowsSaved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم حفظ $count سجل',
+      many: 'تم حفظ $count سجلًا',
+      few: 'تم حفظ $count سجلات',
+      two: 'تم حفظ سجلين',
+      one: 'تم حفظ سجل واحد',
+      zero: 'لم يُحفظ أي سجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fsStepBusiness => 'النشاط والفروع';
+
+  @override
+  String get fsStepCatalog => 'المنتجات والفئات';
+
+  @override
+  String get fsStepPeople => 'العملاء والموردون والفريق';
+
+  @override
+  String get fsStepStock => 'المخزون وتواريخ الانتهاء';
+
+  @override
+  String get fsStepHistory => 'المبيعات والنشاط الأخير';
+
+  @override
+  String get fsResumeNote => 'إذا أُغلق التطبيق، يكمل الإعداد من حيث توقف.';
+
+  @override
+  String get fsDoneTitle => 'كل شيء جاهز';
+
+  @override
+  String get fsImagesDownloading => 'تستمر الصور في التنزيل في الخلفية.';
+
+  @override
+  String get fsSignOut => 'تسجيل الخروج / استخدام حساب آخر';
+
+  @override
+  String get fsSubBlockedAccount =>
+      'لا يمكن متابعة الإعداد بتسجيل الدخول الحالي.';
+
+  @override
+  String get fsTokenExpiredTitle => 'انتهت الجلسة';
+
+  @override
+  String get fsTokenExpiredBody =>
+      'انتهت صلاحية تسجيل الدخول. سجّل الخروج ثم سجّل الدخول مرة أخرى لمتابعة الإعداد.';
+
+  @override
+  String get fsAccountDisabledTitle => 'الحساب معطّل';
+
+  @override
+  String get fsAccountDisabledBody =>
+      'تم تعطيل هذا الحساب. تواصل مع مالك النشاط أو الدعم، أو سجّل الدخول بحساب آخر.';
+
+  @override
+  String get fsDeviceRevokedTitle => 'تمت إزالة الجهاز';
+
+  @override
+  String get fsDeviceRevokedBody =>
+      'تمت إزالة هذا الجهاز من النشاط. سجّل الخروج ثم سجّل الدخول مرة أخرى، أو تواصل مع مالك النشاط.';
+
+  @override
+  String get fsNoSessionTitle => 'لم يتم تسجيل الدخول';
+
+  @override
+  String get fsNoSessionBody =>
+      'لا توجد جلسة نشطة. سجّل الخروج ثم سجّل الدخول مرة أخرى لمتابعة الإعداد.';
+
+  @override
+  String get syOxRetryAll => 'إعادة محاولة كل المرفوض';
+
+  @override
+  String get syOxDiscardSending =>
+      'يتم إرسال هذا التغيير الآن، لذلك لم يتم تجاهله. تحقّق مرة أخرى بعد قليل.';
+
+  @override
+  String get syOxDiscardAlreadySynced =>
+      'وصل هذا التغيير إلى الخادم بالفعل، لذلك لم يتم تجاهله.';
+
+  @override
+  String get syOxActionFailed => 'تعذّر تحديث هذا التغيير. حاول مرة أخرى.';
+
+  @override
+  String get authLogoutOffline =>
+      'أنت غير متصل. اتصل بالإنترنت وزامِن كل التغييرات غير المُزامنة قبل تسجيل الخروج.';
+
+  @override
+  String authLogoutUnsynced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لديك $count تغييرات غير مُزامنة',
+      one: 'لديك تغيير واحد غير مُزامن',
+    );
+    return '$_temp0 لم تُرسل بعد. يُرجى المزامنة أو الاتصال بالإنترنت قبل تسجيل الخروج.';
+  }
+
+  @override
+  String get authLogoutFailed =>
+      'فشل تسجيل الخروج. حاول مرة أخرى أثناء الاتصال بالإنترنت.';
+
+  @override
+  String get syOxDiscardMaybeOnServer =>
+      'قد يكون هذا موجودًا على الخادم بالفعل. زامِن أولًا، وإلا فقد يؤدي التجاهل إلى تكرار إذا سجّلته مرة أخرى.';
+
+  @override
+  String get syOxDiscardOtherMaybeOnServer =>
+      'قد تكون بعض هذه التغييرات موجودة على الخادم بالفعل. سجّل الدخول بذلك الحساب وزامِن أولًا، وإلا فقد يؤدي التجاهل إلى تكرار.';
+
+  @override
+  String get syOxSendNow => 'إرسال الآن';
+
+  @override
+  String get syOxDiscardOtherScope =>
+      'هذا التغيير يخص حسابًا آخر. استخدم «تجاهل تغييرات الحساب الآخر» بدلًا من ذلك.';
 }

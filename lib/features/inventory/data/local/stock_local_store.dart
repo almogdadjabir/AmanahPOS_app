@@ -162,6 +162,39 @@ class StockLocalStore {
     return const [];
   }
 
+  /// (product, shop) pairs whose local quantity an outbox row of [entity] /
+  /// [op] carries (the same rows [pendingDeltaUnits] counts).
+  static List<(String, String)> affectedByOutboxRow(
+    String entity,
+    String op,
+    Map<String, dynamic> payload,
+  ) {
+    switch (entity) {
+      case 'stock':
+        return affectedBy(op, payload);
+      case 'sale' when op == 'create':
+        final shop = payload['shop'];
+        final items = payload['items'];
+        if (shop is! String || items is! List) return const [];
+        return [
+          for (final p in {
+            for (final it in items)
+              if (it is Map &&
+                  it['custom'] != true &&
+                  it['product_id'] is String)
+                it['product_id'] as String,
+          })
+            (p, shop),
+        ];
+      case 'inbound' when op == 'create':
+        final shop = payload['shop_id'];
+        if (shop is! String) return const [];
+        return [for (final p in inboundProducts(payload)) (p, shop)];
+      default:
+        return const [];
+    }
+  }
+
   /// Sets the exact server base for ([productId], [shopId]) and recomputes
   /// the displayed quantity (and the products row) in the same executor.
   Future<void> setBase(
@@ -301,6 +334,7 @@ class StockLocalStore {
     jsonMap['quantity'] = qty;
     jsonMap['is_out_of_stock'] = qty <= 0;
     jsonMap['updated_at'] = now;
+    await _describe(db, jsonMap, productId, shopId, qty);
 
     if (row == null) {
       await db.insert('stock', {
@@ -326,6 +360,57 @@ class StockLocalStore {
       );
     }
     await _writeProduct(db, productId);
+  }
+
+  /// Fills what the stock readers show (`StockData`: product_name,
+  /// product_sku, shop_name, is_low_stock) from the local `products` and
+  /// `shops` rows: the feed (`ser_stock`) carries ids only. Keys stay as
+  /// they are when the parent row is not local yet; the next write of this
+  /// stock row fills them. `is_low_stock` is the BE rule
+  /// (`StockLevel.is_low_stock`, what REST-written rows carry):
+  /// qty <= min_stock_level, so an out-of-stock row is also low (readers
+  /// check `is_out_of_stock` first where they tell the two apart). A missing
+  /// or non-numeric min counts as 0 (legacy rule `qty <= (min ?? 0)`).
+  Future<void> _describe(
+    DatabaseExecutor db,
+    Map<String, dynamic> jsonMap,
+    String productId,
+    String shopId,
+    double qty,
+  ) async {
+    final p = await db.query(
+      'products',
+      columns: ['name', 'sku', 'json'],
+      where: 'id = ?',
+      whereArgs: [productId],
+      limit: 1,
+    );
+    if (p.isNotEmpty) {
+      final name = p.first['name'];
+      final sku = p.first['sku'];
+      if (name is String && name.isNotEmpty) jsonMap['product_name'] = name;
+      if (sku is String && sku.isNotEmpty) jsonMap['product_sku'] = sku;
+      // Never keep a stale value: a missing / non-numeric min falls back
+      // to the legacy rule qty <= (min ?? 0); numeric strings are parsed.
+      final raw = _decode(p.first['json'])['min_stock_level'];
+      final min = raw is num
+          ? raw
+          : raw is String
+          ? num.tryParse(raw.trim())
+          : null;
+      jsonMap['is_low_stock'] = qty <= (min ?? 0);
+    }
+    final s = await db.query(
+      'shops',
+      columns: ['json'],
+      where: 'id = ?',
+      whereArgs: [shopId],
+      limit: 1,
+    );
+    if (s.isNotEmpty) {
+      final name = _decode(s.first['json'])['name'];
+      if (name is String && name.isNotEmpty) jsonMap['shop_name'] = name;
+    }
   }
 
   /// products.stock_level = exact sum of the product's local stock rows

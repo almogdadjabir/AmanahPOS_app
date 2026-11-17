@@ -71,7 +71,7 @@ class LocalDashboardQueries {
   /// streams re-evaluate, so "nothing visible yet" is never permanent.
   final Stream<Object?>? _tenantChanges;
 
-  /// Phase 4 adds refund rows; listening to the name now is harmless.
+  /// Pulled refunds (`RefundApplier`, DB v11).
   static const String refundsTable = 'sale_refunds';
 
   static const Set<String> watchedTables = {
@@ -407,15 +407,16 @@ class LocalDashboardQueries {
     ];
   }
 
-  /// PHASE 4 MUST LAND BEFORE REAL USE: local refunds are not tracked yet,
-  /// so refund figures are 0 and a REST return is not reflected locally.
+  /// PHASE 4 MUST LAND BEFORE REAL USE: refunds made on THIS device are
+  /// still REST-only, so they appear here only once pulled back.
   ///
   /// Refunds are subtracted on the REFUND date (endpoint: SaleRefund by
-  /// `created_at` in the window, method of the original sale). The local
-  /// `sale_refunds` table arrives in Phase 4; until then this is zero and
-  /// never fails. Phase 4 contract: `sale_refunds(id, sale_id, shop_id,
-  /// total TEXT, occurred_at TEXT UTC ISO)`; adjust this one query if the
-  /// table differs.
+  /// `created_at` in the window, method of the original sale). Rows come
+  /// from `RefundApplier`: `sale_refunds(id, sale_id, shop_id, total TEXT,
+  /// occurred_at TEXT UTC ISO, method, json)`, where the `occurred_at`
+  /// column holds the BE refund `created_at` (the date the endpoint
+  /// windows on), not the feed's own `occurred_at`. A missing table
+  /// returns zero and never fails.
   Future<_Refunds> _refunds(
     Database db,
     String start,

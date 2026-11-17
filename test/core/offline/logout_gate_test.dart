@@ -3,12 +3,12 @@ import 'package:amana_pos/core/network/app_interceptors.dart';
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:dio/dio.dart';
-import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_entry.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
+import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite/sqflite.dart';
@@ -25,10 +25,6 @@ class _NoopStorage implements CacheStorage {
 
 class _MockNet extends Mock implements NetworkMonitor {}
 
-class _MockCache extends Mock implements OfflineLocalCache {}
-
-class _MockFirst extends Mock implements OfflineFirstManager {}
-
 void main() {
   late OfflineDb odb;
   late Database db;
@@ -36,8 +32,6 @@ void main() {
 
   OfflineStatusBloc bloc() => OfflineStatusBloc(
     networkMonitor: _MockNet(),
-    localCache: _MockCache(),
-    offlineFirstManager: _MockFirst(),
     outboxUnsyncedCount: () => store.unsyncedCount(),
   );
 
@@ -117,24 +111,57 @@ void main() {
         'value': 'c1',
         'updated_at': 'x',
       });
+      await db.insert('sync_state', {
+        'key': 'bootstrapped|u1|t1',
+        'value': '1',
+        'updated_at': 'x',
+      });
+      expect(await SyncStateStore(odb).isTenantBootstrapped('t1'), isTrue);
     }
 
-    Future<void> expectOutboxIntact() async {
+    // Ruling T1-d (phase 2): the table wipe also drops every scope's setup
+    // keys (cursor, bootstrapped, progress) together with the rows; every
+    // other sync_state key (device id, deferred pulls) and the outbox stay.
+    Future<void> seedKeptKeys() async {
+      for (final k in ['device_id', 'deferred_pull|u1|t1']) {
+        await db.insert('sync_state', {
+          'key': k,
+          'value': 'v',
+          'updated_at': 'x',
+        });
+      }
+      await db.insert('sync_state', {
+        'key': 'bootstrapped|u2|t2',
+        'value': '1',
+        'updated_at': 'x',
+      });
+    }
+
+    Future<void> expectWiped() async {
       expect(await count('outbox'), 2);
-      expect(await count('sync_state'), 1);
       expect(await count('products'), 0, reason: 'reference data wiped');
+      final keys = [
+        for (final r in await db.query('sync_state', orderBy: 'key')) r['key'],
+      ];
+      expect(keys, ['deferred_pull|u1|t1', 'device_id']);
+      // Ruling T11-a: the tenant-level first-setup gate resets with it.
+      expect(await SyncStateStore(odb).isTenantBootstrapped('t1'), isFalse);
     }
 
-    test('clearAllLocalOfflineData keeps outbox and sync_state', () async {
+    test('clearAllLocalOfflineData keeps the outbox and unsynced sync_state; '
+        'drops setup keys', () async {
       await seed();
+      await seedKeptKeys();
       await odb.clearAllLocalOfflineData();
-      await expectOutboxIntact();
+      await expectWiped();
     });
 
-    test('clearAllOnLogout keeps outbox and sync_state', () async {
+    test('clearAllOnLogout keeps the outbox and unsynced sync_state; drops '
+        'setup keys', () async {
       await seed();
+      await seedKeptKeys();
       await OfflineLocalCache(odb).clearAllOnLogout();
-      await expectOutboxIntact();
+      await expectWiped();
     });
 
     test('forceLogout keeps outbox rows and sync_state', () async {
@@ -151,7 +178,7 @@ void main() {
       AppInterceptors.isLoggingOut = false;
       await getIt.reset();
       expect(await count('outbox'), 2);
-      expect(await count('sync_state'), 2);
+      expect(await count('sync_state'), 3); // cursor, bootstrapped, device_id
     });
   });
 

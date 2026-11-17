@@ -202,12 +202,14 @@ class LifecycleDevice {
       });
       await const StockLocalStore().setBase(db, c.id, kShop, c.base);
     }
-    await db.transaction(
-      (t) => state.setCursor(
+    // Bootstrapped device: cursor + `bootstrapped` (ruling T6-b).
+    await db.transaction((t) async {
+      await state.setCursor(
         t,
         base64Url.encode(utf8.encode('seq:${view.headSeq}')),
-      ),
-    );
+      );
+      await state.setBootstrapped(t, true);
+    });
   }
 
   /// Process killed and relaunched: in-memory state dropped, file reopened.

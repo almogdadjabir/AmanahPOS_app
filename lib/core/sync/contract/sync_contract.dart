@@ -357,6 +357,86 @@ class PullResponse {
   };
 }
 
+/// `GET api/v1/sync/bootstrap/` (no entity): the entities this user may
+/// download and the snapshot cursor all pages must echo.
+class BootstrapManifest {
+  const BootstrapManifest({
+    required this.serverTime,
+    required this.entities,
+    required this.snapshotCursor,
+  });
+
+  final DateTime serverTime;
+  final List<String> entities;
+  final String snapshotCursor;
+
+  factory BootstrapManifest.fromJson(Map<String, dynamic> j) =>
+      BootstrapManifest(
+        serverTime: _dt(j['server_time'], 'BootstrapManifest.server_time'),
+        entities: _list(j, 'entities', 'BootstrapManifest').map((e) {
+          if (e is String) return e;
+          throw const FormatException(
+            'BootstrapManifest.entities must hold strings',
+          );
+        }).toList(),
+        snapshotCursor: _str(j, 'snapshot_cursor', 'BootstrapManifest'),
+      );
+
+  Map<String, dynamic> toJson() => {
+    'server_time': serverTime.toUtc().toIso8601String(),
+    'entities': entities,
+    'snapshot_cursor': snapshotCursor,
+  };
+}
+
+/// One keyset page of an entity (`?entity=...`). Items are feed-shaped rows;
+/// money stays as strings.
+class BootstrapPage {
+  const BootstrapPage({
+    required this.entity,
+    required this.snapshotCursor,
+    required this.items,
+    this.hasMore = false,
+    this.nextPageCursor,
+    this.serverTime,
+  });
+
+  final DateTime? serverTime;
+  final String entity;
+  final String snapshotCursor;
+  final List<Map<String, dynamic>> items;
+  final bool hasMore;
+  final String? nextPageCursor;
+
+  factory BootstrapPage.fromJson(Map<String, dynamic> j) {
+    if (j['items'] is! List) {
+      throw const FormatException('BootstrapPage.items must be a list');
+    }
+    return BootstrapPage(
+      serverTime: j['server_time'] == null
+          ? null
+          : _dt(j['server_time'], 'BootstrapPage.server_time'),
+      entity: _str(j, 'entity', 'BootstrapPage'),
+      snapshotCursor: _str(j, 'snapshot_cursor', 'BootstrapPage'),
+      items: (j['items'] as List)
+          .map((e) => _obj(e, 'BootstrapPage.items[]'))
+          .toList(),
+      hasMore: _bool(j, 'has_more', 'BootstrapPage'),
+      nextPageCursor: _strN(j, 'next_page_cursor', 'BootstrapPage'),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    if (serverTime != null)
+      'server_time': serverTime!.toUtc().toIso8601String(),
+    'entity': entity,
+    'snapshot_cursor': snapshotCursor,
+    'items': items,
+    'has_more': hasMore,
+    'next_page_cursor': nextPageCursor,
+  };
+}
+
 class PingResponse {
   const PingResponse({
     required this.ok,

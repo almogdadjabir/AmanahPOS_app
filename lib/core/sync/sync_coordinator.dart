@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/widgets.dart';
 
+import 'bootstrap/bootstrapper.dart';
 import 'outbox/outbox_store.dart';
 import 'sync_device_registrar.dart';
 import 'sync_scope.dart';
@@ -41,6 +42,11 @@ class SyncSession {
 ///    (`SyncStateStore.clear`: cursor, capabilities, last sync) is cleared
 ///    ONLY when the outbox has no unsynced row. Outbox rows are never
 ///    deleted here. The same rule applies when the tenant changes;
+///  * logout / scope change / [detach] -> the first-setup [Bootstrapper] is
+///    cancelled first (it stops after the page in flight; the triggers'
+///    stop then waits for it). The rows and the scope's setup state
+///    (cursor + `bootstrapped`) are wiped together by the app's table wipe
+///    (`SyncStateStore.resetSetupOfAllScopes`, ruling T1-d);
 ///  * app lifecycle -> resume / pause for the triggers;
 ///  * [SyncSessionGuard] events -> [onSessionEnded] (the app's existing
 ///    forced-logout path, which keeps offline data and unsent sales).
@@ -54,7 +60,9 @@ class SyncCoordinator with WidgetsBindingObserver {
     required Stream<SyncSession?> sessions,
     required SyncSession? initialSession,
     required Future<void> Function(SyncSessionEvent event) onSessionEnded,
-  }) : _triggers = triggers,
+    Bootstrapper? bootstrapper,
+  }) : _bootstrapper = bootstrapper,
+       _triggers = triggers,
        _guard = guard,
        _registrar = registrar,
        _outbox = outbox,
@@ -63,6 +71,7 @@ class SyncCoordinator with WidgetsBindingObserver {
        _initial = initialSession,
        _onSessionEnded = onSessionEnded;
 
+  final Bootstrapper? _bootstrapper;
   final SyncTriggers _triggers;
   final SyncSessionGuard _guard;
   final SyncDeviceRegistrar _registrar;
@@ -109,8 +118,31 @@ class SyncCoordinator with WidgetsBindingObserver {
     _eventSub = null;
     await _guard.stop();
     await _queue;
+    _bootstrapper?.cancel();
     await _triggers.stop();
   }
+
+  /// Logout: stop every sync run of the signed-in scope BEFORE the app wipes
+  /// the local tables (ledger T7 M2), so no bootstrap/pull of the outgoing
+  /// scope can land after the wipe. The session change that follows the
+  /// logout then finds the triggers already stopped. No-op without a
+  /// session.
+  Future<void> pauseForWipe() async {
+    if (!_attached || _current == null) return;
+    _pausedForWipe = true;
+    _bootstrapper?.cancel();
+    await _triggers.stop();
+  }
+
+  /// The logout failed after [pauseForWipe] and the user is still signed in:
+  /// restart the triggers once. No-op when not paused or the session ended.
+  void resumeAfterFailedWipe() {
+    if (!_pausedForWipe) return;
+    _pausedForWipe = false;
+    if (_attached && _current != null) _triggers.start();
+  }
+
+  bool _pausedForWipe = false;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -140,8 +172,10 @@ class SyncCoordinator with WidgetsBindingObserver {
     if (!_attached || next == _current) return;
     final previous = _current;
     _current = next;
+    _pausedForWipe = false;
     SyncScope.current = next?.key;
     if (previous != null) {
+      _bootstrapper?.cancel();
       await _triggers.stop();
       if (next == null || next.tenantId != previous.tenantId) {
         await _clearSyncStateIfOutboxEmpty(previous.key);
@@ -169,11 +203,10 @@ class SyncCoordinator with WidgetsBindingObserver {
   }
 
   Future<void> _handleSessionEvent(SyncSessionEvent e) async {
-    // TODO(sync-phase-1): accountDisabled / deviceRevoked with unsynced
-    // outbox rows must offer the quarantine/export flow (spec "Logout with
-    // unsynced data", open question 2) before any local data is removed.
-    // Until then the sign-out below keeps every outbox / sales row and never
-    // calls OfflineDb.clearAllLocalOfflineData.
+    // Known limitation (docs/offline.md, "Outbox and engine"): no
+    // quarantine/export flow for accountDisabled / deviceRevoked with
+    // unsynced rows. The sign-out below keeps every outbox / sales row and
+    // never calls OfflineDb.clearAllLocalOfflineData.
     try {
       await _onSessionEnded(e);
     } catch (err, st) {

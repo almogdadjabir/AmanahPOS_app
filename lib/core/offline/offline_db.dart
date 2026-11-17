@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../features/pos/data/local/sale_local_store.dart';
 import '../sync/sync_schema.dart';
+import '../sync/sync_state_store.dart';
 
 class OfflineDb {
   OfflineDb._();
@@ -30,7 +31,7 @@ class OfflineDb {
   }
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 10;
+  static const int _dbVersion = 13;
 
   static const int schemaVersion = _dbVersion;
 
@@ -71,7 +72,11 @@ class OfflineDb {
     try {
       await db.rawQuery('PRAGMA journal_mode = WAL');
     } catch (_) {}
-    await db.execute('PRAGMA synchronous = NORMAL');
+    // FULL, not NORMAL (review I5): this DB holds finished sales (money).
+    // With WAL, NORMAL may lose the last commits on power loss / OS crash,
+    // i.e. a sale that was confirmed and printed. FULL fsyncs the WAL on
+    // every commit (a few ms more per write; still one commit per sale).
+    await db.execute('PRAGMA synchronous = FULL');
     await db.execute('PRAGMA temp_store = MEMORY');
   }
 
@@ -109,6 +114,133 @@ class OfflineDb {
     if (oldVersion < 10 && newVersion >= 10) {
       await dropLegacyQueueTables(db);
     }
+
+    // v11 (Phase 2): version/image_hash columns the pull appliers need and
+    // the generic `synced_entities` table. Additive and idempotent.
+    if (oldVersion < 11 && newVersion >= 11) {
+      await createV11Schema(db);
+    }
+
+    // v12 (Phase 2, Task 9): hash-driven image sync table. Additive and
+    // idempotent.
+    if (oldVersion < 12 && newVersion >= 12) {
+      await createV12Schema(db);
+    }
+
+    // v13 (Phase 2, Task 12): the legacy bulk bootstrap / asset manifest is
+    // retired; its tables have no reader or writer left. Zero users, so
+    // nothing is migrated.
+    if (oldVersion < 13 && newVersion >= 13) {
+      await dropLegacyBootstrapTables(db);
+    }
+  }
+
+  /// Tables of the retired legacy bulk bootstrap (`sync_metadata`) and asset
+  /// manifest (`offline_assets`; images now live in `synced_assets`).
+  /// Idempotent.
+  static const List<String> legacyBootstrapTables = [
+    'offline_assets',
+    'sync_metadata',
+  ];
+
+  static Future<void> dropLegacyBootstrapTables(DatabaseExecutor db) async {
+    await db.execute('DROP INDEX IF EXISTS idx_offline_assets_url');
+    for (final t in legacyBootstrapTables) {
+      await db.execute('DROP TABLE IF EXISTS $t');
+    }
+  }
+
+  /// `synced_assets`: one row per (type, id, variant `thumb|full`) image the
+  /// feed references. `expected_hash` is the feed `image_hash` = a CHANGE
+  /// TOKEN (ruling T1-a), `local_hash` the token the local file was
+  /// downloaded for. Written by `registerAsset` (appliers) and `AssetSync`.
+  /// The only image table: the legacy `offline_assets` is dropped in v13.
+  static Future<void> createV12Schema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS synced_assets (
+        type TEXT NOT NULL,
+        id TEXT NOT NULL,
+        variant TEXT NOT NULL,
+        url TEXT NOT NULL,
+        expected_hash TEXT,
+        local_path TEXT,
+        local_hash TEXT,
+        bytes INTEGER,
+        state TEXT NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        next_attempt_at TEXT,
+        PRIMARY KEY(type, id, variant)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_synced_assets_due '
+      'ON synced_assets(state, next_attempt_at)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_synced_assets_url '
+      'ON synced_assets(url)',
+    );
+  }
+
+  /// Phase 2 additions, safe to run on a fresh or an upgraded database.
+  static Future<void> createV11Schema(DatabaseExecutor db) async {
+    for (final t in const [
+      'businesses',
+      'shops',
+      'categories',
+      'products',
+      'customers',
+      'vendors',
+    ]) {
+      await _addColumnIfMissing(db, t, 'version', 'INTEGER');
+    }
+    for (final t in const ['categories', 'products']) {
+      await _addColumnIfMissing(db, t, 'image_hash', 'TEXT');
+    }
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS synced_entities (
+        entity TEXT NOT NULL,
+        id TEXT NOT NULL,
+        version INTEGER,
+        json TEXT NOT NULL,
+        updated_at TEXT,
+        PRIMARY KEY(entity, id)
+      )
+    ''');
+    // Pulled refunds (RefundApplier). The dashboard nets them on
+    // `occurred_at` = the BE refund `created_at` (UTC ISO); `total` is the
+    // wire money string. Server-only data kept beside `sales` (never wiped
+    // with the catalog, like sales; visibility via the shop filter).
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sale_refunds (
+        id TEXT PRIMARY KEY,
+        sale_id TEXT,
+        shop_id TEXT,
+        total TEXT,
+        occurred_at TEXT,
+        method TEXT,
+        json TEXT
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_sale_refunds_occurred '
+      'ON sale_refunds(occurred_at)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_sale_refunds_sale '
+      'ON sale_refunds(sale_id)',
+    );
+  }
+
+  static Future<void> _addColumnIfMissing(
+    DatabaseExecutor db,
+    String table,
+    String column,
+    String type,
+  ) async {
+    final cols = await db.rawQuery('PRAGMA table_info($table)');
+    if (cols.any((c) => c['name'] == column)) return;
+    await db.execute('ALTER TABLE $table ADD COLUMN $column $type');
   }
 
   /// Legacy queue tables removed in v10. Idempotent.
@@ -183,21 +315,9 @@ class OfflineDb {
     await db.execute(
       'CREATE INDEX IF NOT EXISTS idx_customers_phone_name ON customers(phone, name)',
     );
-
-    await db.execute(
-      'CREATE INDEX IF NOT EXISTS idx_offline_assets_url ON offline_assets(url)',
-    );
   }
 
   static Future<void> onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE sync_metadata (
-        key TEXT PRIMARY KEY,
-        value TEXT,
-        updated_at TEXT NOT NULL
-      )
-    ''');
-
     await db.execute('''
       CREATE TABLE businesses (
         id TEXT PRIMARY KEY,
@@ -279,19 +399,6 @@ class OfflineDb {
       'CREATE INDEX idx_stock_product_shop ON stock(product_id, shop_id)',
     );
 
-    await db.execute('''
-      CREATE TABLE offline_assets (
-        id TEXT NOT NULL,
-        type TEXT NOT NULL,
-        url TEXT NOT NULL,
-        hash TEXT,
-        updated_at TEXT,
-        local_path TEXT,
-        downloaded_at TEXT,
-        PRIMARY KEY(id, type)
-      )
-    ''');
-
     await _createPremiumTables(db);
 
     await _createPerformanceIndexes(db);
@@ -299,43 +406,16 @@ class OfflineDb {
     await SyncSchema.createAll(db);
 
     await SaleLocalStore.createTables(db);
+
+    await createV11Schema(db);
+
+    await createV12Schema(db);
   }
 
   Future<int> countRows(String table) async {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) AS count FROM $table');
     return Sqflite.firstIntValue(result) ?? 0;
-  }
-
-  Future<bool> hasBootstrapCache() async {
-    final businessCount = await countRows('businesses');
-    final productCount = await countRows('products');
-    final categoryCount = await countRows('categories');
-
-    return businessCount > 0 || productCount > 0 || categoryCount > 0;
-  }
-
-  Future<void> setMetadata(String key, String value) async {
-    final db = await database;
-    await db.insert('sync_metadata', {
-      'key': key,
-      'value': value,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
-  Future<String?> getMetadata(String key) async {
-    final db = await database;
-    final rows = await db.query(
-      'sync_metadata',
-      columns: ['value'],
-      where: 'key = ?',
-      whereArgs: [key],
-      limit: 1,
-    );
-
-    if (rows.isEmpty) return null;
-    return rows.first['value']?.toString();
   }
 
   Future<List<Map<String, dynamic>>> getJsonList(String table) async {
@@ -346,23 +426,10 @@ class OfflineDb {
         .toList();
   }
 
-  Future<void> clearBootstrapCache() async {
-    final db = await database;
-    await db.transaction((txn) async {
-      await txn.delete('businesses');
-      await txn.delete('shops');
-      await txn.delete('categories');
-      await txn.delete('products');
-      await txn.delete('customers');
-      await txn.delete('stock');
-      await txn.delete('offline_assets');
-      await txn.delete('sync_metadata');
-    });
-    notifyTablesChanged(const {'shops'});
-  }
-
-  /// Clears reference/cache data. Never deletes `outbox` / `sync_state`.
-  /// Local `sales` are never deleted here (see
+  /// Clears reference/cache data. Never deletes `outbox`; of `sync_state`
+  /// only every scope's setup keys (cursor, `bootstrapped`, bootstrap
+  /// progress, see [SyncStateStore.resetSetupOfAllScopes]) go with the rows.
+  /// Local `sales` and `sale_refunds` are never deleted here (see
   /// [SaleLocalStore.visibleShopSql]).
   Future<void> clearAllLocalOfflineData() async {
     final db = await database;
@@ -374,12 +441,14 @@ class OfflineDb {
       await txn.delete('products');
       await txn.delete('customers');
       await txn.delete('stock');
-      await txn.delete('offline_assets');
+      await txn.delete('synced_assets');
       await txn.delete('vendors');
       await txn.delete('premium_summary');
       await txn.delete('inbound_transactions');
-      await txn.delete('sync_metadata');
+      await txn.delete('synced_entities');
+      // The rows are gone: so is every scope's setup (ruling T1-d).
+      await SyncStateStore.resetSetupOfAllScopes(txn);
     });
-    notifyTablesChanged(const {'shops'});
+    notifyTablesChanged(const {'shops', 'synced_assets', SyncTables.syncState});
   }
 }

@@ -43,3 +43,13 @@ class OnOfflineStatusResetRequested extends OfflineStatusEvent {
   @override
   List<Object?> get props => [];
 }
+
+/// Internal: the bootstrapper reported progress or a run outcome.
+class _OnFirstSetupProgress extends OfflineStatusEvent {
+  final BootstrapStatus status;
+
+  const _OnFirstSetupProgress(this.status);
+
+  @override
+  List<Object?> get props => [status];
+}

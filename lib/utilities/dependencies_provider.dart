@@ -9,16 +9,18 @@ import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/core/network/app_interceptors.dart';
 import 'package:amana_pos/core/network/dio_client.dart';
 import 'package:amana_pos/core/network/network_monitor.dart';
+import 'package:amana_pos/core/offline/data/local_image_resolver.dart';
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
-import 'package:amana_pos/core/offline/data/offline_remote_data_source.dart';
-import 'package:amana_pos/core/offline/offline_asset_downloader.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
-import 'package:amana_pos/core/offline/offline_first_manager.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/common/services/device/device_info_service.dart';
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/core/sync/assets/asset_sync.dart';
+import 'package:amana_pos/core/sync/assets/asset_sync_wiring.dart';
 import 'package:amana_pos/core/sync/background/background_entry.dart';
 import 'package:amana_pos/core/sync/sync_appliers.dart';
+import 'package:amana_pos/core/sync/bootstrap/bootstrap_controller.dart';
+import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
 import 'package:amana_pos/core/sync/change_applier.dart';
 import 'package:amana_pos/core/permissions/app_permissions.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
@@ -98,8 +100,9 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:get_it/get_it.dart';
+import 'package:path_provider/path_provider.dart';
 
 final getIt = GetIt.instance;
 
@@ -155,34 +158,20 @@ class DependenciesProvider {
       () => OfflineLocalCache(getIt<OfflineDb>()),
     );
 
-    getIt.registerLazySingleton<OfflineAssetDownloader>(
-      () => OfflineAssetDownloader(
-        dio: getIt<Dio>(),
-        localCache: getIt<OfflineLocalCache>(),
-      ),
-    );
-
-    getIt.registerLazySingleton<OfflineRemoteDataSource>(
-      () => OfflineRemoteDataSource(getIt<RequestHandler>()),
-    );
-
     getIt.registerLazySingleton<PendingSyncBloc>(
-      () =>
-          PendingSyncBloc(outbox: getIt<OutboxStore>(), db: getIt<OfflineDb>()),
+      () => PendingSyncBloc(
+        outbox: getIt<OutboxStore>(),
+        db: getIt<OfflineDb>(),
+        notifier: getIt<DbChangeNotifier>(),
+        // Existing manual sync-now (none with the kill switch).
+        syncNow: kSyncEngineEnabled
+            ? () async => (await getIt.getAsync<SyncTriggers>()).syncNow()
+            : null,
+      ),
     );
 
     // App-wide progress signal (thin line under the main app bar).
     getIt.registerLazySingleton<AppProgressCubit>(() => AppProgressCubit());
-
-    // Offline-first manager
-    getIt.registerLazySingleton<OfflineFirstManager>(
-      () => OfflineFirstManager(
-        networkMonitor: getIt<NetworkMonitor>(),
-        localCache: getIt<OfflineLocalCache>(),
-        remoteDataSource: getIt<OfflineRemoteDataSource>(),
-        assetDownloader: getIt<OfflineAssetDownloader>(),
-      ),
-    );
 
     getIt.registerLazySingleton<FcmTokenService>(
       () => FcmTokenService(
@@ -381,9 +370,12 @@ class DependenciesProvider {
     getIt.registerLazySingleton<OfflineStatusBloc>(
       () => OfflineStatusBloc(
         networkMonitor: getIt<NetworkMonitor>(),
-        localCache: getIt<OfflineLocalCache>(),
-        offlineFirstManager: getIt<OfflineFirstManager>(),
         outboxUnsyncedCount: () => getIt<OutboxStore>().unsyncedCount(),
+        // Readiness = the scope's `bootstrapped` flag (spec phase 2,
+        // section 2). Kill switch: no sync core, never blocks.
+        firstSetup: kSyncEngineEnabled
+            ? () => getIt.getAsync<BootstrapController>()
+            : null,
       ),
     );
 
@@ -408,6 +400,9 @@ class DependenciesProvider {
 
   static const String syncDioName = 'syncDio';
 
+  /// Plain Dio for image downloads (no interceptors, no default headers).
+  static const String assetDioName = 'assetDio';
+
   static void _registerSyncCore() {
     Future<String?> readAccessToken() =>
         getIt<CacheStorage>().getValue(Constants.authToken);
@@ -420,6 +415,16 @@ class DependenciesProvider {
         _syncSessionOf(getIt<AuthBloc>().state)?.key;
 
     getIt.registerLazySingleton<DbChangeNotifier>(() => DbChangeNotifier());
+
+    // One app-wide url -> local file resolver for every OfflineCachedImage:
+    // one synced_assets query per notify instead of one per image.
+    getIt.registerLazySingleton<LocalImageResolver>(
+      () => LocalImageResolver(
+        changes: getIt<DbChangeNotifier>().changes,
+        load: () => getIt<OfflineLocalCache>().getSyncedAssetPaths(),
+      ),
+      dispose: (r) => r.dispose(),
+    );
 
     getIt.registerLazySingleton<OutboxStore>(
       () => OutboxStore(getIt<OfflineDb>()),
@@ -458,6 +463,28 @@ class DependenciesProvider {
       ),
       instanceName: syncDioName,
     );
+
+    getIt.registerLazySingleton<Dio>(
+      createAssetDio,
+      instanceName: assetDioName,
+    );
+
+    // Images by change token (spec phase 2, section 4). ONE instance (its
+    // single-flight is per instance), own folder `<appSupport>/synced_assets`,
+    // BE headers read at call time and sent only to the BE host. Only the
+    // triggers start it, so the kill switch (no triggers) builds none.
+    getIt.registerLazySingletonAsync<AssetSync>(() async {
+      return buildAssetSync(
+        db: getIt<OfflineDb>(),
+        notifier: getIt<DbChangeNotifier>(),
+        scopeProvider: () => SyncScope.current,
+        appSupportPath: (await getApplicationSupportDirectory()).path,
+        baseUrl: baseUrl,
+        readAccessToken: readAccessToken,
+        readTenantId: readTenantId,
+        dio: getIt<Dio>(instanceName: assetDioName),
+      );
+    });
 
     getIt.registerLazySingleton<ServerReachability>(
       () => ServerReachability(getIt<SyncTransport>()),
@@ -525,6 +552,30 @@ class DependenciesProvider {
       );
     });
 
+    // First setup (foreground app only; the OS worker never builds one).
+    // Same DB, transport, state, appliers, notifier and token rules as the
+    // engine; only the triggers run it (single flight with the engine).
+    getIt.registerLazySingletonAsync<Bootstrapper>(() async {
+      final engine = await getIt.getAsync<SyncEngine>();
+      return Bootstrapper(
+        db: getIt<OfflineDb>(),
+        transport: getIt<SyncTransport>(),
+        state: getIt<SyncStateStore>(),
+        appliers: getIt<ChangeApplierRegistry>(),
+        notifier: getIt<DbChangeNotifier>(),
+        scopeProvider: () => SyncScope.current,
+        // No DB access here: it also runs inside page transactions. The
+        // bootstrapper itself checks SyncScope.current == its run scope.
+        assertScope: () async {
+          if (await readSessionKey() != SyncScope.current) {
+            throw SyncTransportException(kind: SyncTransportKind.scopeChanged);
+          }
+        },
+        capabilities: _bootstrapCapabilities,
+        authedFor: engine.authedFor,
+      );
+    });
+
     getIt.registerLazySingletonAsync<SyncTriggers>(() async {
       return SyncTriggers(
         await getIt.getAsync<SyncEngine>(),
@@ -536,6 +587,24 @@ class DependenciesProvider {
         onBackgroundWork: BackgroundSync.requestSoon,
         // A background run may have changed these while we were away.
         resumeRefreshTables: syncedLocalTables(getIt<ChangeApplierRegistry>()),
+        bootstrapper: await getIt.getAsync<Bootstrapper>(),
+        // Resolved on first use (not here): building it needs the app
+        // support folder.
+        assetSync: () => getIt.getAsync<AssetSync>(),
+        assetsReachable: () async =>
+            await getIt<ServerReachability>().check() != null,
+      );
+    });
+
+    // UI accessor for the first-setup screen (Task 11). Readiness reads the
+    // LIVE session (AuthBloc), not SyncScope.current: the coordinator
+    // publishes the scope asynchronously, after OfflineStatusBloc asks.
+    getIt.registerLazySingletonAsync<BootstrapController>(() async {
+      return BootstrapController(
+        bootstrapper: await getIt.getAsync<Bootstrapper>(),
+        state: getIt<SyncStateStore>(),
+        scopeProvider: () => _syncSessionOf(getIt<AuthBloc>().state)?.key,
+        retry: () async => (await getIt.getAsync<SyncTriggers>()).syncNow(),
       );
     });
 
@@ -545,6 +614,7 @@ class DependenciesProvider {
         status: engine.status,
         initial: engine.current,
         unsyncedCount: () => getIt<OutboxStore>().unsyncedCount(),
+        tableChanges: getIt<DbChangeNotifier>().changes,
       );
     });
 
@@ -587,6 +657,7 @@ class DependenciesProvider {
         // device revoked) uses the app's existing forced-logout path: tokens
         // + PIN/biometric cleared, offline data and the outbox KEPT.
         onSessionEnded: (_) => AppInterceptors.forceLogout(),
+        bootstrapper: await getIt.getAsync<Bootstrapper>(),
       );
     });
   }
@@ -595,17 +666,74 @@ class DependenciesProvider {
   /// kSyncEngineEnabled false (kill switch) no engine is constructed; only
   /// [SyncScope.current] follows the session so local sales/stock edits still
   /// save to the outbox (they sync once the engine is back on).
-  static Future<void> startSyncIfEnabled() async {
+  ///
+  /// If the core fails to start (any DI / async error), the session scope is
+  /// still followed without an engine (review I4): otherwise
+  /// [SyncScope.current] stays null and every sale write throws for the
+  /// whole session. Rows then wait in the outbox for the next launch.
+  /// [startCore] replaces the real start in tests.
+  static Future<void> startSyncIfEnabled({
+    @visibleForTesting Future<void> Function()? startCore,
+  }) async {
     if (!kSyncEngineEnabled) {
       _followScopeWithoutEngine();
       return;
     }
     try {
-      final coordinator = await getIt.getAsync<SyncCoordinator>();
-      await coordinator.attach();
+      await (startCore ?? _startSyncCore)();
     } catch (e, st) {
       developer.log(
-        'sync core failed to start',
+        'sync core failed to start; following the session scope only',
+        name: 'DependenciesProvider',
+        error: e,
+        stackTrace: st,
+      );
+      try {
+        _followScopeWithoutEngine();
+      } catch (e2, st2) {
+        developer.log(
+          'scope fallback failed',
+          name: 'DependenciesProvider',
+          error: e2,
+          stackTrace: st2,
+        );
+      }
+    }
+  }
+
+  static Future<void> _startSyncCore() async {
+    final coordinator = await getIt.getAsync<SyncCoordinator>();
+    await coordinator.attach();
+  }
+
+  /// Logout: stop sync for the signed-in scope before the table wipe
+  /// (ledger T7 M2). Bounded: a slow in-flight page never holds the logout
+  /// longer than [timeout] (the wipe then proceeds as before). Never throws.
+  static Future<void> pauseSyncForWipe({
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
+    if (!kSyncEngineEnabled || !getIt.isRegistered<SyncCoordinator>()) return;
+    try {
+      final coordinator = await getIt.getAsync<SyncCoordinator>();
+      await coordinator.pauseForWipe().timeout(timeout);
+    } catch (e, st) {
+      developer.log(
+        'pause sync before wipe failed',
+        name: 'DependenciesProvider',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  /// The logout failed after [pauseSyncForWipe]: restart sync. Never throws.
+  static Future<void> resumeSyncAfterFailedWipe() async {
+    if (!kSyncEngineEnabled || !getIt.isRegistered<SyncCoordinator>()) return;
+    try {
+      (await getIt.getAsync<SyncCoordinator>()).resumeAfterFailedWipe();
+    } catch (e, st) {
+      developer.log(
+        'resume sync after failed wipe failed',
         name: 'DependenciesProvider',
         error: e,
         stackTrace: st,
@@ -614,6 +742,12 @@ class DependenciesProvider {
   }
 
   static StreamSubscription<AuthState>? _scopeOnlySub;
+
+  @visibleForTesting
+  static void resetScopeFollowerForTesting() {
+    _scopeOnlySub?.cancel();
+    _scopeOnlySub = null;
+  }
 
   static void _followScopeWithoutEngine() {
     if (_scopeOnlySub != null) return;
@@ -649,6 +783,17 @@ class DependenciesProvider {
     final ping = await getIt<ServerReachability>().check();
     if (ping == null) return false;
     return ping.capabilities.containsAll(kSyncRequiredCapabilities);
+  }
+
+  /// Server capabilities for the bootstrapper's `bootstrap_paged` gate.
+  /// Unreachable is "offline" (interrupted, retried), never "server not
+  /// ready" (blocked).
+  static Future<Set<String>> _bootstrapCapabilities() async {
+    final ping = await getIt<ServerReachability>().check();
+    if (ping == null) {
+      throw SyncTransportException(kind: SyncTransportKind.network);
+    }
+    return ping.capabilities;
   }
 
   static T provide<T extends Object>() {

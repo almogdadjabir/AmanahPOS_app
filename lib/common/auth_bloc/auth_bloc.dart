@@ -12,7 +12,9 @@ import 'package:amana_pos/features/login/domain/usecase/login_usecase.dart';
 import 'package:amana_pos/features/pin/data/biometric_unlock_service.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
+import 'package:amana_pos/l10n/app_localizations.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'auth_event.dart';
@@ -29,16 +31,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   bool _loggedOut = false;
   DateTime? _lastBusinessFetchAt;
 
+  /// Strings for messages this bloc builds itself (no BuildContext here).
+  final AppLocalizations Function() _tr;
+
   AuthBloc({
     required this.useCase,
     required this.businessUseCase,
     required this.offlineLocalCache,
     required this.offlineStatusBloc,
-  }) : super(AuthState.initial()) {
+    AppLocalizations Function()? localizations,
+  }) : _tr = localizations ?? _appLocalizations,
+       super(AuthState.initial()) {
     on<OnLoadProfileEvent>(_onLoadProfile);
     on<OnLoadBusinessEvent>(_onLoadBusinessEvent);
     on<OnProfileUpdated>(_onProfileUpdated);
     on<OnLogoutEvent>(_onLogout);
+  }
+
+  /// The app's current locale (via the root navigator), English when no
+  /// widget tree is mounted (tests, early start).
+  static AppLocalizations _appLocalizations() {
+    try {
+      final ctx = Constants.navigatorKey.currentContext;
+      final tr = ctx == null ? null : AppLocalizations.of(ctx);
+      if (tr != null) return tr;
+    } catch (_) {
+      // No binding (headless / tests): fall back to English.
+    }
+    return lookupAppLocalizations(const Locale('en'));
   }
 
   Future<void> _onLoadProfile(
@@ -151,14 +171,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(const AuthStateUpdate(authStatus: AuthStatus.loading)),
       );
 
-      final isOnline = await offlineStatusBloc.isDeviceOnline;
+      // The first-setup screen's local-only sign-out skips the network
+      // requirement; the unsynced-outbox gate below still applies.
+      final isOnline =
+          event.localOnly || await offlineStatusBloc.isDeviceOnline;
       if (!isOnline) {
         emit(
           state.copyWith(
-            const AuthStateUpdate(
+            AuthStateUpdate(
               authStatus: AuthStatus.failure,
-              responseError:
-                  'Sorry, you are offline. Please connect to the internet and sync all sales before logout.',
+              responseError: _tr().authLogoutOffline,
             ),
           ),
         );
@@ -172,14 +194,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           state.copyWith(
             AuthStateUpdate(
               authStatus: AuthStatus.failure,
-              responseError:
-                  'You have $blockingCount pending ${blockingCount == 1 ? 'sale' : 'sales'} that have not been sent yet. Please sync or go online before signing out.',
+              // Rows may be stock / inbound too, not only sales.
+              responseError: _tr().authLogoutUnsynced(blockingCount),
             ),
           ),
         );
         return;
       }
 
+      // Stop sync of this scope first: no bootstrap/pull page may land
+      // after the wipe (ledger T7 M2).
+      await DependenciesProvider.pauseSyncForWipe();
       await offlineLocalCache.clearAllOnLogout();
       await useCase.cacheStorage.save(Constants.xTenantID, null);
       await useCase.cacheStorage.save(Constants.authToken, null);
@@ -205,12 +230,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthState.initial());
       _navigateToWelcome();
     } catch (e) {
+      // Still signed in: restart sync if it was paused for the wipe.
+      unawaited(DependenciesProvider.resumeSyncAfterFailedWipe());
       emit(
         state.copyWith(
-          const AuthStateUpdate(
+          AuthStateUpdate(
             authStatus: AuthStatus.failure,
-            responseError:
-                'Logout failed. Please try again while connected to the internet.',
+            responseError: _tr().authLogoutFailed,
           ),
         ),
       );

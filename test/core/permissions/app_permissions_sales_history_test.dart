@@ -13,7 +13,10 @@ void main() {
   });
 
   test('canAccessSalesHistory is true for cashier', () {
-    final perms = AppPermissions.from(businessType: 'shop', userRole: 'cashier');
+    final perms = AppPermissions.from(
+      businessType: 'shop',
+      userRole: 'cashier',
+    );
     expect(perms.canAccessSalesHistory, isTrue);
   });
 

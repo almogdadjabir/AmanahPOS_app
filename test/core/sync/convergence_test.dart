@@ -20,11 +20,22 @@
 // Other knobs: CONV_SEEDS (count, default 60), CONV_FIRST (first seed),
 // CONV_DEVICES (default 3), CONV_FAULTS / CONV_CRASHES (default true),
 // CONV_MIN_ACTIONS / CONV_MAX_ACTIONS (default 20 / 60), CONV_VERBOSE.
+//
+// Phase 2 Task 8: every device also has a real Bootstrapper (paged, page
+// size 3) run like SyncTriggers does (engine -> needsBootstrap ->
+// bootstrapper -> engine once more). Two extra generator actions: a device
+// "cold-starts" (its cursor, `bootstrapped`, bootstrap progress and
+// completion time are wiped, local rows and outbox kept, with or without
+// unsynced outbox rows) and the server answers `full_resync_required` once
+// to one device. A bootstrap can be interrupted by the same faults
+// (offline, flaky) and by a simulated crash at a page boundary, and must
+// resume later from its stored progress.
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/core/permissions/app_permissions.dart';
+import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
 import 'package:amana_pos/core/sync/appliers/inbound_applier.dart';
 import 'package:amana_pos/core/sync/appliers/sale_applier.dart';
 import 'package:amana_pos/core/sync/appliers/stock_applier.dart';
@@ -41,6 +52,7 @@ import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/create_inbound_request_dto.dart';
 import 'package:amana_pos/features/inventory/domain/stock_service.dart';
 import 'package:amana_pos/features/pos/domain/sale_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:uuid/data.dart';
@@ -346,7 +358,9 @@ class Device {
   final notifier = DbChangeNotifier();
   final registry = ChangeApplierRegistry();
   late SyncEngine engine;
+  late Bootstrapper boot;
   final engines = <SyncEngine>[];
+  final boots = <Bootstrapper>[];
 
   /// Hook name at which the current engine crashes next (once).
   String? crashAt;
@@ -378,9 +392,11 @@ class Device {
       ..register(SpyApplier(SaleApplier()))
       ..register(SpyApplier(InboundApplier()));
     _rebuild();
-    await db.transaction(
-      (t) => state.setCursor(t, base64Url.encode(utf8.encode('seq:0'))),
-    );
+    // Bootstrapped device: cursor + `bootstrapped` (ruling T6-b).
+    await db.transaction((t) async {
+      await state.setCursor(t, base64Url.encode(utf8.encode('seq:0')));
+      await state.setBootstrapped(t, true);
+    });
   }
 
   void _rebuild() {
@@ -423,6 +439,23 @@ class Device {
       ),
     );
     engines.add(engine);
+    boot = Bootstrapper(
+      db: odb,
+      transport: view,
+      state: state,
+      appliers: registry,
+      notifier: notifier,
+      scopeProvider: () => _scope,
+      // Called before every page request and inside every page txn: a
+      // crash here is a kill at a bootstrap page boundary / mid-page.
+      assertScope: () async => _maybeCrash('bootstrapPage'),
+      capabilities: () async => {...w.server.capabilities},
+      authedFor: engine.authedFor,
+      pageSize: 3,
+      now: w.now,
+      uuid: uuid,
+    );
+    boots.add(boot);
   }
 
   void _maybeCrash(String where) {
@@ -441,6 +474,9 @@ class Device {
   Future<void> dispose() async {
     for (final e in engines) {
       await e.dispose();
+    }
+    for (final b in boots) {
+      await b.dispose();
     }
     notifier.dispose();
     await db.close();
@@ -573,8 +609,19 @@ class Device {
       ..down = false
       ..flakyRate = 0
       ..lostResponseRate = 0
-      ..dropResponseAfterApply = 0;
+      ..dropResponseAfterApply = 0
+      ..fullResyncOnce = false;
     crashAt = null;
+  }
+
+  /// Cold start: this scope's setup state is gone (cursor, `bootstrapped`,
+  /// progress, completion time), like after the logout/business-switch
+  /// reset; local rows and the outbox (unsynced work) are kept.
+  Future<void> coldStart() async {
+    final pending = (await notDone()).length;
+    _bump(pending > 0 ? 'coldstart_with_pending' : 'coldstart_clean');
+    w.note('$name COLD START (pending outbox=$pending)');
+    await db.transaction(SyncStateStore.resetSetupOfAllScopes);
   }
 
   void randomFaults() {
@@ -585,12 +632,17 @@ class Device {
     if (r.nextBool()) view.flakyRate = r.nextDouble() * 0.5;
     if (r.nextBool()) view.lostResponseRate = r.nextDouble() * 0.5;
     if (r.nextInt(4) == 0) view.dropResponseAfterApply = 1;
+    if (r.nextInt(8) == 0) {
+      view.fullResyncOnce = true;
+      _bump('fault_full_resync_once');
+    }
     if (kCrashes && r.nextInt(4) == 0) {
       crashAt = const [
         'beforeResultWrite',
         'afterPushApplied',
         'beforePullPageCommit',
-      ][r.nextInt(3)];
+        'bootstrapPage',
+      ][r.nextInt(4)];
     }
   }
 
@@ -598,14 +650,37 @@ class Device {
       '${view.down ? 'down ' : ''}'
       'flaky=${view.flakyRate.toStringAsFixed(2)} '
       'lost=${view.lostResponseRate.toStringAsFixed(2)} '
-      'drop=${view.dropResponseAfterApply} crash=$crashAt';
+      'drop=${view.dropResponseAfterApply} '
+      '${view.fullResyncOnce ? 'resync ' : ''}crash=$crashAt';
 
   /// Runs one sync; a simulated crash restarts the "process" on the same DB
   /// after the lock / claim leases expired.
   Future<SyncOutcome?> sync() async {
     final faults = faultString;
     try {
-      final o = await engine.syncNow();
+      var o = await engine.syncNow();
+      if (o == SyncOutcome.needsBootstrap) {
+        // What SyncTriggers does in the foreground app.
+        if (await state.bootstrapProgress(db) != null) {
+          _bump('bootstrap_resume');
+        }
+        final guarded = await _pendingRows();
+        final b = await boot.run();
+        _bump('bootstrap_${b.name}');
+        // Review focus 4: a bootstrap never overwrites a row that has an
+        // unsynced outbox edit (it is deferred to a later pull instead).
+        expect(
+          await _pendingRows(keys: guarded.keys),
+          guarded,
+          reason: '$name bootstrap overwrote a locally pending row',
+        );
+        if (guarded.isNotEmpty) _bump('bootstrap_guarded_pending_rows');
+        w.note('$name bootstrap [$faults] -> ${b.name}');
+        if (b == BootstrapOutcome.completed ||
+            b == BootstrapOutcome.notNeeded) {
+          o = await engine.syncNow();
+        }
+      }
       _bump('sync_${o.name}');
       if (await deferred() != null) _bump('deferred_pull_left_after_sync');
       w.note('$name sync [$faults] -> ${o.name} ${engine.current}');
@@ -620,6 +695,34 @@ class Device {
   }
 
   // ---------------------------------------------------------- observation
+
+  static const _pendingTables = {
+    'product': 'c_products',
+    'customer': 'c_customers',
+    'sale': 'sales',
+  };
+
+  /// Local rows of entities that have a not-done outbox row (or of [keys]).
+  Future<Map<String, String>> _pendingRows({Iterable<String>? keys}) async {
+    final want =
+        keys?.toList() ??
+        [
+          for (final o in await notDone())
+            if (_pendingTables.containsKey(o['entity']))
+              '${o['entity']}/${o['entity_id']}',
+        ];
+    final out = <String, String>{};
+    for (final k in want) {
+      final i = k.indexOf('/');
+      final rows = await db.query(
+        _pendingTables[k.substring(0, i)]!,
+        where: 'id = ?',
+        whereArgs: [k.substring(i + 1)],
+      );
+      out[k] = jsonEncode(rows);
+    }
+    return out;
+  }
 
   Future<List<Map<String, Object?>>> notDone() =>
       db.query('outbox', where: "status != 'done'", orderBy: 'seq');
@@ -665,6 +768,7 @@ Future<void> _scenario(World w, List<Device> devices) async {
   final r = w.rnd;
   final server = w.server
     ..strictCatalog = true
+    ..capabilities = {'push', 'pull', 'bootstrap_paged'}
     ..seedVendor(kVendor);
 
   // ---- seed the server: products + initial stock ----
@@ -743,6 +847,7 @@ Future<void> _scenario(World w, List<Device> devices) async {
         }
         budget[d] = left - n;
       }
+      if (r.nextInt(10) == 0) await d.coldStart();
       if (r.nextInt(4) == 0) continue; // this device stays offline
       d.randomFaults();
       await d.sync();
@@ -922,6 +1027,10 @@ Future<void> _assertInvariants(
     deviceTotal += dec(t);
   }
   expect(fmt(serverTotal), fmt(deviceTotal), reason: '(b) sale totals');
+  var serverNet = BigInt.zero;
+  for (final s in serverSales.values) {
+    serverNet += dec(s['net_amount']);
+  }
 
   // (c) each device's local tables == server.
   final serverProducts = server.tables['product'] ?? {};
@@ -983,6 +1092,15 @@ Future<void> _assertInvariants(
         reason: '(c) ${d.name} sale ${ss['id']} lines',
       );
     }
+    // (g) money after any bootstrap + pull: Σ local net == Σ server net.
+    var localNet = BigInt.zero;
+    for (final ls in sales.values) {
+      localNet += dec(ls['net_amount']);
+    }
+    expect(fmt(localNet), fmt(serverNet), reason: '(g) ${d.name} Σ net');
+    // Bootstrap state settled.
+    expect(await d.state.isBootstrapped(), isTrue, reason: d.name);
+    expect(await d.state.bootstrapProgress(d.db), isNull, reason: d.name);
     // Real `stock` table: base == displayed == server (nothing pending).
     for (final row in await d.db.query('stock')) {
       final p = row['product_id'] as String;
@@ -1017,8 +1135,22 @@ void main() {
       ? [kOnlySeed]
       : [for (var s = kFirstSeed; s < kFirstSeed + kSeeds; s++) s];
   final sw = Stopwatch();
-  setUpAll(sw.start);
+  FlutterExceptionHandler? prevOnError;
+  setUpAll(() {
+    sw.start();
+    // The engine's resync loop guard reports loudly by design; count it
+    // instead of printing it. Anything else still goes to the handler.
+    prevOnError = FlutterError.onError;
+    FlutterError.onError = (d) {
+      if ('${d.exception}'.contains('full_resync_required within')) {
+        _bump('resync_loop_guard');
+      } else {
+        prevOnError?.call(d);
+      }
+    };
+  });
   tearDownAll(() {
+    FlutterError.onError = prevOnError;
     // ignore: avoid_print
     print(
       'convergence: ${seeds.length} seeds x $kDevices devices in '

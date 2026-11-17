@@ -104,6 +104,27 @@ class _ScriptedTransport implements SyncTransport {
       fullResyncRequired: r.fullResyncRequired,
     );
   }
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) =>
+      inner.bootstrapManifest(scope: scope);
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  }) => inner.bootstrapPage(
+    entity: entity,
+    pageCursor: pageCursor,
+    limit: limit,
+    snapshotCursor: snapshotCursor,
+    salesSinceDays: salesSinceDays,
+    scope: scope,
+  );
 }
 
 /// Writes pulled changes to `t_rows` inside the page transaction so tests can
@@ -219,8 +240,12 @@ void main() {
     outbox = OutboxStore(odb, now: now);
     state = SyncStateStore(odb, now: now, scope: scope);
     notifier = DbChangeNotifier();
-    // Bootstrapped device: a cursor at the start of the feed.
-    await db.transaction((t) => state.setCursor(t, seedCursor));
+    // Bootstrapped device: a cursor at the start of the feed (and the
+    // scope's `bootstrapped` flag the final bootstrap transaction sets).
+    await db.transaction((t) async {
+      await state.setCursor(t, seedCursor);
+      await state.setBootstrapped(t, true);
+    });
     productApplier = _TableApplier('product');
     registry = ChangeApplierRegistry()
       ..register(productApplier)
@@ -1461,6 +1486,126 @@ void main() {
       expect(await state.deferredPullJson(db), isNull);
       expect(await state.repairNeeded(), isTrue);
       expect(await tRows(), hasLength(4));
+    });
+  });
+
+  // ------------------------------------------------- phase 2 (Task 7)
+  group('bootstrap state and resync semantics', () {
+    Future<void> completedBootstrapAt(DateTime at) =>
+        db.transaction((t) => state.setBootstrapCompletedAt(t, at));
+
+    Future<String> rejectedRow() async {
+      final m = await enq('r1');
+      await db.update(
+        'outbox',
+        {'status': 'rejected'},
+        where: 'mutation_id = ?',
+        whereArgs: [m.mutationId],
+      );
+      return m.mutationId;
+    }
+
+    test('cursor without the bootstrapped flag -> needsBootstrap, no pull, '
+        'outbox still pushed', () async {
+      await db.transaction((t) => state.setBootstrapped(t, false));
+      final m = await enq('p1');
+      final engine = build();
+      expect(await engine.syncNow(), SyncOutcome.needsBootstrap);
+      expect(transport.pulls, 0);
+      expect(await statusOf(m.mutationId), 'done');
+      expect(await state.cursor(), seedCursor, reason: 'nothing reset');
+    });
+
+    test('requireBootstrapWhenNoCursor=false ignores the flag too', () async {
+      await db.transaction((t) => state.setBootstrapped(t, false));
+      await otherDevice('x1');
+      final engine = build(requireBootstrapWhenNoCursor: false);
+      expect(await engine.syncNow(), SyncOutcome.completed);
+      expect((await tRows()).single['id'], 'x1');
+    });
+
+    test('full_resync_required: cursor, old progress and old deferred pulls '
+        'cleared; bootstrapped, local rows and outbox kept', () async {
+      await otherDevice('x1');
+      final engine = build();
+      expect(await engine.syncNow(), SyncOutcome.completed);
+      final rejected = await rejectedRow();
+      final before = await row(rejected);
+      await db.transaction((t) async {
+        await state.setDeferredPullJson(t, '{}');
+        await state.setBootstrapProgress(
+          t,
+          BootstrapProgress(
+            snapshotCursor: 's',
+            entities: const ['product'],
+            done: const [],
+            startedAt: clock,
+          ),
+        );
+      });
+      server.fullResyncRequired = true;
+      expect(await engine.syncNow(), SyncOutcome.needsBootstrap);
+      expect(await state.cursor(), isNull);
+      expect(await state.isBootstrapped(), isTrue);
+      expect(await state.deferredPullJson(db), isNull);
+      expect(await state.bootstrapProgress(db), isNull);
+      expect((await tRows()).single['id'], 'x1', reason: 'rows stay visible');
+      expect(await row(rejected), before, reason: 'outbox untouched');
+    });
+
+    test(
+      'a second full_resync_required within 10 min of a completed '
+      'bootstrap backs off (loud), no restart; after 10 min it resets',
+      () async {
+        final reported = <FlutterErrorDetails>[];
+        final prev = FlutterError.onError;
+        FlutterError.onError = reported.add;
+        addTearDown(() => FlutterError.onError = prev);
+        await completedBootstrapAt(clock.subtract(const Duration(minutes: 3)));
+        server.fullResyncRequired = true;
+        final engine = build();
+        expect(await engine.syncNow(), SyncOutcome.backoff);
+        expect(engine.current.phase, SyncPhase.backoff);
+        expect(engine.current.nextRetryAt, isNotNull);
+        expect(engine.current.lastError, 'full_resync_loop');
+        expect(await state.cursor(), seedCursor, reason: 'no reset');
+        expect(await state.isBootstrapped(), isTrue);
+        expect(reported, hasLength(1));
+
+        clock = clock.add(const Duration(minutes: 8)); // 11 min after
+        expect(await engine.syncNow(), SyncOutcome.needsBootstrap);
+        expect(await state.cursor(), isNull);
+        expect(await state.isBootstrapped(), isTrue);
+      },
+    );
+
+    test('a completed-at far in the future (clock moved back) does not wedge '
+        'the resync', () async {
+      await completedBootstrapAt(clock.add(const Duration(days: 30)));
+      server.fullResyncRequired = true;
+      expect(await build().syncNow(), SyncOutcome.needsBootstrap);
+      expect(await state.cursor(), isNull);
+    });
+
+    test('the completed-at timestamp survives the reset (clear)', () async {
+      final at = clock.subtract(const Duration(hours: 1));
+      await completedBootstrapAt(at);
+      server.fullResyncRequired = true;
+      expect(await build().syncNow(), SyncOutcome.needsBootstrap);
+      expect(await state.bootstrapCompletedAt(), at);
+    });
+
+    test('a cursor wiped under the run (logout table wipe) is never '
+        're-set by the page in flight', () async {
+      await otherDevice('x1');
+      final engine = build();
+      transport.onPull = (_) async {
+        await db.transaction(SyncStateStore.resetSetupOfAllScopes);
+      };
+      expect(await engine.syncNow(), SyncOutcome.cancelled);
+      expect(await state.cursor(), isNull);
+      expect(await state.isBootstrapped(), isFalse);
+      expect(await tRows(), isEmpty, reason: 'page rolled back');
     });
   });
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -11,12 +10,17 @@ import '../offline/offline_db.dart';
 import 'change_applier.dart';
 import 'contract/sync_contract.dart';
 import 'db_change_notifier.dart';
+import 'deferred_pull.dart';
 import 'outbox/outbox_entry.dart';
 import 'outbox/outbox_store.dart';
 import 'reachability.dart';
 import 'sync_schema.dart';
 import 'sync_state_store.dart';
 import 'transport/sync_transport.dart';
+
+/// Runs a transport call with the sync token rules (see
+/// [SyncEngine.authedFor]).
+typedef AuthedCall = Future<T> Function<T>(Future<T> Function() call);
 
 enum SyncPhase { idle, pinging, pushing, pulling, backoff, blocked }
 
@@ -198,9 +202,14 @@ class SyncStatus {
       'rejected=$rejected, reachable=$serverReachable, error=$lastError)';
 }
 
-class _Blocked implements Exception {
-  _Blocked(this.reason);
+/// A run must stop as blocked with [reason] (e.g. the refresh token was
+/// rejected). Thrown by [SyncEngine.authed]; the bootstrapper maps it too.
+class SyncBlockedException implements Exception {
+  SyncBlockedException(this.reason);
   final SyncBlockReason reason;
+
+  @override
+  String toString() => 'SyncBlockedException(${reason.name})';
 }
 
 class _LockLost implements Exception {}
@@ -273,6 +282,10 @@ class SyncEngine {
   static const int pushBatchSize = 100;
   static const int defaultPullPageSize = 500;
   static const int maxPullPagesPerRun = 200;
+
+  /// A `full_resync_required` this soon after a completed bootstrap backs
+  /// off instead of restarting the bootstrap (loop guard, spec section 2).
+  static const Duration resyncLoopWindow = Duration(minutes: 10);
 
   /// Extra cycles run when syncNow was requested during a run.
   static const int maxExtraCycles = 2;
@@ -392,7 +405,7 @@ class SyncEngine {
     } on _Cancelled {
       await _setPhase(SyncPhase.idle);
       return SyncOutcome.cancelled;
-    } on _Blocked catch (b) {
+    } on SyncBlockedException catch (b) {
       return _blocked(b.reason);
     } on SyncTransportException catch (e) {
       return _onTransportError(e);
@@ -467,10 +480,12 @@ class SyncEngine {
       if (!progressed) break; // all retry/missing: wait for their backoff
     }
 
-    // (5) pull. Without a cursor the device has never bootstrapped: pulling
-    // from the start of the feed is not a substitute for the bootstrap.
+    // (5) pull. Without a cursor, or without a completed first setup
+    // (`bootstrapped`, ruling T6-b), the scope needs the bootstrap: pulling
+    // from the start of the feed is not a substitute for it.
     var cursor = await _st.cursor();
-    if ((cursor == null || cursor.isEmpty) && _requireBootstrapWhenNoCursor) {
+    if (_requireBootstrapWhenNoCursor &&
+        (cursor == null || cursor.isEmpty || !await _st.isBootstrapped())) {
       _failures = 0;
       await _setPhase(SyncPhase.idle, block: SyncBlockReason.none);
       return SyncOutcome.needsBootstrap;
@@ -494,13 +509,26 @@ class SyncEngine {
       pages++;
       _reachability.reportSuccess();
       if (page.fullResyncRequired) {
+        if (await _resyncRightAfterBootstrap()) {
+          // A fresh snapshot is already stale: restarting at once could
+          // loop. Normal backoff; the reset happens once the window passed.
+          _report(
+            StateError(
+              'full_resync_required within $resyncLoopWindow of a completed '
+              'bootstrap; backing off instead of re-bootstrapping',
+            ),
+            StackTrace.current,
+            'sync resync loop guard ($_scope)',
+          );
+          return _enterBackoff(error: 'full_resync_loop');
+        }
         await _resetForBootstrap();
         _failures = 0;
         await _setPhase(SyncPhase.idle);
         return SyncOutcome.needsBootstrap;
       }
       await _assertScope();
-      final touched = await _applyPage(page);
+      final touched = await _applyPage(page, sent);
       if (touched.isNotEmpty) _notifier.notify(touched);
       cursor = page.nextCursor;
       if (!page.hasMore) break;
@@ -534,11 +562,27 @@ class SyncEngine {
   /// intermediate commit must never expose the older one. A newer applied
   /// row on any page drops the entry, and an entry whose version is not newer
   /// than the local row is dropped without applying.
-  Future<Set<String>> _applyPage(PullResponse page) async {
+  Future<Set<String>> _applyPage(PullResponse page, String? sent) async {
     final touched = <String>{};
     await (await _db.database).transaction((txn) async {
+      // The cursor this page was asked from must still be the stored one:
+      // a table wipe (logout / business switch) resets it together with the
+      // rows (ruling T1-d), and a page in flight must not resurrect it.
+      final stored = await _st.cursorIn(txn);
+      if ((stored ?? '') != (sent ?? '')) {
+        _log(
+          'pull cursor changed under the run; page dropped',
+          StateError('cursor reset'),
+          StackTrace.current,
+        );
+        throw _Cancelled();
+      }
       final raw = await _st.deferredPullJson(txn);
-      final deferred = _decodeDeferred(raw);
+      final deferred = decodeDeferredPull(
+        raw,
+        onError: (e, st) =>
+            _report(e, st, 'deferred pull changes unreadable; dropped'),
+      );
       // A corrupt blob decodes to null: drop it (rewrite) and flag repair,
       // so it is reported once rather than on every page.
       var dirty = deferred == null;
@@ -548,7 +592,7 @@ class SyncEngine {
       for (final change in page.changes) {
         final applier = _appliers.of(change.entity);
         if (applier == null) continue; // unknown entity: skip, advance
-        final key = '${change.entity}|${change.id}';
+        final key = deferredPullKey(change.entity, change.id);
         if (applier.skipWhenLocalPending &&
             await _hasLocalPending(txn, change)) {
           final prev = pending[key];
@@ -591,43 +635,20 @@ class SyncEngine {
       if (hook != null) await hook(page);
       await _assertScope(); // throwing rolls the whole page back
       if (dirty) {
-        await _st.setDeferredPullJson(
-          txn,
-          pending.isEmpty
-              ? null
-              : jsonEncode({
-                  for (final e in pending.entries) e.key: e.value.toJson(),
-                }),
-        );
+        await _st.setDeferredPullJson(txn, encodeDeferredPull(pending));
       }
       await _st.setCursor(txn, page.nextCursor);
     });
     return touched;
   }
 
-  Future<bool> _hasLocalPending(Transaction txn, PullChange change) async {
-    final rows = await txn.rawQuery(
-      'SELECT 1 FROM ${SyncTables.outbox} WHERE entity = ? AND entity_id = ? '
-      "AND scope = ? AND status IN ('pending','inflight','blocked') LIMIT 1",
-      [change.entity, change.id, _scope],
-    );
-    return rows.isNotEmpty;
-  }
-
-  /// Null when the stored blob is unreadable (reported here).
-  Map<String, PullChange>? _decodeDeferred(String? json) {
-    if (json == null || json.isEmpty) return {};
-    try {
-      final m = jsonDecode(json) as Map<String, dynamic>;
-      return {
-        for (final e in m.entries)
-          e.key: PullChange.fromJson(Map<String, dynamic>.from(e.value as Map)),
-      };
-    } catch (e, st) {
-      _report(e, st, 'deferred pull changes unreadable; dropped');
-      return null;
-    }
-  }
+  Future<bool> _hasLocalPending(Transaction txn, PullChange change) =>
+      hasLocalPendingOutbox(
+        txn,
+        entity: change.entity,
+        id: change.id,
+        scope: _scope,
+      );
 
   // ------------------------------------------------------------- push
 
@@ -692,7 +713,7 @@ class SyncEngine {
       if (written) rethrow; // every row already has its outcome
       if (e is CrashSimulation || e is _LockLost) {
         cleanup = _Cleanup.none;
-      } else if (e is _Blocked ||
+      } else if (e is SyncBlockedException ||
           e is _Cancelled ||
           (e is SyncTransportException &&
               (_isHardBlock(e) || e.kind == SyncTransportKind.scopeChanged))) {
@@ -924,8 +945,61 @@ class SyncEngine {
       e.kind == SyncTransportKind.deviceRevoked;
 
   /// Runs [call]; on token expiry refreshes once per syncNow and retries
-  /// once. `rejected` -> blocked(tokenExpired); `transient`/no callback/
-  /// callback error -> the original exception (treated as backoff).
+  /// once. `rejected` -> [SyncBlockedException] (tokenExpired); `transient`/
+  /// no callback/callback error -> the original exception (treated as
+  /// backoff). Public so the bootstrapper shares the exact same token rules
+  /// (and refresh budget) instead of duplicating them.
+  Future<T> authed<T>(Future<T> Function() call) => _authed(call);
+
+  /// A token wrapper bound to [scope] with its OWN refresh budget, for work
+  /// outside [syncNow] (the bootstrapper takes a new one per run). On token
+  /// expiry it refreshes once and retries once; the budget is restored by
+  /// any successful call, so two 401s need a success in between. After a
+  /// refresh the live session (published scope and session key) must still
+  /// be [scope], else [SyncTransportKind.scopeChanged]. `rejected` ->
+  /// [SyncBlockedException] (tokenExpired); transient / no callback -> the
+  /// original exception. Never touches the engine's own budget or scope.
+  AuthedCall authedFor(String scope) {
+    var refreshUsed = false;
+    Future<T> run<T>(Future<T> Function() call) async {
+      try {
+        final r = await call();
+        refreshUsed = false;
+        return r;
+      } on SyncTransportException catch (e, st) {
+        if (!_isAuthExpiry(e) || refreshUsed) rethrow;
+        refreshUsed = true;
+        final refresh = _refreshToken;
+        if (refresh == null) rethrow;
+        RefreshOutcome outcome;
+        try {
+          outcome = await refresh();
+        } catch (err, rst) {
+          _log('token refresh failed', err, rst);
+          outcome = RefreshOutcome.transient;
+        }
+        switch (outcome) {
+          case RefreshOutcome.refreshed:
+            if (_scopeProvider() != scope ||
+                (_readSessionKey != null && await _readSessionKey() != scope)) {
+              throw SyncTransportException(
+                kind: SyncTransportKind.scopeChanged,
+              );
+            }
+            final r = await call();
+            refreshUsed = false;
+            return r;
+          case RefreshOutcome.rejected:
+            throw SyncBlockedException(SyncBlockReason.tokenExpired);
+          case RefreshOutcome.transient:
+            Error.throwWithStackTrace(e, st);
+        }
+      }
+    }
+
+    return run;
+  }
+
   Future<T> _authed<T>(Future<T> Function() call) async {
     try {
       return await call();
@@ -946,7 +1020,7 @@ class SyncEngine {
           await _assertScope(); // the refresh may have landed on another session
           return await call();
         case RefreshOutcome.rejected:
-          throw _Blocked(SyncBlockReason.tokenExpired);
+          throw SyncBlockedException(SyncBlockReason.tokenExpired);
         case RefreshOutcome.transient:
           Error.throwWithStackTrace(e, st);
       }
@@ -1012,6 +1086,19 @@ class SyncEngine {
     return SyncOutcome.backoff;
   }
 
+  /// True when this scope's last bootstrap completed less than
+  /// [resyncLoopWindow] ago (either direction, so a clock moved back never
+  /// wedges the resync).
+  Future<bool> _resyncRightAfterBootstrap() async {
+    final at = await _st.bootstrapCompletedAt();
+    if (at == null) return false;
+    return _now().toUtc().difference(at).abs() < resyncLoopWindow;
+  }
+
+  /// Clears the cursor, old bootstrap progress and old deferred pulls (plus
+  /// last sync). Keeps `bootstrapped` (a set-up device refreshes without the
+  /// blocking first-setup screen), the bootstrap completion time, local rows
+  /// and the outbox.
   Future<void> _resetForBootstrap() async {
     final caps = await _state.capabilities();
     final skew = await _state.clockSkew();

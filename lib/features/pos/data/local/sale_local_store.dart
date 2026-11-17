@@ -183,6 +183,15 @@ class SaleLocalStore {
     whereArgs: [id],
   );
 
+  /// A user retried a rejected sale: it is unsynced again. Only a
+  /// `rejected` row changes (never a synced one).
+  Future<void> markPendingAgain(DatabaseExecutor db, String id) => db.update(
+    sales,
+    {'sync_state': 'pending', 'error_code': null, 'error_message': null},
+    where: "id = ? AND sync_state = 'rejected'",
+    whereArgs: [id],
+  );
+
   Future<Sale?> read(DatabaseExecutor db, String id) async {
     final rows = await db.query(
       sales,

@@ -11,8 +11,29 @@ Future<bool> showAppConfirmSheet(
   required String title,
   required String message,
   required String confirmLabel,
+}) async =>
+    await showAppConfirmSheetChoice(
+      context,
+      title: title,
+      message: message,
+      confirmLabel: confirmLabel,
+    ) ==
+    AppConfirmChoice.confirm;
+
+/// What the user picked in [showAppConfirmSheetChoice].
+enum AppConfirmChoice { confirm, alternative, cancel }
+
+/// [showAppConfirmSheet] with an optional non-destructive [alternativeLabel]
+/// action shown above the destructive one (e.g. "Send now" next to
+/// "Discard"). Dismissing the sheet is [AppConfirmChoice.cancel].
+Future<AppConfirmChoice> showAppConfirmSheetChoice(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  String? alternativeLabel,
 }) async {
-  final result = await showModalBottomSheet<bool>(
+  final result = await showModalBottomSheet<AppConfirmChoice>(
     context: context,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.4),
@@ -22,20 +43,23 @@ Future<bool> showAppConfirmSheet(
       title: title,
       message: message,
       confirmLabel: confirmLabel,
+      alternativeLabel: alternativeLabel,
     ),
   );
-  return result ?? false;
+  return result ?? AppConfirmChoice.cancel;
 }
 
 class _ConfirmSheet extends StatelessWidget {
   final String title;
   final String message;
   final String confirmLabel;
+  final String? alternativeLabel;
 
   const _ConfirmSheet({
     required this.title,
     required this.message,
     required this.confirmLabel,
+    this.alternativeLabel,
   });
 
   @override
@@ -58,13 +82,14 @@ class _ConfirmSheet extends StatelessWidget {
     Widget action(
       String label, {
       required bool destructive,
+      required AppConfirmChoice choice,
       bool bold = false,
     }) {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           if (destructive) HapticFeedback.mediumImpact();
-          Navigator.of(context).pop(destructive);
+          Navigator.of(context).pop(choice);
         },
         child: SizedBox(
           height: 57,
@@ -114,11 +139,30 @@ class _ConfirmSheet extends StatelessWidget {
                 ],
               ),
             ),
+            if (alternativeLabel != null) ...[
+              Divider(height: 0.5, thickness: 0.5, color: colors.border),
+              action(
+                alternativeLabel!,
+                destructive: false,
+                choice: AppConfirmChoice.alternative,
+              ),
+            ],
             Divider(height: 0.5, thickness: 0.5, color: colors.border),
-            action(confirmLabel, destructive: true),
+            action(
+              confirmLabel,
+              destructive: true,
+              choice: AppConfirmChoice.confirm,
+            ),
           ]),
           const SizedBox(height: 8),
-          group([action(context.tr.cancel, destructive: false, bold: true)]),
+          group([
+            action(
+              context.tr.cancel,
+              destructive: false,
+              choice: AppConfirmChoice.cancel,
+              bold: true,
+            ),
+          ]),
         ],
       ),
     );

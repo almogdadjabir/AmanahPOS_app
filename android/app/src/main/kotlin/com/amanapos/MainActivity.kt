@@ -30,6 +30,10 @@ class MainActivity : FlutterFragmentActivity() {
                     result.success(getBuildNumber())
                 }
 
+                "getSdkInt" -> {
+                    result.success(Build.VERSION.SDK_INT)
+                }
+
                 "getDeviceMeta" -> {
                     result.success(
                         mapOf(

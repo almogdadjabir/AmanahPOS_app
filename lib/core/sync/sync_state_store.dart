@@ -1,8 +1,75 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../offline/offline_db.dart';
 import 'sync_schema.dart';
+
+/// Resumable first-setup (bootstrap) progress of one scope. One JSON value
+/// under `bootstrap_progress|<scope>`, written in the same transaction as the
+/// page's rows.
+class BootstrapProgress {
+  const BootstrapProgress({
+    required this.snapshotCursor,
+    required this.entities,
+    required this.done,
+    required this.startedAt,
+    this.pageCursor,
+  });
+
+  /// Cursor from the manifest; becomes the pull cursor at the end.
+  final String snapshotCursor;
+
+  /// Ordered entities of the manifest.
+  final List<String> entities;
+
+  /// Entities fully downloaded.
+  final List<String> done;
+
+  /// Keyset cursor inside the current (first not-done) entity.
+  final String? pageCursor;
+
+  final DateTime startedAt;
+
+  Map<String, dynamic> toJson() => {
+    'snapshot_cursor': snapshotCursor,
+    'entities': entities,
+    'done': done,
+    'page_cursor': pageCursor,
+    'started_at': startedAt.toUtc().toIso8601String(),
+  };
+
+  /// Null when [j] is not a well-formed progress record.
+  static BootstrapProgress? tryFromJson(Object? j) {
+    if (j is! Map) return null;
+    final snap = j['snapshot_cursor'];
+    final ents = j['entities'];
+    final done = j['done'];
+    final started = DateTime.tryParse('${j['started_at']}');
+    final page = j['page_cursor'];
+    if (snap is! String ||
+        ents is! List ||
+        done is! List ||
+        started == null ||
+        (page != null && page is! String)) {
+      return null;
+    }
+    if (ents.any((e) => e is! String) || done.any((e) => e is! String)) {
+      return null;
+    }
+    return BootstrapProgress(
+      snapshotCursor: snap,
+      entities: List<String>.from(ents),
+      done: List<String>.from(done),
+      pageCursor: page as String?,
+      startedAt: started.toUtc(),
+    );
+  }
+
+  factory BootstrapProgress.fromJson(Map<String, dynamic> j) =>
+      tryFromJson(j) ?? (throw FormatException('Bad BootstrapProgress: $j'));
+}
 
 /// Key/value sync bookkeeping persisted in the `sync_state` table.
 class SyncStateStore {
@@ -46,6 +113,9 @@ class SyncStateStore {
   static const _kLock = 'sync_lock';
   static const _kRepairNeeded = 'repair_needed';
   static const _kDeferredPull = 'deferred_pull';
+  static const _kBootstrapProgress = 'bootstrap_progress';
+  static const _kBootstrapped = 'bootstrapped';
+  static const _kBootstrapCompletedAt = 'bootstrap_completed_at';
   static const _kDeviceRegistration = 'device_registration';
   static const _kLocalReceiptCounter = 'local_receipt_counter';
 
@@ -91,6 +161,9 @@ class SyncStateStore {
 
   Future<String?> cursor() async => _get(await _db.database, _k(_kCursor));
 
+  /// [cursor] read through [e] (inside a page transaction).
+  Future<String?> cursorIn(DatabaseExecutor e) => _get(e, _k(_kCursor));
+
   Future<void> setCursor(DatabaseExecutor txn, String cursor) =>
       _put(txn, _k(_kCursor), cursor);
 
@@ -122,23 +195,129 @@ class SyncStateStore {
     await _put(await _db.database, _kCapabilities, sorted.join(','));
   }
 
-  /// Clears sync progress (this scope's cursor and deferred pull, plus skew,
-  /// last sync, capabilities). Another scope's keys, the device id and the
-  /// runner lock are deliberately kept.
+  /// Clears sync progress (this scope's cursor, deferred pull and bootstrap
+  /// progress, plus skew, last sync, capabilities). Another scope's keys, the
+  /// device id, the runner lock and this scope's `bootstrapped` flag are
+  /// deliberately kept (a reset cursor must never put a set-up device back
+  /// on the blocking first-setup screen).
   Future<void> clear() async {
     final db = await _db.database;
     await db.delete(
       SyncTables.syncState,
-      where: 'key IN (?, ?, ?, ?, ?)',
+      where: 'key IN (?, ?, ?, ?, ?, ?)',
       whereArgs: [
         _k(_kCursor),
         _kClockSkew,
         _kLastSyncedAt,
         _kCapabilities,
         _k(_kDeferredPull),
+        _k(_kBootstrapProgress),
       ],
     );
   }
+
+  // ---- bootstrap (first setup) ----
+
+  /// Progress of an interrupted bootstrap of this scope, or null (none, or
+  /// an unreadable record: the bootstrapper then starts over).
+  Future<BootstrapProgress?> bootstrapProgress(DatabaseExecutor e) async {
+    final raw = await _get(e, _k(_kBootstrapProgress));
+    if (raw == null) return null;
+    try {
+      return BootstrapProgress.tryFromJson(jsonDecode(raw));
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// Writes (or with null removes) the progress inside [txn].
+  Future<void> setBootstrapProgress(
+    DatabaseExecutor txn,
+    BootstrapProgress? p,
+  ) async {
+    if (p == null) {
+      await txn.delete(
+        SyncTables.syncState,
+        where: 'key = ?',
+        whereArgs: [_k(_kBootstrapProgress)],
+      );
+    } else {
+      await _put(txn, _k(_kBootstrapProgress), jsonEncode(p.toJson()));
+    }
+  }
+
+  /// True once this scope's first setup committed its final transaction.
+  /// Never touched by [clear].
+  Future<bool> isBootstrapped() async =>
+      await _get(await _db.database, _k(_kBootstrapped)) == '1';
+
+  Future<void> setBootstrapped(DatabaseExecutor txn, bool v) async {
+    if (v) {
+      await _put(txn, _k(_kBootstrapped), '1');
+    } else {
+      await txn.delete(
+        SyncTables.syncState,
+        where: 'key = ?',
+        whereArgs: [_k(_kBootstrapped)],
+      );
+    }
+  }
+
+  /// Ruling T11-a: true when ANY scope (`userId|tenantId`) of [tenantId] on
+  /// this device has its `bootstrapped` flag. The catalog tables are per
+  /// device and shared by the tenant's users, so this is the first-setup
+  /// UI gate; it never replaces the scope's own flag/cursor (the engine
+  /// still bootstraps a cursor-less scope before pulling). Keys are parsed
+  /// exactly (no LIKE wildcards: `_`/`%` in ids must not match). Works on
+  /// an unscoped store.
+  Future<bool> isTenantBootstrapped(String tenantId) async {
+    if (tenantId.isEmpty) return false;
+    const prefix = '$_kBootstrapped|';
+    final db = await _db.database;
+    final rows = await db.query(
+      SyncTables.syncState,
+      columns: ['key'],
+      where: 'substr(key, 1, ?) = ? AND value = ?',
+      whereArgs: [prefix.length, prefix, '1'],
+    );
+    for (final r in rows) {
+      final key = r['key'] as String?;
+      if (key == null || !key.startsWith(prefix)) continue;
+      final parts = key.substring(prefix.length).split('|');
+      if (parts.length != 2 || parts[0].isEmpty) continue;
+      if (parts[1] == tenantId) return true;
+    }
+    return false;
+  }
+
+  /// When this scope's last bootstrap committed its final transaction
+  /// (written in that transaction). Survives [clear]: the engine uses it to
+  /// refuse a `full_resync_required` loop right after a bootstrap.
+  Future<DateTime?> bootstrapCompletedAt() async {
+    final v = await _get(await _db.database, _k(_kBootstrapCompletedAt));
+    return v == null ? null : DateTime.tryParse(v)?.toUtc();
+  }
+
+  Future<void> setBootstrapCompletedAt(DatabaseExecutor txn, DateTime t) =>
+      _put(txn, _k(_kBootstrapCompletedAt), t.toUtc().toIso8601String());
+
+  /// Ruling T1-d: the local table wipe (logout / business switch) removes
+  /// the rows every scope's setup produced, so it must drop every scope's
+  /// cursor, `bootstrapped` flag, bootstrap progress and completion time
+  /// TOGETHER, inside the wipe's own transaction (else a re-login finds a
+  /// cursor over an empty catalog and never bootstraps). Deferred pulled
+  /// changes, the outbox, the device id, the lock and the receipt counter
+  /// are kept: they protect unsynced work.
+  static Future<void> resetSetupOfAllScopes(DatabaseExecutor txn) => txn.delete(
+    SyncTables.syncState,
+    where: 'key LIKE ? OR key LIKE ? OR key LIKE ? OR key LIKE ?',
+    whereArgs: [
+      '$_kCursor|%',
+      '$_kBootstrapped|%',
+      '$_kBootstrapProgress|%',
+      '$_kBootstrapCompletedAt|%',
+    ],
+  );
 
   // ---- device registration (best-effort, see SyncDeviceRegistrar) ----
 

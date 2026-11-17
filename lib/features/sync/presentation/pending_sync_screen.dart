@@ -56,7 +56,15 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
           children: [
             const _NavBar(),
             Expanded(
-              child: BlocBuilder<PendingSyncBloc, PendingSyncState>(
+              child: BlocConsumer<PendingSyncBloc, PendingSyncState>(
+                // A refused or failed discard / retry is never silent.
+                listenWhen: (p, c) =>
+                    c.failure != null && c.failureSeq != p.failureSeq,
+                listener: (context, state) => ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(content: Text(_failureText(state.failure!))),
+                  ),
                 builder: (context, state) => CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
@@ -80,6 +88,16 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
         ),
       ),
     );
+  }
+
+  String _failureText(PendingSyncFailure f) {
+    final tr = context.tr;
+    return switch (f) {
+      PendingSyncFailure.discardSending => tr.syOxDiscardSending,
+      PendingSyncFailure.discardAlreadySynced => tr.syOxDiscardAlreadySynced,
+      PendingSyncFailure.discardOtherScope => tr.syOxDiscardOtherScope,
+      PendingSyncFailure.actionFailed => tr.syOxActionFailed,
+    };
   }
 
   Widget _content(PendingSyncState state) {
@@ -107,6 +125,23 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
             secondaryAction: true,
             onAction: () =>
                 context.read<PendingSyncBloc>().add(const OnPendingSyncLoad()),
+          ),
+        ],
+      );
+    }
+
+    if (state.rows.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          title,
+          CategoryStateCard(
+            icon: PhosphorIconsRegular.checkCircle,
+            title: tr.syAllDoneTitle,
+            body: tr.syAllDoneBody,
+            actionLabel: tr.close,
+            secondaryAction: true,
+            onAction: () => Navigator.of(context).maybePop(),
           ),
         ],
       );

@@ -38,3 +38,8 @@ class OnPendingSyncDiscardScope extends PendingSyncEvent {
   @override
   List<Object?> get props => [scope];
 }
+
+/// Discard sheet "Send now": run the existing sync-now, then reload.
+class OnPendingSyncSendNow extends PendingSyncEvent {
+  const OnPendingSyncSendNow();
+}

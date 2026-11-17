@@ -1,6 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../features/inventory/data/local/stock_local_store.dart';
+import '../../../features/pos/data/local/sale_local_store.dart';
 import '../../offline/offline_db.dart';
 import '../db_change_notifier.dart';
 import '../sync_schema.dart';
@@ -13,6 +15,8 @@ class OutboxStore {
 
   final OfflineDb _db;
   final Uuid _uuid;
+  static const SaleLocalStore _sales = SaleLocalStore();
+  static const StockLocalStore _stock = StockLocalStore();
   final DateTime Function() _now;
 
   static const String _t = SyncTables.outbox;
@@ -241,12 +245,27 @@ class OutboxStore {
   }
 
   /// Rejects dependents (blocked or pending) of [entityId], cascading to
-  /// their own dependents.
+  /// their own dependents. The local stock they affected is recomputed (a
+  /// rejected row no longer counts).
   Future<void> failDependents(
     DatabaseExecutor txn,
     String entityId, {
     required String scope,
   }) async {
+    await _recomputeStock(
+      txn,
+      await _failDependents(txn, entityId, scope: scope),
+    );
+  }
+
+  /// [failDependents] without the stock recompute; returns the rows it
+  /// rejected.
+  Future<List<OutboxEntry>> _failDependents(
+    DatabaseExecutor txn,
+    String entityId, {
+    required String scope,
+  }) async {
+    final failed = <OutboxEntry>[];
     final queue = <String>[entityId];
     final seen = <String>{};
     while (queue.isNotEmpty) {
@@ -254,7 +273,6 @@ class OutboxStore {
       if (!seen.add(id)) continue;
       final rows = await txn.query(
         _t,
-        columns: ['seq', 'entity_id'],
         where:
             "depends_on_entity_id = ? AND scope = ? "
             "AND status IN ('blocked','pending')",
@@ -272,9 +290,11 @@ class OutboxStore {
           where: 'seq = ?',
           whereArgs: [r['seq']],
         );
+        failed.add(OutboxEntry.fromRow(r));
         queue.add(r['entity_id'] as String);
       }
     }
+    return failed;
   }
 
   /// Live count of unconfirmed rows; with [scope] only that session's.
@@ -321,16 +341,44 @@ class OutboxStore {
     return (r.first['c'] as int?) ?? 0;
   }
 
-  /// Explicit, user-confirmed discard of one scope's unsynced rows (every
-  /// status except `done`). Never called by normal logout / business-switch
-  /// paths; the UI must confirm first. Returns the number of rows deleted.
+  /// Rows a user may discard: not sent yet (or answered `rejected`) and
+  /// not claimed by a sync run. `inflight` rows (and any row still holding a
+  /// lease) may be on the wire right now: discarding one would drop the
+  /// server's answer while the server keeps the sale (review I1).
+  static const String _discardableSql =
+      "status IN ('pending','blocked','rejected') AND lease_until IS NULL";
+
+  /// Explicit, user-confirmed discard of one scope's unsynced rows. Never
+  /// called by normal logout / business-switch paths; the UI must confirm
+  /// first. Rows being sent (see [_discardableSql]) are kept. In ONE
+  /// transaction: local sales of discarded `sale.create` rows are marked
+  /// rejected (`discarded`), dependents are failed, and local stock of every
+  /// affected (product, shop) is recomputed. Returns the rows deleted.
   Future<int> discardAll({required String scope}) async {
     final db = await _db.database;
-    return db.delete(
-      _t,
-      where: "scope = ? AND status != 'done'",
-      whereArgs: [scope],
-    );
+    return db.transaction((txn) async {
+      final rows = await txn.query(
+        _t,
+        where: 'scope = ? AND $_discardableSql',
+        whereArgs: [scope],
+        orderBy: 'seq ASC',
+      );
+      final removed = <OutboxEntry>[];
+      for (final r in rows) {
+        final n = await txn.delete(
+          _t,
+          where: 'seq = ? AND $_discardableSql',
+          whereArgs: [r['seq']],
+        );
+        if (n == 1) removed.add(OutboxEntry.fromRow(r));
+      }
+      final failed = <OutboxEntry>[];
+      for (final e in removed) {
+        failed.addAll(await _failDependents(txn, e.entityId, scope: e.scope));
+      }
+      await _afterRemoved(txn, removed, failed);
+      return removed.length;
+    });
   }
 
   /// Every row the server has not confirmed, all scopes, oldest first.
@@ -354,38 +402,119 @@ class OutboxStore {
     return rows.map(OutboxEntry.fromRow).toList();
   }
 
-  Future<void> retryRejected(String mutationId) async {
+  /// Puts a `rejected` row back in the queue. In ONE transaction its local
+  /// sale (for `sale.create`) goes back from `rejected` to `pending` and the
+  /// local stock it affects is recomputed (a rejected row has no stock
+  /// effect; a pending one has, exactly once). False when the row is not
+  /// `rejected` (any more).
+  Future<bool> retryRejected(String mutationId) async {
     final db = await _db.database;
-    await db.update(
-      _t,
-      {
-        'status': 'pending',
-        'attempts': 0,
-        'next_attempt_at': null,
-        'lease_until': null,
-        'error_code': null,
-        'error_message': null,
-      },
-      where: "mutation_id = ? AND status = 'rejected'",
-      whereArgs: [mutationId],
-    );
-  }
-
-  Future<void> discard(String mutationId) async {
-    final db = await _db.database;
-    await db.transaction((txn) async {
+    return db.transaction((txn) async {
       final rows = await txn.query(
         _t,
-        columns: ['entity_id', 'scope'],
-        where: 'mutation_id = ?',
+        where: "mutation_id = ? AND status = 'rejected'",
+        whereArgs: [mutationId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return false;
+      final n = await txn.update(
+        _t,
+        {
+          'status': 'pending',
+          'attempts': 0,
+          'next_attempt_at': null,
+          'lease_until': null,
+          'error_code': null,
+          'error_message': null,
+        },
+        where: "mutation_id = ? AND status = 'rejected'",
         whereArgs: [mutationId],
       );
-      if (rows.isEmpty) return;
-      final entityId = rows.first['entity_id'] as String;
-      final scope = rows.first['scope'] as String;
-      await txn.delete(_t, where: 'mutation_id = ?', whereArgs: [mutationId]);
-      await failDependents(txn, entityId, scope: scope);
+      if (n != 1) return false;
+      final e = OutboxEntry.fromRow(rows.first);
+      if (_isSaleCreate(e)) {
+        await _sales.markPendingAgain(txn, e.entityId);
+      }
+      await _recomputeStock(txn, [e]);
+      return true;
     });
+  }
+
+  /// User discard of one row (review I1/I2/M4). In ONE transaction:
+  /// refuses a row being sent ([DiscardOutcome.sending]) or already
+  /// confirmed ([DiscardOutcome.alreadySynced]); otherwise deletes it, marks
+  /// its local sale (for `sale.create`) rejected with code `discarded` (the
+  /// sale is never deleted: history keeps showing it), fails its dependents
+  /// and recomputes the local stock of every affected (product, shop).
+  ///
+  /// With [currentScope] set, a row of another scope is refused
+  /// ([DiscardOutcome.otherScope]); another account's rows go through
+  /// [discardAll] after their own confirmation.
+  Future<DiscardOutcome> discard(
+    String mutationId, {
+    String? currentScope,
+  }) async {
+    final db = await _db.database;
+    return db.transaction((txn) async {
+      final rows = await txn.query(
+        _t,
+        where: 'mutation_id = ?',
+        whereArgs: [mutationId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return DiscardOutcome.notFound;
+      final e = OutboxEntry.fromRow(rows.first);
+      if (currentScope != null && e.scope != currentScope) {
+        return DiscardOutcome.otherScope;
+      }
+      if (e.status == OutboxStatus.done) return DiscardOutcome.alreadySynced;
+      final n = await txn.delete(
+        _t,
+        where: 'mutation_id = ? AND $_discardableSql',
+        whereArgs: [mutationId],
+      );
+      if (n != 1) return DiscardOutcome.sending;
+      final failed = await _failDependents(txn, e.entityId, scope: e.scope);
+      await _afterRemoved(txn, [e], failed);
+      return DiscardOutcome.discarded;
+    });
+  }
+
+  static bool _isSaleCreate(OutboxEntry e) =>
+      e.entity == 'sale' && e.op == 'create';
+
+  /// Local consequences of user-removed rows ([removed]) and of the
+  /// dependents that failed with them ([failed]).
+  Future<void> _afterRemoved(
+    DatabaseExecutor txn,
+    List<OutboxEntry> removed,
+    List<OutboxEntry> failed,
+  ) async {
+    for (final e in removed) {
+      if (!_isSaleCreate(e)) continue;
+      await _sales.markRejected(
+        txn,
+        e.entityId,
+        code: e.errorCode ?? 'discarded',
+        message: e.errorMessage ?? 'Discarded by user',
+      );
+    }
+    await _recomputeStock(txn, [...removed, ...failed]);
+  }
+
+  /// Re-derives local stock (base + remaining open rows) for every
+  /// (product, shop) the given rows affect.
+  Future<void> _recomputeStock(
+    DatabaseExecutor txn,
+    Iterable<OutboxEntry> rows,
+  ) async {
+    final pairs = <(String, String)>{
+      for (final e in rows)
+        ...StockLocalStore.affectedByOutboxRow(e.entity, e.op, e.payload),
+    };
+    for (final (product, shop) in pairs) {
+      await _stock.recompute(txn, product, shop);
+    }
   }
 
   /// Removes `done` rows older than [keep] (default 7 days). Returns count.
@@ -398,4 +527,21 @@ class OutboxStore {
       whereArgs: [cutoff],
     );
   }
+}
+
+/// Result of [OutboxStore.discard].
+enum DiscardOutcome {
+  discarded,
+
+  /// No such row (already gone).
+  notFound,
+
+  /// Claimed by a sync run (may be on the wire): kept.
+  sending,
+
+  /// The server already confirmed it: kept.
+  alreadySynced,
+
+  /// Another account's row while a current scope was given: kept.
+  otherScope,
 }

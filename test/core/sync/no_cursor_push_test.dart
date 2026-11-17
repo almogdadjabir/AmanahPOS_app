@@ -72,4 +72,24 @@ void main() {
     expect(await engine.syncNow(), SyncOutcome.cancelled);
     expect(h.transport.pullCalls, 0);
   });
+
+  // Ruling T11-a: another user of the SAME tenant is bootstrapped (the gate
+  // lets this user sell), but this scope has no cursor/flag of its own: its
+  // outbox is pushed, nothing is pulled, the engine asks for its bootstrap.
+  test('second user of a bootstrapped tenant: pushes, never pulls without '
+      'its own bootstrap', () async {
+    final first = h.state.forScope('u1|t1');
+    await h.db.transaction((t) async {
+      await first.setCursor(t, '1');
+      await first.setBootstrapped(t, true);
+    });
+    expect(await h.state.isTenantBootstrapped('t1'), isTrue);
+    h.activeScope = 'u2|t1';
+    await h.createWidget('w1');
+    final engine = h.build();
+    expect(await engine.syncNow(), SyncOutcome.needsBootstrap);
+    expect(await statuses(), ['done']);
+    expect(h.transport.pullCalls, 0);
+    expect(await h.state.forScope('u2|t1').cursor(), isNull);
+  });
 }

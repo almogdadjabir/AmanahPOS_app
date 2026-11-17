@@ -141,4 +141,28 @@ void main() {
     await service.createSale(draft);
     expect(seen, isTrue);
   });
+
+  // Review I5: synchronous=FULL fsyncs every commit. A sale is ONE commit;
+  // on a real file DB the save must stay well inside the checkout budget.
+  test('sale save on a file DB with synchronous=FULL stays under 100 ms '
+      'per sale on average', () async {
+    final f = await SaleFixture.on(await open());
+    addTearDown(f.db.close);
+    final mode = await f.db.rawQuery('PRAGMA synchronous');
+    expect(mode.single.values.single, 2);
+    final service = f.service();
+    await service.createSale(draft); // warm-up
+    const n = 50;
+    final sw = Stopwatch()..start();
+    for (var i = 0; i < n; i++) {
+      await service.createSale(draft);
+    }
+    sw.stop();
+    final avgMs = sw.elapsedMicroseconds / n / 1000;
+    // ignore: avoid_print
+    print(
+      'sale save (file db, synchronous=FULL): ${avgMs.toStringAsFixed(2)} ms avg',
+    );
+    expect(avgMs, lessThan(100));
+  });
 }

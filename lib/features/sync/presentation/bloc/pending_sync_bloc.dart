@@ -1,6 +1,8 @@
 import 'package:amana_pos/core/offline/offline_db.dart';
+import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_entry.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
+import 'package:amana_pos/core/sync/sync_schema.dart';
 import 'package:amana_pos/core/sync/sync_scope.dart';
 import 'package:amana_pos/features/pos/data/local/sale_local_store.dart';
 import 'package:equatable/equatable.dart';
@@ -14,18 +16,33 @@ class PendingSyncBloc extends Bloc<PendingSyncEvent, PendingSyncState> {
   final OutboxStore outbox;
   final OfflineDb db;
   final String? Function() _scope;
+  final DbChangeNotifier? _notifier;
+  final Future<void> Function()? _syncNow;
+
+  /// Tables a discard / retry may change (badge count, stock, history).
+  static const Set<String> changedTables = {
+    SyncTables.outbox,
+    ...SaleLocalStore.tables,
+    'stock',
+    'products',
+  };
 
   PendingSyncBloc({
     required this.outbox,
     required this.db,
     String? Function()? scope,
+    DbChangeNotifier? notifier,
+    Future<void> Function()? syncNow,
   }) : _scope = scope ?? (() => SyncScope.current),
+       _notifier = notifier,
+       _syncNow = syncNow,
        super(const PendingSyncState()) {
     on<OnPendingSyncLoad>(_onLoad);
     on<OnPendingSyncRetryAll>(_onRetryAll);
     on<OnPendingSyncRetryRow>(_onRetryRow);
     on<OnPendingSyncDiscardRow>(_onDiscardRow);
     on<OnPendingSyncDiscardScope>(_onDiscardScope);
+    on<OnPendingSyncSendNow>(_onSendNow);
   }
 
   Future<void> _onLoad(
@@ -53,39 +70,50 @@ class PendingSyncBloc extends Bloc<PendingSyncEvent, PendingSyncState> {
   Future<void> _onRetryAll(
     OnPendingSyncRetryAll event,
     Emitter<PendingSyncState> emit,
-  ) async {
+  ) => _mutate(emit, () async {
     // Retry every rejected row of the current scope.
     final scope = _scope();
-    try {
-      for (final e in await outbox.rejected()) {
-        if (e.scope == scope) await outbox.retryRejected(e.mutationId);
-      }
-      emit(
-        state.copyWith(
-          status: PendingSyncStatus.loaded,
-          rows: await _loadRows(),
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
+    for (final e in await outbox.rejected()) {
+      if (e.scope == scope) await outbox.retryRejected(e.mutationId);
     }
-  }
+    return null;
+  });
 
   Future<void> _onRetryRow(
     OnPendingSyncRetryRow event,
     Emitter<PendingSyncState> emit,
-  ) => _mutate(emit, () => outbox.retryRejected(event.mutationId));
+  ) => _mutate(emit, () async {
+    await outbox.retryRejected(event.mutationId);
+    return null;
+  });
 
+  /// The store re-checks the row inside its own transaction (review I1): a
+  /// row the engine claimed after the list loaded is refused, never dropped.
   Future<void> _onDiscardRow(
     OnPendingSyncDiscardRow event,
     Emitter<PendingSyncState> emit,
   ) => _mutate(emit, () async {
-    final rows = await outbox.listUnsynced();
-    final hit = rows.where((r) => r.mutationId == event.mutationId);
-    if (hit.isEmpty) return;
-    final e = hit.first;
-    if (e.entity == 'sale') await _markSaleRejected(e);
-    await outbox.discard(e.mutationId);
+    switch (await outbox.discard(event.mutationId, currentScope: _scope())) {
+      case DiscardOutcome.sending:
+        return PendingSyncFailure.discardSending;
+      case DiscardOutcome.alreadySynced:
+        return PendingSyncFailure.discardAlreadySynced;
+      case DiscardOutcome.otherScope:
+        return PendingSyncFailure.discardOtherScope;
+      case DiscardOutcome.discarded:
+      case DiscardOutcome.notFound:
+        return null;
+    }
+  });
+
+  /// "Send now" from the discard sheet: the app's existing sync-now. A row
+  /// the server already has comes back `duplicate` (sale synced, row done).
+  Future<void> _onSendNow(
+    OnPendingSyncSendNow event,
+    Emitter<PendingSyncState> emit,
+  ) => _mutate(emit, () async {
+    await _syncNow?.call();
+    return null;
   });
 
   Future<void> _onDiscardScope(
@@ -93,43 +121,46 @@ class PendingSyncBloc extends Bloc<PendingSyncEvent, PendingSyncState> {
     Emitter<PendingSyncState> emit,
   ) => _mutate(emit, () async {
     // Never the signed-in session's own rows.
-    if (event.scope == _scope()) return;
-    for (final e in await outbox.listUnsynced()) {
-      if (e.scope == event.scope && e.entity == 'sale') {
-        await _markSaleRejected(e);
-      }
-    }
+    if (event.scope == _scope()) return null;
     await outbox.discardAll(scope: event.scope);
+    return null;
   });
 
+  /// Runs [action], notifies live readers (badge, stock, history) and
+  /// reloads the list. A thrown error or a refusal returned by [action] is
+  /// published as a [PendingSyncState.failure] (the screen shows it).
   Future<void> _mutate(
     Emitter<PendingSyncState> emit,
-    Future<void> Function() action,
+    Future<PendingSyncFailure?> Function() action,
   ) async {
+    PendingSyncFailure? failure;
+    String? message;
     try {
-      await action();
+      failure = await action();
+    } catch (e) {
+      failure = PendingSyncFailure.actionFailed;
+      message = e.toString();
+    }
+    _notifier?.notify(changedTables);
+    try {
+      final rows = await _loadRows();
       emit(
-        state.copyWith(
-          status: PendingSyncStatus.loaded,
-          rows: await _loadRows(),
-          clearError: true,
-        ),
+        failure == null
+            ? state.copyWith(
+                status: PendingSyncStatus.loaded,
+                rows: rows,
+                clearError: true,
+              )
+            : state.withFailure(failure, message, rows: rows),
       );
     } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
+      emit(
+        state.withFailure(
+          failure ?? PendingSyncFailure.actionFailed,
+          message ?? e.toString(),
+        ),
+      );
     }
-  }
-
-  /// A discarded sale is never deleted: the local row stays, flagged
-  /// `rejected`, so history keeps showing it.
-  Future<void> _markSaleRejected(OutboxEntry e) async {
-    final d = await db.database;
-    await const SaleLocalStore().markRejected(
-      d,
-      e.entityId,
-      code: e.errorCode ?? 'discarded',
-      message: e.errorMessage ?? 'Discarded by user',
-    );
   }
 
   Future<List<PendingSyncRow>> _loadRows() async {

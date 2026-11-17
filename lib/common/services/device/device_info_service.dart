@@ -102,6 +102,20 @@ class DeviceInfoService {
     }
   }
 
+  /// Android `Build.VERSION.SDK_INT`; null on other platforms or when the
+  /// native side cannot answer (older build without the method).
+  Future<int?> getAndroidSdkInt() async {
+    if (kIsWeb || !Platform.isAndroid) return null;
+    try {
+      return await _channel.invokeMethod<int>('getSdkInt');
+    } catch (e) {
+      if (kDebugMode) {
+        log('[DeviceInfoService] getSdkInt failed: $e');
+      }
+      return null;
+    }
+  }
+
   Future<String> getBuildNumber() async {
     try {
       final value = await _channel.invokeMethod<String>('getBuildNumber');

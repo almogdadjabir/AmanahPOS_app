@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/core/offline/offline_db.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
@@ -256,6 +258,67 @@ void main() {
       final r = await stockRow();
       expect(r['base_quantity'], '4');
       expect((r['quantity'] as num).toDouble(), 6.0);
+    });
+  });
+
+  // Same rule as the BE `StockLevel.is_low_stock` (REST rows):
+  // quantity <= product.min_stock_level, so out-of-stock rows count as low.
+  group('is_low_stock (BE rule qty <= min)', () {
+    Future<bool?> lowAfterPull(String q, {int min = 5}) async {
+      await db.update(
+        'products',
+        {'json': '{"id":"$_p","stock_level":0.0,"min_stock_level":$min}'},
+        where: 'id = ?',
+        whereArgs: [_p],
+      );
+      await doApply(pull(q));
+      final sj = (await stockRow())['json'] as String;
+      return (jsonDecode(sj) as Map<String, dynamic>)['is_low_stock'] as bool?;
+    }
+
+    test('0 <= min: low (out-of-stock counts as low)', () async {
+      expect(await lowAfterPull('0'), isTrue);
+    });
+    test('negative: low', () async {
+      expect(await lowAfterPull('-2'), isTrue);
+    });
+    test('equal to min: low', () async {
+      expect(await lowAfterPull('5'), isTrue);
+    });
+    test('above min: not low', () async {
+      expect(await lowAfterPull('5.001'), isFalse);
+    });
+    test('min 0 and qty 0: low (BE: 0 <= 0)', () async {
+      expect(await lowAfterPull('0', min: 0), isTrue);
+    });
+
+    // F8: a missing / non-numeric min never keeps a stale value; the legacy
+    // rule qty <= (min ?? 0) applies; a numeric string is parsed.
+    Future<bool?> lowWithMinJson(String q, String minJson) async {
+      await db.update(
+        'products',
+        {'json': '{"id":"$_p","stock_level":0.0$minJson}'},
+        where: 'id = ?',
+        whereArgs: [_p],
+      );
+      await doApply(pull(q));
+      final sj = (await stockRow())['json'] as String;
+      return (jsonDecode(sj) as Map<String, dynamic>)['is_low_stock'] as bool?;
+    }
+
+    test('missing min after a low value: recomputed with min 0', () async {
+      expect(await lowAfterPull('0'), isTrue); // stale true would stay
+      expect(await lowWithMinJson('3', ''), isFalse);
+      expect(await lowWithMinJson('0', ''), isTrue);
+    });
+    test('null / non-numeric min: legacy rule qty <= 0', () async {
+      expect(await lowAfterPull('0'), isTrue);
+      expect(await lowWithMinJson('2', ',"min_stock_level":null'), isFalse);
+      expect(await lowWithMinJson('-1', ',"min_stock_level":"abc"'), isTrue);
+    });
+    test('numeric-string min is parsed', () async {
+      expect(await lowWithMinJson('4', ',"min_stock_level":"5.000"'), isTrue);
+      expect(await lowWithMinJson('6', ',"min_stock_level":"5.000"'), isFalse);
     });
   });
 

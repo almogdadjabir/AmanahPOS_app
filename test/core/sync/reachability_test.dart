@@ -38,6 +38,27 @@ class _CountingTransport implements SyncTransport {
     int limit = 500,
     required String scope,
   }) => inner.pull(cursor: cursor, limit: limit, scope: scope);
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) =>
+      inner.bootstrapManifest(scope: scope);
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  }) => inner.bootstrapPage(
+    entity: entity,
+    pageCursor: pageCursor,
+    limit: limit,
+    snapshotCursor: snapshotCursor,
+    salesSinceDays: salesSinceDays,
+    scope: scope,
+  );
 }
 
 void main() {
@@ -194,6 +215,20 @@ class _SlowTransport implements SyncTransport {
   Future<PullResponse> pull({
     String? cursor,
     int limit = 500,
+    required String scope,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
     required String scope,
   }) => throw UnimplementedError();
 }

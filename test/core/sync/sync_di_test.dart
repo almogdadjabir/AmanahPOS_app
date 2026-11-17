@@ -1,3 +1,5 @@
+import 'package:amana_pos/core/sync/bootstrap/bootstrap_controller.dart';
+import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
 import 'package:amana_pos/core/sync/change_applier.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/local_writer.dart';
@@ -46,6 +48,11 @@ void main() {
       await DependenciesProvider.startSyncIfEnabled();
       expect(getIt.checkLazySingletonInstanceExists<SyncEngine>(), isFalse);
       expect(getIt.checkLazySingletonInstanceExists<SyncTriggers>(), isFalse);
+      expect(getIt.checkLazySingletonInstanceExists<Bootstrapper>(), isFalse);
+      expect(
+        getIt.checkLazySingletonInstanceExists<BootstrapController>(),
+        isFalse,
+      );
       expect(
         getIt.checkLazySingletonInstanceExists<SyncCoordinator>(),
         isFalse,
@@ -71,9 +78,21 @@ void main() {
     );
     expect(getIt<ServerReachability>(), isA<ServerReachability>());
     expect(getIt<ChangeApplierRegistry>().all.map((a) => a.entity), [
+      'business',
+      'shop',
+      'category',
+      'product',
       'stock',
       'sale',
+      'refund',
       'inbound',
+      'customer',
+      'vendor',
+      'expiry_batch',
+      'user',
+      'subscription',
+      'notification',
+      'bankak_account',
     ]);
     expect(getIt<SaleService>(), isA<SaleService>());
     expect(getIt<StockService>(), isA<StockService>());
@@ -87,6 +106,13 @@ void main() {
     expect(await getIt.getAsync<SyncSessionGuard>(), isA<SyncSessionGuard>());
     final coordinator = await getIt.getAsync<SyncCoordinator>();
     expect(coordinator.currentSession, isNull);
+    // Task 7: one Bootstrapper shared by the triggers and the UI accessor.
+    final boot = await getIt.getAsync<Bootstrapper>();
+    expect(identical(boot, await getIt.getAsync<Bootstrapper>()), isTrue);
+    final ctrl = await getIt.getAsync<BootstrapController>();
+    expect(ctrl.current.outcome, isNull, reason: 'nothing ran');
+    SyncScope.current = null;
+    expect(await ctrl.isTenantBootstrapped(), isFalse, reason: 'no scope');
     await engine.dispose();
   });
 }

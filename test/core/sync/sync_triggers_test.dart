@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amana_pos/core/network/network_monitor.dart';
+import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
 import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
@@ -21,10 +22,61 @@ class _FakeEngine implements SyncEngine {
   @override
   void cancel() {}
 
+  bool busy = false;
+  _FakeBootstrapper? boot;
+
   @override
   Future<SyncOutcome> syncNow({SyncReason reason = SyncReason.manual}) async {
     calls.add(reason);
-    if (runFor > Duration.zero) await Future<void>.delayed(runFor);
+    if (boot?.busy ?? false) boot!.overlapped = true;
+    busy = true;
+    try {
+      if (runFor > Duration.zero) await Future<void>.delayed(runFor);
+    } finally {
+      busy = false;
+    }
+    return outcome;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Records runs; [busy] is true while a run is in flight so tests can check
+/// the engine and the bootstrapper never overlap.
+class _FakeBootstrapper implements Bootstrapper {
+  _FakeBootstrapper(this.engine);
+  final _FakeEngine engine;
+  int runs = 0;
+  int cancels = 0;
+  bool busy = false;
+  bool overlapped = false;
+  BootstrapOutcome outcome = BootstrapOutcome.completed;
+  Duration runFor = Duration.zero;
+
+  /// Outcome the engine returns once this bootstrap completed.
+  SyncOutcome afterComplete = SyncOutcome.completed;
+
+  /// Status after the last run (what the triggers read on `blocked`).
+  BootstrapStatus last = const BootstrapStatus();
+
+  @override
+  BootstrapStatus get current => last;
+
+  @override
+  void cancel() => cancels++;
+
+  @override
+  Future<BootstrapOutcome> run() async {
+    runs++;
+    if (engine.busy) overlapped = true;
+    busy = true;
+    try {
+      if (runFor > Duration.zero) await Future<void>.delayed(runFor);
+    } finally {
+      busy = false;
+    }
+    if (outcome == BootstrapOutcome.completed) engine.outcome = afterComplete;
     return outcome;
   }
 
@@ -409,6 +461,254 @@ void main() {
         t.onAppResumed();
         async.flushMicrotasks();
         expect(seen, contains(equals({'sales', 'stock'})));
+      });
+    });
+  });
+
+  // ------------------------------------------------- phase 2 (Task 7)
+  group('bootstrap on needsBootstrap', () {
+    late _FakeBootstrapper boot;
+
+    SyncTriggers withBoot(FakeAsync async, {bool swallowKick = true}) {
+      boot = _FakeBootstrapper(engine);
+      engine.boot = boot;
+      final t = SyncTriggers(
+        engine,
+        network,
+        outbox,
+        notifier,
+        now: () => t0.add(async.elapsed),
+        bootstrapper: boot,
+      );
+      return t;
+    }
+
+    test('needsBootstrap -> bootstrapper runs, then the engine runs once '
+        'more and its outcome is returned', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        t.start();
+        async.flushMicrotasks();
+        expect(boot.runs, 1);
+        expect(engine.calls, [SyncReason.resume, SyncReason.resume]);
+        SyncOutcome? out;
+        t.syncNow().then((o) => out = o);
+        async.flushMicrotasks();
+        expect(out, SyncOutcome.completed);
+        expect(boot.runs, 1, reason: 'no bootstrap when not needed');
+      });
+    });
+
+    test('the re-run happens once even if the engine still says '
+        'needsBootstrap', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.afterComplete = SyncOutcome.needsBootstrap;
+        t.start();
+        async.elapse(const Duration(minutes: 1));
+        expect(boot.runs, 1);
+        expect(engine.calls.length, 2);
+      });
+    });
+
+    test('engine and bootstrapper never overlap; triggers during the '
+        'bootstrap coalesce into one follow-up', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        engine.runFor = const Duration(seconds: 1);
+        boot.runFor = const Duration(seconds: 30);
+        t.start();
+        async.elapse(const Duration(seconds: 5)); // inside the bootstrap
+        expect(boot.busy, isTrue);
+        t.onAppResumed();
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        t.syncNow();
+        async.flushMicrotasks();
+        expect(engine.calls, [SyncReason.resume], reason: 'single flight');
+        async.elapse(const Duration(minutes: 1));
+        expect(boot.overlapped, isFalse);
+        // resume, re-run after the bootstrap, ONE follow-up.
+        expect(engine.calls.length, 3);
+        expect(boot.runs, 1);
+      });
+    });
+
+    test('interrupted (offline): no engine re-run; connectivity and resume '
+        'retry it', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.outcome = BootstrapOutcome.interrupted;
+        t.start();
+        async.flushMicrotasks();
+        expect(boot.runs, 1);
+        expect(engine.calls.length, 1);
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        async.flushMicrotasks();
+        expect(boot.runs, 2);
+        t.onAppResumed();
+        async.flushMicrotasks();
+        expect(boot.runs, 3);
+        boot.outcome = BootstrapOutcome.completed;
+        t.onAppResumed();
+        async.flushMicrotasks();
+        expect(boot.runs, 4);
+        expect(engine.calls.last, SyncReason.resume);
+        expect(engine.calls.length, 5, reason: '4 runs + 1 re-run');
+      });
+    });
+
+    test('blocked (serverNotReady/token/account) is not retried by timers, '
+        'resume or connectivity; only a manual sync retries it', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.outcome = BootstrapOutcome.blocked;
+        t.start();
+        async.flushMicrotasks();
+        expect(boot.runs, 1);
+        async.elapse(const Duration(minutes: 11)); // 2 periodic runs
+        notifier.notify({SyncTables.outbox});
+        async.elapse(const Duration(seconds: 6)); // afterWrite
+        t.onAppResumed();
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        async.flushMicrotasks();
+        expect(boot.runs, 1, reason: 'held while blocked');
+        expect(engine.calls.length, greaterThan(3), reason: 'push still runs');
+        t.syncNow();
+        async.flushMicrotasks();
+        expect(boot.runs, 2, reason: 'manual retry');
+      });
+    });
+
+    // Ledger T7 M1: "server not ready" may be fixed by a server deploy while
+    // the app sits in the background; app resume retries it. Token / account
+    // blocks keep the hold (manual / new session only).
+    test('blocked serverNotReady: app resume clears the hold (timers and '
+        'connectivity still do not)', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.outcome = BootstrapOutcome.blocked;
+        boot.last = const BootstrapStatus(outcome: BootstrapOutcome.blocked);
+        expect(boot.last.serverNotReady, isTrue);
+        t.start();
+        async.flushMicrotasks();
+        expect(boot.runs, 1);
+        async.elapse(const Duration(minutes: 11));
+        network.ctrl.add(false);
+        network.ctrl.add(true);
+        async.flushMicrotasks();
+        expect(boot.runs, 1, reason: 'held for timers/connectivity');
+        t.onAppResumed();
+        async.flushMicrotasks();
+        expect(boot.runs, 2, reason: 'resume retries serverNotReady');
+      });
+    });
+
+    test('blocked tokenExpired / accountDisabled: resume keeps the hold', () {
+      for (final reason in [
+        SyncBlockReason.tokenExpired,
+        SyncBlockReason.accountDisabled,
+      ]) {
+        fakeAsync((async) {
+          final t = withBoot(async);
+          engine.outcome = SyncOutcome.needsBootstrap;
+          boot.outcome = BootstrapOutcome.blocked;
+          boot.last = BootstrapStatus(
+            outcome: BootstrapOutcome.blocked,
+            block: reason,
+          );
+          t.start();
+          async.flushMicrotasks();
+          t.onAppResumed();
+          t.onAppResumed();
+          async.flushMicrotasks();
+          expect(boot.runs, 1, reason: '$reason held on resume');
+          t.syncNow();
+          async.flushMicrotasks();
+          expect(boot.runs, 2, reason: 'manual retry');
+        });
+      }
+    });
+
+    test('a new session (start after stop) clears the blocked hold', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.outcome = BootstrapOutcome.blocked;
+        t.start();
+        async.flushMicrotasks();
+        t.stop();
+        async.flushMicrotasks();
+        t.start();
+        async.flushMicrotasks();
+        expect(boot.runs, 2);
+      });
+    });
+
+    test('bootstrap alreadyRunning (other runner) -> one retry after the '
+        'lock TTL', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.outcome = BootstrapOutcome.alreadyRunning;
+        t.start();
+        t.onAppPaused(); // no periodic noise; resume kick already queued
+        async.flushMicrotasks();
+        expect(boot.runs, 0, reason: 'paused: no bootstrap (foreground only)');
+        t.onAppResumed();
+        t.onAppPaused();
+        async.flushMicrotasks();
+        expect(boot.runs, 0);
+        t.onAppResumed();
+        async.flushMicrotasks();
+        expect(boot.runs, 1);
+        t.onAppPaused();
+        engine.outcome = SyncOutcome.completed;
+        async.elapse(const Duration(minutes: 2));
+        expect(engine.calls.length, 4, reason: 'one retry after the TTL');
+        async.elapse(const Duration(minutes: 10));
+        expect(engine.calls.length, 4);
+      });
+    });
+
+    // (That stop() waits for the bootstrap is covered with real time in
+    // bootstrap_integration_test: subscription cancels resolve outside
+    // fakeAsync.)
+    test('stop() during a bootstrap cancels it at once; no engine re-run '
+        'follows it', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        boot.runFor = const Duration(seconds: 30);
+        t.start();
+        async.elapse(const Duration(seconds: 1));
+        expect(boot.busy, isTrue);
+        t.stop();
+        expect(boot.cancels, 1);
+        async.elapse(const Duration(seconds: 30));
+        expect(boot.busy, isFalse);
+        expect(engine.calls.length, 1, reason: 'no re-run after stop');
+      });
+    });
+
+    test('stop() while the engine runs: no bootstrap starts afterwards', () {
+      fakeAsync((async) {
+        final t = withBoot(async);
+        engine.outcome = SyncOutcome.needsBootstrap;
+        engine.runFor = const Duration(seconds: 5);
+        t.start();
+        async.elapse(const Duration(seconds: 1));
+        t.stop();
+        async.elapse(const Duration(seconds: 10));
+        expect(boot.runs, 0);
       });
     });
   });

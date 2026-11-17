@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import '../assets/asset_sync.dart';
 import '../sync_engine.dart';
 import '../transport/sync_auth_interceptor.dart';
 
@@ -78,12 +79,18 @@ class BackgroundSyncRunner {
   /// * [canSync]: optional gate (server capabilities); false = [skipped].
   /// * [budget]: after it, `engine.cancel()` stops the run between
   ///   batches/pages; after [budget] + [hardStopGrace] the run is abandoned.
+  /// * [assetSyncFactory]: optional; after a `completed` sync (the server
+  ///   answered) the worker downloads THUMBNAILS only
+  ///   (`run(thumbnailsOnly: true)`) inside the same budget: the budget
+  ///   cancels it too, and it is abandoned at the hard stop. Its result or
+  ///   failure never changes the report.
   ///
   /// Never throws.
   static Future<BackgroundSyncReport> runOnce({
     required Future<String?> Function() readSessionKey,
     required Future<SyncEngine> Function(String scope) engineFactory,
     Future<bool> Function()? canSync,
+    Future<AssetSync?> Function(String scope)? assetSyncFactory,
     Duration budget = defaultBudget,
     Duration hardStopGrace = defaultHardStopGrace,
   }) async {
@@ -117,7 +124,13 @@ class BackgroundSyncRunner {
       return BackgroundSyncReport(BackgroundSyncResult.retryLater, error: e);
     }
 
-    final budgetTimer = Timer(budget, engine.cancel);
+    AssetSync? assets;
+    var budgetSpent = false;
+    final budgetTimer = Timer(budget, () {
+      budgetSpent = true;
+      engine.cancel();
+      assets?.cancel();
+    });
     final hardStop = Completer<void>();
     final hardStopTimer = Timer(budget + hardStopGrace, () {
       if (!hardStop.isCompleted) hardStop.complete();
@@ -145,10 +158,20 @@ class BackgroundSyncRunner {
           error: first,
         );
       }
-      return BackgroundSyncReport(
+      final report = BackgroundSyncReport(
         _map(first, moreToPull: engine.current.moreToPull),
         outcome: first,
       );
+      if (first == SyncOutcome.completed &&
+          assetSyncFactory != null &&
+          !budgetSpent) {
+        await _thumbnails(() async {
+          final built = await assetSyncFactory(scope!);
+          if (budgetSpent) return null; // budget ran out while building
+          return assets = built;
+        }, hardStop.future);
+      }
+      return report;
     } finally {
       budgetTimer.cancel();
       hardStopTimer.cancel();
@@ -161,6 +184,33 @@ class BackgroundSyncRunner {
   }
 
   static const Object _hardStop = Object();
+
+  /// Builds (via [build]) and runs the thumbnail pass until it ends or
+  /// [hardStop]. Never throws.
+  static Future<void> _thumbnails(
+    Future<AssetSync?> Function() build,
+    Future<void> hardStop,
+  ) async {
+    try {
+      final run = () async {
+        final a = await build();
+        if (a == null) return;
+        final r = await a.run(thumbnailsOnly: true);
+        _log('thumbnails: $r');
+      }();
+      final first = await Future.any<Object?>([
+        run.then<Object?>((_) => null, onError: (Object e) => e),
+        hardStop.then<Object?>((_) => _hardStop),
+      ]);
+      if (identical(first, _hardStop)) {
+        _log('thumbnails abandoned at the hard stop');
+      } else if (first != null) {
+        _log('thumbnails failed', first);
+      }
+    } catch (e, st) {
+      _log('thumbnails failed', e, st);
+    }
+  }
 
   static BackgroundSyncResult _map(
     SyncOutcome outcome, {

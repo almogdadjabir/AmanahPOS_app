@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -11,6 +12,8 @@ import '../../../common/services/local/local_storage.dart';
 import '../../../config/constants.dart';
 import '../../../config/environment/environment.dart';
 import '../../offline/offline_db.dart';
+import '../assets/asset_sync_wiring.dart';
+import '../change_applier.dart';
 import '../db_change_notifier.dart';
 import '../outbox/outbox_store.dart';
 import '../reachability.dart';
@@ -89,26 +92,54 @@ class BackgroundSync {
     }
   }
 
-  /// Asks the OS for one sync soon (expedited on Android when quota
-  /// allows). Fire-and-forget; repeated calls collapse into one task.
+  /// Asks the OS for one sync soon (expedited on Android 12+ when quota
+  /// allows, see [shouldExpedite]). Fire-and-forget; repeated calls collapse
+  /// into one task.
   static void requestSoon() {
     if (!kSyncEngineEnabled || !_platformSupported || !_initialized) return;
     unawaited(
-      Workmanager()
-          .registerOneOffTask(
-            kBackgroundSyncOneOff,
-            kBackgroundSyncOneOff,
-            constraints: Constraints(networkType: NetworkType.connected),
-            existingWorkPolicy: ExistingWorkPolicy.keep,
-            backoffPolicy: BackoffPolicy.exponential,
-            backoffPolicyDelay: const Duration(seconds: 30),
-            expedited: Platform.isAndroid,
-            outOfQuotaPolicy: OutOfQuotaPolicy.runAsNonExpeditedWorkRequest,
-          )
-          .catchError((Object e, StackTrace st) {
-            _log('one-off enqueue failed', e, st);
-          }),
+      () async {
+        final expedited = await shouldExpedite();
+        await Workmanager().registerOneOffTask(
+          kBackgroundSyncOneOff,
+          kBackgroundSyncOneOff,
+          constraints: Constraints(networkType: NetworkType.connected),
+          existingWorkPolicy: ExistingWorkPolicy.keep,
+          backoffPolicy: BackoffPolicy.exponential,
+          backoffPolicyDelay: const Duration(seconds: 30),
+          expedited: expedited,
+          outOfQuotaPolicy: expedited
+              ? OutOfQuotaPolicy.runAsNonExpeditedWorkRequest
+              : null,
+        );
+      }().catchError((Object e, StackTrace st) {
+        _log('one-off enqueue failed', e, st);
+      }),
     );
+  }
+
+  /// Android SDK level of this device (null when unknown).
+  @visibleForTesting
+  static Future<int?> Function() androidSdkInt =
+      DeviceInfoService.instance.getAndroidSdkInt;
+
+  /// Expedited one-off work only on Android 12+ (API 31). On API < 31
+  /// WorkManager runs expedited work as a foreground service and calls
+  /// `getForegroundInfoAsync()`, which workmanager_android 0.10.9's
+  /// BackgroundWorker does not implement: the run would fail every time
+  /// (review I3). Unknown SDK (lookup failed) => a normal one-off with the
+  /// same constraints.
+  static Future<bool> shouldExpedite({
+    bool? isAndroid,
+    Future<int?> Function()? sdkInt,
+  }) async {
+    if (!(isAndroid ?? (!kIsWeb && Platform.isAndroid))) return false;
+    try {
+      final v = await (sdkInt ?? androidSdkInt)();
+      return v != null && v >= 31;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Remembers the app version for the background engine.
@@ -184,6 +215,18 @@ Future<BackgroundSyncReport> runBackgroundSync({
         return ping == null ||
             ping.capabilities.containsAll(kSyncRequiredCapabilities);
       },
+      // Thumbnails only, after a completed sync, inside the same budget. Own
+      // instance (own isolate): same plain-Dio rules and the same folder as
+      // the app's AssetSync; scope fixed to this run's session.
+      assetSyncFactory: (scope) async => buildAssetSync(
+        db: odb,
+        notifier: DbChangeNotifier(),
+        scopeProvider: () => scope,
+        appSupportPath: (await getApplicationSupportDirectory()).path,
+        baseUrl: baseUrl,
+        readAccessToken: readAccessToken,
+        readTenantId: readTenantId,
+      ),
       engineFactory: (scope) async {
         final engine = SyncEngine(
           db: odb,
@@ -193,7 +236,7 @@ Future<BackgroundSyncReport> runBackgroundSync({
           scopeProvider: () => scope,
           readSessionKey: readSessionKey,
           reachability: reachability,
-          appliers: buildSyncAppliers(),
+          appliers: backgroundSyncAppliers(scope),
           notifier: DbChangeNotifier(),
           appVersion: await _appVersion(),
           refreshToken: SyncTokenRefresher(
@@ -210,6 +253,14 @@ Future<BackgroundSyncReport> runBackgroundSync({
     await reachability.dispose();
   }
 }
+
+/// The worker's appliers write under ITS session scope (shop
+/// `business_id`, category `tenant_id`), never `SyncScope.current`, which
+/// is not set in a headless isolate. No `Bootstrapper` is built here: the
+/// worker never bootstraps (it reports `needsBootstrap` as success and
+/// leaves first setup to the foreground app).
+ChangeApplierRegistry backgroundSyncAppliers(String scope) =>
+    buildSyncAppliers(scopeProvider: () => scope);
 
 Future<String> _appVersion() async {
   final live = await DeviceInfoService.instance.getAppVersion();

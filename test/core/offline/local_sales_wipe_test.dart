@@ -60,6 +60,24 @@ void main() {
         where: 'id = ?',
         whereArgs: [rejected.id],
       );
+      await f.db.insert('synced_entities', {
+        'entity': 'business',
+        'id': 'b1',
+        'version': 1,
+        'json': '{}',
+      });
+      // Pulled refunds live with the sales they reduce (the dashboard nets
+      // them): a wipe that dropped them while the per-scope cursor resumes
+      // would overstate net sales until a full resync.
+      await f.db.insert('sale_refunds', {
+        'id': 'rf1',
+        'sale_id': synced.id,
+        'shop_id': kShop,
+        'total': '1.00',
+        'occurred_at': '2026-11-16T10:00:00.000Z',
+        'method': 'cash',
+        'json': '{}',
+      });
       final outboxBefore = await f.db.query('outbox', orderBy: 'seq');
 
       await wipe.value();
@@ -75,6 +93,8 @@ void main() {
       expect(await f.db.query('outbox', orderBy: 'seq'), outboxBefore);
       // The shops table is wiped: nothing is visible until a business loads.
       expect(await f.count('shops'), 0);
+      expect(await f.count('synced_entities'), 0);
+      expect(await f.count('sale_refunds'), 1);
     });
   }
 }

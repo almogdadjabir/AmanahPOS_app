@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amana_pos/core/sync/bootstrap/bootstrapper.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/sync_coordinator.dart';
 import 'package:amana_pos/core/sync/sync_device_registrar.dart';
@@ -24,6 +25,17 @@ class _Triggers implements SyncTriggers {
 
   @override
   void onAppPaused() => log.add('paused');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _Boot implements Bootstrapper {
+  _Boot(this.log);
+  final List<String> log;
+
+  @override
+  void cancel() => log.add('cancelBootstrap');
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -199,5 +211,90 @@ void main() {
     await c.attach(observeLifecycle: false);
     await c.detach();
     expect(triggers.log, ['start', 'stop']);
+  });
+
+  group('bootstrapper (Task 7)', () {
+    SyncCoordinator withBoot({SyncSession? initial}) => SyncCoordinator(
+      triggers: triggers,
+      guard: SyncSessionGuard(status.stream),
+      registrar: registrar,
+      outbox: outbox,
+      state: state,
+      sessions: sessions.stream,
+      initialSession: initial,
+      onSessionEnded: (e) async => ended.add(e),
+      bootstrapper: _Boot(triggers.log),
+    );
+
+    test('logout mid-bootstrap cancels it before the triggers stop', () async {
+      final c = withBoot(initial: _a);
+      await c.attach(observeLifecycle: false);
+      sessions.add(null);
+      await settle();
+      await settle();
+      expect(triggers.log, ['start', 'cancelBootstrap', 'stop']);
+    });
+
+    test('a scope change (user or tenant) cancels it', () async {
+      final c = withBoot(initial: _a);
+      await c.attach(observeLifecycle: false);
+      sessions.add(_b);
+      await settle();
+      await settle();
+      sessions.add(_c);
+      await settle();
+      await settle();
+      expect(triggers.log, [
+        'start',
+        'cancelBootstrap',
+        'stop',
+        'start',
+        'cancelBootstrap',
+        'stop',
+        'start',
+      ]);
+    });
+
+    // Ledger T7 M2: logout stops sync BEFORE the table wipe, so no bootstrap
+    // of the outgoing scope can land after the wipe.
+    test('pauseForWipe cancels the bootstrap and stops the triggers; the '
+        'later logout does not restart them', () async {
+      final c = withBoot(initial: _a);
+      await c.attach(observeLifecycle: false);
+      await c.pauseForWipe();
+      expect(triggers.log, ['start', 'cancelBootstrap', 'stop']);
+      sessions.add(null);
+      await settle();
+      await settle();
+      expect(triggers.log.where((e) => e == 'start').length, 1);
+      c.resumeAfterFailedWipe(); // no session any more: nothing to resume
+      expect(triggers.log.where((e) => e == 'start').length, 1);
+    });
+
+    test('a failed logout after pauseForWipe restarts the triggers once',
+        () async {
+      final c = withBoot(initial: _a);
+      await c.attach(observeLifecycle: false);
+      await c.pauseForWipe();
+      c
+        ..resumeAfterFailedWipe()
+        ..resumeAfterFailedWipe();
+      expect(triggers.log, ['start', 'cancelBootstrap', 'stop', 'start']);
+    });
+
+    test('pauseForWipe without a session does nothing', () async {
+      final c = withBoot();
+      await c.attach(observeLifecycle: false);
+      await c.pauseForWipe();
+      c.resumeAfterFailedWipe();
+      expect(triggers.log, isEmpty);
+    });
+
+    test('detach cancels it', () async {
+      final c = withBoot(initial: _a);
+      await c.attach(observeLifecycle: false);
+      await c.detach();
+      expect(triggers.log, ['start', 'cancelBootstrap', 'stop']);
+    });
   });
 }

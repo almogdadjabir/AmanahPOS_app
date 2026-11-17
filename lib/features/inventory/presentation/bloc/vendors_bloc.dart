@@ -193,7 +193,7 @@ class VendorsBloc extends Bloc<VendorsEvent, VendorsState> {
               vendors: updated,
             ),
           );
-          offlineLocalCache.saveVendors(updated);
+          offlineLocalCache.removeVendorFromCache(event.id);
         },
       );
     } catch (e) {

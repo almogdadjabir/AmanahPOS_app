@@ -107,17 +107,53 @@ class HttpSyncTransport implements SyncTransport {
     String? cursor,
     int limit = 500,
     required String scope,
-  }) =>
+  }) => _run(() async {
+    final res = await _send(
+      'GET',
+      'api/v1/sync/pull/',
+      _syncTimeout,
+      query: {'cursor': ?cursor, 'limit': limit},
+      scope: scope,
+    );
+    return PullResponse.fromJson(_asMap(res.data));
+  });
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) =>
       _run(() async {
         final res = await _send(
           'GET',
-          'api/v1/sync/pull/',
+          'api/v1/sync/bootstrap/',
           _syncTimeout,
-          query: {'cursor': ?cursor, 'limit': limit},
           scope: scope,
         );
-        return PullResponse.fromJson(_asMap(res.data));
+        return BootstrapManifest.fromJson(_asMap(res.data));
       });
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  }) => _run(() async {
+    final res = await _send(
+      'GET',
+      'api/v1/sync/bootstrap/',
+      _syncTimeout,
+      query: {
+        'entity': entity,
+        'page_cursor': ?pageCursor,
+        'limit': limit,
+        'snapshot_cursor': ?snapshotCursor,
+        'sales_since': salesSinceDays,
+      },
+      scope: scope,
+    );
+    return BootstrapPage.fromJson(_asMap(res.data));
+  });
 
   Future<Response<dynamic>> _send(
     String method,

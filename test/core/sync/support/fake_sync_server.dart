@@ -104,6 +104,28 @@ class _Core {
   String? minAppVersion;
   bool fullResyncRequired = false;
   Set<String> capabilities = {};
+
+  int bootstrapManifestCalls = 0;
+  int bootstrapPageCalls = 0;
+  final bootstrapServed = <String, int>{}; // entity -> pages served in a run
+  Set<String>? bootstrapShops; // cashier scope: only these shops' rows
+  List<String> bootstrapEntities = [
+    'business',
+    'shop',
+    'category',
+    'product',
+    'vendor',
+    'customer',
+    'user',
+    'subscription',
+    'bankak_account',
+    'stock',
+    'expiry_batch',
+    'sale',
+    'refund',
+    'inbound',
+    'notification',
+  ];
 }
 
 class FakeSyncServer implements SyncTransport {
@@ -133,6 +155,11 @@ class FakeSyncServer implements SyncTransport {
   final Random random;
   String? failNextWith;
   Duration clockSkew = Duration.zero;
+
+  /// The next pull that reaches this view answers `full_resync_required`
+  /// (once; the flag clears itself), like a cursor older than the BE's
+  /// `pruned_through`.
+  bool fullResyncOnce = false;
 
   DateTime get _serverTime => now().add(clockSkew).toUtc();
 
@@ -203,7 +230,8 @@ class FakeSyncServer implements SyncTransport {
   }) async {
     if (limit <= 0) throw ArgumentError.value(limit, 'limit', 'must be > 0');
     await _gate();
-    if (_c.fullResyncRequired) {
+    if (_c.fullResyncRequired || fullResyncOnce) {
+      fullResyncOnce = false;
       return PullResponse(
         serverTime: _serverTime,
         changes: const [],
@@ -220,6 +248,128 @@ class FakeSyncServer implements SyncTransport {
       nextCursor: _cursor(page.isEmpty ? after : page.last.seq),
       hasMore: newer.length > page.length,
     );
+  }
+
+  // ---------------------------------------------------------- bootstrap
+
+  /// Entities the manifest lists (cashier tests can drop vendor/inbound).
+  List<String> get bootstrapEntities => _c.bootstrapEntities;
+  set bootstrapEntities(List<String> v) => _c.bootstrapEntities = v;
+
+  /// Cashier scope: when set, bootstrap pages serve only these shops and
+  /// the rows of these shops (`shop` / `shop_id`; rows without a shop are
+  /// served). Pull is not filtered.
+  Set<String>? get bootstrapShops => _c.bootstrapShops;
+  set bootstrapShops(Set<String>? v) => _c.bootstrapShops = v;
+
+  int get bootstrapManifestCalls => _c.bootstrapManifestCalls;
+  int get bootstrapPageCalls => _c.bootstrapPageCalls;
+
+  /// Runs after a bootstrap page is built (so rows written here are NOT in
+  /// that page nor any later page of the same snapshot). [pageIndex] is the
+  /// 0-based index of the page just served for [entity].
+  void Function(String entity, int pageIndex)? onBootstrapPage;
+
+  /// Feed-shaped server row: stored in the entity table and emitted to the
+  /// feed (so a row seeded after a snapshot is delivered by `pull`).
+  void seedRow(String entity, Map<String, dynamic> row) {
+    final id = row['id'] as String;
+    final data = Map<String, dynamic>.from(row);
+    final v = (data['version'] as int?) ?? 1;
+    data['version'] = v;
+    _c.tables.putIfAbsent(entity, () => {})[id] = data;
+    _emit(entity, 'upsert', id, v, data, 'seed');
+  }
+
+  int _lastSeq(String entity, String id) {
+    for (var i = _c.feed.length - 1; i >= 0; i--) {
+      final c = _c.feed[i];
+      if (c.entity == entity && c.id == id) return c.seq;
+    }
+    return 0;
+  }
+
+  Map<String, Map<String, dynamic>> _bootstrapRows(String entity) {
+    final shops = _c.bootstrapShops;
+    final all = _allBootstrapRows(entity);
+    if (shops == null) return all;
+    bool visible(Map<String, dynamic> r) {
+      if (entity == 'shop') return shops.contains(r['id']);
+      final s = r['shop'] ?? r['shop_id'];
+      return s == null || shops.contains(s);
+    }
+
+    return {
+      for (final e in all.entries)
+        if (visible(e.value)) e.key: e.value,
+    };
+  }
+
+  Map<String, Map<String, dynamic>> _allBootstrapRows(String entity) {
+    if (entity == 'stock') {
+      return {
+        for (final e in _c.stock.entries)
+          _c.stockIds[e.key]!: {
+            'id': _c.stockIds[e.key],
+            'product_id': e.key.split('|')[0],
+            'shop_id': e.key.split('|')[1],
+            'quantity': _fixed(e.value, 3),
+            'updated_at': _iso(_serverTime),
+          },
+      };
+    }
+    return _c.tables[entity] ?? const {};
+  }
+
+  @override
+  Future<BootstrapManifest> bootstrapManifest({required String scope}) async {
+    await _gate();
+    _c.bootstrapManifestCalls++;
+    _c.bootstrapServed.clear();
+    return BootstrapManifest(
+      serverTime: _serverTime,
+      entities: [..._c.bootstrapEntities],
+      snapshotCursor: _cursor(_c.seq),
+    );
+  }
+
+  @override
+  Future<BootstrapPage> bootstrapPage({
+    required String entity,
+    String? pageCursor,
+    int limit = 500,
+    String? snapshotCursor,
+    int salesSinceDays = 90,
+    required String scope,
+  }) async {
+    if (limit <= 0) throw ArgumentError.value(limit, 'limit', 'must be > 0');
+    await _gate();
+    _c.bootstrapPageCalls++;
+    final snapshot = snapshotCursor ?? _cursor(_c.seq);
+    final snapSeq = _decode(snapshot);
+    final after = (pageCursor == null || pageCursor.isEmpty)
+        ? null
+        : utf8.decode(base64Url.decode(pageCursor));
+    final rows = _bootstrapRows(entity);
+    final ids = rows.keys.where((id) {
+      if (after != null && id.compareTo(after) <= 0) return false;
+      // Written after the snapshot: `pull(snapshot)` delivers it instead.
+      return _lastSeq(entity, id) <= snapSeq;
+    }).toList()..sort();
+    final page = ids.take(limit).toList();
+    final more = ids.length > page.length;
+    final index = after == null ? 0 : (_c.bootstrapServed[entity] ?? 0);
+    _c.bootstrapServed[entity] = index + 1;
+    final result = BootstrapPage(
+      serverTime: _serverTime,
+      entity: entity,
+      snapshotCursor: snapshot,
+      items: [for (final id in page) Map<String, dynamic>.from(rows[id]!)],
+      hasMore: more,
+      nextPageCursor: more ? base64Url.encode(utf8.encode(page.last)) : null,
+    );
+    onBootstrapPage?.call(entity, index);
+    return result;
   }
 
   @override

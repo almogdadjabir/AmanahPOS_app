@@ -302,6 +302,18 @@ Optional: when another device writes data a shop device needs (price change, new
 - **`stock.add` should accept `expiry_date` / `batch_number` to create a batch** (like REST `POST inventory/stock/add/`, which creates a `ProductBatch` for expiry alerts). Until then the app sends dated adds through REST and refuses them offline ("Expiry tracking needs a connection").
 - **Dashboard revenue basis**: endpoint sums `total_amount` (before sale discount and exclusive tax) while `sync-contract.md` says `net_amount`; BE agent to confirm which is intended; app currently matches the endpoint. (Same for the payment breakdown: the endpoint groups by `sale.payment_method`, a split sale being one `split` row; the contract says `sale.payments[]`.) The app's switch is `saleRevenueCentsSql` in `lib/features/dashboard/data/local/local_dashboard_queries.dart`.
 
+## Follow-ups found by the mobile Phase 2 work
+
+Found while building the paged bootstrap, the pull appliers and image sync (mobile spec `docs/superpowers/specs/2026-11-16-phase2-bootstrap-pull-assets-design.md`). Mobile works around each one today; none is blocking.
+
+- **Expose the hash and size of the SERVED image variants.** `image_hash` is the sha256 of the UPLOADED bytes, but the stored `image` / `thumbnail` files are re-processed WebP (`process_and_upload_image`), so the device can never verify a download against it. Mobile treats `image_hash` as a change token only and verifies by HTTP 200 + non-empty + image magic bytes + `Content-Length`. Please add per variant e.g. `image_sha256` / `image_bytes` and `thumbnail_sha256` / `thumbnail_bytes` (hash of the bytes actually served) to `ser_product` / `ser_category` and the bootstrap items.
+- **Legacy rows with an empty `image_hash`.** Rows uploaded before the hash existed carry `""`; mobile downloads them once keyed by url and never re-checks them. A one-off backfill (hash of the stored original) would let them follow the normal change-token path.
+- **`stock_after` is `"0"` for untracked / restaurant products.** The push result for a sale line of a product that does not track stock (or any restaurant sale) returns `stock_after: "0"`, which a client could take as a real level. Please omit `stock_after` (or send `null`) when no StockLevel was changed.
+- **`bootstrap_page` does not validate the snapshot.** It echoes `snapshot_cursor` without checking it against `pruned_through`; a stale snapshot is detected only by the first `pull` after the bootstrap (`full_resync_required`), after the whole download. Answering `full_resync_required` from `bootstrap_page` (or the manifest) as soon as the snapshot is older than `pruned_through` would save a full re-download on slow links.
+- **Cheap bootstrap size hint.** Consider adding row counts per entity to the `sync/bootstrap` manifest (`{"entities": [...], "counts": {"product": 20134, ...}}`, approximate is fine) so the first-setup screen can show real progress instead of "step N of M" plus rows applied.
+- **Dashboard revenue basis** stays open (see Phase 1 follow-ups: `total_amount` vs `net_amount`).
+- **Refunds from other devices** now reach every device through the feed (`refund` entity -> local `sale_refunds`, netted on the refund `created_at`). Mobile relies on refund rows carrying `sale`, `shop`, `total` (string) and `created_at`; please keep them stable, and keep windowing bootstrap refunds by refund date OR parent sale date (deviation 22).
+
 ## Acceptance checklist for the BE agent
 
 Mobile will test against these. Please add backend tests for each.

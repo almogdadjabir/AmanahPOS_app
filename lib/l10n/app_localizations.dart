@@ -7856,174 +7856,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{In 1 day} other{In {count} days}}'**
   String exInDays(int count);
 
-  /// No description provided for @poTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Preparing offline mode'**
-  String get poTitle;
-
-  /// No description provided for @poDescOffline.
-  ///
-  /// In en, this message translates to:
-  /// **'Internet is required only for the first setup. Please connect once so AmanaPOS can prepare your business for offline use.'**
-  String get poDescOffline;
-
-  /// No description provided for @poDescBootstrap.
-  ///
-  /// In en, this message translates to:
-  /// **'Please keep the app open while we download your business data, products, categories, stock, and customers.'**
-  String get poDescBootstrap;
-
-  /// No description provided for @poDescAssets.
-  ///
-  /// In en, this message translates to:
-  /// **'Your business data is ready. We are updating product and category assets in the background.'**
-  String get poDescAssets;
-
-  /// No description provided for @poDescFailure.
-  ///
-  /// In en, this message translates to:
-  /// **'Something went wrong while preparing offline mode.'**
-  String get poDescFailure;
-
-  /// No description provided for @poDescDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Almost done. AmanaPOS is getting your workspace ready for poor internet and offline sales.'**
-  String get poDescDefault;
-
-  /// No description provided for @poStepBusiness.
-  ///
-  /// In en, this message translates to:
-  /// **'Business workspace'**
-  String get poStepBusiness;
-
-  /// No description provided for @poStepBusinessSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Business and shops'**
-  String get poStepBusinessSub;
-
-  /// No description provided for @poStepSales.
-  ///
-  /// In en, this message translates to:
-  /// **'Sales data'**
-  String get poStepSales;
-
-  /// No description provided for @poStepSalesSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Products, categories, customers, and stock'**
-  String get poStepSalesSub;
-
-  /// No description provided for @poStepPending.
-  ///
-  /// In en, this message translates to:
-  /// **'Pending sales'**
-  String get poStepPending;
-
-  /// No description provided for @poPendingNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No pending sales'**
-  String get poPendingNone;
-
-  /// No description provided for @poStepAssets.
-  ///
-  /// In en, this message translates to:
-  /// **'Product assets'**
-  String get poStepAssets;
-
-  /// No description provided for @poStepAssetsSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Images and thumbnails'**
-  String get poStepAssetsSub;
-
-  /// No description provided for @poFooterNote.
-  ///
-  /// In en, this message translates to:
-  /// **'This setup is required only once. After that, AmanaPOS can keep working during poor internet.'**
-  String get poFooterNote;
-
-  /// No description provided for @poTryAgain.
-  ///
-  /// In en, this message translates to:
-  /// **'Try again'**
-  String get poTryAgain;
-
-  /// No description provided for @poOnline.
-  ///
-  /// In en, this message translates to:
-  /// **'Online'**
-  String get poOnline;
-
-  /// No description provided for @poOffline.
-  ///
-  /// In en, this message translates to:
-  /// **'Offline'**
-  String get poOffline;
-
-  /// No description provided for @poChecking.
-  ///
-  /// In en, this message translates to:
-  /// **'Checking'**
-  String get poChecking;
-
-  /// No description provided for @poUpdatingData.
-  ///
-  /// In en, this message translates to:
-  /// **'Updating data'**
-  String get poUpdatingData;
-
-  /// No description provided for @poUpdatingAssets.
-  ///
-  /// In en, this message translates to:
-  /// **'Updating assets'**
-  String get poUpdatingAssets;
-
-  /// No description provided for @poSyncingSales.
-  ///
-  /// In en, this message translates to:
-  /// **'Syncing sales'**
-  String get poSyncingSales;
-
-  /// No description provided for @poOfflineReady.
-  ///
-  /// In en, this message translates to:
-  /// **'Offline ready'**
-  String get poOfflineReady;
-
-  /// No description provided for @poSyncFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync failed'**
-  String get poSyncFailed;
-
-  /// No description provided for @poSynced.
-  ///
-  /// In en, this message translates to:
-  /// **'Synced'**
-  String get poSynced;
-
-  /// No description provided for @poReady.
-  ///
-  /// In en, this message translates to:
-  /// **'Ready'**
-  String get poReady;
-
-  /// No description provided for @poPendingWaiting.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{1 sale waiting to sync} other{{count} sales waiting to sync}}'**
-  String poPendingWaiting(int count);
-
-  /// No description provided for @poPendingCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} pending'**
-  String poPendingCount(int count);
-
   /// No description provided for @mrSalesReturns.
   ///
   /// In en, this message translates to:
@@ -8047,6 +7879,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expiry tracking needs a connection'**
   String get usExpiryNeedsConnection;
+
+  /// No description provided for @fsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting up your business'**
+  String get fsTitle;
+
+  /// No description provided for @fsSubRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready to download your business data.'**
+  String get fsSubRequired;
+
+  /// No description provided for @fsSubRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading your business data once so AmanaPOS can work offline.'**
+  String get fsSubRunning;
+
+  /// No description provided for @fsOfflineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline'**
+  String get fsOfflineTitle;
+
+  /// No description provided for @fsOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet is required only for first setup. Connect once and setup continues where it stopped.'**
+  String get fsOfflineBody;
+
+  /// No description provided for @fsServerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Server not ready'**
+  String get fsServerTitle;
+
+  /// No description provided for @fsServerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The server can\'t run first setup yet. Try again later or contact support.'**
+  String get fsServerBody;
+
+  /// No description provided for @fsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get fsRetry;
+
+  /// No description provided for @fsStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {index} of {count}'**
+  String fsStepOf(int index, int count);
+
+  /// No description provided for @fsRowsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 record saved} other{{count} records saved}}'**
+  String fsRowsSaved(int count);
+
+  /// No description provided for @fsStepBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business and shops'**
+  String get fsStepBusiness;
+
+  /// No description provided for @fsStepCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Products and categories'**
+  String get fsStepCatalog;
+
+  /// No description provided for @fsStepPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers, suppliers and team'**
+  String get fsStepPeople;
+
+  /// No description provided for @fsStepStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock and expiry dates'**
+  String get fsStepStock;
+
+  /// No description provided for @fsStepHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent sales and activity'**
+  String get fsStepHistory;
+
+  /// No description provided for @fsResumeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'If the app closes, setup continues where it stopped.'**
+  String get fsResumeNote;
+
+  /// No description provided for @fsDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All set'**
+  String get fsDoneTitle;
+
+  /// No description provided for @fsImagesDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Images keep downloading in the background.'**
+  String get fsImagesDownloading;
+
+  /// No description provided for @fsSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out / use another account'**
+  String get fsSignOut;
+
+  /// No description provided for @fsSubBlockedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup can\'t continue with this sign-in.'**
+  String get fsSubBlockedAccount;
+
+  /// No description provided for @fsTokenExpiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired'**
+  String get fsTokenExpiredTitle;
+
+  /// No description provided for @fsTokenExpiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sign-in has expired. Sign out and sign in again to continue setup.'**
+  String get fsTokenExpiredBody;
+
+  /// No description provided for @fsAccountDisabledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account disabled'**
+  String get fsAccountDisabledTitle;
+
+  /// No description provided for @fsAccountDisabledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has been disabled. Contact the business owner or support, or sign in with another account.'**
+  String get fsAccountDisabledBody;
+
+  /// No description provided for @fsDeviceRevokedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device removed'**
+  String get fsDeviceRevokedTitle;
+
+  /// No description provided for @fsDeviceRevokedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device was removed from the business. Sign out and sign in again, or contact the business owner.'**
+  String get fsDeviceRevokedBody;
+
+  /// No description provided for @fsNoSessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get fsNoSessionTitle;
+
+  /// No description provided for @fsNoSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no active session. Sign out and sign in again to continue setup.'**
+  String get fsNoSessionBody;
+
+  /// No description provided for @syOxRetryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry all rejected'**
+  String get syOxRetryAll;
+
+  /// No description provided for @syOxDiscardSending.
+  ///
+  /// In en, this message translates to:
+  /// **'This change is being sent right now, so it was not discarded. Check again in a moment.'**
+  String get syOxDiscardSending;
+
+  /// No description provided for @syOxDiscardAlreadySynced.
+  ///
+  /// In en, this message translates to:
+  /// **'This change already reached the server, so it was not discarded.'**
+  String get syOxDiscardAlreadySynced;
+
+  /// No description provided for @syOxActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update this change. Please try again.'**
+  String get syOxActionFailed;
+
+  /// No description provided for @authLogoutOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Connect to the internet and sync all unsynced changes before signing out.'**
+  String get authLogoutOffline;
+
+  /// No description provided for @authLogoutUnsynced.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You have 1 unsynced change} other{You have {count} unsynced changes}} that have not been sent yet. Please sync or go online before signing out.'**
+  String authLogoutUnsynced(int count);
+
+  /// No description provided for @authLogoutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout failed. Please try again while connected to the internet.'**
+  String get authLogoutFailed;
+
+  /// No description provided for @syOxDiscardMaybeOnServer.
+  ///
+  /// In en, this message translates to:
+  /// **'This may already be on the server. Sync first, or discarding may lead to a duplicate if you ring it up again.'**
+  String get syOxDiscardMaybeOnServer;
+
+  /// No description provided for @syOxDiscardOtherMaybeOnServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Some of these changes may already be on the server. Sign in as that account and sync first, or discarding may lead to duplicates.'**
+  String get syOxDiscardOtherMaybeOnServer;
+
+  /// No description provided for @syOxSendNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Send now'**
+  String get syOxSendNow;
+
+  /// No description provided for @syOxDiscardOtherScope.
+  ///
+  /// In en, this message translates to:
+  /// **'This change belongs to another account. Use “Discard other account\'s changes” instead.'**
+  String get syOxDiscardOtherScope;
 }
 
 class _AppLocalizationsDelegate
