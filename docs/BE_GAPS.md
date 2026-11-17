@@ -397,3 +397,10 @@ One list, most important first. Detail for each is in the "Follow-ups found by t
 12. `bootstrap_page` / manifest answer `full_resync_required` for a stale snapshot; row counts per entity in the manifest (Phase 2).
 13. Confirm the cashier catalog rule (push is stricter than REST) and the `category.delete` rule (Phase 3).
 14. Feed row for a cashier carries exactly their own `user` row; `last_login_at` freshness (Phase 5).
+15. Checksum: keep `created_at` as the `since` window field and `max_seq` a per-entity number; confirm `sum_total` basis vs the dashboard (Phase 6, items 15-17 above).
+
+## Follow-ups found by the mobile Phase 6 work (checksum audit)
+
+- **15. Checksum window**: `sync/checksum?since=N` filters sale by `created_at >= now - N days`; the app compares by the sale's `received_at` (your `created_at`). A row within 5 min of the cutoff is treated as inconclusive. Please document `since` as integer days (it is) and keep `created_at` as the window field.
+- **16. `max_seq`**: the app uses it as an "did the server move during the audit" probe (two calls per entity, equal `max_seq` required). Please keep it a number (int) and per-entity (it is today). A global seq works but makes the audit inconclusive more often.
+- **17. `sum_total` basis**: sale `sum_total` is `net_amount` over all statuses, while `dashboard-summary` sums `total_amount` (item 3). The audit compares raw synced totals, so it is unaffected, but the debug dashboard parity log will show a difference whenever sales carry a sale discount or exclusive tax until item 3 is answered.

@@ -1259,6 +1259,8 @@
   "shReturnedTotal": "Returned",
   "shRefundPending": "Refund pending sync",
   "shRefundRejected": "Refund rejected",
+  "shDataDriftTitle": "Some numbers may be off",
+  "shDataDriftBody": "This phone's totals do not match the server. Tap Sync now; if it stays, contact support.",
   "shNet": "Net",
   "shReturnsHeader": "Returns",
   "shReturnItems": "Return items",

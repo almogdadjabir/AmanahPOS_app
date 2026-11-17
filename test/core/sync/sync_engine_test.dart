@@ -44,6 +44,13 @@ class _ScriptedTransport implements SyncTransport {
   bool Function(PullChange)? keepChange;
 
   @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => inner.checksum(entity: entity, sinceDays: sinceDays, scope: scope);
+
+  @override
   Future<PingResponse> ping() async {
     final r = await inner.ping();
     return onPing == null ? r : onPing!(r);
@@ -793,6 +800,40 @@ void main() {
       expect(await statusOf(a.mutationId), 'done');
       expect(server.tables['product']!.length, 1);
       expect(server.feed.length, 1);
+    });
+  });
+
+  group('afterSyncCompleted hook (checksum audit)', () {
+    test('fires once after a completed, drained sync; idle by then', () async {
+      final engine = build();
+      var calls = 0;
+      SyncOutcome? nested;
+      engine.afterSyncCompleted = () async {
+        calls++;
+        nested = await engine.syncNow();
+      };
+      expect(await engine.syncNow(), SyncOutcome.completed);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, 1);
+      expect(nested, isNot(SyncOutcome.alreadyRunning));
+    });
+
+    test('not fired on blocked / backoff', () async {
+      server.minAppVersion = '9.0.0';
+      final engine = build();
+      var calls = 0;
+      engine.afterSyncCompleted = () async => calls++;
+      expect(await engine.syncNow(), SyncOutcome.blocked);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, 0);
+    });
+
+    test('a throwing hook does not change the outcome', () async {
+      final engine = build();
+      engine.afterSyncCompleted = () async => throw StateError('boom');
+      expect(await engine.syncNow(), SyncOutcome.completed);
+      await Future<void>.delayed(Duration.zero);
     });
   });
 

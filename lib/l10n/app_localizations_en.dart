@@ -3132,6 +3132,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shRefundRejected => 'Refund rejected';
 
   @override
+  String get shDataDriftTitle => 'Some numbers may be off';
+
+  @override
+  String get shDataDriftBody =>
+      'This phone\'s totals do not match the server. Tap Sync now; if it stays, contact support.';
+
+  @override
   String get shNet => 'Net';
 
   @override

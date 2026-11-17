@@ -5810,6 +5810,18 @@ abstract class AppLocalizations {
   /// **'Refund rejected'**
   String get shRefundRejected;
 
+  /// No description provided for @shDataDriftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some numbers may be off'**
+  String get shDataDriftTitle;
+
+  /// No description provided for @shDataDriftBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s totals do not match the server. Tap Sync now; if it stays, contact support.'**
+  String get shDataDriftBody;
+
   /// No description provided for @shNet.
   ///
   /// In en, this message translates to:

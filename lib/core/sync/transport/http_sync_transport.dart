@@ -236,6 +236,22 @@ class HttpSyncTransport implements SyncTransport, ImageUploadTransport {
     return BootstrapPage.fromJson(_asMap(res.data));
   });
 
+  @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => _run(() async {
+    final res = await _send(
+      'GET',
+      'api/v1/sync/checksum/',
+      _syncTimeout,
+      query: {'entity': entity, 'since': sinceDays},
+      scope: scope,
+    );
+    return ChecksumResponse.fromJson(_asMap(res.data));
+  });
+
   Future<Response<dynamic>> _send(
     String method,
     String path,

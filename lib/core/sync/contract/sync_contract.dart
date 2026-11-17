@@ -437,6 +437,42 @@ class BootstrapPage {
   };
 }
 
+/// `GET sync/checksum/` answer. Sums are decimal strings (null for entities
+/// without a money total); `max_seq` may arrive as int or string.
+class ChecksumResponse {
+  const ChecksumResponse({
+    required this.entity,
+    required this.count,
+    this.sumTotal,
+    this.sumRevenue,
+    this.maxSeq = 0,
+  });
+
+  final String entity;
+  final int count;
+  final String? sumTotal;
+  final String? sumRevenue;
+  final int maxSeq;
+
+  factory ChecksumResponse.fromJson(Map<String, dynamic> j) {
+    String? dec(String k) {
+      final v = j[k];
+      if (v == null) return null;
+      if (v is String || v is num) return '$v';
+      throw FormatException('ChecksumResponse.$k must be a decimal');
+    }
+
+    final m = j['max_seq'];
+    return ChecksumResponse(
+      entity: _str(j, 'entity', 'ChecksumResponse'),
+      count: _int(j, 'count', 'ChecksumResponse'),
+      sumTotal: dec('sum_total'),
+      sumRevenue: dec('sum_revenue'),
+      maxSeq: m is num ? m.toInt() : int.tryParse('${m ?? ''}') ?? 0,
+    );
+  }
+}
+
 class PingResponse {
   const PingResponse({
     required this.ok,

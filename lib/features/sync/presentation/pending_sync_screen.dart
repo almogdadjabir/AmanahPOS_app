@@ -9,6 +9,7 @@ import 'package:amana_pos/widgets/app_large_title.dart';
 import 'package:amana_pos/widgets/directional_icon.dart';
 import 'package:amana_pos/widgets/pressable.dart';
 import 'package:amana_pos/widgets/shimmer.dart';
+import 'package:amana_pos/features/sync/presentation/widgets/data_drift_banner.dart';
 import 'package:flutter/cupertino.dart' show CupertinoSliverRefreshControl;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -78,7 +79,12 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
                         AppDims.s4,
                         bottomInset,
                       ),
-                      sliver: SliverToBoxAdapter(child: _content(state)),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [const DataDriftBanner(), _content(state)],
+                        ),
+                      ),
                     ),
                   ],
                 ),

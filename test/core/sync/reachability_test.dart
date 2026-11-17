@@ -14,6 +14,13 @@ class _CountingTransport implements SyncTransport {
   int pings = 0;
 
   @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => inner.checksum(entity: entity, sinceDays: sinceDays, scope: scope);
+
+  @override
   Future<PingResponse> ping() {
     pings++;
     return inner.ping();
@@ -199,6 +206,13 @@ void main() {
 class _SlowTransport implements SyncTransport {
   _SlowTransport(this.onPing);
   final PingResponse Function() onPing;
+
+  @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => throw UnimplementedError();
 
   @override
   Future<PingResponse> ping() async => onPing();

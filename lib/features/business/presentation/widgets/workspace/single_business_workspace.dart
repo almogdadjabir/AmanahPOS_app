@@ -8,6 +8,7 @@ import 'package:amana_pos/features/business/presentation/widgets/home/home_today
 import 'package:amana_pos/features/business/presentation/widgets/home/home_top_sellers.dart';
 import 'package:amana_pos/features/dashboard/presentation/bloc/dashboard_summary_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/nav_shell.dart';
+import 'package:amana_pos/features/sync/presentation/widgets/data_drift_banner.dart';
 import 'package:flutter/cupertino.dart' show CupertinoSliverRefreshControl;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -89,6 +90,7 @@ class SingleBusinessWorkspace extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     HomeHeader(summary: summary, loading: loading),
+                    const DataDriftBanner(),
                     switch (view) {
                       HomeSummaryView.skeleton => const HomeSkeleton(),
                       HomeSummaryView.awaitingFirstValue =>

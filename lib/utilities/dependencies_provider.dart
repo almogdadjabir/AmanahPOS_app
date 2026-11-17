@@ -16,6 +16,9 @@ import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dar
 import 'package:amana_pos/common/services/device/device_info_service.dart';
 import 'package:amana_pos/config/constants.dart';
 import 'package:amana_pos/core/sync/assets/asset_sync.dart';
+import 'package:amana_pos/core/sync/audit/checksum_audit.dart';
+import 'package:amana_pos/core/sync/audit/checksum_repair.dart';
+import 'package:amana_pos/core/sync/audit/local_checksum_queries.dart';
 import 'package:amana_pos/core/sync/assets/asset_sync_wiring.dart';
 import 'package:amana_pos/core/sync/background/background_entry.dart';
 import 'package:amana_pos/core/sync/sync_appliers.dart';
@@ -49,7 +52,10 @@ import 'package:amana_pos/features/devices/data/services/printer_permission_serv
 import 'package:amana_pos/features/devices/domain/repositories/printer_repository.dart';
 import 'package:amana_pos/features/devices/domain/usecases/printer_usecase.dart';
 import 'package:amana_pos/features/dashboard/data/datasources/dashboard_remote_data_source.dart';
+import 'package:amana_pos/core/time/business_day.dart';
+import 'package:amana_pos/features/dashboard/data/local/dashboard_parity.dart';
 import 'package:amana_pos/features/dashboard/data/local/local_dashboard_queries.dart';
+import 'package:amana_pos/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:amana_pos/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:amana_pos/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:amana_pos/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart';
@@ -114,7 +120,8 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show kDebugMode, kIsWeb, visibleForTesting;
 import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -682,6 +689,51 @@ class DependenciesProvider {
       );
     });
 
+    // Checksum self-audit (foreground only): runs after a completed, drained
+    // sync; owner is told only when a targeted repair did not fix drift.
+    getIt.registerLazySingletonAsync<ChecksumAudit>(() async {
+      final engine = await getIt.getAsync<SyncEngine>();
+      final db = getIt<OfflineDb>();
+      return ChecksumAudit(
+        transport: getIt<SyncTransport>(),
+        local: LocalChecksumQueries(db),
+        repair: ChecksumRepair(
+          db: db,
+          transport: getIt<SyncTransport>(),
+          appliers: getIt<ChangeApplierRegistry>(),
+          notifier: getIt<DbChangeNotifier>(),
+          authedFor: engine.authedFor,
+          assertScope: () async {
+            if (await readSessionKey() != SyncScope.current) {
+              throw SyncTransportException(
+                kind: SyncTransportKind.scopeChanged,
+              );
+            }
+          },
+        ),
+        state: getIt<SyncStateStore>(),
+        notifier: getIt<DbChangeNotifier>(),
+        authedFor: engine.authedFor,
+        scopeProvider: () => SyncScope.current,
+        // Nothing the server still has to learn: no pending / in-flight /
+        // blocked outbox row for this scope (rejected rows are not on the
+        // server and are excluded from the local totals).
+        idle: () async {
+          final scope = SyncScope.current;
+          if (scope == null) return false;
+          final r = await (await db.database).rawQuery(
+            "SELECT COUNT(*) AS c FROM outbox WHERE scope = ? "
+            "AND status IN ('pending','inflight','blocked')",
+            [scope],
+          );
+          return ((r.first['c'] as int?) ?? 0) == 0;
+        },
+        capabilities: _bootstrapCapabilities,
+        // Debug builds only: log local vs REST dashboard differences.
+        debugParity: kDebugMode ? _debugDashboardParity : null,
+      );
+    });
+
     // Catalog image uploads (foreground only; only the triggers start it).
     // Same transport (HttpSyncTransport is also the ImageUploadTransport)
     // and token rules (engine.authedFor) as the rest of sync.
@@ -827,9 +879,36 @@ class DependenciesProvider {
     }
   }
 
+  static Future<void> _debugDashboardParity() async {
+    final businessId = getIt<AuthBloc>().state.defaultBusiness?.id;
+    final remote = await getIt<DashboardRepository>().getDashboardSummary(
+      businessId: businessId,
+      forceRefresh: true,
+    );
+    if (remote.source != DashboardSummarySource.remote) return; // offline
+    final queries = LocalDashboardQueries(
+      db: getIt<OfflineDb>(),
+      notifier: getIt<DbChangeNotifier>(),
+      tenantId: () => businessId,
+    );
+    final local = await queries.summaryFor(
+      day: BusinessDay.of(DateTime.now(), remote.timezone),
+      shopId: null,
+      timezone: remote.timezone,
+      businessId: businessId,
+    );
+    const parity = DashboardParity();
+    parity.log(parity.diff(local: local, remote: remote));
+  }
+
   static Future<void> _startSyncCore() async {
     final coordinator = await getIt.getAsync<SyncCoordinator>();
     await coordinator.attach();
+    final engine = await getIt.getAsync<SyncEngine>();
+    final audit = await getIt.getAsync<ChecksumAudit>();
+    engine.afterSyncCompleted = () async {
+      await audit.maybeRun();
+    };
   }
 
   /// Logout: stop sync for the signed-in scope before the table wipe

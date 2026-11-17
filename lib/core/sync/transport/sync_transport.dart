@@ -70,4 +70,14 @@ abstract class SyncTransport {
     int salesSinceDays = 90,
     required String scope,
   });
+
+  /// Self-audit totals for [entity] over the last [sinceDays] days
+  /// (`sale`/`refund` only use the window). Transports that do not model it
+  /// throw [UnimplementedError]; the audit never calls it without the
+  /// server's `checksum` capability.
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => throw UnimplementedError('checksum');
 }

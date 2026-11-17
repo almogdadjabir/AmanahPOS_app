@@ -402,6 +402,13 @@ void main() {
 class _Spy implements SyncTransport {
   int? lastLimit;
   @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => throw UnimplementedError();
+
+  @override
   Future<PingResponse> ping() => throw UnimplementedError();
   @override
   Future<PushResponse> push({

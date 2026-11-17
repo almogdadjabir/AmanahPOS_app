@@ -1179,6 +1179,8 @@
   "shReturnedTotal": "المرتجع",
   "shRefundPending": "الإرجاع بانتظار المزامنة",
   "shRefundRejected": "تم رفض الإرجاع",
+  "shDataDriftTitle": "قد تكون بعض الأرقام غير دقيقة",
+  "shDataDriftBody": "إجماليات هذا الهاتف لا تطابق الخادم. اضغط مزامنة الآن، وإذا استمر ذلك فتواصل مع الدعم.",
   "shNet": "الصافي",
   "shReturnsHeader": "المرتجعات",
   "shReturnItems": "إرجاع منتجات",

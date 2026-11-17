@@ -429,6 +429,71 @@ class FakeSyncServer implements SyncTransport, ImageUploadTransport {
   }
 
   @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) async {
+    await _gate();
+    checksumCalls++;
+    final hook = onChecksum;
+    if (hook != null) {
+      hook();
+    }
+    final cutoff = _serverTime.subtract(Duration(days: sinceDays));
+    final saleRows = _bootstrapRows('sale');
+    bool inWindow(Object? iso) {
+      final t = DateTime.tryParse('${iso ?? ''}');
+      return t != null && !t.toUtc().isBefore(cutoff);
+    }
+
+    var rows = _bootstrapRows(entity).values.toList();
+    if (entity == 'sale') {
+      rows = rows.where((r) => inWindow(r['created_at'])).toList();
+    } else if (entity == 'refund') {
+      rows = rows
+          .where(
+            (r) =>
+                inWindow(r['created_at']) ||
+                inWindow(saleRows[r['sale']]?['created_at']),
+          )
+          .toList();
+    }
+    BigInt sum(Iterable<Map<String, dynamic>> it, String k) =>
+        it.fold(BigInt.zero, (a, r) => a + _parseDec(r[k]));
+    const revenue = {'completed', 'partial_refund', 'refunded'};
+    String? total;
+    String? rev;
+    if (entity == 'sale') {
+      total = _fixed(sum(rows, 'net_amount'), 2);
+      rev = _fixed(
+        sum(rows.where((r) => revenue.contains(r['status'])), 'net_amount'),
+        2,
+      );
+    } else if (entity == 'refund') {
+      total = _fixed(sum(rows, 'total'), 2);
+    } else if (entity == 'stock') {
+      total = _fixed(sum(rows, 'quantity'), 3);
+    }
+    return ChecksumResponse(
+      entity: entity,
+      count: rows.length,
+      sumTotal: nullSums ? null : total,
+      sumRevenue: nullSums ? null : rev,
+      maxSeq: _c.seq,
+    );
+  }
+
+  /// Times `checksum` was called (audit tests).
+  int checksumCalls = 0;
+
+  /// Answer every checksum with null sums (a server that omits them).
+  bool nullSums = false;
+
+  /// Runs at the start of every `checksum` call (before totals are read).
+  void Function()? onChecksum;
+
+  @override
   Future<PushResponse> push({
     required String deviceId,
     required String appVersion,

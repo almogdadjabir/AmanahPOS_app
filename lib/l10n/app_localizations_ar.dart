@@ -3108,6 +3108,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shRefundRejected => 'تم رفض الإرجاع';
 
   @override
+  String get shDataDriftTitle => 'قد تكون بعض الأرقام غير دقيقة';
+
+  @override
+  String get shDataDriftBody =>
+      'إجماليات هذا الهاتف لا تطابق الخادم. اضغط مزامنة الآن، وإذا استمر ذلك فتواصل مع الدعم.';
+
+  @override
   String get shNet => 'الصافي';
 
   @override

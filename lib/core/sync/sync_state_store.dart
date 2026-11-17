@@ -6,6 +6,52 @@ import 'package:uuid/uuid.dart';
 import '../offline/offline_db.dart';
 import 'sync_schema.dart';
 
+/// Result of the last checksum self-audit of one scope: `ok`, or `drift`
+/// (a repair did not make local totals match the server).
+class AuditState {
+  const AuditState({
+    required this.status,
+    required this.at,
+    this.detail = const {},
+  });
+
+  static const String ok = 'ok';
+  static const String drift = 'drift';
+
+  final String status;
+  final DateTime at;
+
+  /// `{entity: {localCount, serverCount, localSum, serverSum}}` for support.
+  final Map<String, dynamic> detail;
+
+  bool get isDrift => status == drift;
+
+  Map<String, dynamic> toJson() => {
+    'status': status,
+    'at': at.toUtc().toIso8601String(),
+    'detail': detail,
+  };
+
+  static AuditState? tryFromJson(Object? raw) {
+    try {
+      if (raw is! String) return null;
+      final j = jsonDecode(raw);
+      if (j is! Map) return null;
+      final status = j['status'];
+      final at = DateTime.tryParse('${j['at']}');
+      if (status is! String || at == null) return null;
+      final d = j['detail'];
+      return AuditState(
+        status: status,
+        at: at.toUtc(),
+        detail: d is Map ? Map<String, dynamic>.from(d) : const {},
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 /// Resumable first-setup (bootstrap) progress of one scope. One JSON value
 /// under `bootstrap_progress|<scope>`, written in the same transaction as the
 /// page's rows.
@@ -117,6 +163,8 @@ class SyncStateStore {
   static const _kBootstrapped = 'bootstrapped';
   static const _kBootstrapCompletedAt = 'bootstrap_completed_at';
   static const _kDeviceRegistration = 'device_registration';
+  static const _kAuditLastAt = 'audit_last_at';
+  static const _kAuditState = 'audit_state';
   static const _kLocalReceiptCounter = 'local_receipt_counter';
 
   Future<String?> _get(DatabaseExecutor e, String key) async {
@@ -204,8 +252,10 @@ class SyncStateStore {
     final db = await _db.database;
     await db.delete(
       SyncTables.syncState,
-      where: 'key IN (?, ?, ?, ?, ?, ?)',
+      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?)',
       whereArgs: [
+        _k(_kAuditLastAt),
+        _k(_kAuditState),
         _k(_kCursor),
         _kClockSkew,
         _kLastSyncedAt,
@@ -318,6 +368,33 @@ class SyncStateStore {
       '$_kBootstrapCompletedAt|%',
     ],
   );
+
+  // ---- checksum self-audit (Phase 6) ----
+
+  Future<DateTime?> lastAuditAt() async {
+    final v = await _get(await _db.database, _k(_kAuditLastAt));
+    return v == null ? null : DateTime.tryParse(v)?.toUtc();
+  }
+
+  Future<void> setLastAuditAt(DateTime t) async =>
+      _put(await _db.database, _k(_kAuditLastAt), t.toUtc().toIso8601String());
+
+  Future<AuditState?> auditState() async =>
+      AuditState.tryFromJson(await _get(await _db.database, _k(_kAuditState)));
+
+  /// Null removes the record.
+  Future<void> setAuditState(AuditState? s) async {
+    final db = await _db.database;
+    if (s == null) {
+      await db.delete(
+        SyncTables.syncState,
+        where: 'key = ?',
+        whereArgs: [_k(_kAuditState)],
+      );
+      return;
+    }
+    await _put(db, _k(_kAuditState), jsonEncode(s.toJson()));
+  }
 
   // ---- device registration (best-effort, see SyncDeviceRegistrar) ----
 

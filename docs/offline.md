@@ -947,6 +947,15 @@ with the server stopped), confirm the badge shows 3 unsynced, then:
     re-bootstrap the product is gone from the list (a local-only or
     pending-edit item is never removed).
 
+18. **Checksum self-audit.** Owner device, online and fully synced. Delete one
+    sale row on the server (DB) from the last 7 days, then pull-to-refresh or
+    wait for a sync cycle (the audit runs at most once per 6 h; relaunch the
+    app after clearing `audit_last_at` or use a debug build). Expect: no
+    banner (the repair re-pages sale/refund/stock and the totals match). Then
+    add a *local-only* synced sale (debug) so a repair cannot fix it: expect
+    the owner banner "Some numbers may be off" on Home and the Pending Sync
+    screen, never for a cashier. Nothing is ever deleted locally.
+
 ### How to add an entity
 
 1. Implement `ChangeApplier` (see `lib/core/sync/change_applier.dart`):

@@ -53,6 +53,13 @@ class ScenarioTransport implements SyncTransport {
   List<String> get pushedIds => pushed.map((e) => e.mutationId).toList();
 
   @override
+  Future<ChecksumResponse> checksum({
+    required String entity,
+    int sinceDays = 7,
+    required String scope,
+  }) => inner.checksum(entity: entity, sinceDays: sinceDays, scope: scope);
+
+  @override
   Future<PingResponse> ping() => inner.ping();
 
   @override

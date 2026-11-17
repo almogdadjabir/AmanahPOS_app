@@ -286,4 +286,52 @@ void main() {
       },
     );
   });
+
+  group('audit state', () {
+    test('round-trips and is scope isolated', () async {
+      expect(await store.auditState(), isNull);
+      expect(await store.lastAuditAt(), isNull);
+      final st = AuditState(
+        status: AuditState.drift,
+        at: DateTime.utc(2026, 11, 17, 8),
+        detail: {
+          'sale': {'localCount': 3, 'serverCount': 4},
+        },
+      );
+      await store.setAuditState(st);
+      await store.setLastAuditAt(DateTime.utc(2026, 11, 17, 8));
+      final back = (await store.auditState())!;
+      expect(back.isDrift, isTrue);
+      expect(back.detail['sale']['serverCount'], 4);
+      expect(await store.lastAuditAt(), DateTime.utc(2026, 11, 17, 8));
+      final other = store.forScope('u2|t1');
+      expect(await other.auditState(), isNull);
+      expect(await other.lastAuditAt(), isNull);
+    });
+
+    test('clear removes both; null removes the state', () async {
+      await store.setAuditState(
+        AuditState(status: AuditState.ok, at: DateTime.utc(2026)),
+      );
+      await store.setLastAuditAt(DateTime.utc(2026));
+      await store.clear();
+      expect(await store.auditState(), isNull);
+      expect(await store.lastAuditAt(), isNull);
+      await store.setAuditState(
+        AuditState(status: AuditState.ok, at: DateTime.utc(2026)),
+      );
+      await store.setAuditState(null);
+      expect(await store.auditState(), isNull);
+    });
+
+    test('corrupt JSON reads as null', () async {
+      final db = await odb.database;
+      await db.insert('sync_state', {
+        'key': 'audit_state|u1|t1',
+        'value': '{nope',
+        'updated_at': 'x',
+      });
+      expect(await store.auditState(), isNull);
+    });
+  });
 }

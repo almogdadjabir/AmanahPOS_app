@@ -355,6 +355,11 @@ class SyncEngine {
 
   // ------------------------------------------------------------- entry
 
+  /// Invoked (not awaited) after a `syncNow` that completed with nothing
+  /// left to pull, once the engine is idle again. Set by the foreground DI
+  /// (checksum audit); the OS background worker never sets it.
+  Future<void> Function()? afterSyncCompleted;
+
   /// Runs a sync. A call made while a run is in progress returns
   /// [SyncOutcome.alreadyRunning] and asks the running call to do (at most
   /// [maxExtraCycles]) more cycles once it completes, so writes made during
@@ -367,6 +372,7 @@ class SyncEngine {
     _running = true;
     _rerun = false;
     _cancelRequested = false;
+    var fire = false;
     try {
       _refreshAttempted = false; // once per syncNow, across its cycles
       _pushLimit = pushBatchSize;
@@ -380,9 +386,21 @@ class SyncEngine {
         outcome = await _cycle(reason);
       }
       if (outcome != SyncOutcome.completed) _rerun = false;
+      fire = outcome == SyncOutcome.completed && !_status.moreToPull;
       return outcome;
     } finally {
       _running = false;
+      // After the run is idle again (the hook may call syncNow), only for a
+      // fully drained completed sync. Fire-and-forget; never changes the
+      // outcome.
+      final hook = afterSyncCompleted;
+      if (fire && hook != null) {
+        unawaited(
+          Future<void>.sync(hook).catchError((Object e, StackTrace st) {
+            _report(e, st, 'afterSyncCompleted failed');
+          }),
+        );
+      }
     }
   }
 
