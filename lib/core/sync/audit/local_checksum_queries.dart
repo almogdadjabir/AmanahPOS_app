@@ -54,7 +54,11 @@ class LocalChecksumQueries {
     final db = await _db.database;
     final rows = await db.rawQuery(
       "SELECT COALESCE(received_at, occurred_at) AS ts, status, net_amount "
-      "FROM sales WHERE sync_state = 'synced'",
+      "FROM sales WHERE sync_state = 'synced' "
+      "AND COALESCE(received_at, occurred_at) >= ?",
+      // Coarse text pre-filter only (a 2 day margin covers any UTC offset);
+      // the exact instant check stays in Dart below.
+      [cutoff.subtract(const Duration(days: 2)).toIso8601String()],
     );
     var count = 0;
     var total = BigInt.zero;

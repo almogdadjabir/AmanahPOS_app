@@ -1671,6 +1671,15 @@
   "fsAccountDisabledBody": "This account has been disabled. Contact the business owner or support, or sign in with another account.",
   "fsDeviceRevokedTitle": "Device removed",
   "fsDeviceRevokedBody": "This device was removed from the business. Sign out and sign in again, or contact the business owner.",
+  "loginRevokedPendingTitle": "Unsynced data kept on this device",
+  "loginRevokedPendingBody": "This device was signed out by the business, but {count} unsynced items stay on it. Contact the business owner before clearing this device.",
+  "@loginRevokedPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "fsNoSessionTitle": "Not signed in",
   "fsNoSessionBody": "There is no active session. Sign out and sign in again to continue setup.",
   "syOxRetryAll": "Retry all rejected",

@@ -24,11 +24,13 @@ void main() {
   late _Handler handler;
   late InventoryBloc bloc;
   late bool online;
+  late bool syncedExpiry;
 
   setUp(() async {
     f = await SaleFixture.on(await openTestDb());
     handler = _Handler();
     online = true;
+    syncedExpiry = false;
     final repo = InventoryRepoImpl(
       handler,
       stockService: () => StockService(
@@ -40,11 +42,13 @@ void main() {
         ),
         now: () => f.clock,
       ),
+      expiryAddSynced: () async => syncedExpiry,
     );
     bloc = InventoryBloc(
       useCase: InventoryUseCase(repository: repo),
       offlineLocalCache: OfflineLocalCache(f.odb),
       isOnline: () async => online,
+      expiryAddSynced: () async => syncedExpiry,
     );
   });
 
@@ -221,6 +225,70 @@ void main() {
       expect(s.expiryNeedsConnection, isFalse);
       expect(await qty(), 10.0);
       expect((await f.stock(kP1))['base_quantity'], '10');
+    });
+  });
+
+  group('add with expiry through stock.add (capability stock_add_expiry)', () {
+    setUp(() => syncedExpiry = true);
+
+    test(
+      'offline: queued with expiry_date, local stock raised, no network',
+      () async {
+        online = false;
+        bloc.add(
+          const OnAddStock(
+            productId: kP1,
+            shopId: kShop,
+            quantity: '2',
+            expiryDate: '2027-01-01',
+          ),
+        );
+        final s = await settle();
+        expect(s.submitStatus, InventorySubmitStatus.success);
+        expect(s.expiryNeedsConnection, isFalse);
+        final row = (await stockRows()).single;
+        expect(row['op'], 'add');
+        expect(row['delta'], '2');
+        expect(row['expiry_date'], '2027-01-01');
+        expect(row.containsKey('batch_number'), isFalse);
+        expect(await qty(), 12.0);
+        verifyZeroInteractions(handler);
+      },
+    );
+
+    test('online: no REST call either, one outbox row', () async {
+      bloc.add(
+        const OnAddStock(
+          productId: kP1,
+          shopId: kShop,
+          quantity: '1',
+          expiryDate: '2027-02-02',
+        ),
+      );
+      await settle();
+      expect(await f.count('outbox'), 1);
+      verifyZeroInteractions(handler);
+    });
+
+    test('an undated add carries no expiry_date', () async {
+      bloc.add(const OnAddStock(productId: kP1, shopId: kShop, quantity: '1'));
+      await settle();
+      expect((await stockRows()).single.containsKey('expiry_date'), isFalse);
+    });
+
+    test('a malformed date is refused and nothing is written', () async {
+      bloc.add(
+        const OnAddStock(
+          productId: kP1,
+          shopId: kShop,
+          quantity: '1',
+          expiryDate: '01/02/2027',
+        ),
+      );
+      final s = await settle();
+      expect(s.submitStatus, InventorySubmitStatus.failure);
+      expect(await f.count('outbox'), 0);
+      expect(await qty(), 10.0);
     });
   });
 }

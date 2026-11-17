@@ -24,8 +24,14 @@ class InventoryRepoImpl extends InventoryRepository {
     this.requestHandler, {
     required StockService Function() stockService,
     VendorService Function()? vendorService,
+    Future<bool> Function()? expiryAddSynced,
   }) : _stockService = stockService,
-       _vendorService = vendorService;
+       _vendorService = vendorService,
+       _expiryAddSynced = expiryAddSynced;
+
+  /// True when the server accepts `expiry_date` on `stock.add` (capability
+  /// `stock_add_expiry`). Null / false: a dated add uses the online REST add.
+  final Future<bool> Function()? _expiryAddSynced;
 
   /// Lazy, like [_stockService]; the only vendor writer.
   final VendorService Function()? _vendorService;
@@ -72,7 +78,8 @@ class InventoryRepoImpl extends InventoryRepository {
     AddStockRequestDto request,
   ) async {
     final expiry = request.expiryDate?.trim();
-    if (expiry != null && expiry.isNotEmpty) {
+    final dated = expiry != null && expiry.isNotEmpty;
+    if (dated && !await _serverTakesDatedAdds()) {
       return _addWithExpiryOnline(request);
     }
     return _local(
@@ -84,9 +91,18 @@ class InventoryRepoImpl extends InventoryRepository {
           shopId: request.shopId,
           delta: request.quantity,
           reason: request.reference,
+          expiryDate: dated ? expiry : null,
         ),
       ),
     );
+  }
+
+  Future<bool> _serverTakesDatedAdds() async {
+    try {
+      return await (_expiryAddSynced?.call() ?? Future.value(false));
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<Either<String?, AddStockResponseDto>> _restAdd(
@@ -97,9 +113,10 @@ class InventoryRepoImpl extends InventoryRepository {
     data: request.toJson(),
   );
 
-  /// `stock.add` cannot carry an expiry date (no batch would be created,
-  /// docs/BE_GAPS.md), so a dated add uses the REST endpoint, which creates
-  /// the ProductBatch. The caller (bloc) refuses it while offline. On
+  /// Fallback for a server WITHOUT capability `stock_add_expiry` (its
+  /// `stock.add` would drop the date and create no batch): a dated add uses
+  /// the REST endpoint, which creates the ProductBatch. The caller (bloc)
+  /// refuses it while offline. On
   /// success the local base is raised by exactly the added quantity; the
   /// next pull brings the absolute server quantity.
   Future<Either<String?, AddStockResponseDto>> _addWithExpiryOnline(

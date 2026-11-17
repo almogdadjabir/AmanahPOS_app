@@ -203,10 +203,7 @@ class SyncCoordinator with WidgetsBindingObserver {
   }
 
   Future<void> _handleSessionEvent(SyncSessionEvent e) async {
-    // Known limitation (docs/offline.md, "Outbox and engine"): no
-    // quarantine/export flow for accountDisabled / deviceRevoked with
-    // unsynced rows. The sign-out below keeps every outbox / sales row and
-    // never calls OfflineDb.clearAllLocalOfflineData.
+    // The app's RevokeSessionPolicy decides wipe vs keep (docs/offline.md).
     try {
       await _onSessionEnded(e);
     } catch (err, st) {

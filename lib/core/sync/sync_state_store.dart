@@ -52,6 +52,47 @@ class AuditState {
   }
 }
 
+/// Left by a revoke / disable that found unsynced rows: the device kept its
+/// data and the login screen tells the user. Global (not per scope) so it
+/// survives the sign-out and every wipe. Cleared by the next completed sync.
+class RevokeMarker {
+  const RevokeMarker({
+    required this.reason,
+    required this.pendingCount,
+    required this.at,
+  });
+
+  /// `deviceRevoked` or `accountDisabled` (the SyncSessionEvent name).
+  final String reason;
+  final int pendingCount;
+  final DateTime at;
+
+  Map<String, dynamic> toJson() => {
+    'reason': reason,
+    'pending': pendingCount,
+    'at': at.toUtc().toIso8601String(),
+  };
+
+  static RevokeMarker? tryFromJson(Object? raw) {
+    try {
+      if (raw is! String) return null;
+      final j = jsonDecode(raw);
+      if (j is! Map) return null;
+      final reason = j['reason'];
+      final pending = j['pending'];
+      final at = DateTime.tryParse('${j['at']}');
+      if (reason is! String || pending is! int || at == null) return null;
+      return RevokeMarker(
+        reason: reason,
+        pendingCount: pending,
+        at: at.toUtc(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 /// Resumable first-setup (bootstrap) progress of one scope. One JSON value
 /// under `bootstrap_progress|<scope>`, written in the same transaction as the
 /// page's rows.
@@ -165,6 +206,8 @@ class SyncStateStore {
   static const _kDeviceRegistration = 'device_registration';
   static const _kAuditLastAt = 'audit_last_at';
   static const _kAuditState = 'audit_state';
+  static const _kPruneLastAt = 'prune_last_at';
+  static const _kRevokeMarker = 'revoke_marker';
   static const _kLocalReceiptCounter = 'local_receipt_counter';
 
   Future<String?> _get(DatabaseExecutor e, String key) async {
@@ -252,10 +295,11 @@ class SyncStateStore {
     final db = await _db.database;
     await db.delete(
       SyncTables.syncState,
-      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?)',
+      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       whereArgs: [
         _k(_kAuditLastAt),
         _k(_kAuditState),
+        _k(_kPruneLastAt),
         _k(_kCursor),
         _kClockSkew,
         _kLastSyncedAt,
@@ -378,6 +422,34 @@ class SyncStateStore {
 
   Future<void> setLastAuditAt(DateTime t) async =>
       _put(await _db.database, _k(_kAuditLastAt), t.toUtc().toIso8601String());
+
+  // ---- maintenance (Phase 7) ----
+
+  /// Global key: works on an unscoped store; never removed by [clear].
+  Future<RevokeMarker?> revokeMarker() async =>
+      RevokeMarker.tryFromJson(await _get(await _db.database, _kRevokeMarker));
+
+  /// Null removes the marker.
+  Future<void> setRevokeMarker(RevokeMarker? m) async {
+    final db = await _db.database;
+    if (m == null) {
+      await db.delete(
+        SyncTables.syncState,
+        where: 'key = ?',
+        whereArgs: [_kRevokeMarker],
+      );
+      return;
+    }
+    await _put(db, _kRevokeMarker, jsonEncode(m.toJson()));
+  }
+
+  Future<DateTime?> lastPruneAt() async {
+    final v = await _get(await _db.database, _k(_kPruneLastAt));
+    return v == null ? null : DateTime.tryParse(v)?.toUtc();
+  }
+
+  Future<void> setLastPruneAt(DateTime t) async =>
+      _put(await _db.database, _k(_kPruneLastAt), t.toUtc().toIso8601String());
 
   Future<AuditState?> auditState() async =>
       AuditState.tryFromJson(await _get(await _db.database, _k(_kAuditState)));

@@ -4401,6 +4401,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت إزالة هذا الجهاز من النشاط. سجّل الخروج ثم سجّل الدخول مرة أخرى، أو تواصل مع مالك النشاط.';
 
   @override
+  String get loginRevokedPendingTitle =>
+      'بيانات غير متزامنة محفوظة على هذا الجهاز';
+
+  @override
+  String loginRevokedPendingBody(int count) {
+    return 'تم تسجيل خروج هذا الجهاز من قبل النشاط، لكن لا تزال $count عناصر غير متزامنة محفوظة عليه. تواصل مع مالك النشاط قبل مسح هذا الجهاز.';
+  }
+
+  @override
   String get fsNoSessionTitle => 'لم يتم تسجيل الدخول';
 
   @override

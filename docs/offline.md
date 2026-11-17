@@ -618,12 +618,26 @@ notified only after commit. Never call `LocalWriter.write` inside another
   `account_disabled` / `device_revoked` block. The engine itself never logs
   out; `SyncCoordinator` uses the app's existing forced-logout path
   (`AppInterceptors.forceLogout`), which keeps offline data and the outbox.
-  Known limitation (review M1): there is NO quarantine/export flow for
-  `account_disabled` / `device_revoked` with unsynced rows. The forced
-  sign-out keeps every outbox / sales row (never
-  `OfflineDb.clearAllLocalOfflineData`); the rows sync when a session of the
-  same scope comes back, or stay visible on the pending-sync screen
-  (another account's rows can be discarded there after confirmation).
+  Phase 7 policy (`RevokeSessionPolicy`, `core/sync/revoke_session_policy.dart`):
+  on `account_disabled` / `device_revoked` the scope's unsynced outbox rows
+  (rejected included) are counted. ZERO: `OfflineDb.clearAllLocalOfflineData`
+  then forced logout. ANY (or unknown scope): nothing is deleted, a global
+  `revoke_marker` (sync_state, survives wipes and `clear()`) records reason +
+  count and the login screen shows "unsynced data kept on this device"; the
+  next completed sync clears the marker. The rows sync when a session of the
+  same scope comes back, or stay on the pending-sync screen (another
+  account's rows can be discarded there after confirmation). `needsLogin`
+  never wipes. No export-to-file.
+* Maintenance (`SyncMaintenance`, after a completed foreground sync): `done`
+  outbox rows older than 7 days are pruned, at most once per 24 h per scope
+  (`prune_last_at`). Open / blocked / rejected rows are never pruned.
+* Perf budgets (test/core/perf/perf_budgets_test.dart, sale_crash_test,
+  local_dashboard_queries_test): first page of the product list / search on
+  20k products < 16 ms (`getProducts(limit: 50)`; the full unpaged list is
+  ~120 ms and the product screens still load it all), sale save < 50 ms,
+  cold start (open + first product list, 20k products) < 1 s, dashboard on
+  50k sales < 30 ms per shop. KNOWN MISS: all-shops dashboard ~31 ms
+  (no index leading with `occurred_at`; needs a DB v15 index).
 * User discard / retry (pending-sync screen, `OutboxStore.discard /
   discardAll / retryRejected`), each ONE transaction (review I1/I2/M4):
   * Discard only removes rows that are `pending` / `blocked` / `rejected`
@@ -720,11 +734,15 @@ base 0).
 * Local refusals (`StockValidationException`, mirroring the BE): restaurants
   (all ops), cashiers on a shop other than their default shop, cashiers for
   inbound, zero deltas, more than 3 decimals.
-* Expiry: `stock.add` has no expiry field, so an add with an expiry date
-  uses the REST add (it creates the ProductBatch) when online, then raises
-  the local base by exactly the quantity (the next pull brings the absolute
-  value). Offline it is refused with "Expiry tracking needs a connection"
-  and nothing is written (docs/BE_GAPS.md follow-up).
+* Expiry: when the server advertises capability `stock_add_expiry` (ping,
+  stored in `sync_state`), a dated add is an ordinary local `stock.add` with
+  `expiry_date` (`YYYY-MM-DD`, optional `batch_number`) in its payload: it
+  works offline, the BE creates the ProductBatch when it applies the row and
+  the batch comes back by pull (`expiry_batch`). Without the capability (an
+  older BE, whose `stock.add` would drop the date) the old rule holds: the
+  REST add when online, raising the local base by exactly the quantity;
+  offline it is refused with "Expiry tracking needs a connection" and
+  nothing is written. A malformed date is refused locally.
 * Inbound history: after a local submit the inbound bloc reloads history
   from the local table (no REST refresh), and
   `OfflineLocalCache.saveInboundTransactions` keeps rows whose id has an
@@ -955,6 +973,21 @@ with the server stopped), confirm the badge shows 3 unsynced, then:
     add a *local-only* synced sale (debug) so a repair cannot fix it: expect
     the owner banner "Some numbers may be off" on Home and the Pending Sync
     screen, never for a cashier. Nothing is ever deleted locally.
+
+19. **Revoke / disable.** (a) Fully synced device (no pending rows): revoke
+    it from the owner's device list, trigger a sync. Expect forced logout and
+    an empty local catalog after the next login (re-bootstrap). (b) Create a
+    sale offline, then revoke the device and reconnect. Expect forced logout,
+    the login screen notice "N unsynced items stay on this device", and the
+    sale still present in the pending list for that account; nothing wiped.
+20. **Outbox pruning.** After a device has synced for more than 7 days, done
+    rows older than 7 days are gone from the `outbox` table after a sync
+    (debug SQL); pending / rejected rows remain.
+
+21. **Dated stock add.** Against the updated BE: offline, add stock with an
+    expiry date: it is accepted and queued (no "needs a connection" error);
+    reconnect: the batch shows in the expiry alerts after the sync. Against an
+    old BE (no `stock_add_expiry` in ping) the offline add is refused.
 
 ### How to add an entity
 

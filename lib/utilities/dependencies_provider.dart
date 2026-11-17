@@ -30,6 +30,8 @@ import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/local_writer.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/reachability.dart';
+import 'package:amana_pos/core/sync/maintenance/sync_maintenance.dart';
+import 'package:amana_pos/core/sync/revoke_session_policy.dart';
 import 'package:amana_pos/core/sync/sync_coordinator.dart';
 import 'package:amana_pos/core/sync/sync_device_registrar.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
@@ -277,6 +279,12 @@ class DependenciesProvider {
         stockService: () => getIt<StockService>(),
         // The only vendor write path (local + outbox).
         vendorService: () => getIt<VendorService>(),
+        // Dated adds go through `stock.add` once the server says it keeps
+        // the date (capability from the last ping).
+        expiryAddSynced: () async =>
+            (await getIt<SyncStateStore>().capabilities()).contains(
+              'stock_add_expiry',
+            ),
       ),
     );
 
@@ -834,7 +842,12 @@ class DependenciesProvider {
         // Every session event (explicit refresh rejection, account disabled,
         // device revoked) uses the app's existing forced-logout path: tokens
         // + PIN/biometric cleared, offline data and the outbox KEPT.
-        onSessionEnded: (_) => AppInterceptors.forceLogout(),
+        onSessionEnded: RevokeSessionPolicy(
+          outbox: getIt<OutboxStore>(),
+          state: getIt<SyncStateStore>(),
+          wipe: getIt<OfflineDb>().clearAllLocalOfflineData,
+          logout: AppInterceptors.forceLogout,
+        ).handle,
         bootstrapper: await getIt.getAsync<Bootstrapper>(),
       );
     });
@@ -906,8 +919,39 @@ class DependenciesProvider {
     await coordinator.attach();
     final engine = await getIt.getAsync<SyncEngine>();
     final audit = await getIt.getAsync<ChecksumAudit>();
+    final maintenance = SyncMaintenance(
+      outbox: getIt<OutboxStore>(),
+      state: getIt<SyncStateStore>(),
+      scopeProvider: () => SyncScope.current,
+    );
+    final state = getIt<SyncStateStore>();
     engine.afterSyncCompleted = () async {
-      await audit.maybeRun();
+      // Independent steps: one failing must not skip the others.
+      try {
+        await audit.maybeRun();
+      } catch (e, st) {
+        developer.log(
+          'audit after sync failed',
+          name: 'DependenciesProvider',
+          error: e,
+          stackTrace: st,
+        );
+      }
+      await maintenance.maybeRun(); // never throws
+      try {
+        // The notice is about unsynced rows left by a revoke: it ends when
+        // no scope on the device has any (not merely after some sync).
+        if (await getIt<OutboxStore>().unsyncedCount() == 0) {
+          await state.setRevokeMarker(null);
+        }
+      } catch (e, st) {
+        developer.log(
+          'revoke marker clear failed',
+          name: 'DependenciesProvider',
+          error: e,
+          stackTrace: st,
+        );
+      }
     };
   }
 

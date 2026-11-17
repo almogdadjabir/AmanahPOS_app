@@ -60,6 +60,15 @@ void main() {
     expect((await q.sales(cutoff: cutoff)).count, 0);
   });
 
+  test('sales: offset timestamps are judged by instant, not by text', () async {
+    // 08:00-05:00 is 13:00Z: after the cutoff though its text sorts before.
+    await sale('o1', received: '2026-11-10T08:00:00.000-05:00');
+    // 14:00+03:00 is 11:00Z: before the cutoff though its text sorts after.
+    await sale('o2', received: '2026-11-10T14:00:00.000+03:00');
+    final c = await q.sales(cutoff: cutoff);
+    expect(c.count, 1);
+  });
+
   test('sales: nearEdge within 5 min, not at 1 h (Review Focus 2)', () async {
     await sale('e', received: '2026-11-10T12:02:00.000Z');
     expect((await q.sales(cutoff: cutoff)).nearEdge, isTrue);

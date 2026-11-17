@@ -4442,6 +4442,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device was removed from the business. Sign out and sign in again, or contact the business owner.';
 
   @override
+  String get loginRevokedPendingTitle => 'Unsynced data kept on this device';
+
+  @override
+  String loginRevokedPendingBody(int count) {
+    return 'This device was signed out by the business, but $count unsynced items stay on it. Contact the business owner before clearing this device.';
+  }
+
+  @override
   String get fsNoSessionTitle => 'Not signed in';
 
   @override

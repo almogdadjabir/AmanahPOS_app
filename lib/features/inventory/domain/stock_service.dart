@@ -84,11 +84,17 @@ class StockService {
 
   /// `stock.add`: [delta] must be > 0 (BE rejects otherwise). Returns the new
   /// displayed quantity (exact decimal string).
+  ///
+  /// [expiryDate] (`YYYY-MM-DD`) and [batchNumber] ride in the payload; the
+  /// BE then creates the batch (capability `stock_add_expiry`, the caller
+  /// checks it). Local stock is unaffected: the batch comes back by pull.
   Future<String> add({
     required String productId,
     required String shopId,
     required String delta,
     String? reason,
+    String? expiryDate,
+    String? batchNumber,
   }) async {
     final d = _delta(delta);
     if (d <= BigInt.zero) {
@@ -96,7 +102,31 @@ class StockService {
         'Quantity to add must be greater than 0',
       );
     }
-    return _op('add', productId, shopId, d, reason);
+    final expiry = expiryDate?.trim();
+    if (expiry != null &&
+        expiry.isNotEmpty &&
+        !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(expiry)) {
+      throw const StockValidationException('Expiry date must be YYYY-MM-DD');
+    }
+    final batch = batchNumber?.trim();
+    if (batch != null && batch.length > 100) {
+      throw const StockValidationException('Batch number is too long');
+    }
+    return _op(
+      'add',
+      productId,
+      shopId,
+      d,
+      reason,
+      extra: {
+        if (expiry != null && expiry.isNotEmpty) 'expiry_date': expiry,
+        if (expiry != null &&
+            expiry.isNotEmpty &&
+            batch != null &&
+            batch.isNotEmpty)
+          'batch_number': batch,
+      },
+    );
   }
 
   /// `stock.remove`: the BE takes the magnitude of the delta, so the
@@ -148,6 +178,7 @@ class StockService {
     BigInt? delta,
     String? reason, {
     BigInt? target,
+    Map<String, Object?> extra = const {},
   }) async {
     final p = productId.trim();
     final s = shopId.trim();
@@ -179,6 +210,7 @@ class StockService {
           occurredAt: occurredAt,
           entityId: entityId,
           stock: _stock,
+          extra: extra,
         );
       },
     );
@@ -200,6 +232,7 @@ class StockService {
     required DateTime occurredAt,
     required String entityId,
     StockLocalStore stock = const StockLocalStore(),
+    Map<String, Object?> extra = const {},
   }) async {
     final txn = scope.txn;
     // entity_id: a fresh UUID per mutation (BE requires a UUID and only
@@ -219,6 +252,7 @@ class StockService {
         'delta': Decimal3.format(delta),
         'reason': reason,
         'occurred_at': occurredAt.toIso8601String(),
+        ...extra,
       },
     );
     await stock.recompute(txn, productId, shopId, createIfMissing: true);

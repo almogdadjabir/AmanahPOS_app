@@ -4,6 +4,7 @@ import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/login/presentation/bloc/login_bloc.dart';
 import 'package:amana_pos/features/login/presentation/login_code_screen.dart';
 import 'package:amana_pos/features/login/presentation/widgets/login_form.dart';
+import 'package:amana_pos/features/login/presentation/widgets/revoked_pending_notice.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/utilities/dependencies_provider.dart';
@@ -33,7 +34,12 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Scaffold(
         backgroundColor: context.appColors.background,
         resizeToAvoidBottomInset: true,
-        body: const LoginForm(),
+        body: const Column(
+          children: [
+            RevokedPendingNotice(),
+            Expanded(child: LoginForm()),
+          ],
+        ),
       ),
     );
   }

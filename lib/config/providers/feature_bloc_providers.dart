@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
 import 'package:amana_pos/barcode_scanner/presentation/bloc/barcode_scanner_bloc.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
@@ -138,6 +139,10 @@ class FeatureBlocProviders {
             useCase: getIt<InventoryUseCase>(),
             offlineLocalCache: getIt<OfflineLocalCache>(),
             isOnline: () => getIt<OfflineStatusBloc>().isDeviceOnline,
+            expiryAddSynced: () async =>
+                (await getIt<SyncStateStore>().capabilities()).contains(
+                  'stock_add_expiry',
+                ),
           ),
         ),
         BlocProvider(

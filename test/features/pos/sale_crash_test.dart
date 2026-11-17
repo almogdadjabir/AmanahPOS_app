@@ -144,7 +144,7 @@ void main() {
 
   // Review I5: synchronous=FULL fsyncs every commit. A sale is ONE commit;
   // on a real file DB the save must stay well inside the checkout budget.
-  test('sale save on a file DB with synchronous=FULL stays under 100 ms '
+  test('sale save on a file DB with synchronous=FULL stays under 50 ms '
       'per sale on average', () async {
     final f = await SaleFixture.on(await open());
     addTearDown(f.db.close);
@@ -163,6 +163,6 @@ void main() {
     print(
       'sale save (file db, synchronous=FULL): ${avgMs.toStringAsFixed(2)} ms avg',
     );
-    expect(avgMs, lessThan(100));
+    expect(avgMs, lessThan(50));
   });
 }

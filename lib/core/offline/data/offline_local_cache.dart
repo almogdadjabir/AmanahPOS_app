@@ -65,12 +65,18 @@ class OfflineLocalCache {
   /// Local products by name. [isActive]: null = all rows, true = active
   /// only (lists and pickers: a local delete is `is_active == false` until
   /// the server confirms it), false = inactive only (the inactive filter;
-  /// history stays resolvable).
+  /// history stays resolvable). [limit] caps the rows read (first page).
   Future<List<ProductData>> getProducts({
     String? categoryId,
     String? search,
     bool? isActive,
+    int? limit,
   }) async {
+    if (limit != null && isActive != null) {
+      // limit is applied in SQL, before the isActive filter: a page of
+      // inactive rows would hide active ones.
+      throw ArgumentError('limit cannot be combined with isActive');
+    }
     final db = await _db.database;
 
     final where = <String>[];
@@ -92,6 +98,11 @@ class OfflineLocalCache {
       where: where.isEmpty ? null : where.join(' AND '),
       whereArgs: args.isEmpty ? null : args,
       orderBy: 'name COLLATE NOCASE ASC',
+      // A page, not the catalog: callers that show a screenful pass it
+      // (perf budget, Phase 7). Null = everything, as before. With an
+      // [isActive] filter the limit applies before it, so use it only
+      // with isActive == null or a pre-filtered query.
+      limit: limit,
     );
 
     final all = rows.map(

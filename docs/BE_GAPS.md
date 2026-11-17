@@ -404,3 +404,31 @@ One list, most important first. Detail for each is in the "Follow-ups found by t
 - **15. Checksum window**: `sync/checksum?since=N` filters sale by `created_at >= now - N days`; the app compares by the sale's `received_at` (your `created_at`). A row within 5 min of the cutoff is treated as inconclusive. Please document `since` as integer days (it is) and keep `created_at` as the window field.
 - **16. `max_seq`**: the app uses it as an "did the server move during the audit" probe (two calls per entity, equal `max_seq` required). Please keep it a number (int) and per-entity (it is today). A global seq works but makes the audit inconclusive more often.
 - **17. `sum_total` basis**: sale `sum_total` is `net_amount` over all statuses, while `dashboard-summary` sums `total_amount` (item 3). The audit compares raw synced totals, so it is unaffected, but the debug dashboard parity log will show a difference whenever sales carry a sale discount or exclusive tax until item 3 is answered.
+
+## FINAL STATUS (BE closed out 2026-11-17, local only: migrated, server restarted)
+
+Implemented in the BE repo (tests in `apps/sync/tests/test_mobile_gaps.py`; sync/inventory/products/offline/customers/accounts suites green, 346 tests; no model change so NO new migration, `makemigrations --check` clean, `migrate` had nothing to apply):
+
+| # | Item | Result |
+|---|------|--------|
+| 1 | Sale failed by a rejected product edit | **Fixed** (`sync/services.py`): only a rejected `create` poisons dependents; a rejected update/delete/refund leaves the row, so the sale in the same push applies. |
+| 2 | Category uniqueness uses the row's own parent | **Fixed** (`handlers._unique_conflict`): an update without `parent`/`name` uses the row's own value; moving under a parent is checked too. |
+| 5 | `update` with `role`/`default_shop_id` | **Fixed**: requires `base_version` (like `set_role`/`set_shop`); a plain rename needs none; one version bump per applied mutation (tested incl. `deactivate`). |
+| 6 | `stock.add` expiry | **Fixed**: `expiry_date` (YYYY-MM-DD) + `batch_number` (<=100) create a `ProductBatch`; bad date -> `validation_error`; replay makes one batch. Mobile side is now unblocked (open on the app). |
+| 7 | `conflict_entity_id` | Already present on every unique clash (category, vendor, customer, user, product) and on "already exists"; now covered by tests. |
+| 8 | `customer.update` `is_active` | Already supported (managers/owners; a cashier's `is_active` is ignored); version bump covered by a test. |
+| 9 | `image_pending`, image PUT | `image_pending` is accepted (stripped) on create; the PUT already echoes `Idempotency-Key` and returns `version`. |
+| 10 | Image size/hash | Feed rows now carry `image_bytes` and `thumbnail_bytes`; `backfill_image_hashes` command already exists. A separate per-variant hash would need a new column (not done, mobile does not need it). |
+| 11 | `stock_after` | Omitted when empty (already) and now also when a count/adjust changes nothing. |
+
+Confirmed / documented, no code change:
+- **3 / 17** dashboard and checksum basis: the sales stats queries aggregate `net_amount`, checksum `sum_total` is `net_amount` over all statuses, `sum_revenue` is revenue statuses only. Left as is; changing the dashboard basis is a product decision, not a sync fix.
+- **4** refund rounding: per line `unit_price * qty` quantized to 0.01 (Decimal default half-even), summed; the client `reference` is echoed as `refund_reference`.
+- **13** cashiers: push allows a cashier only sale create/refund/cancel, customer create/update, stock add/remove/adjust, notifications (stricter than REST); `category.delete` is manager+ (soft delete + tombstone).
+- **14** pull for a cashier carries exactly their own `user` row (`pull.py` excludes other users).
+- **15 / 16** checksum: `since` is integer days on `created_at`; `max_seq` is an int per entity.
+
+Deliberately NOT done:
+- **12** `full_resync_required` from `bootstrap_page` and per-entity counts in the manifest: the mobile bootstrapper does not read that flag on pages, so answering it there would make the app treat an empty page as a finished bootstrap. Today the first `pull` after the bootstrap detects a stale snapshot safely. Do this only together with mobile support.
+
+**Item 6 mobile side (done 2026-11-17):** the BE advertises capability `stock_add_expiry` in the ping; the app then queues a dated add as a normal offline `stock.add` with `expiry_date` (and optional `batch_number`). Without the capability (older BE) the previous online-only REST path stays. Checklist item 21 in docs/offline.md.

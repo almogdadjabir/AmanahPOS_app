@@ -8060,6 +8060,18 @@ abstract class AppLocalizations {
   /// **'This device was removed from the business. Sign out and sign in again, or contact the business owner.'**
   String get fsDeviceRevokedBody;
 
+  /// No description provided for @loginRevokedPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsynced data kept on this device'**
+  String get loginRevokedPendingTitle;
+
+  /// No description provided for @loginRevokedPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device was signed out by the business, but {count} unsynced items stay on it. Contact the business owner before clearing this device.'**
+  String loginRevokedPendingBody(int count);
+
   /// No description provided for @fsNoSessionTitle.
   ///
   /// In en, this message translates to:

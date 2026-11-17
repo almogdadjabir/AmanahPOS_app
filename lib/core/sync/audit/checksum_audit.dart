@@ -75,15 +75,15 @@ class ChecksumAudit {
     try {
       final scope = _scopeProvider();
       if (scope == null || scope.isEmpty) return AuditRun.skipped;
-      if (!(await _capabilities()).contains(capability)) {
-        return AuditRun.skipped;
-      }
       final st = _state.forScope(scope);
       if (!force) {
         final last = await st.lastAuditAt();
         if (last != null && _now().toUtc().difference(last) < minInterval) {
           return AuditRun.skipped;
         }
+      }
+      if (!(await _capabilities()).contains(capability)) {
+        return AuditRun.skipped;
       }
       if (!await _idle()) return AuditRun.skipped;
 

@@ -39,12 +39,14 @@ class _CountingCache extends OfflineLocalCache {
     String? categoryId,
     String? search,
     bool? isActive,
+    int? limit,
   }) {
     productReads++;
     return super.getProducts(
       categoryId: categoryId,
       search: search,
       isActive: isActive,
+      limit: limit,
     );
   }
 }

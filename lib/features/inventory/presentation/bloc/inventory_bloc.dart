@@ -20,6 +20,12 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
   final OfflineLocalCache offlineLocalCache;
   final Future<bool> Function() isOnline;
 
+  /// Server accepts `expiry_date` on `stock.add` (capability
+  /// `stock_add_expiry`): a dated add then works offline too.
+  final Future<bool> Function() expiryAddSynced;
+
+  static Future<bool> _never() async => false;
+
   // Add / remove / adjust / inbound are written locally by `StockService`
   // (through the repository), which already updated local stock; transfer
   // (REST) mirrors itself on the local base in the repository too. The bloc
@@ -29,6 +35,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     required this.useCase,
     required this.offlineLocalCache,
     required this.isOnline,
+    this.expiryAddSynced = _never,
   }) : super(InventoryState.initial()) {
     on<OnInventoryInitial>(_init);
     on<OnLoadMoreStock>(_loadMore);
@@ -236,9 +243,12 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     );
 
     final expiry = event.expiryDate?.trim();
-    if (expiry != null && expiry.isNotEmpty && !await isOnline()) {
-      // Expiry tracking needs the REST add (it creates the batch); nothing
-      // is written offline.
+    if (expiry != null &&
+        expiry.isNotEmpty &&
+        !await isOnline() &&
+        !await expiryAddSynced()) {
+      // Without capability `stock_add_expiry` a dated add needs the REST
+      // add (it creates the batch); nothing is written offline.
       if (!emit.isDone) {
         emit(
           state.copyWith(
