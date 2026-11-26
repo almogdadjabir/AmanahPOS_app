@@ -39,16 +39,12 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
   Future<void> _loadBusiness(Emitter<BusinessState> emit) async {
     if (state.businessStatus == BusinessStatus.loading) return;
 
-    var emittedCache = false;
-
     try {
       final cachedBusinesses = await offlineLocalCache.getBusinesses();
 
       if (emit.isDone) return;
 
       if (cachedBusinesses.isNotEmpty) {
-        emittedCache = true;
-
         emit(
           state.copyWith(
             isLoading: false,

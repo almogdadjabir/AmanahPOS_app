@@ -53,6 +53,20 @@ class ShiftTime {
 /// that sync already stores. A switch the server does not send yet takes the
 /// default listed in `docs/BE_GAPS_PARITY.md` G1, so the till keeps working
 /// against today's backend. Screens ask this and never read raw columns.
+/// Whether cashiers may give discounts: not at all, only with the owner's
+/// PIN, or alone. Owners and managers are never restricted.
+enum CashierDiscountMode {
+  off,
+  approval,
+  free;
+
+  static CashierDiscountMode parse(Object? v) => switch (v) {
+    'approval' => approval,
+    'free' => free,
+    _ => off,
+  };
+}
+
 class BusinessFeatures {
   const BusinessFeatures({
     this.splitPayments = true,
@@ -60,6 +74,7 @@ class BusinessFeatures {
     this.lineDiscount = true,
     this.saleDiscount = true,
     this.stockCount = true,
+    this.cashierDiscount = CashierDiscountMode.off,
     this.shiftsMode = ShiftsMode.off,
     this.shiftsAutoOpen = const ShiftTime(8, 0),
     this.shiftsAutoClose = const ShiftTime(22, 0),
@@ -73,6 +88,7 @@ class BusinessFeatures {
   final bool lineDiscount;
   final bool saleDiscount;
   final bool stockCount;
+  final CashierDiscountMode cashierDiscount;
   final ShiftsMode shiftsMode;
   final ShiftTime shiftsAutoOpen;
   final ShiftTime shiftsAutoClose;
@@ -99,6 +115,7 @@ class BusinessFeatures {
       lineDiscount: on('line_discount_enabled', true),
       saleDiscount: on('sale_discount_enabled', true),
       stockCount: on('stock_count_enabled', true),
+      cashierDiscount: CashierDiscountMode.parse(j['cashier_discount_mode']),
       shiftsMode: ShiftsMode.parse(j['shifts_mode']),
       shiftsAutoOpen:
           ShiftTime.tryParse(j['shifts_auto_open']) ?? const ShiftTime(8, 0),
@@ -189,6 +206,7 @@ class BusinessFeaturesService {
       a.lineDiscount == b.lineDiscount &&
       a.saleDiscount == b.saleDiscount &&
       a.stockCount == b.stockCount &&
+      a.cashierDiscount == b.cashierDiscount &&
       a.shiftsMode == b.shiftsMode &&
       a.shiftsAutoOpen == b.shiftsAutoOpen &&
       a.shiftsAutoClose == b.shiftsAutoClose &&

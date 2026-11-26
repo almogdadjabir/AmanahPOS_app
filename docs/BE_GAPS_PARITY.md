@@ -89,3 +89,7 @@ Owner's scope (2026-11-26): the signed-in owner/manager creates the pairing code
 ## Order we need things in
 
 G1 + G2 + G3 first (blocks mobile phases 3, 4 and 5). G4 can go with them. G5 and G6 are improvements, G7 is confirmation only and can happen any time before mobile phase 7.
+
+## G8. Cashier discount setting (BE + Dashboard)
+
+New per-business till switch `cashier_discount_mode`: `off` (default) | `approval` (cashier needs the owner PIN) | `free` (cashier discounts alone). Same place and delivery as the G1 switches (sync bootstrap `business_features` row, dashboard "Till rules"). The phone only reads it. Owner and manager are never restricted.

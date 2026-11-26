@@ -317,7 +317,6 @@
   "categoriesWithSubCategories": "Categories With Sub Categories",
   "addCategory": "Add Category",
 
-
   "productNameRequired": "Product name is required",
   "priceRequired": "Price is required",
   "enterValidPrice": "Enter a valid price",
@@ -328,7 +327,6 @@
   "tapToChangeProductImage": "Tap to change product image",
   "categoryLocked": "Category locked",
   "locked": "Locked",
-
 
   "allProducts": "All Products",
   "unknownCategory": "Unknown Category",
@@ -473,7 +471,9 @@
   "customersNoMatchMsg": "Nothing matches \"{query}\".",
   "@customersNoMatchMsg": {
     "placeholders": {
-      "query": { "type": "String" }
+      "query": {
+        "type": "String"
+      }
     }
   },
   "customersLoadFailed": "Failed to load customers",
@@ -486,14 +486,18 @@
   "deleteCustomerConfirm": "Are you sure you want to delete \"{name}\"?",
   "@deleteCustomerConfirm": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "invalidCustomer": "Invalid customer",
   "loyaltyPointsSuffix": "{points} points",
   "@loyaltyPointsSuffix": {
     "placeholders": {
-      "points": { "type": "int" }
+      "points": {
+        "type": "int"
+      }
     }
   },
 
@@ -535,7 +539,9 @@
   "viewPendingCount": "View {count} pending",
   "@viewPendingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "loadingMore": "Loading more",
@@ -705,7 +711,6 @@
   "cashierAccessHint": "Can process sales and use POS terminal",
   "adminAccessHint": "Can manage business settings and staff access",
   "staffAccountHint": "Staff account",
-
 
   "subtotal": "Subtotal",
   "total": "Total",
@@ -941,21 +946,31 @@
   "taxWithRate": "Tax ({taxName} {taxRate}%)",
   "@taxWithRate": {
     "placeholders": {
-      "taxName": {"type": "String"},
-      "taxRate": {"type": "String"}
+      "taxName": {
+        "type": "String"
+      },
+      "taxRate": {
+        "type": "String"
+      }
     }
   },
   "taxWithRatePercent": "Tax ({taxRate}%)",
   "@taxWithRatePercent": {
     "placeholders": {
-      "taxRate": {"type": "String"}
+      "taxRate": {
+        "type": "String"
+      }
     }
   },
   "totalInclTax": "Total (incl. {taxName} {taxRate}%)",
   "@totalInclTax": {
     "placeholders": {
-      "taxName": {"type": "String"},
-      "taxRate": {"type": "String"}
+      "taxName": {
+        "type": "String"
+      },
+      "taxRate": {
+        "type": "String"
+      }
     }
   },
   "taxIncluded": "Tax included",
@@ -1001,10 +1016,22 @@
   "countryUae": "UAE",
   "codeTitle": "Enter code",
   "codeSentTo": "We sent a 6-digit code to {phone}.",
-  "@codeSentTo": {"placeholders": {"phone": {"type": "String"}}},
+  "@codeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "codeWrongNumber": "Wrong number?",
   "codeResendIn": "Resend code in {time}",
-  "@codeResendIn": {"placeholders": {"time": {"type": "String"}}},
+  "@codeResendIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "codeVerifying": "Verifying…",
   "codeVerified": "Verified",
   "pinCreateTitle": "Create a PIN",
@@ -1013,18 +1040,36 @@
   "pinConfirmSubtitle": "Enter it once more.",
   "pinEnterTitle": "Enter your PIN",
   "pinWelcomeBack": "Welcome back, {name}",
-  "@pinWelcomeBack": {"placeholders": {"name": {"type": "String"}}},
+  "@pinWelcomeBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "pinMismatch": "PINs don't match. Start again.",
   "pinWrong": "Wrong PIN. Try again.",
   "pinTaken": "This PIN is already in use. Choose another.",
   "pinUnavailable": "Something went wrong. Try again.",
   "pinNotYou": "Not {name}?",
-  "@pinNotYou": {"placeholders": {"name": {"type": "String"}}},
+  "@pinNotYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "pinUseDifferentAccount": "Use a different account",
   "pinForgot": "Forgot your PIN?",
   "pinLockedTitle": "Too many attempts",
   "pinLockedSubtitle": "Try again in {time}.",
-  "@pinLockedSubtitle": {"placeholders": {"time": {"type": "String"}}},
+  "@pinLockedSubtitle": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "pinCurrentTitle": "Enter current PIN",
   "pinCurrentSubtitle": "Confirm it's you before changing your PIN.",
   "pinNewTitle": "New PIN",
@@ -1036,10 +1081,22 @@
   "pinBiometricGeneric": "Biometrics",
   "pinBiometricReason": "Unlock AmanaPOS",
   "pinBiometricEnableTitle": "Use {method} to unlock?",
-  "@pinBiometricEnableTitle": {"placeholders": {"method": {"type": "String"}}},
+  "@pinBiometricEnableTitle": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "pinBiometricEnableBody": "Unlock AmanaPOS in a glance. Your PIN still works any time.",
   "pinBiometricEnable": "Turn on {method}",
-  "@pinBiometricEnable": {"placeholders": {"method": {"type": "String"}}},
+  "@pinBiometricEnable": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "pinBiometricNotNow": "Not now",
 
   "menuLock": "Lock",
@@ -1056,13 +1113,37 @@
   "homeTopSellers": "Top sellers",
   "homeManage": "Manage",
   "homeSoldQty": "{qty} sold",
-  "@homeSoldQty": {"placeholders": {"qty": {"type": "String"}}},
+  "@homeSoldQty": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "homeShopsCount": "{count, plural, =1{1 branch} other{{count} branches}}",
-  "@homeShopsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@homeShopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeProductsCount": "{count, plural, =1{1 item} other{{count} items}}",
-  "@homeProductsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@homeProductsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeUsersCount": "{count, plural, =1{1 user} other{{count} users}}",
-  "@homeUsersCount": {"placeholders": {"count": {"type": "int"}}},
+  "@homeUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeNoSalesTitle": "No sales yet today",
   "homeNoSalesBody": "Sales you make will show up here, hour by hour.",
   "homeStartSelling": "Start selling",
@@ -1074,9 +1155,27 @@
   "homePlanNoExpiry": "No expiry",
   "homePlanExpired": "Expired",
   "homePlanDaysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
-  "@homePlanDaysLeft": {"placeholders": {"count": {"type": "int"}}},
+  "@homePlanDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homePlanLimits": "Shops {shops} · Products {products} · Users {users}",
-  "@homePlanLimits": {"placeholders": {"shops": {"type": "String"}, "products": {"type": "String"}, "users": {"type": "String"}}},
+  "@homePlanLimits": {
+    "placeholders": {
+      "shops": {
+        "type": "String"
+      },
+      "products": {
+        "type": "String"
+      },
+      "users": {
+        "type": "String"
+      }
+    }
+  },
   "homePlanUnlimited": "Unlimited",
   "homePayCard": "Card",
   "homePayBankTransfer": "Bank transfer",
@@ -1086,20 +1185,50 @@
   "homePaySplit": "Split",
   "homePayOther": "Other",
   "homePlanPriceMonthly": "{price} a month",
-  "@homePlanPriceMonthly": {"placeholders": {"price": {"type": "String"}}},
+  "@homePlanPriceMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "homePlanPriceYearly": "{price} a year",
-  "@homePlanPriceYearly": {"placeholders": {"price": {"type": "String"}}},
+  "@homePlanPriceYearly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "homeReportsHint": "All transactions",
   "pcSearchHint": "Search name, SKU or barcode",
   "pcCount": "{count} products",
-  "@pcCount": {"placeholders": {"count": {"type": "String"}}},
+  "@pcCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcChipCategory": "Category",
   "pcChipLow": "Low stock",
   "pcChipOut": "Out of stock",
   "pcInStock": "{qty} in stock",
-  "@pcInStock": {"placeholders": {"qty": {"type": "String"}}},
+  "@pcInStock": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "pcLeft": "{qty} left",
-  "@pcLeft": {"placeholders": {"qty": {"type": "String"}}},
+  "@pcLeft": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "pcOutOfStock": "Out of stock",
   "pcSwipeStock": "Stock",
   "pcNoMatches": "No matches",
@@ -1109,7 +1238,13 @@
   "pcAllCategories": "All categories",
   "pcShowingSaved": "Showing saved products",
   "pcDeleteTitle": "Delete {name}?",
-  "@pcDeleteTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@pcDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "pcDeleteBody": "This removes it from your catalog. Past sales keep their records.",
   "pcDeleted": "Product deleted",
   "pcUpdateStock": "Update stock",
@@ -1132,13 +1267,37 @@
   "usExpiryDate": "Expiry date",
   "usNote": "Note",
   "usSaveAdd": "Add {qty}",
-  "@usSaveAdd": {"placeholders": {"qty": {"type": "String"}}},
+  "@usSaveAdd": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "usSaveRemove": "Remove {qty}",
-  "@usSaveRemove": {"placeholders": {"qty": {"type": "String"}}},
+  "@usSaveRemove": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "usSaveCount": "Set count to {qty}",
-  "@usSaveCount": {"placeholders": {"qty": {"type": "String"}}},
+  "@usSaveCount": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "usSaveMove": "Move {qty}",
-  "@usSaveMove": {"placeholders": {"qty": {"type": "String"}}},
+  "@usSaveMove": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "usSaved": "Stock updated",
   "usNotEnough": "Not enough stock in this shop",
   "usPickDifferentShop": "Choose two different shops",
@@ -1151,7 +1310,13 @@
   "pfLowStockAlert": "Low stock alert",
   "pfExpiryAlert": "Expiry alert",
   "pfExpiryDays": "{days} days before",
-  "@pfExpiryDays": {"placeholders": {"days": {"type": "String"}}},
+  "@pfExpiryDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
   "pfAddPhoto": "Add photo",
   "pfChangePhoto": "Change photo",
   "pfDeleteProduct": "Delete product",
@@ -1161,18 +1326,39 @@
   "pfEnterName": "Enter a name",
   "pfEnterPrice": "Enter a price",
   "pfStockRowValue": "{qty} {unit}",
-  "@pfStockRowValue": {"placeholders": {"qty": {"type": "String"}, "unit": {"type": "String"}}},
+  "@pfStockRowValue": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "pfUnit": "Unit",
   "pfBarcode": "Barcode",
   "pfCostPrice": "Cost price",
   "pfSaving": "Saving",
   "ctCountTitle": "{count} categories",
-  "@ctCountTitle": {"placeholders": {"count": {"type": "String"}}},
+  "@ctCountTitle": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ctEmptyBody": "Create a category to group products and find them faster.",
   "ctDelete": "Delete category",
   "ctDeleteNote": "Its products stay in your catalog without a category.",
   "ctInThis": "{count} products in this category",
-  "@ctInThis": {"placeholders": {"count": {"type": "String"}}},
+  "@ctInThis": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "ctNoProducts": "No products in this category",
   "ctNoProductsBody": "Products you add here will show up in this category.",
   "ctDescHint": "What goes in this category",
@@ -1204,7 +1390,13 @@
   "shTitle": "Sales history",
   "shSearchHint": "Search receipt, customer or phone",
   "shCount": "{count, plural, =1{1 sale} other{{count} sales}}",
-  "@shCount": {"placeholders": {"count": {"type": "int"}}},
+  "@shCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shChipDate": "Date",
   "shDateAny": "Any date",
   "shDateToday": "Today",
@@ -1229,7 +1421,13 @@
   "shPillReturned": "Returned",
   "shPillPartial": "Partly returned",
   "shItems": "{count, plural, =1{1 item} other{{count} items}}",
-  "@shItems": {"placeholders": {"count": {"type": "int"}}},
+  "@shItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shWalkIn": "Walk-in",
   "shSwipeReturn": "Return",
   "shSwipeReceipt": "Receipt",
@@ -1240,7 +1438,16 @@
   "shErrorBody": "Check your connection and try again.",
   "shTryAgain": "Try again",
   "shWhen": "{day} · {time}",
-  "@shWhen": {"placeholders": {"day": {"type": "String"}, "time": {"type": "String"}}},
+  "@shWhen": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "shReceipt": "Receipt",
   "shDate": "Date",
   "shCashier": "Cashier",
@@ -1249,11 +1456,23 @@
   "shPayment": "Payment",
   "shNote": "Note",
   "shItemsHeader": "Items · {count}",
-  "@shItemsHeader": {"placeholders": {"count": {"type": "int"}}},
+  "@shItemsHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shSubtotal": "Subtotal",
   "shDiscount": "Discount",
   "shTaxIncluded": "Includes tax {rate}%",
-  "@shTaxIncluded": {"placeholders": {"rate": {"type": "String"}}},
+  "@shTaxIncluded": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "shTax": "Tax",
   "shTotal": "Total",
   "shReturnedTotal": "Returned",
@@ -1267,38 +1486,104 @@
   "shShareReceipt": "Share receipt",
   "shCopied": "Copied",
   "shLineReturned": "{qty} returned",
-  "@shLineReturned": {"placeholders": {"qty": {"type": "String"}}},
+  "@shLineReturned": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "shBannerPending": "Waiting to sync. You can return this sale after it syncs.",
   "shBannerFailed": "Could not sync this sale: {reason}",
-  "@shBannerFailed": {"placeholders": {"reason": {"type": "String"}}},
+  "@shBannerFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "shBannerFailedNoReason": "Could not sync this sale.",
   "shBankakAccount": "Bankak ••• {last4}",
-  "@shBankakAccount": {"placeholders": {"last4": {"type": "String"}}},
+  "@shBankakAccount": {
+    "placeholders": {
+      "last4": {
+        "type": "String"
+      }
+    }
+  },
   "shReceiptFailed": "Could not prepare the receipt. Try again.",
   "rtTitle": "Return items",
   "rtSelectAll": "Select all",
   "rtClear": "Clear",
   "rtItemsToReturn": "Items to return",
   "rtSold": "Sold {qty}",
-  "@rtSold": {"placeholders": {"qty": {"type": "String"}}},
+  "@rtSold": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "rtSoldReturned": "Sold {qty} · Returned {returned}",
-  "@rtSoldReturned": {"placeholders": {"qty": {"type": "String"}, "returned": {"type": "String"}}},
+  "@rtSoldReturned": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "returned": {
+        "type": "String"
+      }
+    }
+  },
   "rtQuantity": "Quantity to return",
   "rtUpTo": "Up to {qty}",
-  "@rtUpTo": {"placeholders": {"qty": {"type": "String"}}},
+  "@rtUpTo": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "rtReason": "Reason",
   "rtOptional": "Optional",
   "rtPayBack": "Pay back via",
   "rtFooter": "Stock goes back on the shelf and the refund is counted in your reports.",
   "rtRefundButton": "Refund {amount}",
-  "@rtRefundButton": {"placeholders": {"amount": {"type": "String"}}},
+  "@rtRefundButton": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "rtPickItems": "Select items to return",
   "rtConfirmTitle": "Refund {amount}?",
-  "@rtConfirmTitle": {"placeholders": {"amount": {"type": "String"}}},
+  "@rtConfirmTitle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "rtConfirmBodyCash": "Stock is restored. Give the customer {amount} in cash.",
-  "@rtConfirmBodyCash": {"placeholders": {"amount": {"type": "String"}}},
+  "@rtConfirmBodyCash": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "rtConfirmBodyOther": "Stock is restored. Send the customer {amount} by {method}.",
-  "@rtConfirmBodyOther": {"placeholders": {"amount": {"type": "String"}, "method": {"type": "String"}}},
+  "@rtConfirmBodyOther": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "rtConfirmGo": "Refund",
   "rtDoneTitle": "Return recorded",
   "rtDoneBody": "Stock is back on the shelf.",
@@ -1317,7 +1602,16 @@
   "rpCustom": "Custom",
   "rpNetSales": "Net sales",
   "rpFromSales": "From {count} sales · average {avg}",
-  "@rpFromSales": {"placeholders": {"count": {"type": "String"}, "avg": {"type": "String"}}},
+  "@rpFromSales": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
   "rpGross": "Gross",
   "rpReturns": "Returns",
   "rpTax": "Tax",
@@ -1330,7 +1624,13 @@
   "rpPeakHours": "Busiest hours",
   "rpBusiestDays": "Busiest days",
   "rpSold": "{qty} sold",
-  "@rpSold": {"placeholders": {"qty": {"type": "String"}}},
+  "@rpSold": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "rpFrom": "From",
   "rpTo": "To",
   "rpApply": "Apply",
@@ -1339,7 +1639,13 @@
   "rpEmptyBody": "Pick another range to see your numbers.",
   "rpErrorTitle": "Could not load the report",
   "rpUpdated": "Updated {time}",
-  "@rpUpdated": {"placeholders": {"time": {"type": "String"}}},
+  "@rpUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "rpOwnersOnly": "Reports is for owners only.",
   "homeSalesHistory": "Sales history",
   "homeSalesHint": "Receipts and returns",
@@ -1347,9 +1653,21 @@
   "fmOptional": "Optional",
   "cuTitle": "Customers",
   "cuCount": "{count, plural, =1{1 customer} other{{count} customers}}",
-  "@cuCount": {"placeholders": {"count": {"type": "int"}}},
+  "@cuCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cuCountInactive": "{count, plural, =1{1 customer · inactive} other{{count} customers · inactive}}",
-  "@cuCountInactive": {"placeholders": {"count": {"type": "int"}}},
+  "@cuCountInactive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "cuSearch": "Search name or phone",
   "cuChipActive": "Active",
   "cuChipInactive": "Inactive",
@@ -1382,9 +1700,21 @@
   "cuLess": "Fewer details",
   "cuPhoneFoot": "Used to find the customer and share receipts on WhatsApp.",
   "cuDeactivateTitle": "Deactivate {name}?",
-  "@cuDeactivateTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@cuDeactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "cuDeactivateBody": "{name} will stop showing in the customer list. Past sales stay in history. You can reactivate any time.",
-  "@cuDeactivateBody": {"placeholders": {"name": {"type": "String"}}},
+  "@cuDeactivateBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "cuDeactivateConfirm": "Deactivate",
   "cuErrorTitle": "Could not load customers",
   "cuErrorBody": "Check your connection and try again.",
@@ -1393,7 +1723,13 @@
   "cuReactivated": "Customer reactivated",
   "tmTitle": "Team",
   "tmCount": "{count, plural, =1{1 person} other{{count} people}}",
-  "@tmCount": {"placeholders": {"count": {"type": "int"}}},
+  "@tmCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tmManagers": "Managers",
   "tmCashiers": "Cashiers",
   "tmInvited": "Invited",
@@ -1418,14 +1754,32 @@
   "tmPhone": "Phone",
   "tmSignFoot": "They sign in with a code sent to this phone. There is no password or PIN to set.",
   "tmDeactivateTitle": "Deactivate {name}?",
-  "@tmDeactivateTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@tmDeactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tmDeactivateBody": "{name} will be signed out and can no longer sign in. Their sales stay in history.",
-  "@tmDeactivateBody": {"placeholders": {"name": {"type": "String"}}},
+  "@tmDeactivateBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tmDeactivateConfirm": "Deactivate",
   "tmToday": "Today",
   "tmYesterday": "Yesterday",
   "tmDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
-  "@tmDaysAgo": {"placeholders": {"count": {"type": "int"}}},
+  "@tmDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tmErrorTitle": "Could not load the team",
   "tmSaved": "Team member saved",
   "tmUpdated": "Team member updated",
@@ -1464,7 +1818,13 @@
   "mrSync": "Sync",
   "mrSyncUpToDate": "Up to date",
   "mrSyncWaiting": "{count} waiting",
-  "@mrSyncWaiting": {"placeholders": {"count": {"type": "int"}}},
+  "@mrSyncWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mrPreferences": "Preferences",
   "mrLanguage": "Language",
   "mrAppearance": "Appearance",
@@ -1480,7 +1840,13 @@
   "mrFaceId": "Face ID",
   "mrFingerprint": "Fingerprint",
   "mrBiometricFoot": "Unlock with {method} instead of typing your PIN.",
-  "@mrBiometricFoot": {"placeholders": {"method": {"type": "String"}}},
+  "@mrBiometricFoot": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "mrChangePin": "Change PIN",
   "mrLockNow": "Lock now",
   "mrSupport": "Support",
@@ -1488,7 +1854,13 @@
   "mrWhatsApp": "WhatsApp",
   "mrSignOut": "Sign out",
   "mrVersion": "AmanaPOS {version}",
-  "@mrVersion": {"placeholders": {"version": {"type": "String"}}},
+  "@mrVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "mrPinOff": "Turn off PIN on this device",
   "mrPinOffTitle": "Turn off PIN?",
   "mrPinOffBody": "You will sign in with a code sent to your phone next time. Face ID turns off too.",
@@ -1517,7 +1889,13 @@
   "bsAddress": "Address",
   "bsShops": "Shops",
   "bsShopsCount": "{count, plural, =1{1 shop} other{{count} shops}}",
-  "@bsShopsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@bsShopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "bsTax": "Tax",
   "bsChargeTax": "Charge tax on sales",
   "bsTaxName": "Tax name",
@@ -1540,7 +1918,13 @@
   "shSwipeReactivate": "Reactivate",
   "shSwipeHint": "Swipe to deactivate or reactivate.",
   "shDeactivateTitle": "Deactivate {name}?",
-  "@shDeactivateTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@shDeactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "shDeactivateBody": "Cashiers there will not be able to sell until you turn it back on. Its sales stay in history.",
   "shDeactivateAction": "Deactivate",
   "shSaved": "Shop saved.",
@@ -1556,20 +1940,38 @@
   "nfDetailTitle": "Notification",
   "syTitle": "Sync",
   "syWaitingLabel": "{count, plural, =1{sale waiting} other{sales waiting}}",
-  "@syWaitingLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@syWaitingLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "syAllDoneTitle": "Everything is synced",
   "syAllDoneBody": "Sales are sent as soon as you are online.",
   "sySyncNow": "Sync now",
   "sySyncing": "Syncing…",
   "syLastSynced": "Last synced {time}",
-  "@syLastSynced": {"placeholders": {"time": {"type": "String"}}},
+  "@syLastSynced": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "syNeverSynced": "Not synced yet",
   "syOffline": "You are offline. Sales are saved on this phone and send when you are back online.",
   "syWaitingHeader": "Waiting",
   "syPillFailed": "Failed",
   "syPillWaiting": "Waiting",
   "syItemsCount": "{count, plural, =1{1 item} other{{count} items}}",
-  "@syItemsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@syItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sySwipeRetry": "Retry",
   "sySwipeDelete": "Delete",
   "syFoot": "Failed sales stay here until you retry or delete them.",
@@ -1603,11 +2005,29 @@
   "syOxLogoutTitle": "Unsent changes",
   "syOxLogoutReview": "Review",
   "syOxWaitsBehind": "Waiting behind {label}",
-  "@syOxWaitsBehind": {"placeholders": {"label": {"type": "String"}}},
+  "@syOxWaitsBehind": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "syOxUnsynced": "{count, plural, =1{1 not synced} other{{count} not synced}}",
-  "@syOxUnsynced": {"placeholders": {"count": {"type": "int"}}},
+  "@syOxUnsynced": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "syOxLogoutBody": "{count, plural, =1{1 change has} other{{count} changes have}} not reached the server. Review them to retry or discard before signing out.",
-  "@syOxLogoutBody": {"placeholders": {"count": {"type": "int"}}},
+  "@syOxLogoutBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "obCreateTitle": "Create your business",
   "obCreateBody": "This is the name customers see on receipts. You can change it later.",
   "obCreateAction": "Create business",
@@ -1620,7 +2040,13 @@
   "shpEmptyTitle": "No shops yet",
   "shpEmptyBody": "A shop is where you sell. Add your first one to start.",
   "posBarcodeNotFound": "No product found for barcode: {barcode}",
-  "@posBarcodeNotFound": {"placeholders": {"barcode": {"type": "String"}}},
+  "@posBarcodeNotFound": {
+    "placeholders": {
+      "barcode": {
+        "type": "String"
+      }
+    }
+  },
   "ibReceived": "Stock received successfully",
   "ibQueued": "Queued — will sync when online",
   "ibAddProduct": "Add at least one product",
@@ -1636,9 +2062,21 @@
   "exEmptyBody": "All products are within a safe expiry window.",
   "exToday": "Expires today",
   "exExpiredAgo": "{count, plural, =1{Expired 1 day ago} other{Expired {count} days ago}}",
-  "@exExpiredAgo": {"placeholders": {"count": {"type": "int"}}},
+  "@exExpiredAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "exInDays": "{count, plural, =1{In 1 day} other{In {count} days}}",
-  "@exInDays": {"placeholders": {"count": {"type": "int"}}},
+  "@exInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mrSalesReturns": "Sales & returns",
   "mrSettings": "Settings",
   "mrTheme": "Theme",
@@ -1652,9 +2090,24 @@
   "fsServerBody": "The server can't run first setup yet. Try again later or contact support.",
   "fsRetry": "Try again",
   "fsStepOf": "Step {index} of {count}",
-  "@fsStepOf": {"placeholders": {"index": {"type": "int"}, "count": {"type": "int"}}},
+  "@fsStepOf": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "fsRowsSaved": "{count, plural, one{1 record saved} other{{count} records saved}}",
-  "@fsRowsSaved": {"placeholders": {"count": {"type": "int"}}},
+  "@fsRowsSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "fsStepBusiness": "Business and shops",
   "fsStepCatalog": "Products and categories",
   "fsStepPeople": "Customers, suppliers and team",
@@ -1688,7 +2141,13 @@
   "syOxActionFailed": "Could not update this change. Please try again.",
   "authLogoutOffline": "You are offline. Connect to the internet and sync all unsynced changes before signing out.",
   "authLogoutUnsynced": "{count, plural, =1{You have 1 unsynced change} other{You have {count} unsynced changes}} that have not been sent yet. Please sync or go online before signing out.",
-  "@authLogoutUnsynced": {"placeholders": {"count": {"type": "int"}}},
+  "@authLogoutUnsynced": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "authLogoutFailed": "Logout failed. Please try again while connected to the internet.",
   "syOxDiscardMaybeOnServer": "This may already be on the server. Sync first, or discarding may lead to a duplicate if you ring it up again.",
   "syOxDiscardOtherMaybeOnServer": "Some of these changes may already be on the server. Sign in as that account and sync first, or discarding may lead to duplicates.",
@@ -1701,16 +2160,34 @@
   "syOxMerge": "Merge into existing",
   "syOxMergeTitle": "Merge into the existing item?",
   "syOxMergeBody": "“{name}” already exists. This copy's details are dropped and everything recorded for it on this phone moves to the existing one.",
-  "@syOxMergeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@syOxMergeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "syOxMergeCount": "{count, plural, =0{Nothing else changes.} =1{1 record will point to the existing item.} other{{count} records will point to the existing item.}}",
-  "@syOxMergeCount": {"placeholders": {"count": {"type": "int"}}},
+  "@syOxMergeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "syOxMergeExistingFallback": "The existing item",
   "syOxMergeRefused": "This change can no longer be merged. Refresh and try again.",
   "syOxEditNotSaved": "Nothing was changed, so it was not sent again.",
   "syOxEditGone": "This item is no longer on this phone.",
   "syOxDiscardCatalogCreateBody": "This item and its opening stock will be removed from this phone. Nothing else waits on it.",
   "syOxDiscardBlockedByDependents": "{count, plural, =1{1 change waits on this item (a sale, stock or a product), so it cannot be discarded. Merge it into the existing item, or edit and retry.} other{{count} changes wait on this item (sales, stock or products), so it cannot be discarded. Merge it into the existing item, or edit and retry.}}",
-  "@syOxDiscardBlockedByDependents": {"placeholders": {"count": {"type": "int"}}},
+  "@syOxDiscardBlockedByDependents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "syOxDiscardHasDependents": "This item was not discarded: other changes (sales, stock or products) wait on it. Merge it into the existing item, or edit and retry.",
   "syOxDiscardMayBeOnServerFailure": "This item was not discarded: it may already be on the server. Tap Send now first; once it has synced, delete it from its own list.",
   "syOxRetryMissingTitle": "Send without its item?",
@@ -1732,12 +2209,30 @@
   "userSyncFailed": "Not applied",
   "userConflictTitle": "Change not applied",
   "userConflictBody": "{name} was changed on another device. Now: {current}. Your change: {yours}.",
-  "@userConflictBody": {"placeholders": {"name": {"type": "String"}, "current": {"type": "String"}, "yours": {"type": "String"}}},
+  "@userConflictBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      },
+      "yours": {
+        "type": "String"
+      }
+    }
+  },
   "userConflictApplyMine": "Apply mine again",
   "userConflictDismiss": "Dismiss",
   "userPhoneExists": "A team member with this phone number already exists.",
   "userChangeRefused": "The server refused this change: {reason}",
-  "@userChangeRefused": {"placeholders": {"reason": {"type": "String"}}},
+  "@userChangeRefused": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "userChangeReactivate": "Reactivate member",
   "rcNumber": "Receipt",
   "rcDate": "Date",
@@ -1768,20 +2263,68 @@
   "rcPrint": "Print",
   "rcLoadFailed": "Could not load the receipt",
   "rcTaxNamed": "Tax ({name} {rate}%)",
-  "@rcTaxNamed": {"placeholders": {"name": {"type": "String"}, "rate": {"type": "String"}}},
+  "@rcTaxNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "rcTaxRated": "Tax ({rate}%)",
-  "@rcTaxRated": {"placeholders": {"rate": {"type": "String"}}},
+  "@rcTaxRated": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "rcTaxInclNamed": "Incl. {name} {rate}%",
-  "@rcTaxInclNamed": {"placeholders": {"name": {"type": "String"}, "rate": {"type": "String"}}},
+  "@rcTaxInclNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "rcTaxInclRated": "Tax incl. {rate}%",
-  "@rcTaxInclRated": {"placeholders": {"rate": {"type": "String"}}},
+  "@rcTaxInclRated": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "rcLineDiscount": "Discount −{amount}",
-  "@rcLineDiscount": {"placeholders": {"amount": {"type": "String"}}},
+  "@rcLineDiscount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "rcReturnedQty": "Returned {qty}",
-  "@rcReturnedQty": {"placeholders": {"qty": {"type": "String"}}},
+  "@rcReturnedQty": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "sfTitle": "Shifts",
   "sfChipOpen": "Shift {time}",
-  "@sfChipOpen": {"placeholders": {"time": {"type": "String"}}},
+  "@sfChipOpen": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "sfChipNone": "No shift",
   "sfChipNeedsCount": "Needs count",
   "sfCurrent": "Current shift",
@@ -1793,11 +2336,32 @@
   "sfRefunds": "Refunds and cancels (cash)",
   "sfPayOuts": "Pay out",
   "sfOther": "Also taken, not in the drawer: {list}",
-  "@sfOther": {"placeholders": {"list": {"type": "String"}}},
+  "@sfOther": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "sfOpenedBy": "Open since {time} · opened by {name}",
-  "@sfOpenedBy": {"placeholders": {"time": {"type": "String"}, "name": {"type": "String"}}},
+  "@sfOpenedBy": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sfOpenedAuto": "Open since {time} · started automatically",
-  "@sfOpenedAuto": {"placeholders": {"time": {"type": "String"}}},
+  "@sfOpenedAuto": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "sfSales": "Sales",
   "sfTotal": "Total",
   "sfDrawerOff": "Cash drawer tracking is off. Counting and pay in/out are not used.",
@@ -1810,7 +2374,13 @@
   "sfHistoryEmpty": "No earlier shifts yet.",
   "sfShowMore": "Show more",
   "sfNeedsCountBanner": "Shifts waiting for a cash count: {count}",
-  "@sfNeedsCountBanner": {"placeholders": {"count": {"type": "int"}}},
+  "@sfNeedsCountBanner": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sfOffTitle": "Shifts are off",
   "sfOffHelp": "The owner can turn shifts on in the dashboard. Sales work the same either way.",
   "sfNoShiftTitle": "No shift is open",
@@ -1830,9 +2400,21 @@
   "sfOverNote": "This is more than the drawer should hold. You can continue.",
   "sfDiffEven": "Exact",
   "sfDiffShort": "Short {amount}",
-  "@sfDiffShort": {"placeholders": {"amount": {"type": "String"}}},
+  "@sfDiffShort": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "sfDiffOver": "Over {amount}",
-  "@sfDiffOver": {"placeholders": {"amount": {"type": "String"}}},
+  "@sfDiffOver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "sfOriginAuto": "Auto",
   "sfOriginManual": "Manual",
   "sfBtnSaveCount": "Save count",
@@ -1877,9 +2459,24 @@
   "dtNewCustomer": "New customer",
   "dtNoCustomers": "No customers found.",
   "dtOwesNowAfter": "Owes {now} now. After this sale: {after}.",
-  "@dtOwesNowAfter": {"placeholders": {"now": {"type": "String"}, "after": {"type": "String"}}},
+  "@dtOwesNowAfter": {
+    "placeholders": {
+      "now": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
   "dtChargeAccount": "Put {amount} on account",
-  "@dtChargeAccount": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtChargeAccount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtNeedCustomer": "Add a customer first",
   "dtOwesNow": "Owes now",
   "dtFromPhone": "From this phone's records",
@@ -1887,28 +2484,82 @@
   "dtWriteOff": "Write off",
   "dtAmount": "Amount",
   "dtFull": "Full {amount}",
-  "@dtFull": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtFull": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtHalf": "Half {amount}",
-  "@dtHalf": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtHalf": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtNote": "Note",
   "dtNoteHint": "Why (optional)",
   "dtPaidWith": "Paid with",
   "dtAfterZero": "Nothing will be left to pay.",
   "dtAfterLeft": "{amount} will still be owed.",
-  "@dtAfterLeft": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtAfterLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtOverBalance": "More than the customer owes ({amount}).",
-  "@dtOverBalance": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtOverBalance": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtBtnReceive": "Receive {amount}",
-  "@dtBtnReceive": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtBtnReceive": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtBtnWriteOff": "Write off {amount}",
-  "@dtBtnWriteOff": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtBtnWriteOff": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtDoneReceived": "Received {amount}",
-  "@dtDoneReceived": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtDoneReceived": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtDoneWrittenOff": "Written off {amount}",
-  "@dtDoneWrittenOff": {"placeholders": {"amount": {"type": "String"}}},
+  "@dtDoneWrittenOff": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dtLedgerSale": "Sale on account",
   "dtLedgerPayment": "Payment · {method}",
-  "@dtLedgerPayment": {"placeholders": {"method": {"type": "String"}}},
+  "@dtLedgerPayment": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
   "dtLedgerWriteOff": "Write-off",
   "dtRejected": "Not accepted by the server",
   "dtHistory": "History",
@@ -1916,7 +2567,13 @@
   "dtDebtsTitle": "Debts",
   "dtTotalOwed": "Total owed",
   "dtCustomersCount": "{count} customers",
-  "@dtCustomersCount": {"placeholders": {"count": {"type": "String"}}},
+  "@dtCustomersCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "dtNoDebts": "Nobody owes anything.",
   "dtErrNotAllowed": "Only an owner or manager can write off a debt.",
   "dtErrExceeds": "More than the customer owes.",
@@ -1924,7 +2581,16 @@
   "dtErrAmount": "Enter an amount above zero.",
   "dtErrSave": "It could not be saved. Try again.",
   "dtStillOwes": "{name} still owes {amount}.",
-  "@dtStillOwes": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}},
+  "@dtStillOwes": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dcDiscount": "Discount",
   "dcAddDiscount": "Add discount",
   "dcLineTitle": "Discount for this line",
@@ -1934,11 +2600,29 @@
   "dcPercentOff": "Percent off",
   "dcAmountOff": "Amount off",
   "dcNewTotal": "New total {amount}",
-  "@dcNewTotal": {"placeholders": {"amount": {"type": "String"}}},
+  "@dcNewTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dcApplyPercent": "Apply {value}% off",
-  "@dcApplyPercent": {"placeholders": {"value": {"type": "String"}}},
+  "@dcApplyPercent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "dcApplyAmount": "Apply {amount} off",
-  "@dcApplyAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@dcApplyAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dcRemove": "Remove discount",
   "dcChange": "Change",
   "dcLineDiscounts": "Line discounts",
@@ -1946,18 +2630,48 @@
   "dcErrNumber": "Enter a number above zero.",
   "dcErrPercent": "A percent cannot be more than 100.",
   "dcErrAmount": "The discount cannot be more than {amount}.",
-  "@dcErrAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@dcErrAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "dcLineSub": "{name} · {qty} × {price}",
-  "@dcLineSub": {"placeholders": {"name": {"type": "String"}, "qty": {"type": "String"}, "price": {"type": "String"}}},
+  "@dcLineSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "scTitle": "Stock count",
   "scEntry": "Stock count",
   "scEntrySub": "Count the shelf and fix the differences",
   "scSearch": "Scan a barcode or type a name",
   "scAddAll": "Add all products",
   "scCounted": "{n} counted",
-  "@scCounted": {"placeholders": {"n": {"type": "String"}}},
+  "@scCounted": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "scDiffs": "{n} with a difference",
-  "@scDiffs": {"placeholders": {"n": {"type": "String"}}},
+  "@scDiffs": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "scSystem": "System",
   "scCountedCol": "Counted",
   "scMatches": "Matches",
@@ -1966,7 +2680,13 @@
   "scEmptyTitle": "Start counting",
   "scEmptySub": "Scan a product, or press “Add all products” to go through the whole shelf.",
   "scApply": "Apply {n} differences",
-  "@scApply": {"placeholders": {"n": {"type": "String"}}},
+  "@scApply": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "scApplyOne": "Apply 1 difference",
   "scApplyNone": "Apply differences",
   "scConfirmTitle": "Apply the count?",
@@ -1977,12 +2697,101 @@
   "scBack": "Back to counting",
   "scDoneTitle": "Count applied",
   "scDoneBody": "{changed} updated. {matched} matched the system.",
-  "@scDoneBody": {"placeholders": {"changed": {"type": "String"}, "matched": {"type": "String"}}},
+  "@scDoneBody": {
+    "placeholders": {
+      "changed": {
+        "type": "String"
+      },
+      "matched": {
+        "type": "String"
+      }
+    }
+  },
   "scDiscardTitle": "Throw away the count?",
   "scDiscardBody": "What you counted so far will be lost.",
   "scDiscard": "Throw away",
   "scKeep": "Keep counting",
   "scErrSave": "The count could not be saved. Try again.",
   "scErrNegative": "A count cannot be negative.",
-  "scOff": "Stock count is switched off for this business."
+  "scOff": "Stock count is switched off for this business.",
+  "plTitle": "Link a POS",
+  "plRowValue": "Link a desktop till",
+  "plIntro": "Link a desktop till to this business",
+  "plIntroSub": "The desktop asks for a 6-digit code. This phone makes it.",
+  "plStep1": "Open the desktop app and choose Link to a business.",
+  "plStep2": "Scan the QR it shows, or tap Show code.",
+  "plStep3": "Type the 6 digits on the desktop.",
+  "plScan": "Scan the desktop QR",
+  "plShow": "Show code",
+  "plNotDesktopQr": "This is not a desktop QR.",
+  "plExpiresIn": "Expires in {time}",
+  "@plExpiresIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plWaiting": "Type this code on the desktop. Waiting for it…",
+  "plNewCode": "New code",
+  "plChoosing": "Connected",
+  "plChoosingBody": "{name} is choosing how to link. Keep this screen open.",
+  "@plChoosingBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plDeviceFallback": "A desktop till",
+  "plLinked": "{name} is linked",
+  "@plLinked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plLinkedBody": "You can see it in the dashboard under Devices.",
+  "plLinkAnother": "Link another",
+  "plExpired": "This code expired. Make a new one.",
+  "plReplaced": "A newer code replaced this one. Make a new one if you need it.",
+  "plTooMany": "Too many codes",
+  "plTooManyBody": "You made 10 codes in the last hour. Try again in a little while.",
+  "plOffline": "No internet",
+  "plOfflineBody": "Linking a POS needs a connection. Connect and try again.",
+  "plTryAgain": "Try again",
+  "plForbidden": "Only owners and managers can link a POS.",
+  "plError": "The code could not be made. Try again.",
+  "oaTitle": "Owner approval",
+  "oaAsk": "Ask the owner to type their PIN {what}.",
+  "@oaAsk": {"placeholders": {"what": {"type": "String"}}},
+  "oaWrong": "Wrong PIN. {n} tries left.",
+  "@oaWrong": {"placeholders": {"n": {"type": "int"}}},
+  "oaLocked": "Too many tries. Wait {s} seconds.",
+  "@oaLocked": {"placeholders": {"s": {"type": "int"}}},
+  "oaNoOwner": "No owner PIN is saved on this phone. The owner needs to sign in here once and set a PIN.",
+  "oaOk": "OK",
+  "oaWhatDiscount": "to give a discount",
+  "oaWhatReturn": "to return items",
+  "oaWhatCancel": "to cancel this sale",
+  "oaWhatStock": "to change stock",
+  "oaWhatCount": "to apply the stock count",
+  "cnBtn": "Cancel sale",
+  "cnTitle": "Cancel this sale?",
+  "cnReceipt": "Receipt",
+  "cnAmount": "Amount",
+  "cnBody": "The sale will not count in your totals and its items go back to stock. This cannot be undone.",
+  "cnReason": "Reason (optional)",
+  "cnReasonHint": "Customer changed their mind",
+  "cnKeep": "Keep sale",
+  "cnConfirm": "Cancel sale",
+  "cnCancelled": "Cancelled",
+  "cnReasonLine": "Reason: {r}",
+  "@cnReasonLine": {"placeholders": {"r": {"type": "String"}}},
+  "cnWaiting": "Waiting to sync. Stock returns when it does.",
+  "cnHasRefund": "This sale has a refund, so it cannot be cancelled.",
+  "cnDone": "Sale cancelled",
+  "cnErr": "The sale could not be cancelled. Try again.",
+  "cnGone": "This sale can no longer be cancelled."
 }

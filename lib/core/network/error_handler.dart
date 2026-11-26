@@ -35,8 +35,6 @@ class ErrorHandler {
     String? context,
     Map<String, dynamic>? extras,
   ) {
-    final statusCode = exception.response?.statusCode;
-
     // Skip network errors (they're noisy and not actionable)
     if (exception.type == DioExceptionType.connectionTimeout ||
         exception.type == DioExceptionType.sendTimeout ||

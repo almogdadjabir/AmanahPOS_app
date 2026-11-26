@@ -216,6 +216,26 @@ class _MoreScreenState extends State<_MoreScreen> {
                   ),
                   if (manage.isNotEmpty)
                     SettingsGroup(header: tr.mrManage, children: manage),
+                  if (perms.isOwner || perms.isManager) ...[
+                    SettingsGroup(
+                      children: [
+                        SettingsRow(
+                          tile: SettingsTile.teal,
+                          icon: PhosphorIconsRegular.link,
+                          title: tr.plTitle,
+                          onTap: () => nav.pushNamed(
+                            RouteStrings.linkPosScreen,
+                            arguments: context
+                                .read<AuthBloc>()
+                                .state
+                                .defaultBusiness
+                                ?.id,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                  ],
                   SettingsGroup(
                     header: tr.mrThisDevice,
                     children: [

@@ -5374,4 +5374,190 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scOff => 'Stock count is switched off for this business.';
+
+  @override
+  String get plTitle => 'Link a POS';
+
+  @override
+  String get plRowValue => 'Link a desktop till';
+
+  @override
+  String get plIntro => 'Link a desktop till to this business';
+
+  @override
+  String get plIntroSub =>
+      'The desktop asks for a 6-digit code. This phone makes it.';
+
+  @override
+  String get plStep1 => 'Open the desktop app and choose Link to a business.';
+
+  @override
+  String get plStep2 => 'Scan the QR it shows, or tap Show code.';
+
+  @override
+  String get plStep3 => 'Type the 6 digits on the desktop.';
+
+  @override
+  String get plScan => 'Scan the desktop QR';
+
+  @override
+  String get plShow => 'Show code';
+
+  @override
+  String get plNotDesktopQr => 'This is not a desktop QR.';
+
+  @override
+  String plExpiresIn(String time) {
+    return 'Expires in $time';
+  }
+
+  @override
+  String get plWaiting => 'Type this code on the desktop. Waiting for it…';
+
+  @override
+  String get plNewCode => 'New code';
+
+  @override
+  String get plChoosing => 'Connected';
+
+  @override
+  String plChoosingBody(String name) {
+    return '$name is choosing how to link. Keep this screen open.';
+  }
+
+  @override
+  String get plDeviceFallback => 'A desktop till';
+
+  @override
+  String plLinked(String name) {
+    return '$name is linked';
+  }
+
+  @override
+  String get plLinkedBody => 'You can see it in the dashboard under Devices.';
+
+  @override
+  String get plLinkAnother => 'Link another';
+
+  @override
+  String get plExpired => 'This code expired. Make a new one.';
+
+  @override
+  String get plReplaced =>
+      'A newer code replaced this one. Make a new one if you need it.';
+
+  @override
+  String get plTooMany => 'Too many codes';
+
+  @override
+  String get plTooManyBody =>
+      'You made 10 codes in the last hour. Try again in a little while.';
+
+  @override
+  String get plOffline => 'No internet';
+
+  @override
+  String get plOfflineBody =>
+      'Linking a POS needs a connection. Connect and try again.';
+
+  @override
+  String get plTryAgain => 'Try again';
+
+  @override
+  String get plForbidden => 'Only owners and managers can link a POS.';
+
+  @override
+  String get plError => 'The code could not be made. Try again.';
+
+  @override
+  String get oaTitle => 'Owner approval';
+
+  @override
+  String oaAsk(String what) {
+    return 'Ask the owner to type their PIN $what.';
+  }
+
+  @override
+  String oaWrong(int n) {
+    return 'Wrong PIN. $n tries left.';
+  }
+
+  @override
+  String oaLocked(int s) {
+    return 'Too many tries. Wait $s seconds.';
+  }
+
+  @override
+  String get oaNoOwner =>
+      'No owner PIN is saved on this phone. The owner needs to sign in here once and set a PIN.';
+
+  @override
+  String get oaOk => 'OK';
+
+  @override
+  String get oaWhatDiscount => 'to give a discount';
+
+  @override
+  String get oaWhatReturn => 'to return items';
+
+  @override
+  String get oaWhatCancel => 'to cancel this sale';
+
+  @override
+  String get oaWhatStock => 'to change stock';
+
+  @override
+  String get oaWhatCount => 'to apply the stock count';
+
+  @override
+  String get cnBtn => 'Cancel sale';
+
+  @override
+  String get cnTitle => 'Cancel this sale?';
+
+  @override
+  String get cnReceipt => 'Receipt';
+
+  @override
+  String get cnAmount => 'Amount';
+
+  @override
+  String get cnBody =>
+      'The sale will not count in your totals and its items go back to stock. This cannot be undone.';
+
+  @override
+  String get cnReason => 'Reason (optional)';
+
+  @override
+  String get cnReasonHint => 'Customer changed their mind';
+
+  @override
+  String get cnKeep => 'Keep sale';
+
+  @override
+  String get cnConfirm => 'Cancel sale';
+
+  @override
+  String get cnCancelled => 'Cancelled';
+
+  @override
+  String cnReasonLine(String r) {
+    return 'Reason: $r';
+  }
+
+  @override
+  String get cnWaiting => 'Waiting to sync. Stock returns when it does.';
+
+  @override
+  String get cnHasRefund =>
+      'This sale has a refund, so it cannot be cancelled.';
+
+  @override
+  String get cnDone => 'Sale cancelled';
+
+  @override
+  String get cnErr => 'The sale could not be cancelled. Try again.';
+
+  @override
+  String get cnGone => 'This sale can no longer be cancelled.';
 }

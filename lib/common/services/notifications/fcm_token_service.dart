@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:amana_pos/common/services/local/local_storage.dart';
-import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 
 class FcmTokenService {
   final CacheStorage _cacheStorage;
-  final RequestHandler _requestHandler;
 
   static const String _fcmTokenKey = 'fcm_token';
   static const String _fcmTokenTimestampKey = 'fcm_token_timestamp';
@@ -22,9 +20,7 @@ class FcmTokenService {
 
   FcmTokenService({
     required CacheStorage cacheStorage,
-    required RequestHandler requestHandler,
-  })  : _cacheStorage = cacheStorage,
-        _requestHandler = requestHandler;
+  }) : _cacheStorage = cacheStorage;
 
 
   Future<void> initialize() async {

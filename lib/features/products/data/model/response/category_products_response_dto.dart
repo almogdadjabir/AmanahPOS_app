@@ -17,8 +17,6 @@ class CategoryProductsResponseDto {
   });
 
   factory CategoryProductsResponseDto.fromJson(Map<String, dynamic> json) {
-    final rawProducts = json['products'] ?? json['results'];
-
     return CategoryProductsResponseDto(
       id: json['id'],
       name: json['name'],

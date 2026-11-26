@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/approval/presentation/owner_approval_sheet.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/motion/motion_route.dart';
 import 'package:amana_pos/config/providers/feature_bloc_providers.dart';
@@ -288,7 +289,7 @@ class _UpdateStockScreenState extends State<UpdateStockScreen> {
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final state = context.read<InventoryBloc>().state;
     final eval = _evaluate(state);
     final q = _qty;
@@ -298,6 +299,11 @@ class _UpdateStockScreenState extends State<UpdateStockScreen> {
       return;
     }
 
+    if ((_mode == UpdateStockMode.remove || _mode == UpdateStockMode.count) &&
+        !await ensureOwnerApproval(context, what: context.tr.oaWhatStock)) {
+      return;
+    }
+    if (!mounted) return;
     HapticFeedback.mediumImpact();
     final bloc = context.read<InventoryBloc>();
     final note = _noteCtrl.text.trim();

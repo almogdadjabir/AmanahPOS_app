@@ -1,3 +1,5 @@
+import 'package:amana_pos/core/permissions/discount_access.dart';
+import 'package:amana_pos/features/approval/presentation/owner_approval_sheet.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/features/business_features.dart';
@@ -28,9 +30,22 @@ class TotalsSection extends StatelessWidget {
   final PosState state;
   final EdgeInsetsGeometry padding;
 
+  DiscountAccess _access(BuildContext context, BusinessFeatures? f) =>
+      discountAccess(
+        context.read<AuthBloc>().state.permissions,
+        f ?? getIt<BusinessFeaturesService>().current,
+      );
+
+  /// A cashier in "owner PIN" mode needs the owner first.
+  Future<bool> _allowed(BuildContext context) async {
+    if (_access(context, null) != DiscountAccess.approval) return true;
+    return ensureOwnerApproval(context, what: context.tr.oaWhatDiscount);
+  }
+
   Future<void> _openSaleDiscount(BuildContext context) async {
     final tr = context.tr;
     final bloc = context.read<PosBloc>();
+    if (!await _allowed(context) || !context.mounted) return;
     final r = await showDiscountSheet(
       context,
       title: tr.dcSaleTitle,
@@ -50,7 +65,7 @@ class TotalsSection extends StatelessWidget {
       builder: (context, snap) => _build(
         context,
         (snap.data?.saleDiscount ?? true) &&
-            context.read<AuthBloc>().state.permissions.canGiveDiscount,
+            _access(context, snap.data) != DiscountAccess.none,
       ),
     );
   }

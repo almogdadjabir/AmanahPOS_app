@@ -257,7 +257,6 @@
   "thisProduct": "هذا المنتج",
   "all": "الكل",
 
-
   "activeCategories": "التصنيفات النشطة",
   "inactiveCategories": "التصنيفات غير النشطة",
   "categoriesWithSubCategories": "التصنيفات التي تحتوي على تصنيفات فرعية",
@@ -353,7 +352,6 @@
   "inventoryAlertsSubtitle": "حدد متى يجب أن يُنبهك AmanaPOS بشأن انخفاض المخزون أو الدفعات المنتهية الصلاحية.",
   "inventoryAlertsExpiryHint": "ستتلقى إشعارًا عندما تكون دفعة المنتج ضمن الأيام المحددة من تاريخ انتهاء صلاحيتها.",
   "fieldExpiryAlert": "تنبيه انتهاء الصلاحية",
-
 
   "allUsers": "كل المستخدمين",
   "activeUsers": "المستخدمون النشطون",
@@ -505,7 +503,9 @@
   "viewPendingCount": "عرض {count} معلّق",
   "@viewPendingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "loadingMore": "تحميل المزيد",
@@ -605,7 +605,6 @@
   "address": "العنوان",
   "phone": "الهاتف",
 
-
   "createStaffAccountMessage": "يمكن إنشاء حسابات الكاشير والمدير فقط من هنا.",
   "fullNameHint": "علي حسن",
   "fullNameRequired": "الاسم الكامل مطلوب",
@@ -675,7 +674,6 @@
   "cashierAccessHint": "يمكنه معالجة المبيعات واستخدام نقطة البيع",
   "adminAccessHint": "يمكنه إدارة إعدادات العمل وصلاحيات الموظفين",
   "staffAccountHint": "حساب موظف",
-
 
   "subtotal": "المجموع الفرعي",
   "total": "الإجمالي",
@@ -1494,11 +1492,29 @@
   "syOxLogoutTitle": "تغييرات غير مُرسلة",
   "syOxLogoutReview": "مراجعة",
   "syOxWaitsBehind": "بانتظار {label}",
-  "@syOxWaitsBehind": {"placeholders": {"label": {"type": "String"}}},
+  "@syOxWaitsBehind": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "syOxUnsynced": "{count, plural, =1{1 غير مُزامن} other{{count} غير مُزامنة}}",
-  "@syOxUnsynced": {"placeholders": {"count": {"type": "int"}}},
+  "@syOxUnsynced": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "syOxLogoutBody": "{count, plural, =1{تغيير واحد لم يصل} other{{count} تغييرات لم تصل}} إلى الخادم. راجعها لإعادة المحاولة أو التجاهل قبل تسجيل الخروج.",
-  "@syOxLogoutBody": {"placeholders": {"count": {"type": "int"}}},
+  "@syOxLogoutBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "obCreateTitle": "أنشئ نشاطك",
   "obCreateBody": "هذا هو الاسم الذي يراه العملاء على الإيصالات. يمكنك تغييره لاحقًا.",
   "obCreateAction": "إنشاء النشاط",
@@ -1607,12 +1623,30 @@
   "userSyncFailed": "لم يُطبَّق",
   "userConflictTitle": "لم يُطبَّق التغيير",
   "userConflictBody": "تم تغيير {name} على جهاز آخر. الآن: {current}. تغييرك: {yours}.",
-  "@userConflictBody": {"placeholders": {"name": {"type": "String"}, "current": {"type": "String"}, "yours": {"type": "String"}}},
+  "@userConflictBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      },
+      "yours": {
+        "type": "String"
+      }
+    }
+  },
   "userConflictApplyMine": "تطبيق تغييري مرة أخرى",
   "userConflictDismiss": "تجاهل",
   "userPhoneExists": "يوجد عضو في الفريق بهذا الرقم بالفعل.",
   "userChangeRefused": "رفض الخادم هذا التغيير: {reason}",
-  "@userChangeRefused": {"placeholders": {"reason": {"type": "String"}}},
+  "@userChangeRefused": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "userChangeReactivate": "إعادة تفعيل العضو",
   "rcNumber": "رقم الإيصال",
   "rcDate": "التاريخ",
@@ -1824,5 +1858,60 @@
   "scKeep": "متابعة العد",
   "scErrSave": "تعذّر حفظ الجرد. حاول مرة أخرى.",
   "scErrNegative": "لا يمكن أن يكون العدد سالباً.",
-  "scOff": "جرد المخزون متوقف لهذا النشاط."
+  "scOff": "جرد المخزون متوقف لهذا النشاط.",
+  "plTitle": "ربط نقطة بيع",
+  "plRowValue": "ربط جهاز مكتبي",
+  "plIntro": "اربط جهاز بيع مكتبي بهذا النشاط",
+  "plIntroSub": "يطلب الجهاز المكتبي رمزاً من 6 أرقام. هذا الهاتف ينشئه.",
+  "plStep1": "افتح تطبيق سطح المكتب واختر الربط بنشاط تجاري.",
+  "plStep2": "امسح رمز QR الذي يظهر، أو اضغط عرض الرمز.",
+  "plStep3": "اكتب الأرقام الستة على الجهاز المكتبي.",
+  "plScan": "مسح رمز QR من الجهاز المكتبي",
+  "plShow": "عرض الرمز",
+  "plNotDesktopQr": "هذا ليس رمز QR للجهاز المكتبي.",
+  "plExpiresIn": "ينتهي خلال {time}",
+  "plWaiting": "اكتب هذا الرمز على الجهاز المكتبي. بانتظار الإدخال…",
+  "plNewCode": "رمز جديد",
+  "plChoosing": "تم الاتصال",
+  "plChoosingBody": "{name} يختار طريقة الربط. أبقِ هذه الشاشة مفتوحة.",
+  "plDeviceFallback": "جهاز بيع مكتبي",
+  "plLinked": "تم ربط {name}",
+  "plLinkedBody": "يمكنك رؤيته في لوحة التحكم ضمن الأجهزة.",
+  "plLinkAnother": "ربط جهاز آخر",
+  "plExpired": "انتهت صلاحية هذا الرمز. أنشئ رمزاً جديداً.",
+  "plReplaced": "رمز أحدث حلّ محل هذا الرمز. أنشئ رمزاً جديداً إن احتجت.",
+  "plTooMany": "رموز كثيرة جداً",
+  "plTooManyBody": "أنشأت 10 رموز خلال الساعة الأخيرة. حاول بعد قليل.",
+  "plOffline": "لا يوجد اتصال بالإنترنت",
+  "plOfflineBody": "ربط نقطة بيع يحتاج إلى اتصال. اتصل ثم حاول مجدداً.",
+  "plTryAgain": "حاول مجدداً",
+  "plForbidden": "المالك والمدير فقط يمكنهم ربط نقطة بيع.",
+  "plError": "تعذر إنشاء الرمز. حاول مجدداً.",
+  "oaTitle": "موافقة المالك",
+  "oaAsk": "اطلب من المالك كتابة الرقم السري {what}.",
+  "oaWrong": "رقم سري خاطئ. بقيت {n} محاولات.",
+  "oaLocked": "محاولات كثيرة. انتظر {s} ثانية.",
+  "oaNoOwner": "لا يوجد رقم سري للمالك على هذا الهاتف. يجب أن يسجل المالك الدخول هنا مرة ويضبط رقماً سرياً.",
+  "oaOk": "حسناً",
+  "oaWhatDiscount": "لإعطاء خصم",
+  "oaWhatReturn": "لإرجاع أصناف",
+  "oaWhatCancel": "لإلغاء هذا البيع",
+  "oaWhatStock": "لتغيير المخزون",
+  "oaWhatCount": "لتطبيق جرد المخزون",
+  "cnBtn": "إلغاء البيع",
+  "cnTitle": "إلغاء هذا البيع؟",
+  "cnReceipt": "الإيصال",
+  "cnAmount": "المبلغ",
+  "cnBody": "لن يُحسب البيع في إجمالياتك وتعود أصنافه إلى المخزون. لا يمكن التراجع عن هذا.",
+  "cnReason": "السبب (اختياري)",
+  "cnReasonHint": "غيّر العميل رأيه",
+  "cnKeep": "إبقاء البيع",
+  "cnConfirm": "إلغاء البيع",
+  "cnCancelled": "ملغي",
+  "cnReasonLine": "السبب: {r}",
+  "cnWaiting": "بانتظار المزامنة. يعود المخزون عندها.",
+  "cnHasRefund": "هذا البيع عليه إرجاع، لذلك لا يمكن إلغاؤه.",
+  "cnDone": "تم إلغاء البيع",
+  "cnErr": "تعذر إلغاء البيع. حاول مجدداً.",
+  "cnGone": "لم يعد ممكناً إلغاء هذا البيع."
 }

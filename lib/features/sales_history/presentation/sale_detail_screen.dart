@@ -1,3 +1,7 @@
+import 'package:amana_pos/features/sales_history/domain/cancel_sale_service.dart';
+import 'package:amana_pos/features/sales_history/presentation/cancel_sale_sheet.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
+import 'package:amana_pos/features/approval/presentation/owner_approval_sheet.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/returns/presentation/return_items_screen.dart';
 import 'package:amana_pos/features/sales_history/data/models/sale_history_item.dart';
@@ -61,9 +65,46 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   }
 
   Future<void> _return() async {
+    if (!await ensureOwnerApproval(context, what: context.tr.oaWhatReturn) ||
+        !mounted) {
+      return;
+    }
     final updated = await ReturnItemsScreen.open(context, _sale);
     if (updated == null || !mounted) return;
     setState(() => _sale = updated);
+    try {
+      context.read<SalesHistoryBloc>().add(SalesHistoryItemReplaced(updated));
+    } catch (_) {}
+  }
+
+  bool _justCancelled = false;
+
+  bool get _canCancel =>
+      _sale.id != null &&
+      (_sale.status == SaleHistoryStatus.completed ||
+          _sale.status == SaleHistoryStatus.pending) &&
+      _sale.refunds.every((r) => r.isRejected);
+
+  Future<void> _cancel() async {
+    final tr = context.tr;
+    if (!await ensureOwnerApproval(context, what: tr.oaWhatCancel) ||
+        !mounted) {
+      return;
+    }
+    final done = await showCancelSaleSheet(
+      context,
+      service: getIt<CancelSaleService>(),
+      saleId: _sale.id!,
+      receipt: _sale.displayRef,
+      amount: saleMoney(context, _sale.total),
+    );
+    if (done != true || !mounted) return;
+    final updated = _sale.copyWith(status: SaleHistoryStatus.cancelled);
+    setState(() {
+      _sale = updated;
+      _justCancelled = true;
+    });
+    GlobalSnackBar.showSuccess(message: tr.cnDone);
     try {
       context.read<SalesHistoryBloc>().add(SalesHistoryItemReplaced(updated));
     } catch (_) {}
@@ -119,6 +160,13 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                     SaleBanner(
                       text: tr.shBannerPending,
                       icon: PhosphorIconsRegular.clock,
+                    ),
+                  if (sale.status == SaleHistoryStatus.cancelled)
+                    SaleBanner(
+                      text: _justCancelled
+                          ? '${tr.cnCancelled}. ${tr.cnWaiting}'
+                          : tr.cnCancelled,
+                      icon: PhosphorIconsRegular.prohibit,
                     ),
                   if (failed)
                     SaleBanner(
@@ -181,19 +229,42 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                     SaleSectionLabel(tr.shReturnsHeader),
                     SaleRefundsCard(sale: sale),
                   ],
+                  if (sale.refunds.any((r) => !r.isRejected) &&
+                      sale.status != SaleHistoryStatus.cancelled)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: SaleBanner(
+                        text: tr.cnHasRefund,
+                        icon: PhosphorIconsRegular.info,
+                      ),
+                    ),
                   const SizedBox(height: 16),
                 ],
               ),
             ),
-            if (sale.canBeReturned)
+            if (sale.canBeReturned || _canCancel)
               SaleDock(
-                child: AppButton.wide(
-                  label: tr.shReturnItems,
-                  prefixIcon: const Icon(
-                    PhosphorIconsRegular.arrowUUpLeft,
-                    size: 20,
-                  ),
-                  onPressed: _return,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (sale.canBeReturned)
+                      AppButton.wide(
+                        label: tr.shReturnItems,
+                        prefixIcon: const Icon(
+                          PhosphorIconsRegular.arrowUUpLeft,
+                          size: 20,
+                        ),
+                        onPressed: _return,
+                      ),
+                    if (sale.canBeReturned && _canCancel)
+                      const SizedBox(height: AppDims.s2),
+                    if (_canCancel)
+                      AppButton.wide(
+                        label: tr.cnBtn,
+                        variant: AppButtonVariant.outline,
+                        onPressed: _cancel,
+                      ),
+                  ],
                 ),
               )
             else

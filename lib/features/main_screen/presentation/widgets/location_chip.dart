@@ -35,11 +35,20 @@ class LocationChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final text = Theme.of(context).textTheme;
-    final hasMultiple = (business?.shopCount ?? 0) > 1;
+    final hasMultiple =
+        (business?.shopCount ?? business?.shops?.length ?? 0) > 1;
 
+    // One branch: the business name ("Main Branch" says nothing). Several:
+    // only the branch you are working in, the business name is not repeated.
     final shop = _selectedShop();
-    final branchName = shop?.name?.trim().isNotEmpty == true
-        ? shop!.name!.trim()
+    final businessName = business?.name?.trim() ?? '';
+    final shopName = shop?.name?.trim() ?? '';
+    final branchName = !hasMultiple && businessName.isNotEmpty
+        ? businessName
+        : shopName.isNotEmpty
+        ? shopName
+        : businessName.isNotEmpty
+        ? businessName
         : context.tr.selectBranch;
 
     return Pressable(

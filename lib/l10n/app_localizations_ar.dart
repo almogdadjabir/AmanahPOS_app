@@ -5335,4 +5335,189 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scOff => 'جرد المخزون متوقف لهذا النشاط.';
+
+  @override
+  String get plTitle => 'ربط نقطة بيع';
+
+  @override
+  String get plRowValue => 'ربط جهاز مكتبي';
+
+  @override
+  String get plIntro => 'اربط جهاز بيع مكتبي بهذا النشاط';
+
+  @override
+  String get plIntroSub =>
+      'يطلب الجهاز المكتبي رمزاً من 6 أرقام. هذا الهاتف ينشئه.';
+
+  @override
+  String get plStep1 => 'افتح تطبيق سطح المكتب واختر الربط بنشاط تجاري.';
+
+  @override
+  String get plStep2 => 'امسح رمز QR الذي يظهر، أو اضغط عرض الرمز.';
+
+  @override
+  String get plStep3 => 'اكتب الأرقام الستة على الجهاز المكتبي.';
+
+  @override
+  String get plScan => 'مسح رمز QR من الجهاز المكتبي';
+
+  @override
+  String get plShow => 'عرض الرمز';
+
+  @override
+  String get plNotDesktopQr => 'هذا ليس رمز QR للجهاز المكتبي.';
+
+  @override
+  String plExpiresIn(String time) {
+    return 'ينتهي خلال $time';
+  }
+
+  @override
+  String get plWaiting => 'اكتب هذا الرمز على الجهاز المكتبي. بانتظار الإدخال…';
+
+  @override
+  String get plNewCode => 'رمز جديد';
+
+  @override
+  String get plChoosing => 'تم الاتصال';
+
+  @override
+  String plChoosingBody(String name) {
+    return '$name يختار طريقة الربط. أبقِ هذه الشاشة مفتوحة.';
+  }
+
+  @override
+  String get plDeviceFallback => 'جهاز بيع مكتبي';
+
+  @override
+  String plLinked(String name) {
+    return 'تم ربط $name';
+  }
+
+  @override
+  String get plLinkedBody => 'يمكنك رؤيته في لوحة التحكم ضمن الأجهزة.';
+
+  @override
+  String get plLinkAnother => 'ربط جهاز آخر';
+
+  @override
+  String get plExpired => 'انتهت صلاحية هذا الرمز. أنشئ رمزاً جديداً.';
+
+  @override
+  String get plReplaced =>
+      'رمز أحدث حلّ محل هذا الرمز. أنشئ رمزاً جديداً إن احتجت.';
+
+  @override
+  String get plTooMany => 'رموز كثيرة جداً';
+
+  @override
+  String get plTooManyBody =>
+      'أنشأت 10 رموز خلال الساعة الأخيرة. حاول بعد قليل.';
+
+  @override
+  String get plOffline => 'لا يوجد اتصال بالإنترنت';
+
+  @override
+  String get plOfflineBody =>
+      'ربط نقطة بيع يحتاج إلى اتصال. اتصل ثم حاول مجدداً.';
+
+  @override
+  String get plTryAgain => 'حاول مجدداً';
+
+  @override
+  String get plForbidden => 'المالك والمدير فقط يمكنهم ربط نقطة بيع.';
+
+  @override
+  String get plError => 'تعذر إنشاء الرمز. حاول مجدداً.';
+
+  @override
+  String get oaTitle => 'موافقة المالك';
+
+  @override
+  String oaAsk(String what) {
+    return 'اطلب من المالك كتابة الرقم السري $what.';
+  }
+
+  @override
+  String oaWrong(int n) {
+    return 'رقم سري خاطئ. بقيت $n محاولات.';
+  }
+
+  @override
+  String oaLocked(int s) {
+    return 'محاولات كثيرة. انتظر $s ثانية.';
+  }
+
+  @override
+  String get oaNoOwner =>
+      'لا يوجد رقم سري للمالك على هذا الهاتف. يجب أن يسجل المالك الدخول هنا مرة ويضبط رقماً سرياً.';
+
+  @override
+  String get oaOk => 'حسناً';
+
+  @override
+  String get oaWhatDiscount => 'لإعطاء خصم';
+
+  @override
+  String get oaWhatReturn => 'لإرجاع أصناف';
+
+  @override
+  String get oaWhatCancel => 'لإلغاء هذا البيع';
+
+  @override
+  String get oaWhatStock => 'لتغيير المخزون';
+
+  @override
+  String get oaWhatCount => 'لتطبيق جرد المخزون';
+
+  @override
+  String get cnBtn => 'إلغاء البيع';
+
+  @override
+  String get cnTitle => 'إلغاء هذا البيع؟';
+
+  @override
+  String get cnReceipt => 'الإيصال';
+
+  @override
+  String get cnAmount => 'المبلغ';
+
+  @override
+  String get cnBody =>
+      'لن يُحسب البيع في إجمالياتك وتعود أصنافه إلى المخزون. لا يمكن التراجع عن هذا.';
+
+  @override
+  String get cnReason => 'السبب (اختياري)';
+
+  @override
+  String get cnReasonHint => 'غيّر العميل رأيه';
+
+  @override
+  String get cnKeep => 'إبقاء البيع';
+
+  @override
+  String get cnConfirm => 'إلغاء البيع';
+
+  @override
+  String get cnCancelled => 'ملغي';
+
+  @override
+  String cnReasonLine(String r) {
+    return 'السبب: $r';
+  }
+
+  @override
+  String get cnWaiting => 'بانتظار المزامنة. يعود المخزون عندها.';
+
+  @override
+  String get cnHasRefund => 'هذا البيع عليه إرجاع، لذلك لا يمكن إلغاؤه.';
+
+  @override
+  String get cnDone => 'تم إلغاء البيع';
+
+  @override
+  String get cnErr => 'تعذر إلغاء البيع. حاول مجدداً.';
+
+  @override
+  String get cnGone => 'لم يعد ممكناً إلغاء هذا البيع.';
 }

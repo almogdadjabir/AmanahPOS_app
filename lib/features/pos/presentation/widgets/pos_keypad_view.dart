@@ -83,10 +83,10 @@ class _PosKeypadViewState extends State<PosKeypadView>
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppDims.s5,
+            AppDims.s4,
             AppDims.s2,
-            AppDims.s5,
-            AppDims.s5,
+            AppDims.s4,
+            AppDims.s4,
           ),
           child: _NoteField(
             initial: _note,

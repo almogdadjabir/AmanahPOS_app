@@ -20,7 +20,7 @@ class AppLargeTitle extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 4, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 4, 0, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

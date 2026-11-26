@@ -9655,6 +9655,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stock count is switched off for this business.'**
   String get scOff;
+
+  /// No description provided for @plTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a POS'**
+  String get plTitle;
+
+  /// No description provided for @plRowValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a desktop till'**
+  String get plRowValue;
+
+  /// No description provided for @plIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a desktop till to this business'**
+  String get plIntro;
+
+  /// No description provided for @plIntroSub.
+  ///
+  /// In en, this message translates to:
+  /// **'The desktop asks for a 6-digit code. This phone makes it.'**
+  String get plIntroSub;
+
+  /// No description provided for @plStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the desktop app and choose Link to a business.'**
+  String get plStep1;
+
+  /// No description provided for @plStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR it shows, or tap Show code.'**
+  String get plStep2;
+
+  /// No description provided for @plStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the 6 digits on the desktop.'**
+  String get plStep3;
+
+  /// No description provided for @plScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the desktop QR'**
+  String get plScan;
+
+  /// No description provided for @plShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show code'**
+  String get plShow;
+
+  /// No description provided for @plNotDesktopQr.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a desktop QR.'**
+  String get plNotDesktopQr;
+
+  /// No description provided for @plExpiresIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires in {time}'**
+  String plExpiresIn(String time);
+
+  /// No description provided for @plWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Type this code on the desktop. Waiting for it…'**
+  String get plWaiting;
+
+  /// No description provided for @plNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'New code'**
+  String get plNewCode;
+
+  /// No description provided for @plChoosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get plChoosing;
+
+  /// No description provided for @plChoosingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is choosing how to link. Keep this screen open.'**
+  String plChoosingBody(String name);
+
+  /// No description provided for @plDeviceFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'A desktop till'**
+  String get plDeviceFallback;
+
+  /// No description provided for @plLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is linked'**
+  String plLinked(String name);
+
+  /// No description provided for @plLinkedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see it in the dashboard under Devices.'**
+  String get plLinkedBody;
+
+  /// No description provided for @plLinkAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Link another'**
+  String get plLinkAnother;
+
+  /// No description provided for @plExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This code expired. Make a new one.'**
+  String get plExpired;
+
+  /// No description provided for @plReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'A newer code replaced this one. Make a new one if you need it.'**
+  String get plReplaced;
+
+  /// No description provided for @plTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many codes'**
+  String get plTooMany;
+
+  /// No description provided for @plTooManyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You made 10 codes in the last hour. Try again in a little while.'**
+  String get plTooManyBody;
+
+  /// No description provided for @plOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet'**
+  String get plOffline;
+
+  /// No description provided for @plOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking a POS needs a connection. Connect and try again.'**
+  String get plOfflineBody;
+
+  /// No description provided for @plTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get plTryAgain;
+
+  /// No description provided for @plForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Only owners and managers can link a POS.'**
+  String get plForbidden;
+
+  /// No description provided for @plError.
+  ///
+  /// In en, this message translates to:
+  /// **'The code could not be made. Try again.'**
+  String get plError;
+
+  /// No description provided for @oaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner approval'**
+  String get oaTitle;
+
+  /// No description provided for @oaAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the owner to type their PIN {what}.'**
+  String oaAsk(String what);
+
+  /// No description provided for @oaWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong PIN. {n} tries left.'**
+  String oaWrong(int n);
+
+  /// No description provided for @oaLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Wait {s} seconds.'**
+  String oaLocked(int s);
+
+  /// No description provided for @oaNoOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'No owner PIN is saved on this phone. The owner needs to sign in here once and set a PIN.'**
+  String get oaNoOwner;
+
+  /// No description provided for @oaOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get oaOk;
+
+  /// No description provided for @oaWhatDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'to give a discount'**
+  String get oaWhatDiscount;
+
+  /// No description provided for @oaWhatReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'to return items'**
+  String get oaWhatReturn;
+
+  /// No description provided for @oaWhatCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'to cancel this sale'**
+  String get oaWhatCancel;
+
+  /// No description provided for @oaWhatStock.
+  ///
+  /// In en, this message translates to:
+  /// **'to change stock'**
+  String get oaWhatStock;
+
+  /// No description provided for @oaWhatCount.
+  ///
+  /// In en, this message translates to:
+  /// **'to apply the stock count'**
+  String get oaWhatCount;
+
+  /// No description provided for @cnBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel sale'**
+  String get cnBtn;
+
+  /// No description provided for @cnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this sale?'**
+  String get cnTitle;
+
+  /// No description provided for @cnReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get cnReceipt;
+
+  /// No description provided for @cnAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get cnAmount;
+
+  /// No description provided for @cnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The sale will not count in your totals and its items go back to stock. This cannot be undone.'**
+  String get cnBody;
+
+  /// No description provided for @cnReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get cnReason;
+
+  /// No description provided for @cnReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer changed their mind'**
+  String get cnReasonHint;
+
+  /// No description provided for @cnKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep sale'**
+  String get cnKeep;
+
+  /// No description provided for @cnConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel sale'**
+  String get cnConfirm;
+
+  /// No description provided for @cnCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cnCancelled;
+
+  /// No description provided for @cnReasonLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {r}'**
+  String cnReasonLine(String r);
+
+  /// No description provided for @cnWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync. Stock returns when it does.'**
+  String get cnWaiting;
+
+  /// No description provided for @cnHasRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'This sale has a refund, so it cannot be cancelled.'**
+  String get cnHasRefund;
+
+  /// No description provided for @cnDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale cancelled'**
+  String get cnDone;
+
+  /// No description provided for @cnErr.
+  ///
+  /// In en, this message translates to:
+  /// **'The sale could not be cancelled. Try again.'**
+  String get cnErr;
+
+  /// No description provided for @cnGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This sale can no longer be cancelled.'**
+  String get cnGone;
 }
 
 class _AppLocalizationsDelegate

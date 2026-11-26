@@ -2,7 +2,6 @@ import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/data/model/pos_submit_result.dart';
 import 'package:amana_pos/features/pos/domain/cart_discount.dart';
-import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';

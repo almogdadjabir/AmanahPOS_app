@@ -1,3 +1,6 @@
+import 'package:amana_pos/features/sales_history/domain/cancel_sale_service.dart';
+import 'package:amana_pos/features/approval/domain/owner_approval_service.dart';
+import 'package:amana_pos/features/pairing/domain/pairing_service.dart';
 import 'package:amana_pos/features/stockcount/data/stock_count_reader.dart';
 import 'package:amana_pos/features/debts/data/debt_reader.dart';
 import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
@@ -159,6 +162,14 @@ class DependenciesProvider {
       ),
     );
 
+    getIt.registerLazySingleton<OwnerApprovalService>(
+      () => OwnerApprovalService(getIt<PinVaultService>()),
+    );
+
+    getIt.registerLazySingleton<PairingService>(
+      () => PairingService(getIt<Dio>()),
+    );
+
     getIt.registerLazySingleton<RequestHandler>(
       () => RequestHandler(getIt<DioClient>()),
     );
@@ -208,7 +219,6 @@ class DependenciesProvider {
     getIt.registerLazySingleton<FcmTokenService>(
       () => FcmTokenService(
         cacheStorage: getIt<CacheStorage>(),
-        requestHandler: getIt<RequestHandler>(),
       ),
     );
 
@@ -668,6 +678,10 @@ class DependenciesProvider {
     );
 
     // The only writer of local refunds (refund row + sale status + outbox).
+    getIt.registerLazySingleton<CancelSaleService>(
+      () => CancelSaleService(writer: getIt<LocalWriter>()),
+    );
+
     getIt.registerLazySingleton<RefundService>(
       () => RefundService(writer: getIt<LocalWriter>()),
     );

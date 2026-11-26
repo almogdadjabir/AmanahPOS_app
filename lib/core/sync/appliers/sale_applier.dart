@@ -82,6 +82,7 @@ class SaleApplier implements ChangeApplier {
     PushResult result,
   ) async {
     if (sent.op == 'refund') return _onRefundResult(txn, sent, result);
+    if (sent.op == 'cancel') return _onCancelResult(txn, sent, result);
     switch (result.status) {
       case PushStatus.applied:
         await _store.markSynced(
@@ -170,6 +171,32 @@ class SaleApplier implements ChangeApplier {
         return;
     }
     await _store.recomputeRefundStatus(txn, sent.entityId);
+  }
+
+  /// A pushed `sale.cancel`. `applied`: the server returned the stock, so
+  /// re-base from `stock_after`. `rejected` (e.g. the sale got a refund
+  /// elsewhere): the local cancel is undone, the status is recomputed.
+  Future<void> _onCancelResult(
+    Transaction txn,
+    OutboxEntry sent,
+    PushResult result,
+  ) async {
+    switch (result.status) {
+      case PushStatus.applied:
+        await _stock.rebaseFromStockAfter(txn, result.stockAfter);
+      case PushStatus.duplicate:
+        break;
+      case PushStatus.rejected:
+        await txn.update(
+          'sales',
+          {'status': 'completed'},
+          where: "id = ? AND status = 'cancelled'",
+          whereArgs: [sent.entityId],
+        );
+        await _store.recomputeRefundStatus(txn, sent.entityId);
+      case PushStatus.retry:
+        return;
+    }
   }
 
   Future<void> _recomputeLines(Transaction txn, OutboxEntry sent) async {

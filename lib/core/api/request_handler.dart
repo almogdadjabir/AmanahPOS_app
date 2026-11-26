@@ -289,7 +289,6 @@ class RequestHandler {
 
     // Try catalog lookup first
     if (code != null) {
-      final params = _extractParams(data);
       // final catalogMessage = ErrorCatalogService.instance.getErrorMessage(code, params);
       // if (catalogMessage != null) {
       //   return catalogMessage;
@@ -347,36 +346,6 @@ class RequestHandler {
     for (final field in fields) {
       final value = data[field]?.toString().trim();
       if (value != null && value.isNotEmpty) return value;
-    }
-
-    return null;
-  }
-
-  Map<String, String>? _extractParams(dynamic data) {
-    if (data is! Map) return null;
-
-    // ── New format: expose details map as params ──
-    final errorObj = data['error'];
-    if (errorObj is Map) {
-      final details = errorObj['details'];
-      if (details is Map && details.isNotEmpty) {
-        return details.map((k, v) {
-          final value = v is List ? v.join(', ') : v.toString();
-          return MapEntry(k.toString(), value);
-        });
-      }
-    }
-
-    // ── Legacy flat format ──
-    final templateVars = data['template_variables'];
-    if (templateVars is Map && templateVars.isNotEmpty) {
-      return templateVars.map((k, v) => MapEntry(k.toString(), v.toString()));
-    }
-    final param = data['param'];
-    if (param != null) return {'param': param.toString()};
-    final params = data['params'];
-    if (params is Map) {
-      return params.map((k, v) => MapEntry(k.toString(), v.toString()));
     }
 
     return null;

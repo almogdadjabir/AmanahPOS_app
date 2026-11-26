@@ -30,7 +30,7 @@ class HomeHeader extends StatelessWidget {
         : (tr.homeStatusLive, colors.success);
 
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 6, 4, 14),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 4, 0, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

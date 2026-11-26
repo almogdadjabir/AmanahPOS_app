@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/approval/presentation/owner_approval_sheet.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/core/sync/decimal3.dart';
 import 'package:amana_pos/features/inventory/domain/stock_service.dart';
@@ -183,6 +184,9 @@ class _StockCountScreenState extends State<StockCountScreen> {
           : tr.scApply('${changing.length}'),
     );
     if (!ok || !mounted) return;
+    if (!await ensureOwnerApproval(context, what: tr.oaWhatCount) || !mounted) {
+      return;
+    }
     setState(() {
       _saving = true;
       _message = null;

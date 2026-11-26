@@ -421,10 +421,10 @@ class _SellHeader extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
-        AppDims.s5,
-        AppDims.s2,
         AppDims.s4,
-        AppDims.s3 + 2,
+        AppDims.s1,
+        AppDims.s4,
+        AppDims.s3,
       ),
       child: Row(
         children: [
