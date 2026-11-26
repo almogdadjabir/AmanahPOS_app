@@ -22,6 +22,34 @@ class StockValidationException implements Exception {
   String toString() => message;
 }
 
+/// One counted product (units are [Decimal3] thousandths). [expected] is the
+/// stock the app showed when the line was counted.
+class CountLine {
+  const CountLine({
+    required this.productId,
+    required this.counted,
+    required this.expected,
+  });
+
+  final String productId;
+  final BigInt counted;
+  final BigInt expected;
+}
+
+class CountOutcome {
+  const CountOutcome({
+    required this.changed,
+    required this.matched,
+    required this.added,
+    required this.taken,
+  });
+
+  final int changed;
+  final int matched;
+  final BigInt added;
+  final BigInt taken;
+}
+
 /// Who is changing stock: read from the signed-in session (injected, so the
 /// service never depends on a bloc). Mirrors the BE checks in
 /// `apps/sync/handlers.py` (`stock_op`, `inbound_create`, `_own_shop_only`).
@@ -169,6 +197,72 @@ class StockService {
   }) async {
     final target = _delta(newQuantity);
     return _op('adjust', productId, shopId, null, reason, target: target);
+  }
+
+  /// A stock count: every line whose counted number differs from the stock
+  /// that was shown when it was counted becomes ONE signed `stock.adjust`
+  /// (never an absolute number, so a sale made meanwhile is not undone). All
+  /// lines are written in one transaction, or none are.
+  Future<CountOutcome> applyCount({
+    required String shopId,
+    required List<CountLine> lines,
+    String reason = 'Stock count',
+  }) async {
+    final s = shopId.trim();
+    if (s.isEmpty) throw const StockValidationException('Shop is required');
+    _checkActor(shopId: s, inbound: false);
+    if (lines.any((l) => l.counted.isNegative) ||
+        lines.map((l) => l.productId).toSet().length != lines.length) {
+      throw const StockValidationException('The count is not valid');
+    }
+    final changing = [for (final l in lines) if (l.counted != l.expected) l];
+    if (changing.isEmpty) {
+      throw const StockValidationException('Nothing to apply');
+    }
+    final why = _reason(reason);
+    final occurredAt = _now().toUtc();
+    return _writer.write<CountOutcome>(
+      tables: tables,
+      body: (scope) async {
+        var added = BigInt.zero;
+        var taken = BigInt.zero;
+        for (final l in changing) {
+          final found = await scope.txn.query(
+            'products',
+            columns: ['id'],
+            where: 'id = ?',
+            whereArgs: [l.productId],
+            limit: 1,
+          );
+          if (found.isEmpty) {
+            throw const StockValidationException('A product is not available');
+          }
+          final d = l.counted - l.expected;
+          await enqueueOpIn(
+            scope,
+            op: 'adjust',
+            productId: l.productId,
+            shopId: s,
+            delta: d,
+            reason: why,
+            occurredAt: occurredAt,
+            entityId: _uuid.v4(),
+            stock: _stock,
+          );
+          if (d.isNegative) {
+            taken += d.abs();
+          } else {
+            added += d;
+          }
+        }
+        return CountOutcome(
+          changed: changing.length,
+          matched: lines.length - changing.length,
+          added: added,
+          taken: taken,
+        );
+      },
+    );
   }
 
   Future<String> _op(

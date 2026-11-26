@@ -5039,4 +5039,339 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spMismatch => 'The cart changed. Edit the split.';
+
+  @override
+  String get dtAccount => 'Account';
+
+  @override
+  String get dtOnAccount => 'On account';
+
+  @override
+  String get dtCustomer => 'Customer';
+
+  @override
+  String get dtAddOptional => 'Add (optional)';
+
+  @override
+  String get dtChange => 'Change';
+
+  @override
+  String get dtClear => 'Remove';
+
+  @override
+  String get dtSearch => 'Search name or phone';
+
+  @override
+  String get dtNewCustomer => 'New customer';
+
+  @override
+  String get dtNoCustomers => 'No customers found.';
+
+  @override
+  String dtOwesNowAfter(String now, String after) {
+    return 'Owes $now now. After this sale: $after.';
+  }
+
+  @override
+  String dtChargeAccount(String amount) {
+    return 'Put $amount on account';
+  }
+
+  @override
+  String get dtNeedCustomer => 'Add a customer first';
+
+  @override
+  String get dtOwesNow => 'Owes now';
+
+  @override
+  String get dtFromPhone => 'From this phone\'s records';
+
+  @override
+  String get dtReceive => 'Receive payment';
+
+  @override
+  String get dtWriteOff => 'Write off';
+
+  @override
+  String get dtAmount => 'Amount';
+
+  @override
+  String dtFull(String amount) {
+    return 'Full $amount';
+  }
+
+  @override
+  String dtHalf(String amount) {
+    return 'Half $amount';
+  }
+
+  @override
+  String get dtNote => 'Note';
+
+  @override
+  String get dtNoteHint => 'Why (optional)';
+
+  @override
+  String get dtPaidWith => 'Paid with';
+
+  @override
+  String get dtAfterZero => 'Nothing will be left to pay.';
+
+  @override
+  String dtAfterLeft(String amount) {
+    return '$amount will still be owed.';
+  }
+
+  @override
+  String dtOverBalance(String amount) {
+    return 'More than the customer owes ($amount).';
+  }
+
+  @override
+  String dtBtnReceive(String amount) {
+    return 'Receive $amount';
+  }
+
+  @override
+  String dtBtnWriteOff(String amount) {
+    return 'Write off $amount';
+  }
+
+  @override
+  String dtDoneReceived(String amount) {
+    return 'Received $amount';
+  }
+
+  @override
+  String dtDoneWrittenOff(String amount) {
+    return 'Written off $amount';
+  }
+
+  @override
+  String get dtLedgerSale => 'Sale on account';
+
+  @override
+  String dtLedgerPayment(String method) {
+    return 'Payment · $method';
+  }
+
+  @override
+  String get dtLedgerWriteOff => 'Write-off';
+
+  @override
+  String get dtRejected => 'Not accepted by the server';
+
+  @override
+  String get dtHistory => 'History';
+
+  @override
+  String get dtLedgerEmpty => 'No debt records yet.';
+
+  @override
+  String get dtDebtsTitle => 'Debts';
+
+  @override
+  String get dtTotalOwed => 'Total owed';
+
+  @override
+  String dtCustomersCount(String count) {
+    return '$count customers';
+  }
+
+  @override
+  String get dtNoDebts => 'Nobody owes anything.';
+
+  @override
+  String get dtErrNotAllowed =>
+      'Only an owner or manager can write off a debt.';
+
+  @override
+  String get dtErrExceeds => 'More than the customer owes.';
+
+  @override
+  String get dtErrNothing => 'This customer owes nothing.';
+
+  @override
+  String get dtErrAmount => 'Enter an amount above zero.';
+
+  @override
+  String get dtErrSave => 'It could not be saved. Try again.';
+
+  @override
+  String dtStillOwes(String name, String amount) {
+    return '$name still owes $amount.';
+  }
+
+  @override
+  String get dcDiscount => 'Discount';
+
+  @override
+  String get dcAddDiscount => 'Add discount';
+
+  @override
+  String get dcLineTitle => 'Discount for this line';
+
+  @override
+  String get dcSaleTitle => 'Discount for the whole sale';
+
+  @override
+  String get dcPercent => 'Percent';
+
+  @override
+  String get dcAmount => 'Amount';
+
+  @override
+  String get dcPercentOff => 'Percent off';
+
+  @override
+  String get dcAmountOff => 'Amount off';
+
+  @override
+  String dcNewTotal(String amount) {
+    return 'New total $amount';
+  }
+
+  @override
+  String dcApplyPercent(String value) {
+    return 'Apply $value% off';
+  }
+
+  @override
+  String dcApplyAmount(String amount) {
+    return 'Apply $amount off';
+  }
+
+  @override
+  String get dcRemove => 'Remove discount';
+
+  @override
+  String get dcChange => 'Change';
+
+  @override
+  String get dcLineDiscounts => 'Line discounts';
+
+  @override
+  String get dcSaleDiscount => 'Discount';
+
+  @override
+  String get dcErrNumber => 'Enter a number above zero.';
+
+  @override
+  String get dcErrPercent => 'A percent cannot be more than 100.';
+
+  @override
+  String dcErrAmount(String amount) {
+    return 'The discount cannot be more than $amount.';
+  }
+
+  @override
+  String dcLineSub(String name, String qty, String price) {
+    return '$name · $qty × $price';
+  }
+
+  @override
+  String get scTitle => 'Stock count';
+
+  @override
+  String get scEntry => 'Stock count';
+
+  @override
+  String get scEntrySub => 'Count the shelf and fix the differences';
+
+  @override
+  String get scSearch => 'Scan a barcode or type a name';
+
+  @override
+  String get scAddAll => 'Add all products';
+
+  @override
+  String scCounted(String n) {
+    return '$n counted';
+  }
+
+  @override
+  String scDiffs(String n) {
+    return '$n with a difference';
+  }
+
+  @override
+  String get scSystem => 'System';
+
+  @override
+  String get scCountedCol => 'Counted';
+
+  @override
+  String get scMatches => 'Matches';
+
+  @override
+  String get scNotCounted => 'Not counted yet';
+
+  @override
+  String get scNotTracked => 'This product does not track stock.';
+
+  @override
+  String get scEmptyTitle => 'Start counting';
+
+  @override
+  String get scEmptySub =>
+      'Scan a product, or press “Add all products” to go through the whole shelf.';
+
+  @override
+  String scApply(String n) {
+    return 'Apply $n differences';
+  }
+
+  @override
+  String get scApplyOne => 'Apply 1 difference';
+
+  @override
+  String get scApplyNone => 'Apply differences';
+
+  @override
+  String get scConfirmTitle => 'Apply the count?';
+
+  @override
+  String get scConfirmBody =>
+      'These stock changes will be recorded. You can correct any of them later with Change stock.';
+
+  @override
+  String get scProducts => 'Products that change';
+
+  @override
+  String get scAdded => 'Items added';
+
+  @override
+  String get scTakenOff => 'Items taken off';
+
+  @override
+  String get scBack => 'Back to counting';
+
+  @override
+  String get scDoneTitle => 'Count applied';
+
+  @override
+  String scDoneBody(String changed, String matched) {
+    return '$changed updated. $matched matched the system.';
+  }
+
+  @override
+  String get scDiscardTitle => 'Throw away the count?';
+
+  @override
+  String get scDiscardBody => 'What you counted so far will be lost.';
+
+  @override
+  String get scDiscard => 'Throw away';
+
+  @override
+  String get scKeep => 'Keep counting';
+
+  @override
+  String get scErrSave => 'The count could not be saved. Try again.';
+
+  @override
+  String get scErrNegative => 'A count cannot be negative.';
+
+  @override
+  String get scOff => 'Stock count is switched off for this business.';
 }

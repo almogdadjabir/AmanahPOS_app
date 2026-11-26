@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/debts/presentation/customer_debt_section.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/customers/data/models/responses/customer_response_dto.dart';
@@ -183,6 +184,10 @@ class CustomerDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                    CustomerDebtSection(
+                      customerId: c.id ?? customer.id ?? '',
+                      canWriteOff: canManage,
                     ),
                     if (phone.isNotEmpty ||
                         email.isNotEmpty ||

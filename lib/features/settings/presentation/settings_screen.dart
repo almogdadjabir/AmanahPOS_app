@@ -70,6 +70,7 @@ class _MoreScreen extends StatefulWidget {
 class _MoreScreenState extends State<_MoreScreen> {
   bool _pinEnrolled = false;
   bool _shiftsOn = false;
+  bool _accountOn = false;
   StreamSubscription<BusinessFeatures>? _featuresSub;
 
   String? get _userId => widget.profile.id;
@@ -80,10 +81,20 @@ class _MoreScreenState extends State<_MoreScreen> {
     _loadPin();
     final features = getIt<BusinessFeaturesService>();
     _featuresSub = features.changes.listen((f) {
-      if (mounted) setState(() => _shiftsOn = f.shiftsEnabled);
+      if (mounted) {
+        setState(() {
+          _shiftsOn = f.shiftsEnabled;
+          _accountOn = f.onAccount;
+        });
+      }
     });
     features.load().then((f) {
-      if (mounted) setState(() => _shiftsOn = f.shiftsEnabled);
+      if (mounted) {
+        setState(() {
+          _shiftsOn = f.shiftsEnabled;
+          _accountOn = f.onAccount;
+        });
+      }
     });
   }
 
@@ -142,6 +153,13 @@ class _MoreScreenState extends State<_MoreScreen> {
           icon: PhosphorIconsRegular.addressBook,
           title: tr.mrCustomers,
           onTap: () => nav.pushNamed(RouteStrings.customersScreen),
+        ),
+      if (_accountOn)
+        SettingsRow(
+          tile: SettingsTile.amber,
+          icon: PhosphorIconsRegular.notebook,
+          title: tr.dtDebtsTitle,
+          onTap: () => nav.pushNamed(RouteStrings.debtsScreen),
         ),
       if (_shiftsOn && perms.canAccessSalesHistory)
         SettingsRow(

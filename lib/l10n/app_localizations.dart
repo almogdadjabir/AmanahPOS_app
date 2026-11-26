@@ -9079,6 +9079,582 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The cart changed. Edit the split.'**
   String get spMismatch;
+
+  /// No description provided for @dtAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get dtAccount;
+
+  /// No description provided for @dtOnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'On account'**
+  String get dtOnAccount;
+
+  /// No description provided for @dtCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get dtCustomer;
+
+  /// No description provided for @dtAddOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Add (optional)'**
+  String get dtAddOptional;
+
+  /// No description provided for @dtChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get dtChange;
+
+  /// No description provided for @dtClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get dtClear;
+
+  /// No description provided for @dtSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search name or phone'**
+  String get dtSearch;
+
+  /// No description provided for @dtNewCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'New customer'**
+  String get dtNewCustomer;
+
+  /// No description provided for @dtNoCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found.'**
+  String get dtNoCustomers;
+
+  /// No description provided for @dtOwesNowAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes {now} now. After this sale: {after}.'**
+  String dtOwesNowAfter(String now, String after);
+
+  /// No description provided for @dtChargeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Put {amount} on account'**
+  String dtChargeAccount(String amount);
+
+  /// No description provided for @dtNeedCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a customer first'**
+  String get dtNeedCustomer;
+
+  /// No description provided for @dtOwesNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes now'**
+  String get dtOwesNow;
+
+  /// No description provided for @dtFromPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'From this phone\'s records'**
+  String get dtFromPhone;
+
+  /// No description provided for @dtReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive payment'**
+  String get dtReceive;
+
+  /// No description provided for @dtWriteOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off'**
+  String get dtWriteOff;
+
+  /// No description provided for @dtAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get dtAmount;
+
+  /// No description provided for @dtFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full {amount}'**
+  String dtFull(String amount);
+
+  /// No description provided for @dtHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'Half {amount}'**
+  String dtHalf(String amount);
+
+  /// No description provided for @dtNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get dtNote;
+
+  /// No description provided for @dtNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why (optional)'**
+  String get dtNoteHint;
+
+  /// No description provided for @dtPaidWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid with'**
+  String get dtPaidWith;
+
+  /// No description provided for @dtAfterZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing will be left to pay.'**
+  String get dtAfterZero;
+
+  /// No description provided for @dtAfterLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} will still be owed.'**
+  String dtAfterLeft(String amount);
+
+  /// No description provided for @dtOverBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'More than the customer owes ({amount}).'**
+  String dtOverBalance(String amount);
+
+  /// No description provided for @dtBtnReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive {amount}'**
+  String dtBtnReceive(String amount);
+
+  /// No description provided for @dtBtnWriteOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off {amount}'**
+  String dtBtnWriteOff(String amount);
+
+  /// No description provided for @dtDoneReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received {amount}'**
+  String dtDoneReceived(String amount);
+
+  /// No description provided for @dtDoneWrittenOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Written off {amount}'**
+  String dtDoneWrittenOff(String amount);
+
+  /// No description provided for @dtLedgerSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale on account'**
+  String get dtLedgerSale;
+
+  /// No description provided for @dtLedgerPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment · {method}'**
+  String dtLedgerPayment(String method);
+
+  /// No description provided for @dtLedgerWriteOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Write-off'**
+  String get dtLedgerWriteOff;
+
+  /// No description provided for @dtRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accepted by the server'**
+  String get dtRejected;
+
+  /// No description provided for @dtHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get dtHistory;
+
+  /// No description provided for @dtLedgerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No debt records yet.'**
+  String get dtLedgerEmpty;
+
+  /// No description provided for @dtDebtsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get dtDebtsTitle;
+
+  /// No description provided for @dtTotalOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Total owed'**
+  String get dtTotalOwed;
+
+  /// No description provided for @dtCustomersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} customers'**
+  String dtCustomersCount(String count);
+
+  /// No description provided for @dtNoDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody owes anything.'**
+  String get dtNoDebts;
+
+  /// No description provided for @dtErrNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Only an owner or manager can write off a debt.'**
+  String get dtErrNotAllowed;
+
+  /// No description provided for @dtErrExceeds.
+  ///
+  /// In en, this message translates to:
+  /// **'More than the customer owes.'**
+  String get dtErrExceeds;
+
+  /// No description provided for @dtErrNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer owes nothing.'**
+  String get dtErrNothing;
+
+  /// No description provided for @dtErrAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount above zero.'**
+  String get dtErrAmount;
+
+  /// No description provided for @dtErrSave.
+  ///
+  /// In en, this message translates to:
+  /// **'It could not be saved. Try again.'**
+  String get dtErrSave;
+
+  /// No description provided for @dtStillOwes.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} still owes {amount}.'**
+  String dtStillOwes(String name, String amount);
+
+  /// No description provided for @dcDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get dcDiscount;
+
+  /// No description provided for @dcAddDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add discount'**
+  String get dcAddDiscount;
+
+  /// No description provided for @dcLineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount for this line'**
+  String get dcLineTitle;
+
+  /// No description provided for @dcSaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount for the whole sale'**
+  String get dcSaleTitle;
+
+  /// No description provided for @dcPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent'**
+  String get dcPercent;
+
+  /// No description provided for @dcAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get dcAmount;
+
+  /// No description provided for @dcPercentOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent off'**
+  String get dcPercentOff;
+
+  /// No description provided for @dcAmountOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount off'**
+  String get dcAmountOff;
+
+  /// No description provided for @dcNewTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'New total {amount}'**
+  String dcNewTotal(String amount);
+
+  /// No description provided for @dcApplyPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply {value}% off'**
+  String dcApplyPercent(String value);
+
+  /// No description provided for @dcApplyAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply {amount} off'**
+  String dcApplyAmount(String amount);
+
+  /// No description provided for @dcRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove discount'**
+  String get dcRemove;
+
+  /// No description provided for @dcChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get dcChange;
+
+  /// No description provided for @dcLineDiscounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Line discounts'**
+  String get dcLineDiscounts;
+
+  /// No description provided for @dcSaleDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get dcSaleDiscount;
+
+  /// No description provided for @dcErrNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number above zero.'**
+  String get dcErrNumber;
+
+  /// No description provided for @dcErrPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'A percent cannot be more than 100.'**
+  String get dcErrPercent;
+
+  /// No description provided for @dcErrAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'The discount cannot be more than {amount}.'**
+  String dcErrAmount(String amount);
+
+  /// No description provided for @dcLineSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {qty} × {price}'**
+  String dcLineSub(String name, String qty, String price);
+
+  /// No description provided for @scTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock count'**
+  String get scTitle;
+
+  /// No description provided for @scEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock count'**
+  String get scEntry;
+
+  /// No description provided for @scEntrySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Count the shelf and fix the differences'**
+  String get scEntrySub;
+
+  /// No description provided for @scSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a barcode or type a name'**
+  String get scSearch;
+
+  /// No description provided for @scAddAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Add all products'**
+  String get scAddAll;
+
+  /// No description provided for @scCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} counted'**
+  String scCounted(String n);
+
+  /// No description provided for @scDiffs.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} with a difference'**
+  String scDiffs(String n);
+
+  /// No description provided for @scSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get scSystem;
+
+  /// No description provided for @scCountedCol.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted'**
+  String get scCountedCol;
+
+  /// No description provided for @scMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get scMatches;
+
+  /// No description provided for @scNotCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not counted yet'**
+  String get scNotCounted;
+
+  /// No description provided for @scNotTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'This product does not track stock.'**
+  String get scNotTracked;
+
+  /// No description provided for @scEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start counting'**
+  String get scEmptyTitle;
+
+  /// No description provided for @scEmptySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a product, or press “Add all products” to go through the whole shelf.'**
+  String get scEmptySub;
+
+  /// No description provided for @scApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply {n} differences'**
+  String scApply(String n);
+
+  /// No description provided for @scApplyOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply 1 difference'**
+  String get scApplyOne;
+
+  /// No description provided for @scApplyNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply differences'**
+  String get scApplyNone;
+
+  /// No description provided for @scConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the count?'**
+  String get scConfirmTitle;
+
+  /// No description provided for @scConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These stock changes will be recorded. You can correct any of them later with Change stock.'**
+  String get scConfirmBody;
+
+  /// No description provided for @scProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products that change'**
+  String get scProducts;
+
+  /// No description provided for @scAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Items added'**
+  String get scAdded;
+
+  /// No description provided for @scTakenOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Items taken off'**
+  String get scTakenOff;
+
+  /// No description provided for @scBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to counting'**
+  String get scBack;
+
+  /// No description provided for @scDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Count applied'**
+  String get scDoneTitle;
+
+  /// No description provided for @scDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{changed} updated. {matched} matched the system.'**
+  String scDoneBody(String changed, String matched);
+
+  /// No description provided for @scDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw away the count?'**
+  String get scDiscardTitle;
+
+  /// No description provided for @scDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you counted so far will be lost.'**
+  String get scDiscardBody;
+
+  /// No description provided for @scDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw away'**
+  String get scDiscard;
+
+  /// No description provided for @scKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep counting'**
+  String get scKeep;
+
+  /// No description provided for @scErrSave.
+  ///
+  /// In en, this message translates to:
+  /// **'The count could not be saved. Try again.'**
+  String get scErrSave;
+
+  /// No description provided for @scErrNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'A count cannot be negative.'**
+  String get scErrNegative;
+
+  /// No description provided for @scOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock count is switched off for this business.'**
+  String get scOff;
 }
 
 class _AppLocalizationsDelegate

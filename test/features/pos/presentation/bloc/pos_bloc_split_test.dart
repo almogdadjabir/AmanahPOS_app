@@ -146,4 +146,93 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 10));
     expect(bloc.state.splitParts, isEmpty);
   });
+
+  group('on account', () {
+    test('credit without a customer is refused, nothing submitted', () async {
+      stub();
+      final bloc = await cartWith100();
+      bloc.add(const PosPaymentMethodChanged('credit'));
+      bloc.add(const PosCheckoutSubmitted(shopId: 'shop1'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(bloc.state.submitStatus, PosSubmitStatus.failure);
+      verifyNever(
+        () => useCase.submitSale(
+          shopId: any(named: 'shopId'),
+          customerId: any(named: 'customerId'),
+          paymentMethod: any(named: 'paymentMethod'),
+          items: any(named: 'items'),
+          discountAmount: any(named: 'discountAmount'),
+          taxConfig: any(named: 'taxConfig'),
+          payments: any(named: 'payments'),
+        ),
+      );
+    });
+
+    test('credit with a customer sends the customer and clears the ticket', () async {
+      stub();
+      final bloc = await cartWith100();
+      bloc.add(const PosCustomerSelected(id: 'c1', name: 'Sara'));
+      bloc.add(const PosPaymentMethodChanged('credit'));
+      bloc.add(const PosCheckoutSubmitted(shopId: 'shop1'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      verify(
+        () => useCase.submitSale(
+          shopId: any(named: 'shopId'),
+          customerId: 'c1',
+          paymentMethod: 'credit',
+          items: any(named: 'items'),
+          discountAmount: any(named: 'discountAmount'),
+          taxConfig: any(named: 'taxConfig'),
+          payments: any(named: 'payments'),
+        ),
+      ).called(1);
+      expect(bloc.state.customerId, isNull);
+      expect(bloc.state.paymentMethod, 'cash');
+      expect(bloc.state.lastPaymentMethod, 'credit');
+    });
+
+    test('removing the customer drops On account back to cash', () async {
+      final bloc = PosBloc(useCase: useCase);
+      addTearDown(bloc.close);
+      bloc.add(const PosCustomerSelected(id: 'c1', name: 'Sara'));
+      bloc.add(const PosPaymentMethodChanged('credit'));
+      bloc.add(const PosCustomerCleared());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.customerId, isNull);
+      expect(bloc.state.paymentMethod, 'cash');
+    });
+
+    test('removing the customer drops a split that has an account part', () async {
+      final bloc = PosBloc(useCase: useCase);
+      addTearDown(bloc.close);
+      bloc.add(const PosCustomerSelected(id: 'c1', name: 'Sara'));
+      bloc.add(const PosSplitConfirmed([
+        SalePaymentPart(method: 'cash', amount: '1.00'),
+        SalePaymentPart(method: 'credit', amount: '1.00'),
+      ]));
+      bloc.add(const PosCustomerCleared());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.paymentMethod, 'cash');
+      expect(bloc.state.splitParts, isEmpty);
+    });
+
+    test('a cash sale keeps an optional customer', () async {
+      stub();
+      final bloc = await cartWith100();
+      bloc.add(const PosCustomerSelected(id: 'c1', name: 'Sara'));
+      bloc.add(const PosCheckoutSubmitted(shopId: 'shop1'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      verify(
+        () => useCase.submitSale(
+          shopId: any(named: 'shopId'),
+          customerId: 'c1',
+          paymentMethod: 'cash',
+          items: any(named: 'items'),
+          discountAmount: any(named: 'discountAmount'),
+          taxConfig: any(named: 'taxConfig'),
+          payments: any(named: 'payments'),
+        ),
+      ).called(1);
+    });
+  });
 }

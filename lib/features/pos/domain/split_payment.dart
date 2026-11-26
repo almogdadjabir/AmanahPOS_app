@@ -5,7 +5,7 @@ import 'sale.dart';
 /// Where the typed amounts stand against the sale total.
 enum SplitStatus { incomplete, exact, over, invalid }
 
-/// What the split sheet shows for the current inputs (cash and Bankak rows).
+/// What the split sheet shows for the current inputs (cash, Bankak and on-account rows).
 class SplitEvaluation {
   const SplitEvaluation({
     required this.status,
@@ -18,7 +18,7 @@ class SplitEvaluation {
   /// What is still unpaid, or how much too much was entered. Never negative.
   final BigInt left;
 
-  /// The parts to charge: only rows above zero, in cash then Bankak order.
+  /// The parts to charge: only rows above zero, in cash, Bankak, account order.
   /// Empty unless [status] is [SplitStatus.exact].
   final List<SalePaymentPart> parts;
 }
@@ -37,17 +37,19 @@ abstract final class SplitPayment {
     required BigInt total,
     required String cash,
     required String bankak,
+    String account = '',
   }) {
     final c = _part(cash);
     final b = _part(bankak);
-    if (c == null || b == null) {
+    final a = _part(account);
+    if (c == null || b == null || a == null) {
       return SplitEvaluation(
         status: SplitStatus.invalid,
         left: BigInt.zero,
         parts: const [],
       );
     }
-    final entered = c + b;
+    final entered = c + b + a;
     if (entered == total) {
       return SplitEvaluation(
         status: SplitStatus.exact,
@@ -57,6 +59,8 @@ abstract final class SplitPayment {
             SalePaymentPart(method: 'cash', amount: Cents.format(c)),
           if (b > BigInt.zero)
             SalePaymentPart(method: 'bankak', amount: Cents.format(b)),
+          if (a > BigInt.zero)
+            SalePaymentPart(method: 'credit', amount: Cents.format(a)),
         ],
       );
     }
@@ -69,19 +73,28 @@ abstract final class SplitPayment {
   }
 
   /// "Fill rest": the row's own amount plus what is left, as `0.00` text.
-  /// Null when nothing is left to fill.
+  /// Null when nothing is left to fill. [row] is `cash`, `bankak` or `credit`.
   static String? fillRest({
     required BigInt total,
     required String cash,
     required String bankak,
-    required bool intoCash,
+    String account = '',
+    bool intoCash = false,
+    String row = '',
   }) {
+    final target = row.isNotEmpty ? row : (intoCash ? 'cash' : 'bankak');
     final c = _part(cash);
     final b = _part(bankak);
-    if (c == null || b == null) return null;
-    final left = total - c - b;
+    final a = _part(account);
+    if (c == null || b == null || a == null) return null;
+    final left = total - c - b - a;
     if (left <= BigInt.zero) return null;
-    return Cents.format((intoCash ? c : b) + left);
+    final own = switch (target) {
+      'cash' => c,
+      'credit' => a,
+      _ => b,
+    };
+    return Cents.format(own + left);
   }
 
   /// True when saved [parts] still add up to [total] to the cent (the cart can

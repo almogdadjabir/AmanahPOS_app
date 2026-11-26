@@ -8,6 +8,7 @@ import 'appliers/product_applier.dart';
 import 'appliers/refund_applier.dart';
 import 'appliers/sale_applier.dart';
 import 'appliers/notification_applier.dart';
+import 'appliers/debt_applier.dart';
 import 'appliers/shift_applier.dart';
 import 'appliers/shop_applier.dart';
 import 'appliers/stock_applier.dart';
@@ -18,7 +19,7 @@ import 'change_applier.dart';
 
 /// Entities that are pushed but not in the pull feed or the bootstrap yet
 /// (docs/BE_GAPS_PARITY.md G5). Their appliers only record push results.
-const Set<String> pushOnlyEntities = {'shift', 'cash_movement'};
+const Set<String> pushOnlyEntities = {'shift', 'cash_movement', 'debt'};
 
 /// The ONE list of change appliers the sync engine runs with. Shared by the
 /// app's DI and the background worker so both apply pulled changes and push
@@ -45,7 +46,8 @@ ChangeApplierRegistry buildSyncAppliers({String? Function()? scopeProvider}) =>
       ..register(NotificationApplier())
       ..register(BankakAccountApplier())
       ..register(ShiftApplier.shift())
-      ..register(ShiftApplier.cashMovement());
+      ..register(ShiftApplier.cashMovement())
+      ..register(DebtApplier.debt());
 
 /// Every local table the appliers write (what a sync run outside this
 /// isolate may have changed).

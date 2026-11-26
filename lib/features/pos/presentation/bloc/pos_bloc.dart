@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
+import 'package:amana_pos/features/pos/domain/cart_discount.dart';
 import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/domain/split_payment.dart';
 import 'package:amana_pos/features/shifts/domain/cash_expectation.dart';
@@ -40,11 +41,17 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosCategoryChanged>(_onCategoryChanged);
     on<PosPaymentMethodChanged>(_onPaymentMethodChanged);
     on<PosSplitConfirmed>(_onSplitConfirmed);
+    on<PosCustomerSelected>(
+      (e, emit) => emit(state.copyWith(customerId: e.id, customerName: e.name)),
+    );
+    on<PosCustomerCleared>(_onCustomerCleared);
     on<PosAddProduct>(_onAddProduct);
     on<PosAddCustomAmount>(_onAddCustomAmount);
     on<PosIncrementItem>(_onIncrementItem);
     on<PosDecrementItem>(_onDecrementItem);
     on<PosRemoveItem>(_onRemoveItem);
+    on<PosLineDiscountSet>(_onLineDiscountSet);
+    on<PosSaleDiscountSet>(_onSaleDiscountSet);
     on<PosClearCart>(_onClearCart);
     on<PosCheckoutSubmitted>(_onCheckoutSubmitted);
     on<PosAcknowledgeSubmit>(_onAcknowledgeSubmit);
@@ -162,6 +169,21 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     );
   }
 
+  void _onCustomerCleared(PosCustomerCleared event, Emitter<PosState> emit) {
+    // On account (whole or as a split part) never outlives its customer.
+    final dropsAccount =
+        state.paymentMethod == 'credit' ||
+        (state.paymentMethod == 'split' &&
+            state.splitParts.any((p) => p.method == 'credit'));
+    emit(
+      state.copyWith(
+        clearCustomer: true,
+        paymentMethod: dropsAccount ? 'cash' : null,
+        splitParts: dropsAccount ? const [] : null,
+      ),
+    );
+  }
+
   void _onSplitConfirmed(PosSplitConfirmed event, Emitter<PosState> emit) {
     emit(state.copyWith(paymentMethod: 'split', splitParts: event.parts));
   }
@@ -239,21 +261,43 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       final nextQty = item.quantity - 1;
       if (nextQty > 0) updated.add(item.copyWith(quantity: nextQty));
     }
-    emit(state.copyWith(items: updated));
+    emit(state.copyWith(items: updated, clearSaleDiscount: updated.isEmpty));
   }
 
   void _onRemoveItem(PosRemoveItem event, Emitter<PosState> emit) {
+    final left = state.items
+        .where((i) => i.product.id != event.productId)
+        .toList();
+    emit(state.copyWith(items: left, clearSaleDiscount: left.isEmpty));
+  }
+
+  void _onLineDiscountSet(PosLineDiscountSet event, Emitter<PosState> emit) {
     emit(
       state.copyWith(
-        items: state.items
-            .where((i) => i.product.id != event.productId)
-            .toList(),
+        items: [
+          for (final i in state.items)
+            if (i.product.id == event.productId)
+              event.discount == null
+                  ? i.copyWith(clearDiscount: true)
+                  : i.copyWith(discount: event.discount)
+            else
+              i,
+        ],
+      ),
+    );
+  }
+
+  void _onSaleDiscountSet(PosSaleDiscountSet event, Emitter<PosState> emit) {
+    emit(
+      state.copyWith(
+        saleDiscount: event.discount,
+        clearSaleDiscount: event.discount == null,
       ),
     );
   }
 
   void _onClearCart(PosClearCart event, Emitter<PosState> emit) {
-    emit(state.copyWith(items: [], clearShop: true));
+    emit(state.copyWith(items: [], clearShop: true, clearSaleDiscount: true));
   }
 
   Future<void> _onCheckoutSubmitted(
@@ -276,9 +320,24 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     final saleSubtotal = state.subtotal;
     final salePreviewTax = state.taxAmount;
     final saleTotal = state.total;
+    final saleDiscountText = Cents.format(state.saleDiscountCents);
     final saleTaxConfig = state.taxConfig;
+    final saleCustomerId = event.customerId ?? state.customerId;
     var salePaymentMethod = state.paymentMethod;
     List<SalePaymentPart>? salePayments;
+    final needsCustomer =
+        salePaymentMethod == 'credit' ||
+        (salePaymentMethod == 'split' &&
+            state.splitParts.any((p) => p.method == 'credit'));
+    if (needsCustomer && (saleCustomerId == null || saleCustomerId.isEmpty)) {
+      emit(
+        state.copyWith(
+          submitStatus: PosSubmitStatus.failure,
+          submitError: 'A sale on account needs a customer.',
+        ),
+      );
+      return;
+    }
     if (salePaymentMethod == 'split') {
       final parts = state.splitParts;
       final cents = Cents.parse(state.total.toStringAsFixed(2));
@@ -305,11 +364,11 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       final response = await getIt<AppProgressCubit>().run(
         () => useCase.submitSale(
           shopId: event.shopId,
-          customerId: event.customerId,
+          customerId: saleCustomerId,
           paymentMethod: salePaymentMethod,
           payments: salePayments,
           items: state.items,
-          discountAmount: '0',
+          discountAmount: saleDiscountText,
           taxConfig: saleTaxConfig,
         ),
       );
@@ -341,6 +400,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           emit(
             state.copyWith(
               items: [],
+              clearSaleDiscount: true,
               lastSoldQuantities: soldQuantities,
               cartExpanded: false,
               submitStatus: PosSubmitStatus.success,
@@ -361,10 +421,13 @@ class PosBloc extends Bloc<PosEvent, PosState> {
               lastTaxInclusive: resolvedInclusive,
               lastPaymentMethod: salePaymentMethod,
               lastSplitParts: salePayments ?? const [],
-              paymentMethod: state.paymentMethod == 'split'
+              paymentMethod:
+                  state.paymentMethod == 'split' ||
+                      state.paymentMethod == 'credit'
                   ? 'cash'
                   : state.paymentMethod,
               splitParts: const [],
+              clearCustomer: true,
               lastSaleWasOffline: result.queued,
               submitError: result.queued
                   ? 'Sale saved offline. Will sync when internet is restored.'

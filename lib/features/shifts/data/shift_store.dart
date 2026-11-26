@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/debts/data/debt_store.dart';
 import 'package:amana_pos/core/time/business_day.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -201,6 +202,12 @@ class ShiftStore {
     for (final r in refundRows) {
       refunds += Cents.parse('${r['total']}') ?? BigInt.zero;
     }
+    final debtCash = await const DebtStore().cashPaymentsIn(
+      db,
+      shopId: shift.shopId,
+      from: from,
+      to: to,
+    );
     var payIns = BigInt.zero;
     var payOuts = BigInt.zero;
     for (final m in await movements(db, shift.id)) {
@@ -215,7 +222,7 @@ class ShiftStore {
       parts: CashParts(
         opening: shift.openingCash,
         cashSales: cash,
-        debtPayments: BigInt.zero,
+        debtPayments: debtCash,
         payIns: payIns,
         refunds: refunds,
         cancels: BigInt.zero,

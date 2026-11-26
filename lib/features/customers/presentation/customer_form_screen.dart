@@ -1,3 +1,7 @@
+import 'package:amana_pos/core/features/business_features.dart';
+import 'package:amana_pos/features/debts/data/debt_reader.dart';
+import 'package:amana_pos/features/shifts/presentation/shift_format.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/motion/motion_route.dart';
@@ -80,10 +84,20 @@ Future<bool> confirmDeactivateCustomer(
   final tr = context.tr;
   final name = customer.name?.trim() ?? '';
 
+  // A customer who still owes money gets a plain warning in the message.
+  var owes = BigInt.zero;
+  final id = customer.id;
+  if (id != null && getIt<BusinessFeaturesService>().current.onAccount) {
+    owes = await getIt<DebtReader>().balance(id);
+  }
+  if (!context.mounted) return false;
+
   final confirmed = await showAppConfirmSheet(
     context,
     title: tr.cuDeactivateTitle(name),
-    message: tr.cuDeactivateBody(name),
+    message: owes > BigInt.zero
+        ? '${tr.dtStillOwes(name, shiftMoney(owes))}\n\n${tr.cuDeactivateBody(name)}'
+        : tr.cuDeactivateBody(name),
     confirmLabel: tr.cuDeactivateConfirm,
   );
   if (!confirmed || !context.mounted) return false;

@@ -14,6 +14,7 @@ class RouteStrings {
   static const String settingsScreen = 'settingsScreen';
   static const String appSettingsScreen = 'appSettingsScreen';
   static const String customersScreen = 'customersScreen';
+  static const String debtsScreen = 'debtsScreen';
   static const String categoriesScreen = 'categoriesScreen';
   static const String cashiersScreen = 'cashiersScreen';
   static const String notificationsScreen = 'notificationsScreen';

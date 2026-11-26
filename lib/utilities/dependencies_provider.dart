@@ -1,3 +1,5 @@
+import 'package:amana_pos/features/stockcount/data/stock_count_reader.dart';
+import 'package:amana_pos/features/debts/data/debt_reader.dart';
 import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
 import 'package:amana_pos/core/features/business_features.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
@@ -473,6 +475,17 @@ class DependenciesProvider {
       unawaited(service.load());
       return service;
     });
+
+    getIt.registerLazySingleton<StockCountReader>(
+      () => StockCountReader(db: getIt<OfflineDb>()),
+    );
+
+    getIt.registerLazySingleton<DebtReader>(
+      () => DebtReader(
+        db: getIt<OfflineDb>(),
+        notifier: getIt<DbChangeNotifier>(),
+      ),
+    );
 
     // One app-wide url -> local file resolver for every OfflineCachedImage:
     // one synced_assets query per notify instead of one per image.

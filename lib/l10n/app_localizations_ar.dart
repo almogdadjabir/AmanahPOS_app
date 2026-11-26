@@ -5001,4 +5001,338 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spMismatch => 'تغيرت السلة. عدّل التجزئة.';
+
+  @override
+  String get dtAccount => 'آجل';
+
+  @override
+  String get dtOnAccount => 'على الحساب';
+
+  @override
+  String get dtCustomer => 'العميل';
+
+  @override
+  String get dtAddOptional => 'إضافة (اختياري)';
+
+  @override
+  String get dtChange => 'تغيير';
+
+  @override
+  String get dtClear => 'إزالة';
+
+  @override
+  String get dtSearch => 'ابحث بالاسم أو الهاتف';
+
+  @override
+  String get dtNewCustomer => 'عميل جديد';
+
+  @override
+  String get dtNoCustomers => 'لا يوجد عملاء.';
+
+  @override
+  String dtOwesNowAfter(String now, String after) {
+    return 'عليه $now الآن. بعد هذه العملية: $after.';
+  }
+
+  @override
+  String dtChargeAccount(String amount) {
+    return 'سجّل $amount على الحساب';
+  }
+
+  @override
+  String get dtNeedCustomer => 'أضف عميلاً أولاً';
+
+  @override
+  String get dtOwesNow => 'المستحق الآن';
+
+  @override
+  String get dtFromPhone => 'من سجلات هذا الهاتف';
+
+  @override
+  String get dtReceive => 'استلام دفعة';
+
+  @override
+  String get dtWriteOff => 'شطب';
+
+  @override
+  String get dtAmount => 'المبلغ';
+
+  @override
+  String dtFull(String amount) {
+    return 'كامل $amount';
+  }
+
+  @override
+  String dtHalf(String amount) {
+    return 'نصف $amount';
+  }
+
+  @override
+  String get dtNote => 'ملاحظة';
+
+  @override
+  String get dtNoteHint => 'السبب (اختياري)';
+
+  @override
+  String get dtPaidWith => 'الدفع بواسطة';
+
+  @override
+  String get dtAfterZero => 'لن يتبقى شيء للدفع.';
+
+  @override
+  String dtAfterLeft(String amount) {
+    return 'سيبقى $amount مستحقاً.';
+  }
+
+  @override
+  String dtOverBalance(String amount) {
+    return 'أكثر مما على العميل ($amount).';
+  }
+
+  @override
+  String dtBtnReceive(String amount) {
+    return 'استلام $amount';
+  }
+
+  @override
+  String dtBtnWriteOff(String amount) {
+    return 'شطب $amount';
+  }
+
+  @override
+  String dtDoneReceived(String amount) {
+    return 'تم استلام $amount';
+  }
+
+  @override
+  String dtDoneWrittenOff(String amount) {
+    return 'تم شطب $amount';
+  }
+
+  @override
+  String get dtLedgerSale => 'بيع على الحساب';
+
+  @override
+  String dtLedgerPayment(String method) {
+    return 'دفعة · $method';
+  }
+
+  @override
+  String get dtLedgerWriteOff => 'شطب';
+
+  @override
+  String get dtRejected => 'لم يقبله الخادم';
+
+  @override
+  String get dtHistory => 'السجل';
+
+  @override
+  String get dtLedgerEmpty => 'لا توجد سجلات دين.';
+
+  @override
+  String get dtDebtsTitle => 'الديون';
+
+  @override
+  String get dtTotalOwed => 'إجمالي المستحق';
+
+  @override
+  String dtCustomersCount(String count) {
+    return 'عدد العملاء: $count';
+  }
+
+  @override
+  String get dtNoDebts => 'لا أحد مدين.';
+
+  @override
+  String get dtErrNotAllowed => 'يمكن للمالك أو المدير فقط شطب دين.';
+
+  @override
+  String get dtErrExceeds => 'أكثر مما على العميل.';
+
+  @override
+  String get dtErrNothing => 'هذا العميل لا يدين بشيء.';
+
+  @override
+  String get dtErrAmount => 'أدخل مبلغاً أكبر من صفر.';
+
+  @override
+  String get dtErrSave => 'تعذّر الحفظ. حاول مرة أخرى.';
+
+  @override
+  String dtStillOwes(String name, String amount) {
+    return '$name ما زال مديناً بمبلغ $amount.';
+  }
+
+  @override
+  String get dcDiscount => 'خصم';
+
+  @override
+  String get dcAddDiscount => 'إضافة خصم';
+
+  @override
+  String get dcLineTitle => 'خصم على هذا البند';
+
+  @override
+  String get dcSaleTitle => 'خصم على البيع كاملاً';
+
+  @override
+  String get dcPercent => 'نسبة';
+
+  @override
+  String get dcAmount => 'مبلغ';
+
+  @override
+  String get dcPercentOff => 'نسبة الخصم';
+
+  @override
+  String get dcAmountOff => 'مبلغ الخصم';
+
+  @override
+  String dcNewTotal(String amount) {
+    return 'الإجمالي الجديد $amount';
+  }
+
+  @override
+  String dcApplyPercent(String value) {
+    return 'تطبيق خصم $value%';
+  }
+
+  @override
+  String dcApplyAmount(String amount) {
+    return 'تطبيق خصم $amount';
+  }
+
+  @override
+  String get dcRemove => 'إزالة الخصم';
+
+  @override
+  String get dcChange => 'تغيير';
+
+  @override
+  String get dcLineDiscounts => 'خصومات البنود';
+
+  @override
+  String get dcSaleDiscount => 'الخصم';
+
+  @override
+  String get dcErrNumber => 'أدخل رقماً أكبر من صفر.';
+
+  @override
+  String get dcErrPercent => 'لا يمكن أن تزيد النسبة عن 100.';
+
+  @override
+  String dcErrAmount(String amount) {
+    return 'لا يمكن أن يزيد الخصم عن $amount.';
+  }
+
+  @override
+  String dcLineSub(String name, String qty, String price) {
+    return '$name · $qty × $price';
+  }
+
+  @override
+  String get scTitle => 'جرد المخزون';
+
+  @override
+  String get scEntry => 'جرد المخزون';
+
+  @override
+  String get scEntrySub => 'عُدّ الرف وصحّح الفروقات';
+
+  @override
+  String get scSearch => 'امسح الباركود أو اكتب اسماً';
+
+  @override
+  String get scAddAll => 'إضافة كل المنتجات';
+
+  @override
+  String scCounted(String n) {
+    return 'تم عدّ $n';
+  }
+
+  @override
+  String scDiffs(String n) {
+    return '$n بها فرق';
+  }
+
+  @override
+  String get scSystem => 'النظام';
+
+  @override
+  String get scCountedCol => 'المعدود';
+
+  @override
+  String get scMatches => 'مطابق';
+
+  @override
+  String get scNotCounted => 'لم يُعدّ بعد';
+
+  @override
+  String get scNotTracked => 'هذا المنتج لا يتتبع المخزون.';
+
+  @override
+  String get scEmptyTitle => 'ابدأ الجرد';
+
+  @override
+  String get scEmptySub =>
+      'امسح منتجاً، أو اضغط «إضافة كل المنتجات» لتمرّ على الرف كاملاً.';
+
+  @override
+  String scApply(String n) {
+    return 'تطبيق $n فروقات';
+  }
+
+  @override
+  String get scApplyOne => 'تطبيق فرق واحد';
+
+  @override
+  String get scApplyNone => 'تطبيق الفروقات';
+
+  @override
+  String get scConfirmTitle => 'تطبيق الجرد؟';
+
+  @override
+  String get scConfirmBody =>
+      'ستُسجَّل هذه التغييرات في المخزون. يمكنك تصحيح أي منها لاحقاً من «تغيير المخزون».';
+
+  @override
+  String get scProducts => 'منتجات سيتغير مخزونها';
+
+  @override
+  String get scAdded => 'وحدات مضافة';
+
+  @override
+  String get scTakenOff => 'وحدات مخصومة';
+
+  @override
+  String get scBack => 'العودة إلى العدّ';
+
+  @override
+  String get scDoneTitle => 'تم تطبيق الجرد';
+
+  @override
+  String scDoneBody(String changed, String matched) {
+    return 'تم تحديث $changed. طابق النظامَ $matched.';
+  }
+
+  @override
+  String get scDiscardTitle => 'إلغاء الجرد؟';
+
+  @override
+  String get scDiscardBody => 'سيضيع ما عددته حتى الآن.';
+
+  @override
+  String get scDiscard => 'إلغاء الجرد';
+
+  @override
+  String get scKeep => 'متابعة العد';
+
+  @override
+  String get scErrSave => 'تعذّر حفظ الجرد. حاول مرة أخرى.';
+
+  @override
+  String get scErrNegative => 'لا يمكن أن يكون العدد سالباً.';
+
+  @override
+  String get scOff => 'جرد المخزون متوقف لهذا النشاط.';
 }

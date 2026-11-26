@@ -10,6 +10,8 @@ import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/widgets/app_button.dart';
 import 'package:amana_pos/widgets/app_sheet.dart';
+import 'package:amana_pos/features/shifts/domain/cash_expectation.dart';
+import 'package:amana_pos/features/shifts/presentation/shift_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -87,6 +89,8 @@ class ExpandedCart extends StatelessWidget {
         buildWhen: (prev, curr) =>
             prev.items != curr.items ||
             prev.paymentMethod != curr.paymentMethod ||
+            prev.customerId != curr.customerId ||
+            prev.saleDiscount != curr.saleDiscount ||
             prev.submitStatus != curr.submitStatus ||
             prev.taxConfig != curr.taxConfig,
         builder: (context, state) {
@@ -107,7 +111,9 @@ class ExpandedCart extends StatelessWidget {
               onTap: onCollapse,
             ),
             footer: AppButton.wide(
-              label: context.tr.completeSale,
+              label: state.paymentMethod == 'credit'
+                  ? context.tr.dtChargeAccount(shiftMoney(Cents.parse(state.total.toStringAsFixed(2)) ?? BigInt.zero))
+                  : context.tr.completeSale,
               isLoading: isLoading,
               onPressed: isLoading ? null : onCheckout,
             ),

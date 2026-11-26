@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/debts/presentation/debts_screen.dart';
 import 'package:amana_pos/features/shifts/presentation/shifts_screen.dart';
 import 'dart:io' show Platform;
 import 'package:amana_pos/common/motion/motion.dart';
@@ -171,6 +172,9 @@ class AppRouter {
           ),
           settings,
         );
+
+      case RouteStrings.debtsScreen:
+        return _buildRoute(const DebtsScreen(), settings);
 
       case RouteStrings.shiftsScreen:
         return _buildRoute(

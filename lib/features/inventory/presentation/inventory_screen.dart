@@ -1,4 +1,8 @@
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
+import 'package:amana_pos/core/features/business_features.dart';
+import 'package:amana_pos/features/pos/presentation/bloc/pos_bloc.dart';
+import 'package:amana_pos/features/stockcount/presentation/stock_count_screen.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/features/inventory/data/models/responses/stock_response_dto.dart';
 import 'package:amana_pos/features/inventory/presentation/bloc/expiry_bloc.dart';
@@ -225,6 +229,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             productFor: _productFor,
                             knownProduct: _knownProduct,
                           ),
+                          const _CountEntry(),
                           if (premium) const _MoreGroup(),
                         ]),
                       ),
@@ -703,6 +708,49 @@ class _MoreGroup extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+
+/// "Stock count" row, shown while the business has it switched on.
+class _CountEntry extends StatelessWidget {
+  const _CountEntry();
+
+  @override
+  Widget build(BuildContext context) {
+    final features = getIt<BusinessFeaturesService>();
+    return StreamBuilder<BusinessFeatures>(
+      stream: features.changes,
+      initialData: features.current,
+      builder: (context, snap) {
+        if (!(snap.data?.stockCount ?? true)) return const SizedBox.shrink();
+        final tr = context.tr;
+        return Padding(
+          padding: const EdgeInsets.only(top: 22),
+          child: AppGroup(
+            children: [
+              AppGroupRow(
+                icon: PhosphorIconsRegular.list,
+                tint: AppTint.neutral,
+                title: tr.scEntry,
+                subtitle: tr.scEntrySub,
+                onTap: () {
+                  final shop =
+                      context.read<PosBloc>().state.selectedShopId ??
+                      context.read<AuthBloc>().state.profile?.defaultShopId;
+                  if (shop == null || shop.isEmpty) return;
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => StockCountScreen(shopId: shop),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -8,6 +8,13 @@ class PosState extends Equatable {
   final String? selectedCategoryId;
   final String paymentMethod;
 
+  /// The customer on this ticket (optional; required to sell on account).
+  final String? customerId;
+  final String? customerName;
+
+  /// Discount on the whole sale (owner/manager). Null = none.
+  final CartDiscount? saleDiscount;
+
   /// Confirmed split parts (only meaningful while [paymentMethod] is 'split').
   final List<SalePaymentPart> splitParts;
 
@@ -45,6 +52,9 @@ class PosState extends Equatable {
     this.searchQuery = '',
     this.selectedCategoryId,
     this.paymentMethod = 'cash',
+    this.customerId,
+    this.customerName,
+    this.saleDiscount,
     this.splitParts = const [],
     this.lastSplitParts = const [],
     this.submitStatus = PosSubmitStatus.idle,
@@ -74,18 +84,39 @@ class PosState extends Equatable {
   bool get isEmpty => items.isEmpty;
   bool get isNotEmpty => items.isNotEmpty;
   int get itemCount => items.fold(0, (sum, i) => sum + i.quantity);
+  /// Sum of the lines after their own discounts.
   double get subtotal => items.fold(0, (sum, i) => sum + i.lineTotal);
+
+  /// Sum of the lines before any discount.
+  double get grossSubtotal => items.fold(0, (sum, i) => sum + i.lineGross);
+
+  double get lineDiscountTotal =>
+      items.fold(0, (sum, i) => sum + i.lineDiscount);
+
+  BigInt get saleDiscountCents => saleDiscount == null
+      ? BigInt.zero
+      : saleDiscount!.cutOf(BigInt.from((subtotal * 100).round()));
+
+  /// The whole-sale discount, taken off after the line discounts.
+  double get saleDiscountAmount => saleDiscountCents.toDouble() / 100;
+
+  /// What tax is worked out on.
+  double get taxable => saleDiscount == null
+      ? subtotal
+      : ((BigInt.from((subtotal * 100).round()) - saleDiscountCents)
+                .toDouble() /
+            100);
 
   /// Local tax preview (docs/TAX_SUPPORT.md §2) — server stays authoritative.
   double get taxAmount => TaxCalculator.compute(
-    taxableAmount: subtotal,
+    taxableAmount: taxable,
     config: taxConfig,
   ).taxAmount;
 
   /// Net payable total: subtotal + tax when exclusive, subtotal when
   /// inclusive or tax disabled.
   double get total => TaxCalculator.compute(
-    taxableAmount: subtotal,
+    taxableAmount: taxable,
     config: taxConfig,
   ).netAmount;
 
@@ -107,6 +138,11 @@ class PosState extends Equatable {
     String? selectedCategoryId,
     bool clearSelectedCategory = false,
     String? paymentMethod,
+    String? customerId,
+    String? customerName,
+    bool clearCustomer = false,
+    CartDiscount? saleDiscount,
+    bool clearSaleDiscount = false,
     List<SalePaymentPart>? splitParts,
     List<SalePaymentPart>? lastSplitParts,
     PosSubmitStatus? submitStatus,
@@ -138,6 +174,11 @@ class PosState extends Equatable {
           ? null
           : (selectedCategoryId ?? this.selectedCategoryId),
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      customerId: clearCustomer ? null : (customerId ?? this.customerId),
+      customerName: clearCustomer ? null : (customerName ?? this.customerName),
+      saleDiscount: clearSaleDiscount
+          ? null
+          : (saleDiscount ?? this.saleDiscount),
       splitParts: splitParts ?? this.splitParts,
       lastSplitParts: lastSplitParts ?? this.lastSplitParts,
       submitStatus: submitStatus ?? this.submitStatus,
@@ -173,6 +214,9 @@ class PosState extends Equatable {
     searchQuery,
     selectedCategoryId,
     paymentMethod,
+    customerId,
+    customerName,
+    saleDiscount,
     [for (final x in splitParts) '${x.method}:${x.amount}'],
     [for (final x in lastSplitParts) '${x.method}:${x.amount}'],
     submitStatus,

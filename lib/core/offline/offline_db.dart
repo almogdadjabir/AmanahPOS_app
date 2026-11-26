@@ -31,7 +31,7 @@ class OfflineDb {
   }
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 15;
+  static const int _dbVersion = 16;
 
   static const int schemaVersion = _dbVersion;
 
@@ -143,6 +143,37 @@ class OfflineDb {
     if (oldVersion < 15 && newVersion >= 15) {
       await createV15Schema(db);
     }
+    // v16 (Phase 5): customer debt payments and write-offs.
+    if (oldVersion < 16 && newVersion >= 16) {
+      await createV16Schema(db);
+    }
+  }
+
+  /// Debt payments and write-offs taken on this phone. A sale on account is
+  /// not stored here: it is the `credit` part of the sale itself. Money is a
+  /// decimal string; `sync_state` is `pending|synced|rejected`.
+  static Future<void> createV16Schema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS debt_entries (
+        id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        shop_id TEXT,
+        kind TEXT NOT NULL,
+        amount TEXT NOT NULL,
+        method TEXT NOT NULL DEFAULT '',
+        note TEXT NOT NULL DEFAULT '',
+        occurred_at TEXT NOT NULL,
+        user_id TEXT,
+        user_name TEXT,
+        sync_state TEXT NOT NULL DEFAULT 'pending',
+        error_code TEXT,
+        error_message TEXT
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_debt_entries_customer '
+      'ON debt_entries(customer_id, occurred_at)',
+    );
   }
 
   /// Shifts and the pay-in/pay-out rows of the cash drawer. `sync_state` is
@@ -528,6 +559,8 @@ class OfflineDb {
     await createV14Schema(db);
 
     await createV15Schema(db);
+
+    await createV16Schema(db);
   }
 
   Future<int> countRows(String table) async {

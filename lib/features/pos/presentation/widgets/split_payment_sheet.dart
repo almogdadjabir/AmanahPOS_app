@@ -17,12 +17,16 @@ Future<List<SalePaymentPart>?> showSplitPaymentSheet(
   BuildContext context, {
   required BigInt total,
   required bool bankakReady,
+  bool accountEnabled = false,
+  String? accountCustomer,
   List<SalePaymentPart> initial = const [],
 }) => showAppSheet<List<SalePaymentPart>>(
   context,
   builder: (_) => SplitPaymentSheet(
     total: total,
     bankakReady: bankakReady,
+    accountEnabled: accountEnabled,
+    accountCustomer: accountCustomer,
     initial: initial,
   ),
 );
@@ -32,11 +36,19 @@ class SplitPaymentSheet extends StatefulWidget {
     super.key,
     required this.total,
     required this.bankakReady,
+    this.accountEnabled = false,
+    this.accountCustomer,
     this.initial = const [],
   });
 
   final BigInt total;
   final bool bankakReady;
+
+  /// Show the On account row (the switch is on).
+  final bool accountEnabled;
+
+  /// Name of the ticket's customer; null disables the row.
+  final String? accountCustomer;
   final List<SalePaymentPart> initial;
 
   @override
@@ -46,6 +58,7 @@ class SplitPaymentSheet extends StatefulWidget {
 class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
   late final TextEditingController _cash;
   late final TextEditingController _bankak;
+  late final TextEditingController _account;
 
   @override
   void initState() {
@@ -59,12 +72,16 @@ class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
 
     _cash = TextEditingController(text: of('cash'));
     _bankak = TextEditingController(text: widget.bankakReady ? of('bankak') : '');
+    _account = TextEditingController(
+      text: widget.accountCustomer != null ? of('credit') : '',
+    );
   }
 
   @override
   void dispose() {
     _cash.dispose();
     _bankak.dispose();
+    _account.dispose();
     super.dispose();
   }
 
@@ -72,17 +89,25 @@ class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
     total: widget.total,
     cash: normalizeAmountInput(_cash.text),
     bankak: normalizeAmountInput(_bankak.text),
+    account: normalizeAmountInput(_account.text),
   );
 
-  void _fill(bool intoCash) {
+  void _fill(String row) {
     final v = SplitPayment.fillRest(
       total: widget.total,
       cash: normalizeAmountInput(_cash.text),
       bankak: normalizeAmountInput(_bankak.text),
-      intoCash: intoCash,
+      account: normalizeAmountInput(_account.text),
+      row: row,
     );
     if (v == null) return;
-    setState(() => (intoCash ? _cash : _bankak).text = v);
+    setState(
+      () => (switch (row) {
+        'cash' => _cash,
+        'credit' => _account,
+        _ => _bankak,
+      }).text = v,
+    );
   }
 
   @override
@@ -104,8 +129,8 @@ class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
     };
     final canFill = e.status == SplitStatus.incomplete;
 
-    Widget fill(bool intoCash, bool enabled) => Pressable(
-      onTap: enabled ? () => _fill(intoCash) : null,
+    Widget fill(String row, bool enabled) => Pressable(
+      onTap: enabled ? () => _fill(row) : null,
       child: Padding(
         padding: const EdgeInsetsDirectional.only(end: AppDims.s2),
         child: Text(
@@ -163,7 +188,7 @@ class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
                   label: tr.cash,
                   child: Row(
                     children: [
-                      fill(true, canFill),
+                      fill('cash', canFill),
                       Expanded(
                         child: AppRowTextField(
                           controller: _cash,
@@ -183,7 +208,7 @@ class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
                   child: widget.bankakReady
                       ? Row(
                           children: [
-                            fill(false, canFill),
+                            fill('bankak', canFill),
                             Expanded(
                               child: AppRowTextField(
                                 controller: _bankak,
@@ -205,6 +230,36 @@ class _SplitPaymentSheetState extends State<SplitPaymentSheet> {
                           ),
                         ),
                 ),
+                if (widget.accountEnabled)
+                  AppFormRow(
+                    label: widget.accountCustomer == null
+                        ? tr.dtOnAccount
+                        : '${tr.dtOnAccount} · ${widget.accountCustomer}',
+                    child: widget.accountCustomer != null
+                        ? Row(
+                            children: [
+                              fill('credit', canFill),
+                              Expanded(
+                                child: AppRowTextField(
+                                  controller: _account,
+                                  hint: '0.00',
+                                  numeric: true,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Text(
+                            tr.dtNeedCustomer,
+                            style: text.bodySmall!.copyWith(
+                              color: colors.warning,
+                            ),
+                          ),
+                  ),
               ],
             ),
             Padding(

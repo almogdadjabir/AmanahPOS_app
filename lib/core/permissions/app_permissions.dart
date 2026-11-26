@@ -66,6 +66,11 @@ class AppPermissions {
   bool get canEditCatalog =>
       role == AppUserRole.owner || role == AppUserRole.manager;
 
+  /// Line and sale discounts: owner and manager only (the phone has no
+  /// owner-approval pop-up like the desktop).
+  bool get canGiveDiscount =>
+      role == AppUserRole.owner || role == AppUserRole.manager;
+
   bool get isOwner => role == AppUserRole.owner;
   bool get isManager => role == AppUserRole.manager;
   bool get isCashier => role == AppUserRole.cashier;

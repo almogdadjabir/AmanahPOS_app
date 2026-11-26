@@ -11,7 +11,7 @@ Future<List<String>> _cols(DatabaseExecutor db, String t) async =>
 
 void main() {
   test('fresh onCreate is v15 with shifts and cash_movements', () async {
-    expect(OfflineDb.schemaVersion, 15);
+    expect(OfflineDb.schemaVersion, greaterThanOrEqualTo(15));
     final odb = await openTestDb();
     final db = await odb.database;
     addTearDown(db.close);

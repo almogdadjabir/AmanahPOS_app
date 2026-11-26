@@ -11,6 +11,8 @@ import 'package:amana_pos/widgets/app_amount.dart';
 import 'package:amana_pos/widgets/app_segmented.dart';
 import 'package:amana_pos/widgets/pressable.dart';
 import 'package:amana_pos/core/features/business_features.dart';
+import 'package:amana_pos/features/debts/data/debt_reader.dart';
+import 'package:amana_pos/features/debts/presentation/customer_picker_sheet.dart';
 import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/presentation/widgets/split_payment_sheet.dart';
 import 'package:amana_pos/features/pos/domain/split_payment.dart';
@@ -36,7 +38,19 @@ class PaymentSelector extends StatelessWidget {
   final String paymentMethod;
   final EdgeInsetsGeometry padding;
 
-  Future<void> _openSplit(BuildContext context, {required bool bankakReady}) async {
+  Future<void> _pickCustomer(BuildContext context, {bool thenAccount = false}) async {
+    final bloc = context.read<PosBloc>();
+    final c = await showCustomerPicker(context);
+    if (c == null) return;
+    bloc.add(PosCustomerSelected(id: c.id, name: c.name));
+    if (thenAccount) bloc.add(const PosPaymentMethodChanged('credit'));
+  }
+
+  Future<void> _openSplit(
+    BuildContext context, {
+    required bool bankakReady,
+    required bool accountOn,
+  }) async {
     final bloc = context.read<PosBloc>();
     final total = Cents.parse(bloc.state.total.toStringAsFixed(2));
     if (total == null || total <= BigInt.zero) return;
@@ -44,6 +58,8 @@ class PaymentSelector extends StatelessWidget {
       context,
       total: total,
       bankakReady: bankakReady,
+      accountEnabled: accountOn,
+      accountCustomer: bloc.state.customerName,
       initial: bloc.state.splitParts,
     );
     if (parts != null) bloc.add(PosSplitConfirmed(parts));
@@ -55,17 +71,21 @@ class PaymentSelector extends StatelessWidget {
     return StreamBuilder<BusinessFeatures>(
       stream: features.changes,
       initialData: features.current,
-      builder: (context, snap) =>
-          _build(context, snap.data?.splitPayments ?? true),
+      builder: (context, snap) => _build(
+        context,
+        snap.data?.splitPayments ?? true,
+        snap.data?.onAccount ?? true,
+      ),
     );
   }
 
-  Widget _build(BuildContext context, bool splitOn) {
+  Widget _build(BuildContext context, bool splitOn, bool accountOn) {
     final colors = context.appColors;
     final isBankak = paymentMethod == 'bankak';
     final isSplit = paymentMethod == 'split';
-    if (isSplit && !splitOn) {
-      // The owner switched Split off while it was picked.
+    final isCredit = paymentMethod == 'credit';
+    if ((isSplit && !splitOn) || (isCredit && !accountOn)) {
+      // The owner switched it off while it was picked.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           context.read<PosBloc>().add(const PosPaymentMethodChanged('cash'));
@@ -94,10 +114,24 @@ class PaymentSelector extends StatelessWidget {
           AppSegmented<String>(
             selected: isSplit && splitOn
                 ? 'split'
+                : isCredit && accountOn
+                ? 'credit'
                 : (isBankak ? 'bankak' : 'cash'),
             onChanged: (value) {
               if (value == 'split') {
-                _openSplit(context, bankakReady: bankakAccount != null);
+                _openSplit(
+                  context,
+                  bankakReady: bankakAccount != null,
+                  accountOn: accountOn,
+                );
+              } else if (value == 'credit') {
+                if (context.read<PosBloc>().state.customerId == null) {
+                  _pickCustomer(context, thenAccount: true);
+                } else {
+                  context.read<PosBloc>().add(
+                    const PosPaymentMethodChanged('credit'),
+                  );
+                }
               } else {
                 context.read<PosBloc>().add(PosPaymentMethodChanged(value));
               }
@@ -131,13 +165,34 @@ class PaymentSelector extends StatelessWidget {
                     foreground: colors.textSecondary,
                   ),
                 ),
+              if (accountOn)
+                AppSegment(
+                  value: 'credit',
+                  label: context.tr.dtAccount,
+                  leading: _MethodChip(
+                    icon: PhosphorIconsRegular.notebook,
+                    background: colors.warningContainer,
+                    foreground: colors.warning,
+                  ),
+                ),
             ],
           ),
-          if (isSplit && splitOn) ...[
+          if (accountOn) ...[
+            const SizedBox(height: AppDims.s3),
+            _CustomerRow(onPick: () => _pickCustomer(context)),
+          ],
+          if (isCredit && accountOn) ...[
+            const SizedBox(height: AppDims.s3),
+            const _OwesLine(),
+          ] else if (isSplit && splitOn) ...[
             const SizedBox(height: AppDims.s3),
             _SplitSummary(
               onEdit: () =>
-                  _openSplit(context, bankakReady: bankakAccount != null),
+                  _openSplit(
+                    context,
+                    bankakReady: bankakAccount != null,
+                    accountOn: accountOn,
+                  ),
             ),
           ] else if (isBankak) ...[
             const SizedBox(height: AppDims.s3),
@@ -391,7 +446,11 @@ class _SplitSummary extends StatelessWidget {
         total == null ||
         !SplitPayment.matches(state.splitParts, total);
 
-    String name(SalePaymentPart p) => p.method == 'bankak' ? tr.bankak : tr.cash;
+    String name(SalePaymentPart p) => switch (p.method) {
+      'bankak' => tr.bankak,
+      'credit' => tr.dtOnAccount,
+      _ => tr.cash,
+    };
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -447,6 +506,93 @@ class _SplitSummary extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CustomerRow extends StatelessWidget {
+  const _CustomerRow({required this.onPick});
+
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+    final tr = context.tr;
+    final name = context.select<PosBloc, String?>((b) => b.state.customerName);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            name == null ? tr.dtCustomer : '${tr.dtCustomer}: $name',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: text.bodyMedium!.copyWith(color: colors.textSecondary),
+          ),
+        ),
+        if (name != null) ...[
+          Pressable(
+            onTap: () =>
+                context.read<PosBloc>().add(const PosCustomerCleared()),
+            child: Text(
+              tr.dtClear,
+              style: text.labelLarge!.copyWith(color: colors.textSecondary),
+            ),
+          ),
+          const SizedBox(width: AppDims.s4),
+        ],
+        Pressable(
+          onTap: onPick,
+          child: Text(
+            name == null ? tr.dtAddOptional : tr.dtChange,
+            style: text.labelLarge!.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Owes 1,200.00 now. After this sale: 6,200.00."
+class _OwesLine extends StatelessWidget {
+  const _OwesLine();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tr = context.tr;
+    final id = context.select<PosBloc, String?>((b) => b.state.customerId);
+    final total = Cents.parse(
+      context.select<PosBloc, double>((b) => b.state.total).toStringAsFixed(2),
+    );
+    if (id == null || total == null) return const SizedBox.shrink();
+
+    return FutureBuilder<BigInt>(
+      future: getIt<DebtReader>().balance(id),
+      builder: (context, snap) {
+        final now = snap.data;
+        if (now == null) return const SizedBox.shrink();
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.infoContainer,
+            borderRadius: AppDims.borderMd,
+          ),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.all(AppDims.s3),
+            child: Text(
+              tr.dtOwesNowAfter(shiftMoney(now), shiftMoney(now + total)),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium!.copyWith(color: colors.info),
+            ),
+          ),
+        );
+      },
     );
   }
 }

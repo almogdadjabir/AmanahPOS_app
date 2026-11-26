@@ -2,6 +2,7 @@ import 'package:amana_pos/features/pos/domain/split_payment.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  accountTests();
   final total = BigInt.from(500000); // 5,000.00
 
   test('nothing typed is incomplete with the full total left', () {
@@ -77,5 +78,39 @@ void main() {
     final parts = SplitPayment.evaluate(total: total, cash: '3000', bankak: '2000').parts;
     expect(SplitPayment.matches(parts, total), isTrue);
     expect(SplitPayment.matches(parts, total + BigInt.one), isFalse);
+  });
+}
+
+void accountTests() {
+  final total = BigInt.from(500000);
+  group('on account row', () {
+    test('three parts in cash, bankak, credit order', () {
+      final e = SplitPayment.evaluate(
+        total: total,
+        cash: '2000',
+        bankak: '1000',
+        account: '2000',
+      );
+      expect(e.status, SplitStatus.exact);
+      expect([for (final p in e.parts) p.method], ['cash', 'bankak', 'credit']);
+    });
+    test('fill rest into the account row', () {
+      expect(
+        SplitPayment.fillRest(
+          total: total,
+          cash: '2000',
+          bankak: '1000',
+          row: 'credit',
+        ),
+        '2000.00',
+      );
+    });
+    test('bad account text is invalid', () {
+      expect(
+        SplitPayment.evaluate(total: total, cash: '', bankak: '', account: 'x')
+            .status,
+        SplitStatus.invalid,
+      );
+    });
   });
 }

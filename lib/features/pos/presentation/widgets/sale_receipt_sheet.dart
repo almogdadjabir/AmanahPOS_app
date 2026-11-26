@@ -81,6 +81,7 @@ class SaleReceiptSheet extends StatelessWidget {
     'bankak' => 'Bankak',
     'card' => 'Card',
     'split' => 'Split',
+    'credit' => 'On account',
     'bank_transfer' => 'Bank Transfer',
     'mobile_wallet' => 'Mobile Wallet',
     _ => paymentMethod,

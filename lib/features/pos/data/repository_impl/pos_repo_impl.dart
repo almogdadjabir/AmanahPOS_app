@@ -104,6 +104,7 @@ class PosRepoImpl extends PosRepository {
       quantity: '${item.quantity}',
       unitPrice: price,
       unitCost: p.costPrice,
+      discount: item.discountText,
       snapshot: {
         'id': p.id,
         'name': p.name,

@@ -366,6 +366,12 @@ class SaleService {
       ];
       method = payments.length == 1 ? payments.single.method : 'split';
     }
+    if ((method == 'credit' || payments.any((x) => x.method == 'credit')) &&
+        (d.customerId == null || d.customerId!.trim().isEmpty)) {
+      throw const SaleValidationException(
+        'A sale on account needs a customer',
+      );
+    }
     if (!paymentMethods.contains(method) ||
         payments.any((x) => !paymentMethods.contains(x.method))) {
       throw const SaleValidationException('Unknown payment method');

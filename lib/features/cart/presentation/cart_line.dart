@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/common/motion/motion.dart';
+import 'package:amana_pos/core/features/business_features.dart';
+import 'package:amana_pos/features/cart/presentation/discount_sheet.dart';
+import 'package:amana_pos/features/pos/domain/cart_discount.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:amana_pos/core/offline/presentation/widgets/offline_cached_image.dart';
 import 'package:amana_pos/features/cart/presentation/qty_stepper.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
@@ -46,8 +50,37 @@ class CartLine extends StatelessWidget {
     );
   }
 
+  Future<void> _openDiscount(BuildContext context, String name) async {
+    final tr = context.tr;
+    final bloc = context.read<PosBloc>();
+    final id = item.product.id;
+    if (id == null) return;
+    final r = await showDiscountSheet(
+      context,
+      title: tr.dcLineTitle,
+      subtitle: tr.dcLineSub(name, '${item.quantity}', money(item.price)),
+      baseCents: item.grossCents,
+      initial: item.discount,
+    );
+    if (r == null) return;
+    bloc.add(PosLineDiscountSet(id, r.discount));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final features = getIt<BusinessFeaturesService>();
+    return StreamBuilder<BusinessFeatures>(
+      stream: features.changes,
+      initialData: features.current,
+      builder: (context, snap) => _build(
+        context,
+        (snap.data?.lineDiscount ?? true) &&
+            context.read<AuthBloc>().state.permissions.canGiveDiscount,
+      ),
+    );
+  }
+
+  Widget _build(BuildContext context, bool canDiscount) {
     final colors = context.appColors;
     final text = Theme.of(context).textTheme;
     final productId = item.product.id;
@@ -80,16 +113,38 @@ class CartLine extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: Text(
-                    context.tr.eachPrice(money(item.price)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.bodySmall!
-                        .copyWith(color: colors.textHint)
-                        .tabular,
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          context.tr.eachPrice(money(item.price)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodySmall!
+                              .copyWith(color: colors.textHint)
+                              .tabular,
+                        ),
+                      ),
+                    ),
+                    if (canDiscount && productId != null) ...[
+                      const SizedBox(width: AppDims.s2),
+                      Pressable(
+                        onTap: () => _openDiscount(context, productName),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            context.tr.dcDiscount,
+                            style: text.bodySmall!.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -121,12 +176,45 @@ class CartLine extends StatelessWidget {
           const SizedBox(width: AppDims.s3),
           SizedBox(
             width: 64,
-            child: AppAmount(
-              value: money(item.lineTotal),
-              style: text.bodyLarge!.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (item.discountCents > BigInt.zero) ...[
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text(
+                      money(item.lineGross),
+                      style: text.bodySmall!
+                          .copyWith(
+                            color: colors.textHint,
+                            decoration: TextDecoration.lineThrough,
+                          )
+                          .tabular,
+                    ),
+                  ),
+                ],
+                AppAmount(
+                  value: money(item.lineTotal),
+                  style: text.bodyLarge!.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (item.discountCents > BigInt.zero)
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text(
+                      item.discount!.kind == DiscountKind.percent
+                          ? '−${item.discount!.value}%'
+                          : '−${money(item.lineDiscount)}',
+                      style: text.labelSmall!.copyWith(
+                        color: colors.success,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

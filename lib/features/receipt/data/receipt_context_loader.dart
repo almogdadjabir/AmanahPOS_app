@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/debts/data/debt_store.dart';
 import 'dart:convert';
 
 import 'package:amana_pos/core/offline/offline_db.dart';
@@ -93,11 +94,20 @@ class ReceiptContextLoader {
       customerName = c.isEmpty ? null : c.first['name'] as String?;
     }
 
+    // What the customer owes now, from this phone's records (shown only when
+    // the sale has an on-account part).
+    double? customerOwes;
+    if (customerId != null && customerId.isNotEmpty) {
+      final owes = await const DebtStore().balance(db, customerId);
+      customerOwes = owes.toDouble() / 100;
+    }
+
     return ReceiptContext(
       business: business,
       settings: settings,
       cashierName: await localUserName(db, cashierId),
       customerName: customerName,
+      customerOwes: customerOwes,
     );
   }
 

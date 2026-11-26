@@ -1,0 +1,184 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Phase 6 mockup: Discounts and stock count</title><style>
+:root{--p:#0F766E;--pd:#0B5D56;--pl:#E8F5F2;--sec:#B7791F;--bg:#F6F4EF;--s100:#EEEBE4;--s200:#E5E1D8;--s300:#CFC9BC;--s400:#958E80;--s500:#716B60;--s700:#3A3630;--s900:#1C1A17;--ok:#0E6B4E;--okl:#E5F3EB;--bad:#B3261E;--badl:#FBE9E7;--warn:#9A4508;--warnl:#FCEDE0;--info:#2D5B88;--infol:#E7EEF6}
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:#ddd9cf;color:var(--s900);padding:28px}
+h1{font-size:26px;margin-bottom:4px}h2{font-size:18px;margin:34px 0 4px}h2 small{font-weight:400;color:var(--s500);font-size:13px}
+.lead{color:var(--s500);max-width:760px;margin-bottom:6px}
+.row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:14px}
+.cap{font-size:12px;color:var(--s500);text-align:center;margin-top:8px;max-width:300px}
+.cap b{color:var(--s900)}
+.phone{width:300px;height:620px;background:var(--bg);border-radius:34px;border:9px solid #1c1a17;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 10px 30px #0003}
+.phone.rtl{direction:rtl}
+.sb{height:22px;font-size:10px;display:flex;justify-content:space-between;padding:6px 16px 0;color:var(--s700);flex:none}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 14px;flex:none}
+.bar .t{font-weight:700;font-size:18px;flex:1}
+.back{width:30px;height:30px;border-radius:10px;background:#fff;border:1px solid var(--s200);display:grid;place-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:11px;font-weight:600;border:1px solid var(--s200);background:#fff;color:var(--s700)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--s300)}
+.chip.on{background:var(--okl);border-color:#bfe0cf;color:var(--ok)}.chip.on i{background:var(--ok)}
+.chip.warn{background:var(--warnl);border-color:#f0d3b8;color:var(--warn)}.chip.warn i{background:var(--warn)}
+.body{flex:1;overflow:hidden;padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.card{background:#fff;border:1px solid var(--s200);border-radius:16px;padding:14px}
+.card.wash{background:var(--pl);border-color:#c7e5df}
+.lbl{font-size:11px;color:var(--s500)}
+.big{font-size:30px;font-weight:700;letter-spacing:-.5px;direction:ltr;unicode-bidi:isolate}
+.sub{font-size:12px;color:var(--s500)}
+.ln{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--s200);font-size:13px}
+.ln:last-child{border:0}.ln b{direction:ltr;unicode-bidi:isolate;font-weight:600}.neg b{color:var(--bad)}
+.btn{display:block;text-align:center;padding:13px;border-radius:14px;font-weight:600;background:var(--p);color:#fff;font-size:14px}
+.btn.sec{background:#fff;color:var(--p);border:1px solid var(--s300)}
+.btn.dng{background:#fff;color:var(--bad);border:1px solid #e8b9b4}
+.btns{display:flex;gap:8px}.btns .btn{flex:1;padding:11px}
+.banner{display:flex;gap:8px;padding:10px 12px;border-radius:12px;font-size:12px}
+.banner.warn{background:var(--warnl);color:var(--warn)}.banner.info{background:var(--infol);color:var(--info)}
+.empty{text-align:center;padding:30px 10px}
+.ico{width:54px;height:54px;border-radius:16px;background:var(--pl);color:var(--p);display:grid;place-items:center;margin:0 auto 12px;font-size:24px}
+.pill{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:99px;display:inline-block}
+.pill.ok{background:var(--okl);color:var(--ok)}.pill.bad{background:var(--badl);color:var(--bad)}.pill.warn{background:var(--warnl);color:var(--warn)}.pill.mut{background:var(--s100);color:var(--s500)}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--s100)}
+.item:last-child{border:0}.item .a{font-weight:600}
+.scrim{position:absolute;inset:0;background:#0007}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:10px 16px 18px}
+.grab{width:38px;height:4px;border-radius:9px;background:var(--s300);margin:0 auto 12px}
+.sheet h3{font-size:17px;margin-bottom:10px}
+.field{border:1px solid var(--s300);border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.field.f{border-color:var(--p);box-shadow:0 0 0 3px #0f766e22}
+.field .lbl{display:block}.field .v{font-size:19px;font-weight:600;direction:ltr;unicode-bidi:isolate}
+.field .v.ph{color:var(--s400);font-weight:400;font-size:15px}
+.slot{min-height:34px;font-size:12px;margin-bottom:8px}
+.diff{display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;font-weight:600;font-size:13px}
+.diff.short{background:var(--badl);color:var(--bad)}.diff.exact{background:var(--okl);color:var(--ok)}.diff.over{background:var(--infol);color:var(--info)}
+.nav{height:54px;border-top:1px solid var(--s200);background:#fff;display:flex;justify-content:space-around;align-items:center;font-size:10px;color:var(--s500);flex:none}
+.nav b{color:var(--p)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;font-size:13px}
+.tbl th,.tbl td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--s100);vertical-align:top}
+.tbl th{background:var(--s100);font-size:12px}
+.note{background:#fff;border-left:4px solid var(--p);border-radius:10px;padding:12px 14px;max-width:760px;margin-top:10px}
+.q{background:var(--warnl);border-left:4px solid var(--warn)}
+ul{padding-left:20px}li{margin:3px 0}
+
+.seg{display:flex;background:var(--s100);border-radius:12px;padding:3px;gap:3px}
+.seg div{flex:1;text-align:center;padding:8px 4px;border-radius:10px;font-size:12.5px;font-weight:600;color:var(--s500)}
+.seg div.on{background:#fff;color:var(--p);box-shadow:0 1px 3px #0002}
+.pr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pr .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;flex:none}
+.ic.c{background:#E3F2EA;color:#0E6B4E}.ic.b{background:#E7EEF6;color:#2D5B88}
+.pr .nm{font-weight:600;font-size:14px;flex:1}
+.pr .nm small{display:block;font-weight:400;color:var(--s500);font-size:11px}
+.amt{width:104px;border:1px solid var(--s300);border-radius:12px;padding:8px 10px;font-size:16px;font-weight:600;text-align:right;direction:ltr;background:#fff}
+.amt.f{border-color:var(--p);box-shadow:0 0 0 3px #0f766e22}.amt.ph{color:var(--s400);font-weight:400}.amt.err{border-color:var(--bad)}
+.fill{font-size:11px;color:var(--p);font-weight:600;padding:4px 8px;border-radius:99px;background:var(--pl);flex:none}
+.fill.off{background:var(--s100);color:var(--s400)}
+.btn.off{background:var(--s200);color:var(--s400)}
+.rcpt{background:#fff;border:1px solid var(--s200);padding:12px;font:11px/1.6 ui-monospace,monospace;color:#111}
+.rcpt .d{border-top:1px dashed #999;margin:6px 0}.rcpt .r{display:flex;justify-content:space-between}
+
+.seg.s4 div{font-size:11px;padding:8px 2px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--pl);color:var(--p);display:grid;place-items:center;font-weight:700;flex:none}
+.cust{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--s100)}
+.cust:last-child{border:0}.cust .nm{flex:1;font-weight:600}.cust .nm small{display:block;font-weight:400;color:var(--s500);font-size:11px}
+.owe{font-weight:700;color:var(--bad);direction:ltr;unicode-bidi:isolate}.owe.z{color:var(--ok)}
+.chips{display:flex;gap:6px;margin:6px 0 10px}.chips span{padding:6px 12px;border-radius:99px;background:var(--s100);font-size:12px;font-weight:600;color:var(--s500)}.chips span.on{background:var(--pl);color:var(--p)}
+.led{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed var(--s200);font-size:13px}
+.led:last-child{border:0}.led small{display:block;color:var(--s500);font-size:11px}.led b{direction:ltr;unicode-bidi:isolate}.led .pos{color:var(--bad)}.led .neg{color:var(--ok)}
+.search{background:#fff;border:1px solid var(--s300);border-radius:12px;padding:9px 12px;color:var(--s400);margin-bottom:8px}
+</style></head><body>
+<style>
+.ln.dsc b{color:var(--ok)}.strike{text-decoration:line-through;color:var(--s400);font-size:11px}
+.cl{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--s100)}
+.cl .th{width:38px;height:38px;border-radius:10px;background:var(--s100);flex:none}
+.cl .nm{flex:1;font-weight:600;font-size:13px}.cl .nm small{display:block;font-weight:400;color:var(--s500);font-size:11px}
+.cl .tot{text-align:right;font-weight:600;font-size:13px;direction:ltr}
+.tag{display:inline-block;font-size:10px;font-weight:700;color:var(--ok);background:var(--okl);border-radius:99px;padding:1px 7px;margin-inline-start:4px}
+.lnk{color:var(--p);font-weight:600;font-size:12.5px}
+.row3{display:grid;grid-template-columns:1fr 62px 74px;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid var(--s100);font-size:13px}
+.row3 .nm{font-weight:600}.row3 .nm small{display:block;color:var(--s500);font-weight:400;font-size:11px}
+.row3 .n{text-align:right;direction:ltr;font-weight:600}.row3.h{font-size:10.5px;color:var(--s500);border-bottom:1px solid var(--s200);padding-top:0}
+.cnt{border:1px solid var(--s300);border-radius:9px;padding:5px 6px;text-align:right;direction:ltr;font-weight:700;background:#fff}.cnt.f{border-color:var(--p);box-shadow:0 0 0 3px #0f766e22}.cnt.e{color:var(--s400);font-weight:400}
+.dz{color:var(--ok)}.dn{color:var(--bad)}.dp{color:var(--warn)}.dx{color:var(--s400)}
+</style>
+<h1>Phase 6: Discounts and stock count</h1>
+<p class="lead">Three small pieces. Each follows its own business switch: <b>Line discount</b>, <b>Sale discount</b>, <b>Stock count</b> (all on by default until the backend sends them). Look at the screens, read "My calls" at the bottom, and tell me what to change.</p>
+
+<h2>1. Line discount <small>(switch: line_discount_enabled)</small></h2>
+<p class="lead">Long-press a cart line, or tap its new "%" button, to give that line a discount: a percent or an amount. The old price stays visible, struck through. Receipt, history and reports use the discounted price.</p>
+<div class="row">
+ <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="t">Cart</div><span class="chip on"><i></i>Cash drawer</span></div>
+  <div class="body"><div class="card" style="padding:4px 14px">
+   <div class="cl"><div class="th"></div><div class="nm">Cola 330 ml<small>1.00 each · <span class="lnk">Discount</span></small></div><div class="tot"><span class="strike">2.00</span><br>1.80<span class="tag">−10%</span></div></div>
+   <div class="cl"><div class="th"></div><div class="nm">Bread<small>0.50 each · <span class="lnk">Discount</span></small></div><div class="tot">0.50</div></div>
+   <div class="cl"><div class="th"></div><div class="nm">Rice 5 kg<small>12.00 each · <span class="lnk">Discount</span></small></div><div class="tot">12.00</div></div></div>
+   <div class="card"><div class="ln"><span>Subtotal</span><b>14.30</b></div><div class="ln dsc"><span>Line discounts</span><b>−0.20</b></div><div class="ln"><span><b style="font-weight:700">Total</b></span><b>14.30</b></div></div>
+   <div class="btn" style="margin-top:auto">Charge 14.30</div></div></div>
+  <div class="cap"><b>A.</b> Cart with one discounted line. A small "Discount" link sits under each price.</div></div>
+ <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="t">Cart</div></div><div class="body"><div class="card">&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</div></div><div class="scrim"></div>
+  <div class="sheet"><div class="grab"></div><h3>Discount for this line</h3><p class="sub" style="margin-bottom:10px">Cola 330 ml · 2 × 1.00 = 2.00</p>
+   <div class="seg" style="margin-bottom:10px"><div class="on">Percent</div><div>Amount</div></div>
+   <div class="field f"><span class="lbl">Percent off</span><div class="v">10 %</div></div>
+   <div class="slot"><div class="diff exact"><span>New line total</span><span>1.80</span></div></div>
+   <div class="btn">Apply 10% off</div><p class="sub" style="text-align:center;margin-top:8px"><span class="lnk">Remove discount</span></p></div></div>
+  <div class="cap"><b>B.</b> Discount sheet. The preview shows the new line total before you apply. Over 100% or more than the line is refused with a calm message.</div></div>
+ <div><div class="phone rtl"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="t">السلة</div></div><div class="body"><div class="card">&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</div></div><div class="scrim"></div>
+  <div class="sheet"><div class="grab"></div><h3>خصم على هذا البند</h3><p class="sub" style="margin-bottom:10px">كولا 330 مل · 2 × 1.00 = 2.00</p>
+   <div class="seg" style="margin-bottom:10px"><div class="on">نسبة</div><div>مبلغ</div></div>
+   <div class="field f"><span class="lbl">نسبة الخصم</span><div class="v">10 %</div></div>
+   <div class="slot"><div class="diff exact"><span>إجمالي البند الجديد</span><span>1.80</span></div></div>
+   <div class="btn">تطبيق خصم 10%</div><p class="sub" style="text-align:center;margin-top:8px"><span class="lnk">إزالة الخصم</span></p></div></div>
+  <div class="cap"><b>C.</b> Arabic, right to left.</div></div>
+</div>
+
+<h2>2. Sale discount <small>(switch: sale_discount_enabled)</small></h2>
+<p class="lead">One discount on the whole sale, from a new "Add discount" row under the totals. Same sheet (percent or amount). Tax is worked out after the discount, like desktop.</p>
+<div class="row">
+ <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="t">Cart</div></div>
+  <div class="body"><div class="card" style="padding:4px 14px"><div class="cl"><div class="th"></div><div class="nm">Rice 5 kg<small>12.00 each</small></div><div class="tot">24.00</div></div></div>
+   <div class="card"><div class="ln"><span>Subtotal</span><b>24.00</b></div><div class="ln dsc"><span>Discount <span class="tag">−5%</span></span><b>−1.20</b></div><div class="ln"><span>VAT 15%</span><b>3.42</b></div><div class="ln"><span style="font-weight:700">Total</span><b>26.22</b></div>
+   <p class="sub" style="margin-top:6px"><span class="lnk">Change</span> · <span class="lnk" style="color:var(--bad)">Remove</span></p></div>
+   <div class="btn" style="margin-top:auto">Charge 26.22</div></div></div>
+  <div class="cap"><b>D.</b> Sale discount applied. With none, the row reads "Add discount".</div></div>
+ <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="t">Receipt</div></div>
+  <div class="body"><div class="rcpt"><div style="text-align:center;font-weight:700">AMANA MARKET</div><div class="d"></div>
+   <div class="r"><span>Cola 330 ml ×2</span><span>2.00</span></div><div class="r" style="color:#555"><span>&nbsp; Discount 10%</span><span>−0.20</span></div>
+   <div class="r"><span>Rice 5 kg ×2</span><span>24.00</span></div><div class="d"></div>
+   <div class="r"><span>Subtotal</span><span>26.00</span></div><div class="r"><span>Line discounts</span><span>−0.20</span></div><div class="r"><span>Sale discount 5%</span><span>−1.29</span></div><div class="r"><span>VAT 15%</span><span>3.67</span></div><div class="d"></div><div class="r" style="font-weight:700"><span>TOTAL</span><span>28.18</span></div></div></div></div>
+  <div class="cap"><b>E.</b> The receipt already has room for discounts; they now carry real numbers.</div></div>
+</div>
+
+<h2>3. Stock count <small>(switch: stock_count_enabled)</small></h2>
+<p class="lead">Opens from Inventory ("Stock count"). Scan or search a product to add it, type what is on the shelf; the app shows the difference. Applying turns each difference into one stock adjustment (reason "Stock count"), all together or none. Works offline.</p>
+<div class="row">
+ <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">✕</div><div class="t">Stock count</div></div>
+  <div class="body"><div class="field"><span class="lbl">Scan a barcode or type a name</span></div>
+   <div class="sub"><b>4</b> counted · <b>2</b> with a difference <span class="lnk" style="float:right">Add all products</span></div>
+   <div class="card" style="padding:2px 12px"><div class="row3 h"><span>Product</span><span style="text-align:right">System</span><span style="text-align:right">Counted</span></div>
+    <div class="row3"><div class="nm">Rice 5 kg<small class="dn">−2.000</small></div><span class="n">24.000</span><span class="cnt f">22</span></div>
+    <div class="row3"><div class="nm">Sugar 1 kg<small class="dz">Matches</small></div><span class="n">40.000</span><span class="cnt">40</span></div>
+    <div class="row3"><div class="nm">Tea 100 bags<small class="dp">+3.000</small></div><span class="n">12.000</span><span class="cnt">15</span></div>
+    <div class="row3"><div class="nm">Milk 1 L<small class="dx">Not counted yet</small></div><span class="n">30.000</span><span class="cnt e">–</span></div></div>
+   <div class="btn" style="margin-top:auto">Apply 2 differences</div></div></div>
+  <div class="cap"><b>F.</b> Counting. Rows you did not count are never changed.</div></div>
+ <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">✕</div><div class="t">Stock count</div></div><div class="body"><div class="card">&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</div></div><div class="scrim"></div>
+  <div class="sheet"><div class="grab"></div><h3>Apply the count?</h3><p class="sub" style="margin-bottom:10px">These stock changes will be recorded. You can correct any of them later with Change stock.</p>
+   <div class="ln"><span>Products that change</span><b>2</b></div><div class="ln"><span>Items added</span><b class="dp">+3.000</b></div><div class="ln"><span>Items taken off</span><b class="dn">−2.000</b></div>
+   <div class="btn" style="margin-top:12px">Apply 2 differences</div><p class="sub" style="text-align:center;margin-top:8px"><span class="lnk">Back to counting</span></p></div></div>
+  <div class="cap"><b>G.</b> Summary before applying.</div></div>
+ <div><div class="phone rtl"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">✕</div><div class="t">جرد المخزون</div></div>
+  <div class="body"><div class="card" style="text-align:center;padding:26px 12px"><div class="ico">✓</div><b style="font-size:17px">تم تطبيق الجرد</b><p class="sub" style="margin-top:6px">تم تحديث منتجين. طابق النظامَ منتجان. ولم يُعدّ منتج واحد فتُرك كما هو.</p></div></div></div>
+  <div class="cap"><b>H.</b> Done (Arabic).</div></div>
+</div>
+
+<h2>My calls (correct me)</h2>
+<div class="note"><ul>
+<li><b>Who can discount.</b> Owner and manager apply discounts directly. A cashier does not see the Discount links. (Desktop asks a cashier for the owner's approval; the phone has no such pop-up, so I hide it.)</li>
+<li><b>Percent or amount.</b> Both, on one sheet. Amount can never exceed the line (or the sale). Percent 0.01 to 100. Saved as an exact amount, so receipt and history agree to the cent.</li>
+<li><b>Order of maths.</b> Line discount first, then the sale discount on the sum of discounted lines, then tax on what is left (this is what the phone's sale maths and the server already do).</li>
+<li><b>Switch off.</b> The Discount links and the "Add discount" row disappear. A cart that already has a discount keeps it until charged (a till switched off mid-sale does not lose the customer's price).</li>
+<li><b>Changing the cart.</b> A percent discount follows quantity changes (10% of the new line). An amount discount is cut to the line if you reduce the quantity. A sale discount given as percent follows the total; as amount it is cut to the total.</li>
+<li><b>Stock count: how it is stored.</b> Not with the server's <code>stock.count</code> (manager only, absolute numbers, breaks offline). Each difference is a signed <code>stock.adjust</code>, like desktop. So the switch is a till rule only; the server does not enforce it for count.</li>
+<li><b>Difference</b> = counted minus the stock shown when that row was first counted, so a sale made while you count does not spoil it. Negative counts refused. Only active products that track stock.</li>
+<li><b>Who can count.</b> Anyone signed in, in the shop they work in (the server allows stock adjust for cashiers). No owner approval pop-up on the phone.</li>
+<li><b>No draft.</b> Leaving a count in progress asks "Throw away the count?" (same as desktop).</li>
+<li><b>Not in this phase:</b> price override, discount on custom amounts' reasons, discount in sale history filters.</li>
+</ul></div>
+<div class="note q"><b>One question:</b> should a cashier be allowed to give discounts at all (with a PIN of the owner), or is "owner and manager only" right for now?</div>
+</body></html>
