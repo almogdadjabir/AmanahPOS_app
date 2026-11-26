@@ -1,0 +1,233 @@
+{
+  "plain": {
+    "BusinessName": "Al-Noor Market",
+    "Phone": "+249 912 345 678",
+    "Currency": "SDG",
+    "Number": "S-00123",
+    "At": "2026-11-26T12:05:00+00:00",
+    "Status": "completed",
+    "Subtotal": 13,
+    "Discount": 0,
+    "Tax": 0,
+    "Net": 13,
+    "PaymentMethod": "cash",
+    "Payments": [],
+    "Refunds": [],
+    "IsSynced": true,
+    "CustomerName": null,
+    "CustomerOwes": null,
+    "CashierName": "Omar",
+    "TaxName": "",
+    "TaxRate": "0",
+    "TaxInclusive": false,
+    "Lines": [
+      {
+        "Name": "Sugar 1kg",
+        "Quantity": 2,
+        "UnitPrice": 4,
+        "Total": 8,
+        "Returned": 0,
+        "Discount": 0
+      },
+      {
+        "Name": "Tea",
+        "Quantity": 1,
+        "UnitPrice": 5,
+        "Total": 5,
+        "Returned": 0,
+        "Discount": 0
+      }
+    ]
+  },
+  "discount_tax": {
+    "BusinessName": "Al-Noor Market",
+    "Phone": "+249 912 345 678",
+    "Currency": "SDG",
+    "Number": "S-00123",
+    "At": "2026-11-26T12:05:00+00:00",
+    "Status": "completed",
+    "Subtotal": 7,
+    "Discount": 1,
+    "Tax": 0.9,
+    "Net": 6.9,
+    "PaymentMethod": "cash",
+    "Payments": [],
+    "Refunds": [],
+    "IsSynced": true,
+    "CustomerName": null,
+    "CustomerOwes": null,
+    "CashierName": "Omar",
+    "TaxName": "VAT",
+    "TaxRate": "15",
+    "TaxInclusive": false,
+    "Lines": [
+      {
+        "Name": "Tea",
+        "Quantity": 1.5,
+        "UnitPrice": 5,
+        "Total": 7,
+        "Returned": 0,
+        "Discount": 0.5
+      }
+    ]
+  },
+  "tax_inclusive": {
+    "BusinessName": "Al-Noor Market",
+    "Phone": "+249 912 345 678",
+    "Currency": "SDG",
+    "Number": "S-00123",
+    "At": "2026-11-26T12:05:00+00:00",
+    "Status": "completed",
+    "Subtotal": 13,
+    "Discount": 0,
+    "Tax": 1.7,
+    "Net": 13,
+    "PaymentMethod": "cash",
+    "Payments": [],
+    "Refunds": [],
+    "IsSynced": true,
+    "CustomerName": null,
+    "CustomerOwes": null,
+    "CashierName": "Omar",
+    "TaxName": "VAT",
+    "TaxRate": "15",
+    "TaxInclusive": true,
+    "Lines": [
+      {
+        "Name": "Sugar 1kg",
+        "Quantity": 2,
+        "UnitPrice": 4,
+        "Total": 8,
+        "Returned": 0,
+        "Discount": 0
+      },
+      {
+        "Name": "Tea",
+        "Quantity": 1,
+        "UnitPrice": 5,
+        "Total": 5,
+        "Returned": 0,
+        "Discount": 0
+      }
+    ]
+  },
+  "split_credit": {
+    "BusinessName": "Al-Noor Market",
+    "Phone": "+249 912 345 678",
+    "Currency": "SDG",
+    "Number": "S-00123",
+    "At": "2026-11-26T12:05:00+00:00",
+    "Status": "completed",
+    "Subtotal": 13,
+    "Discount": 0,
+    "Tax": 0,
+    "Net": 13,
+    "PaymentMethod": "split",
+    "Payments": [
+      {
+        "Method": "cash",
+        "Amount": 8
+      },
+      {
+        "Method": "credit",
+        "Amount": 5
+      }
+    ],
+    "Refunds": [],
+    "IsSynced": true,
+    "CustomerName": null,
+    "CustomerOwes": 25,
+    "CashierName": "Omar",
+    "TaxName": "",
+    "TaxRate": "0",
+    "TaxInclusive": false,
+    "Lines": [
+      {
+        "Name": "Sugar 1kg",
+        "Quantity": 2,
+        "UnitPrice": 4,
+        "Total": 8,
+        "Returned": 0,
+        "Discount": 0
+      },
+      {
+        "Name": "Tea",
+        "Quantity": 1,
+        "UnitPrice": 5,
+        "Total": 5,
+        "Returned": 0,
+        "Discount": 0
+      }
+    ]
+  },
+  "refunded": {
+    "BusinessName": "Al-Noor Market",
+    "Phone": "+249 912 345 678",
+    "Currency": "SDG",
+    "Number": "S-00123",
+    "At": "2026-11-26T12:05:00+00:00",
+    "Status": "partial_refund",
+    "Subtotal": 8,
+    "Discount": 0,
+    "Tax": 0,
+    "Net": 8,
+    "PaymentMethod": "cash",
+    "Payments": [],
+    "Refunds": [
+      {
+        "At": "2026-11-26T12:05:00+00:00",
+        "Method": "cash",
+        "Total": 4
+      }
+    ],
+    "IsSynced": true,
+    "CustomerName": null,
+    "CustomerOwes": null,
+    "CashierName": "Omar",
+    "TaxName": "",
+    "TaxRate": "0",
+    "TaxInclusive": false,
+    "Lines": [
+      {
+        "Name": "Sugar 1kg",
+        "Quantity": 2,
+        "UnitPrice": 4,
+        "Total": 8,
+        "Returned": 1,
+        "Discount": 0
+      }
+    ]
+  },
+  "not_synced_long": {
+    "BusinessName": "Al-Noor Market",
+    "Phone": "+249 912 345 678",
+    "Currency": "SDG",
+    "Number": "S-00123",
+    "At": "2026-11-26T12:05:00+00:00",
+    "Status": "completed",
+    "Subtotal": 37.5,
+    "Discount": 0,
+    "Tax": 0,
+    "Net": 37.5,
+    "PaymentMethod": "cash",
+    "Payments": [],
+    "Refunds": [],
+    "IsSynced": false,
+    "CustomerName": null,
+    "CustomerOwes": null,
+    "CashierName": "Omar",
+    "TaxName": "",
+    "TaxRate": "0",
+    "TaxInclusive": false,
+    "Lines": [
+      {
+        "Name": "Extra long product name that must wrap onto a second line cleanly",
+        "Quantity": 3,
+        "UnitPrice": 12.5,
+        "Total": 37.5,
+        "Returned": 0,
+        "Discount": 0
+      }
+    ]
+  }
+}

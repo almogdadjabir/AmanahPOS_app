@@ -4662,4 +4662,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userChangeReactivate => 'Reactivate member';
+
+  @override
+  String get rcNumber => 'Receipt';
+
+  @override
+  String get rcDate => 'Date';
+
+  @override
+  String get rcCashier => 'Cashier';
+
+  @override
+  String get rcCustomer => 'Customer';
+
+  @override
+  String get rcSubtotal => 'Subtotal';
+
+  @override
+  String get rcDiscount => 'Discount';
+
+  @override
+  String get rcTax => 'Tax';
+
+  @override
+  String get rcTotal => 'Total';
+
+  @override
+  String get rcPaid => 'Paid';
+
+  @override
+  String get rcRefund => 'Refund';
+
+  @override
+  String get rcOwesNow => 'Customer owes';
+
+  @override
+  String get rcNotSynced => 'Saved on this terminal, not yet synced';
+
+  @override
+  String get rcThanks => 'Thank you for shopping with us';
+
+  @override
+  String get rcStatusCompleted => 'PAID';
+
+  @override
+  String get rcStatusPartialRefund => 'PARTIAL REFUND';
+
+  @override
+  String get rcStatusRefunded => 'REFUNDED';
+
+  @override
+  String get rcStatusCancelled => 'CANCELLED';
+
+  @override
+  String get rcStatusPending => 'PENDING';
+
+  @override
+  String get rcStatusFailed => 'FAILED';
+
+  @override
+  String get rcPayCash => 'Cash';
+
+  @override
+  String get rcPayBankak => 'Bankak';
+
+  @override
+  String get rcPayCard => 'Card';
+
+  @override
+  String get rcPaySplit => 'Split';
+
+  @override
+  String get rcPayCredit => 'On account';
+
+  @override
+  String get rcShareImage => 'Share as image';
+
+  @override
+  String get rcSharePdf => 'Share as PDF';
+
+  @override
+  String get rcPrint => 'Print';
+
+  @override
+  String get rcLoadFailed => 'Could not load the receipt';
+
+  @override
+  String rcTaxNamed(String name, String rate) {
+    return 'Tax ($name $rate%)';
+  }
+
+  @override
+  String rcTaxRated(String rate) {
+    return 'Tax ($rate%)';
+  }
+
+  @override
+  String rcTaxInclNamed(String name, String rate) {
+    return 'Incl. $name $rate%';
+  }
+
+  @override
+  String rcTaxInclRated(String rate) {
+    return 'Tax incl. $rate%';
+  }
+
+  @override
+  String rcLineDiscount(String amount) {
+    return 'Discount −$amount';
+  }
+
+  @override
+  String rcReturnedQty(String qty) {
+    return 'Returned $qty';
+  }
 }

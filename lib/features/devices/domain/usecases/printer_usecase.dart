@@ -49,6 +49,15 @@ class PrinterUseCase {
     }
   }
 
+  /// Prints raw, already encoded ESC/POS [bytes] (the receipt as a picture).
+  Future<void> printRaw(List<int> bytes) async {
+    final printer = await _ensureConnected();
+    final ok = await repository.printBytes(printer, bytes);
+    if (!ok) {
+      throw const PrinterException(PrinterError.printFailed);
+    }
+  }
+
   Future<void> printTestTicket({
     required String businessName,
     required String dateLabel,

@@ -21,6 +21,9 @@ class PrinterBloc extends Bloc<PrinterEvent, PrinterState> {
     on<PrinterForgotten>(_onForgotten);
     on<PrinterTestPrintRequested>(_onTestPrintRequested);
     on<PrinterReceiptPrintRequested>(_onReceiptPrintRequested);
+    on<PrinterRawPrintRequested>(
+      (event, emit) => _print(emit, () => useCase.printRaw(event.bytes)),
+    );
   }
 
   Future<void> _onInitialized(

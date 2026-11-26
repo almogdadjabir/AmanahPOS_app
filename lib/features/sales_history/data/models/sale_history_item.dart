@@ -41,12 +41,16 @@ class SaleHistoryRefund {
   final String syncState;
   final String? errorMessage;
 
+  /// How the money went back (`cash`, `bankak`...). Empty when unknown.
+  final String method;
+
   const SaleHistoryRefund({
     required this.reference,
     required this.total,
     required this.createdAt,
     this.syncState = 'synced',
     this.errorMessage,
+    this.method = '',
   });
 
   bool get isRejected => syncState == 'rejected';
@@ -57,6 +61,14 @@ class SaleHistoryRefund {
     total: double.tryParse(dto.total) ?? 0,
     createdAt: dto.createdAt,
   );
+}
+
+/// One payment part of a sale (a split sale has several).
+class SaleHistoryPayment {
+  final String method;
+  final double amount;
+
+  const SaleHistoryPayment({required this.method, required this.amount});
 }
 
 class SaleHistoryLineItem {
@@ -70,6 +82,9 @@ class SaleHistoryLineItem {
   final double unitPrice;
   final double subtotal;
 
+  /// Discount taken off this line (money). 0 when none.
+  final double discount;
+
   const SaleHistoryLineItem({
     this.lineId = '',
     this.isCustom = false,
@@ -79,6 +94,7 @@ class SaleHistoryLineItem {
     required this.quantity,
     required this.unitPrice,
     required this.subtotal,
+    this.discount = 0,
   });
 
   /// What can still be returned on this line.
@@ -125,6 +141,11 @@ class SaleHistoryItem {
   final String? bankakSnapshot;
   final List<SaleHistoryRefund> refunds;
 
+  /// Sale subtotal before discount and tax. 0 when the source has none.
+  final double subtotal;
+  final String taxName;
+  final List<SaleHistoryPayment> payments;
+
   const SaleHistoryItem({
     required this.id,
     required this.clientSaleId,
@@ -149,6 +170,9 @@ class SaleHistoryItem {
     this.notes,
     this.bankakSnapshot,
     this.refunds = const [],
+    this.subtotal = 0,
+    this.taxName = '',
+    this.payments = const [],
   });
 
   factory SaleHistoryItem.fromDto(SaleDto dto) {
@@ -231,6 +255,9 @@ class SaleHistoryItem {
     notes: notes,
     bankakSnapshot: bankakSnapshot,
     refunds: refunds,
+    subtotal: subtotal,
+    taxName: taxName,
+    payments: payments,
   );
 
   /// Returns null instead of 0.0 so callers can chain fallbacks.

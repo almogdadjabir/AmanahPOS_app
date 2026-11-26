@@ -1,4 +1,5 @@
 import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
+import 'package:amana_pos/core/features/business_features.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
@@ -460,6 +461,18 @@ class DependenciesProvider {
         _syncSessionOf(getIt<AuthBloc>().state)?.key;
 
     getIt.registerLazySingleton<DbChangeNotifier>(() => DbChangeNotifier());
+
+    // What the owner switched on for this business (split, on account,
+    // discounts, stock count, shifts, drawer). Read from the synced row.
+    getIt.registerLazySingleton<BusinessFeaturesService>(() {
+      final service = BusinessFeaturesService(
+        db: getIt<OfflineDb>(),
+        notifier: getIt<DbChangeNotifier>(),
+      );
+      // Starts listening and fills `current` as soon as the row is read.
+      unawaited(service.load());
+      return service;
+    });
 
     // One app-wide url -> local file resolver for every OfflineCachedImage:
     // one synced_assets query per notify instead of one per image.

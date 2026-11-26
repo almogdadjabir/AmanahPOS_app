@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desktop vs Mobile: parity audit (2026-11-26)</title>
+<style>
+  :root{--bg:#faf8f4;--card:#fff;--ink:#1c1b18;--mut:#6b675e;--line:#e6e1d6;--teal:#0f766e;--red:#b42318;--amber:#92400e;--green:#067647;--blue:#1d4ed8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:1100px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:28px;margin:0 0 4px}
+  h2{font-size:21px;margin:44px 0 12px;padding-top:8px;border-top:2px solid var(--line)}
+  h3{font-size:16px;margin:24px 0 6px}
+  p{margin:8px 0}
+  .sub{color:var(--mut);margin-bottom:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .kpi b{display:block;font-size:26px}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f3efe6;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+  tr:last-child td{border-bottom:0}
+  .tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+  .yes{background:#dcfae6;color:var(--green)} .no{background:#fee4e2;color:var(--red)}
+  .part{background:#fef0c7;color:var(--amber)} .na{background:#eee;color:#555}
+  .p0{background:var(--red);color:#fff} .p1{background:#f79009;color:#fff} .p2{background:var(--blue);color:#fff} .p3{background:#98a2b3;color:#fff}
+  code{background:#f1ede3;padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .q{border-left:4px solid var(--teal);background:#f0fdfa}
+  .warn{border-left:4px solid #f79009;background:#fffaeb}
+  .bad{border-left:4px solid var(--red);background:#fff5f4}
+  ul{margin:6px 0 6px 20px;padding:0} li{margin:3px 0}
+  .small{font-size:12.5px;color:var(--mut)}
+  .recv{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+  .paper{width:230px;background:#fff;border:1px solid #ccc;padding:12px 10px;font:11px/1.4 monospace;color:#111}
+  .paper hr{border:0;border-top:1px dashed #777;margin:6px 0}
+  .paper .r{display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Desktop vs Mobile: parity audit</h1>
+<div class="sub">Date 2026-11-26 · Desktop <code>AmanaPOS.Desktop</code> (WPF, .NET 10) · Mobile <code>amana_pos</code> (Flutter, branch <code>development</code>) · Backend <code>amanaPOS-be</code> · Reference <code>social_wallet</code> (Baraka)</div>
+
+<div class="card warn">
+  <b>How far this audit goes (read first).</b>
+  This is a read-only comparison. I read the desktop <code>CLAUDE.md</code>, <code>docs/feature-parity.md</code>, <code>current-status.md</code>, <code>known-issues.md</code>, the desktop receipt renderer (<code>ReceiptVisual.cs</code>, <code>Receipt.cs</code>), the backend docs <code>pos-pairing.md</code> and <code>sync-contract-deviations.md</code>, the mobile receipt code, the mobile feature folders and sync contract, and ran <code>flutter analyze</code>.
+  I did <b>not</b> run the desktop app (Windows only), the mobile app, or any test suite, and I did not read every file. Items marked <span class="tag na">not verified</span> are inferred from file names or greps and need a closer look before we build on them.
+  The desktop <code>feature-parity.md</code> table is stale (last updated 2026-11-21); I used <code>current-status.md</code> and the code instead.
+</div>
+
+<h2>1. The short version</h2>
+<div class="grid">
+  <div class="card kpi"><b>5</b>things desktop has that mobile has none of: shifts and cash drawer, stock count, receipt settings, split payment UI, customer debts</div>
+  <div class="card kpi"><b>1</b>area needing a design decision before any code: what "pairing" means on mobile (section 4)</div>
+  <div class="card kpi"><b>3</b>different receipts on mobile today (on-screen sheet, text share, A4 PDF). None match the desktop receipt.</div>
+  <div class="card kpi"><b>2</b>real defects found in the mobile receipt path (offline PDF fonts, hard-coded English), section 5</div>
+</div>
+
+<h3>What I recommend, in order</h3>
+<ol>
+  <li><span class="tag p0">P0</span> <b>One receipt, drawn once, used everywhere</b> (screen, image share, PDF, thermal print). It matches desktop pixel for pixel. This is the thing you said you will print, so it goes first. Section 5.</li>
+  <li><span class="tag p1">P1</span> <b>Shifts and cash drawer</b> on mobile. The backend already accepts everything (<code>shift.open|close|count</code>, <code>cash_movement.create</code>). Section 3.1.</li>
+  <li><span class="tag p1">P1</span> <b>Pairing.</b> Needs your answer to one question first. Section 4.</li>
+  <li><span class="tag p2">P2</span> Split payment UI, customer debts (on account), line discount UI, stock count, receipt settings sync. Section 3.</li>
+  <li><span class="tag p3">P3</span> Cleanup from the audit (analyzer warnings, hard-coded strings). Section 6.</li>
+</ol>
+
+<h2>2. Feature matrix</h2>
+<p class="small">Backend column: does the server already accept it? "Local only" means the desktop keeps it on the PC and nothing syncs. Sizes are rough: S is under a day, M is 1 to 3 days, L is a week or more.</p>
+<table>
+<tr><th>Feature</th><th>Desktop</th><th>Mobile</th><th>Backend</th><th>Gap / note</th><th>Pri</th><th>Size</th></tr>
+
+<tr><td><b>Shifts and cash drawer</b> (open, close, count, pay-in/out, auto schedule, expected vs counted)</td>
+ <td><span class="tag yes">built</span> Shifts page, top-bar chip, owner Settings</td>
+ <td><span class="tag no">none</span> only <code>business_day.dart</code> (reporting day)</td>
+ <td><span class="tag yes">push ready</span> <code>shift.*</code>, <code>cash_movement.create</code>, shift settings in <code>business.update</code>; dashboard REST</td>
+ <td>Not in pull/bootstrap, so a phone cannot see the desktop's shifts. Each device keeps its own shifts and pushes them.</td><td><span class="tag p1">P1</span></td><td>L</td></tr>
+
+<tr><td><b>Pairing</b> (6-digit code, QR from dashboard <code>/link-device</code>, merge or new business)</td>
+ <td><span class="tag yes">built</span> Link window, ShopCompare, push sync (never run against a real server, issue #47/#70)</td>
+ <td><span class="tag part">different</span> normal login + device registrar (<code>sync_device_registrar.dart</code>), no code flow</td>
+ <td><span class="tag yes">ready</span> <code>pairing</code>, <code>redeem</code>, <code>choose</code></td>
+ <td>Needs your decision. See section 4.</td><td><span class="tag p1">P1</span></td><td>M</td></tr>
+
+<tr><td><b>Receipt</b> (look, print, PDF, share)</td>
+ <td><span class="tag yes">built</span> 58/80 mm roll, logo, footer, auto print, copies, PDF</td>
+ <td><span class="tag part">3 versions</span> not the same look; no footer/logo/paper settings</td>
+ <td><span class="tag yes">ready</span> receipt settings are in <code>business.update</code> and the business row</td>
+ <td>Section 5. This is the biggest item.</td><td><span class="tag p0">P0</span></td><td>M</td></tr>
+
+<tr><td><b>Split payments</b> (cash + Bankak + on account)</td>
+ <td><span class="tag yes">built</span></td>
+ <td><span class="tag part">domain only</span> <code>sale_service.dart</code> accepts payment parts and <code>split</code>; I found no split UI in <code>payment_selector.dart</code></td>
+ <td><span class="tag yes">ready</span> parts must sum to net</td>
+ <td>Add a split sheet to checkout. Refund rule: desktop refuses to refund a sale with an on-account part (issue #65/#66). Mobile must follow the same rule.</td><td><span class="tag p2">P2</span></td><td>M</td></tr>
+
+<tr><td><b>Customer debts / sale on account</b></td>
+ <td><span class="tag yes">built</span> receive payment, write-off (owner approval), ledger</td>
+ <td><span class="tag no">no ledger</span> <code>credit</code> exists only as a payment-method string <span class="tag na">not verified</span></td>
+ <td><span class="tag yes">ready</span> <code>debt.payment</code>, <code>debt.writeoff</code>; server writes the sale/refund entries; REST balance</td>
+ <td>Server computes the balance. Mobile only pushes payments and write-offs. Desktop must not send a sale-side debt entry. Same on mobile.</td><td><span class="tag p2">P2</span></td><td>L</td></tr>
+
+<tr><td><b>Line discount</b></td>
+ <td><span class="tag yes">built</span> percent</td>
+ <td><span class="tag part">math only</span> <code>sale_math.dart</code> has per-line <code>discount</code>; UI <span class="tag na">not verified</span></td>
+ <td><span class="tag yes">ready</span></td><td>Receipt must show the discount line (desktop does).</td><td><span class="tag p2">P2</span></td><td>S</td></tr>
+
+<tr><td><b>Stock count</b> (full count, apply differences)</td>
+ <td><span class="tag yes">built</span></td><td><span class="tag no">none</span></td>
+ <td><span class="tag yes">ready</span> <code>stock.count</code>, manager and owner only</td><td>Needs a cashier guard.</td><td><span class="tag p2">P2</span></td><td>M</td></tr>
+
+<tr><td><b>Receipt / tax / shift settings sync</b> (<code>business.update</code>)</td>
+ <td><span class="tag yes">built</span> owner only</td>
+ <td><span class="tag part">partial</span> a business applier exists; no receipt or shift settings UI</td>
+ <td><span class="tag yes">ready</span></td><td>Mobile should at least read and honour them so both devices print the same receipt.</td><td><span class="tag p1">P1</span></td><td>S</td></tr>
+
+<tr><td><b>Cancel sale</b> (with owner PIN for cashiers)</td>
+ <td><span class="tag yes">built</span></td><td><span class="tag no">no screen</span> (known)</td>
+ <td><span class="tag yes">ready</span> <code>sale.cancel</code></td><td>Decide if mobile needs it.</td><td><span class="tag p3">P3</span></td><td>S</td></tr>
+
+<tr><td>Owner approval pop-up for risky actions</td><td><span class="tag yes">built</span></td><td><span class="tag part">roles only</span> <span class="tag na">not verified</span></td><td>local rule</td><td>Mobile has PIN (<code>features/pin</code>); approval flow unclear.</td><td><span class="tag p3">P3</span></td><td>M</td></tr>
+
+<tr><td>Reports and export</td><td><span class="tag yes">built</span> Overview, Products, 8 reports, CSV and PDF export, close the day</td><td><span class="tag yes">built</span> reports with range sheet</td><td>local</td><td>Desktop lacks custom date range. Mobile lacks CSV/PDF export <span class="tag na">not verified</span>.</td><td><span class="tag p3">P3</span></td><td>M</td></tr>
+
+<tr><td>Expiry batches and alerts, low-stock alerts</td><td><span class="tag yes">built</span></td><td><span class="tag yes">built</span> expiry screen, notifications</td><td>ready</td><td>Check parity of settings (days, per-product switch).</td><td><span class="tag p3">P3</span></td><td>S</td></tr>
+
+<tr><td>Product pictures, categories (2 levels), delete</td><td><span class="tag yes">built</span></td><td><span class="tag yes">built</span> (plans 2026-11-17)</td><td>ready</td><td>Desktop limits categories to two levels; mobile limit <span class="tag na">not verified</span>.</td><td><span class="tag p3">P3</span></td><td>S</td></tr>
+
+<tr><td>Backups, restore, archive (ADR 0012)</td><td><span class="tag yes">built</span></td><td><span class="tag na">n/a</span> phone has its own OS backup</td><td>-</td><td>Desktop only by design.</td><td>-</td><td>-</td></tr>
+
+<tr><td>Camera barcode, FCM push, OTP login, registration, subscription, vendors/inbound, multi-shop</td><td><span class="tag no">missing / n/a</span></td><td><span class="tag yes">built</span></td><td>ready</td><td>Mobile-only today. Vendors/inbound was deferred on desktop to a Pharmacy phase.</td><td>-</td><td>-</td></tr>
+</table>
+
+<h2>3. The big items in detail</h2>
+
+<h3>3.1 Shifts on mobile</h3>
+<div class="card">
+<p><b>What desktop does</b> (from <code>Domain/Shifts</code>, <code>Application/Shifts</code>, <code>Features/Shifts</code>, migration <code>0009_shifts.sql</code>): per-device shifts in three modes (Off, Auto at set times, Manual), opening cash carried over from the last close, expected cash = opening + cash sales + pay-ins − pay-outs − cash refunds, counted cash and difference, a <i>needs count</i> state for shifts that auto-closed, pay-in and pay-out with a reason, a top-bar chip, owner-only settings.</p>
+<p><b>What the backend gives mobile:</b> push mutations with these exact shapes (from <code>docs/pos-pairing.md</code>, "Task 7"):</p>
+<ul>
+ <li><code>shift.open</code> <code>{shop_id, opening_cash, opened_at, opened_by, origin, device_id?, note?}</code></li>
+ <li><code>shift.close</code> <code>{closed_at, closed_by, expected_cash, counted_cash?, note?}</code> (no count means <code>needs_count</code>)</li>
+ <li><code>shift.count</code> <code>{counted_cash, expected_cash?, note?}</code>. A counted shift is final.</li>
+ <li><code>cash_movement.create</code> <code>{shift_id, kind: pay_in|pay_out, amount, reason, occurred_at}</code></li>
+ <li>Cashiers may send these. Dashboard reads <code>/api/v1/shifts/</code>; the server recomputes expected cash and shows both numbers.</li>
+</ul>
+<p><b>Mobile work:</b> new SQLite tables (shifts, cash movements) plus a migration, a shift service in the same style as <code>sale_service.dart</code> (data + outbox in one transaction), outbox entries for the four mutation types, a shift screen and a status chip, settings read from the business row, and expected-cash maths copied from <code>CashExpectation.cs</code> (including the cash share of split sales and cancelled sales, issue #69).</p>
+<p class="small">Limitation to accept: shifts and cash movements are not in pull or bootstrap yet, so a reinstalled phone loses its shift history locally (the server keeps it). Phone and desktop in the same shop will each show only their own shifts.</p>
+</div>
+
+<h3>3.2 Settings that must travel with the business</h3>
+<div class="card">
+<p>Receipt settings (footer, logo on/off, paper width) are business-level and owner-only in the backend. If mobile does not read them, the desktop prints one receipt and the phone prints another for the same shop. Printer name, copies and auto-print stay on each device.</p>
+</div>
+
+<h2>4. Pairing: a question for you</h2>
+<div class="card q">
+<p><b>"Pairing" can mean three different things here. Which one do you want on mobile?</b></p>
+<ol>
+ <li><b>Code pairing like desktop.</b> The owner shows a 6-digit code (or QR) from the dashboard, and a cashier's phone enters it and is linked with no OTP login. The backend is ready (<code>/sync/pairing/redeem/</code> and <code>/choose/</code>, rate limits and device revoke included). Mobile work: a link screen, redeem, the merge or new-business choice, then the first upload. <b>I recommend this if your goal is "cashier phones without the owner's login".</b></li>
+ <li><b>Phone ↔ desktop over the local network.</b> This is the "multi-device LAN feature" your desktop notes list as the next step, with its own ADR. It is a separate project: discovery, auth between devices, shared shift and stock view. It does not exist in the backend; it would be peer to peer.</li>
+ <li><b>Printer pairing.</b> Mobile already scans Bluetooth and network printers (<code>features/devices</code>). If you mean making that nicer, it is a small item.</li>
+</ol>
+<p class="small">Backend caveats for option 1: pairing tokens are normal user tokens for the owner's account (no step-up claim), a revoked device cannot re-register, and the desktop's own pairing has <b>never run against a real server</b> (desktop known issue #47). We should test both sides against the real backend together.</p>
+</div>
+
+<h2>5. The receipt: make mobile match desktop 100%</h2>
+
+<h3>5.1 What exists today</h3>
+<table>
+<tr><th></th><th>Desktop (<code>ReceiptVisual.cs</code>)</th><th>Mobile today</th></tr>
+<tr><td>Paper</td><td>One white sheet, 80 mm (302 px) or 58 mm (219 px) wide, padding 12/16/12/20, black ink in every theme</td><td>A4 PDF (margins 52/48/52/64), on-screen sheet with success mark, plain text for sharing</td></tr>
+<tr><td>Header</td><td>Business logo 44 px (if on), business name 17 bold centred, phone grey</td><td>PDF: a green rounded "A" and the word "AmanaPOS", shop name under it. No business logo, no business name</td></tr>
+<tr><td>Meta</td><td>Receipt no., date, cashier, customer</td><td>PDF: receipt, date, payment, shop. No cashier, no customer</td></tr>
+<tr><td>Lines</td><td>Name + total; grey line "qty × unit"; line discount line; "returned qty" line</td><td>PDF: table ITEM / QTY / AMOUNT, quantity rounded to a whole number (<code>toStringAsFixed(0)</code>), no unit price, no discount</td></tr>
+<tr><td>Totals</td><td>Subtotal, discount, tax with a named label ("Tax (VAT 15%)" or "Incl. VAT 15%"), big Total</td><td>PDF: tax or "tax included" and one 26 pt total; no discount row</td></tr>
+<tr><td>Payments</td><td>Each part for split, "On account" without "Paid", "Owes now" for the customer, refunds with their method</td><td>One "paid via" label. No parts, no refunds, no owes</td></tr>
+<tr><td>Footer</td><td>Status box (Paid / Refunded...), "not synced" note, owner's footer text or "Thank you", "Powered by AmanaPOS"</td><td>"Thank you" and "Powered by AmanaPOS" (the thank-you is fixed, not the owner's)</td></tr>
+<tr><td>Font</td><td><code>Segoe UI, Tahoma, Arial</code></td><td>Noto Sans / Noto Naskh Arabic, <b>downloaded from Google Fonts when the PDF is made</b></td></tr>
+<tr><td>Share</td><td>Print, Save as PDF</td><td>Text (WhatsApp link or system share) or PDF with a text line attached</td></tr>
+<tr><td>Thermal print</td><td>Windows print queue, the same visual (Arabic prints correctly)</td><td>ESC/POS text; desktop notes say Arabic prints as "?"</td></tr>
+</table>
+
+<div class="card bad">
+<b>Two defects I found while reading the mobile receipt code</b> (verified in source, not by running the app):
+<ul>
+ <li><b>The PDF needs internet.</b> <code>sale_receipt_pdf_service.dart</code> calls <code>PdfGoogleFonts.notoSansRegular()</code> and the Naskh variants. These download at runtime, so on a phone that is offline the receipt PDF fails. That breaks the offline-first rule for the one document a shop needs when the network is down.</li>
+ <li><b>English is hard-coded in the receipt sheet and thermal data.</b> <code>sale_receipt_sheet.dart</code> writes <code>'Payment: ...'</code>, <code>'Ref: ...'</code>, <code>'Subtotal'</code>, <code>'TOTAL'</code>, <code>'Saved offline - pending sync'</code> directly, so an Arabic user gets English on the shared text and on the printer.</li>
+</ul>
+</div>
+
+<h3>5.2 Preview of the target</h3>
+<p class="small">Schematic only (desktop <code>receipt-mockup.html</code> is the real design). Shows the structure that every output must have.</p>
+<div class="recv">
+ <div class="paper">
+  <div style="text-align:center"><b style="font-size:14px">Al-Noor Market</b><br>+249 9XX XXX XXX</div><hr>
+  <div class="r"><span>Receipt</span><span>S-00123</span></div>
+  <div class="r"><span>Date</span><span>26 Nov 2026 · 14:05</span></div>
+  <div class="r"><span>Cashier</span><span>Omar</span></div><hr>
+  <div class="r"><span>Sugar 1kg</span><span>8.00</span></div>
+  <div style="color:#555">2 × 4.00</div>
+  <div class="r"><span>Tea</span><span>4.50</span></div>
+  <div style="color:#555">1 × 5.00 · discount 0.50</div><hr>
+  <div class="r"><span>Subtotal</span><span>13.00</span></div>
+  <div class="r"><span>Tax (VAT 15%)</span><span>1.95</span></div>
+  <div class="r"><b>Total</b><b>SDG 14.95</b></div>
+  <div class="r"><span>Paid · Cash</span><span>14.95</span></div><hr>
+  <div style="text-align:center">[ PAID ]<br>Thank you<br><small>Powered by AmanaPOS</small></div>
+ </div>
+ <div style="flex:1;min-width:260px">
+  <h3 style="margin-top:0">5.3 Plan: draw once, output four ways</h3>
+  <ol>
+   <li><b>One Flutter widget</b> <code>ReceiptPaper</code> that is a line-by-line port of <code>ReceiptVisual.Build</code>: same widths (58 or 80 mm at 96 dpi), padding, sizes (17 / 15 / 12 / 11 / 10.5 / 10), colours (<code>#111111</code> ink, <code>#555555</code> grey), dashed rules, same rows and same order. Both languages, RTL, numbers always left to right with Latin digits, date <code>dd MMM yyyy · HH:mm</code> in the business time zone.</li>
+   <li><b>Screen:</b> the sale-complete sheet and sale detail show this widget.</li>
+   <li><b>Share as image</b> (what you asked for): wrap it in a <code>RepaintBoundary</code>, render at pixel ratio 3, share the PNG only, <b>no text</b>. Same helper as Baraka's <code>sharePngFromWidget</code> (<code>utilities/sharing_utils.dart</code>). That works for WhatsApp, Telegram, save to gallery.</li>
+   <li><b>Share as PDF:</b> the same rendered image placed on one page whose width equals the roll width and whose height fits the content. It matches the screen exactly because it is that picture. Trade-off: the text in the PDF cannot be selected or searched.</li>
+   <li><b>Thermal print:</b> send the same image as raster (ESC/POS bitmap) instead of text. Then Arabic prints properly and the paper looks like the screen. The existing text path stays as a fallback for printers that cannot take images.</li>
+  </ol>
+ </div>
+</div>
+
+<div class="card warn">
+<b>For "100% the same", the font must be the same.</b> Desktop draws the receipt in Segoe UI, a Windows font we cannot ship in the Flutter app. Without the same font, every width and line break differs slightly. Both apps already ship <b>Geist</b> and <b>IBM Plex Sans Arabic</b> (<code>assets/fonts</code> on mobile, <code>DesignSystem/Fonts</code> on desktop). <b>Recommendation:</b> change the desktop receipt to Geist (Latin) and IBM Plex Sans Arabic, then mobile uses the same files. This is a one-line font change in <code>ReceiptVisual.cs</code>, but it changes the printed look on the PC, so I will not touch the desktop repo unless you say so. It also removes the Google Fonts download.
+</div>
+
+<h3>5.4 Data the mobile receipt needs</h3>
+<p>The desktop <code>Receipt</code> record carries: business name, phone, logo bytes, currency, number, time, status, lines (name, qty, unit price, total, returned, discount), subtotal, discount, tax, net, payment method and parts, refunds, synced flag, customer name, what the customer owes, cashier name, tax name, tax rate, tax inclusive. Mobile has most of this in its local sale and refund tables; I expect gaps in <b>cashier name, tax snapshot name/rate, split parts and customer balance</b> <span class="tag na">not verified</span>. Receipt strings (status names, "Owes now", "Returned", "Discount", tax labels, "Thank you") must be added to both <code>app_en.arb</code> and <code>app_ar.arb</code> with the same wording as the desktop resource file.</p>
+
+<h3>5.5 How we will prove it matches</h3>
+<ul>
+ <li>Golden-image tests on mobile for the same fixed receipt data (English and Arabic, 58 and 80 mm, with and without discount, tax inclusive and added, split, on account, refunded).</li>
+ <li>Render the same fixtures on desktop (it already renders scenes to PNG in tests), put the two PNGs side by side, and diff them. You look at the pair and approve before I call it done.</li>
+ <li>I will not claim a match until that diff has been run; I cannot run the desktop app from here, so I will need the desktop PNGs from you or from your Windows machine.</li>
+</ul>
+
+<h2>6. Audit findings</h2>
+
+<h3>6.1 Mobile (evidence from this session)</h3>
+<table>
+<tr><th>#</th><th>Finding</th><th>Evidence</th><th>Severity</th></tr>
+<tr><td>M1</td><td>Receipt PDF needs the internet (Google Fonts download)</td><td><code>sale_receipt_pdf_service.dart:30-35</code></td><td><span class="tag no">High</span></td></tr>
+<tr><td>M2</td><td>English strings hard-coded in receipt sheet and thermal data</td><td><code>sale_receipt_sheet.dart</code> (<code>_buildReceiptText</code>, <code>_buildReceiptData</code>)</td><td><span class="tag part">Medium</span></td></tr>
+<tr><td>M3</td><td>PDF shows quantity as a whole number, so a sale of 1.5 kg prints "2"</td><td><code>sale_receipt_pdf_service.dart</code> <code>line.quantity.toStringAsFixed(0)</code></td><td><span class="tag no">High</span> for weighed goods; stock and sales use 3 decimals on desktop</td></tr>
+<tr><td>M4</td><td>PDF has no business name/logo, discount, customer, cashier, refunds, split parts</td><td>same file</td><td><span class="tag part">Medium</span></td></tr>
+<tr><td>M5</td><td>Share adds a text line next to the PDF (you want it removed)</td><td><code>sharePdf</code> sets <code>text:</code></td><td><span class="tag part">Medium</span> (requested)</td></tr>
+<tr><td>M6</td><td><code>flutter analyze</code>: 73 issues, 5 are warnings (unused field <code>_requestHandler</code> in <code>fcm_token_service.dart</code>; unused locals in <code>request_handler.dart:292</code>, <code>error_handler.dart:38</code>, <code>business_bloc.dart:42</code>, <code>category_products_response_dto.dart:20</code>); the rest are info, mostly <code>avoid_print</code> in <code>tool/dev</code></td><td>ran today</td><td><span class="tag na">Low</span></td></tr>
+<tr><td>M7</td><td>Existing <code>UI-REVIEW.md</code> lists 18 UI-consistency warnings (shared widgets rarely used); not re-checked today</td><td><code>UI-REVIEW.md</code></td><td><span class="tag na">Low</span></td></tr>
+<tr><td>M8</td><td>168 test files exist; I did not run them</td><td><code>find test</code></td><td>info</td></tr>
+<tr><td>M9</td><td>Dev base URL default points to a LAN address (<code>192.168.1.168:8000</code>); fine as a <code>defaultValue</code> if release builds always pass the production URL. Worth confirming in the release script</td><td><code>config/environment</code></td><td><span class="tag na">Low</span></td></tr>
+</table>
+
+<h3>6.2 Desktop (from your own notes; I did not run it)</h3>
+<table>
+<tr><th>#</th><th>Finding</th><th>Source</th></tr>
+<tr><td>D1</td><td>Almost every redesigned screen is "built, <b>not seen running</b>" (Products, Reports, Settings Alerts, Archive, Backups, setup and login, expiry). Test totals are green (3288, 0 failed, 155 skipped screenshot tests) but nothing replaces looking at the app</td><td><code>current-status.md</code>, issues #80-#88</td></tr>
+<tr><td>D2</td><td>Pairing and push sync have <b>never run against a real server</b> (issues #47, #70); the backend pairing endpoints exist now, so this test is the next real risk</td><td>known-issues</td></tr>
+<tr><td>D3</td><td>Desktop sync is push-first: pull, bootstrap and checksum were not built at the time of the parity table; #70 says fetch was built. Needs a fresh check of what is really done against <code>sync-contract.md</code></td><td><code>feature-parity.md</code> row 23, issue #70</td></tr>
+<tr><td>D4</td><td><code>docs/feature-parity.md</code> is out of date (last update 2026-11-21)</td><td>file header</td></tr>
+<tr><td>D5</td><td>Reports rebuild uses up to 512 MB against a 300 MB target on a weak PC (open item)</td><td>#87, <code>performance.md</code></td></tr>
+<tr><td>D6</td><td>Release build was not run after the latest work; smoke launch ran on the archive build only</td><td><code>current-status.md</code></td></tr>
+<tr><td>D7</td><td>Receipt prints black text through Windows queues; "not tried on hardware" in the parity table</td><td>row 15</td></tr>
+<tr><td>D8</td><td>Desktop does not yet have vendors/inbound (deferred by you), custom date range in reports, or server-pushed notifications</td><td>parity table</td></tr>
+</table>
+
+<h3>6.3 Backend facts that affect both apps</h3>
+<ul>
+ <li>Shifts, cash movements and debts are <b>not</b> in pull or bootstrap. Each device keeps its own copy and only the dashboard sees all of it (<code>pos-pairing.md</code>, "Still not done").</li>
+ <li>Cashiers can send <code>shift.*</code>, <code>cash_movement.create</code> and <code>debt.payment</code>. <code>debt.writeoff</code> is manager and above.</li>
+ <li>The server has no PIN. A staff PIN stays on the device (<code>sync-contract-deviations.md</code> 39).</li>
+ <li>Refund total is the line's share of the net amount (discount and tax included). Mobile and desktop must show the server's number in <code>refund_total</code> after sync.</li>
+ <li><code>seq</code> and pruning: a device with no stored cursor must bootstrap first (item 18).</li>
+</ul>
+
+<h2>7. Decisions I need from you</h2>
+<div class="card q">
+<ol>
+ <li><b>Pairing:</b> which of the three meanings in section 4? (My recommendation: option 1, code pairing.)</li>
+ <li><b>Receipt font:</b> may I change the desktop receipt to Geist + IBM Plex Sans Arabic so mobile matches pixel for pixel? (Without it, "100%" is not possible.)</li>
+ <li><b>PDF type:</b> is an image-in-PDF fine (exact match, text not selectable)? Or do you need selectable text, which would mean a second, hand-built layout and a small risk of drift?</li>
+ <li><b>Thermal printing:</b> print the receipt as an image on Bluetooth/network printers (matches screen, Arabic works)? Or keep text printing?</li>
+ <li><b>Order:</b> receipt first, then shifts, then pairing. OK? Everything else in section 2 goes after.</li>
+ <li><b>Deeper audit:</b> this pass is a comparison. If you want a line-by-line code review of mobile (security, sync correctness, error handling) I can run it as a separate pass; it is a large job.</li>
+</ol>
+</div>
+
+<p class="small">Nothing was changed in either codebase. The only file created is this report: <code>docs/audits/2026-11-26-desktop-vs-mobile-parity-audit.html</code>. Git state untouched.</p>
+</main>
+</body>
+</html>

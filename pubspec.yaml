@@ -105,6 +105,12 @@ flutter:
           weight: 600
         - asset: assets/fonts/Geist-Bold.ttf
           weight: 700
+    - family: Selawik
+      fonts:
+        - asset: assets/fonts/Selawik-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Selawik-Bold.ttf
+          weight: 700
     - family: Phosphor
       fonts:
         - asset: assets/fonts/phosphor/Phosphor-Regular.ttf

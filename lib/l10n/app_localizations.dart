@@ -8389,6 +8389,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reactivate member'**
   String get userChangeReactivate;
+
+  /// No description provided for @rcNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get rcNumber;
+
+  /// No description provided for @rcDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get rcDate;
+
+  /// No description provided for @rcCashier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get rcCashier;
+
+  /// No description provided for @rcCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get rcCustomer;
+
+  /// No description provided for @rcSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get rcSubtotal;
+
+  /// No description provided for @rcDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get rcDiscount;
+
+  /// No description provided for @rcTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get rcTax;
+
+  /// No description provided for @rcTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get rcTotal;
+
+  /// No description provided for @rcPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get rcPaid;
+
+  /// No description provided for @rcRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get rcRefund;
+
+  /// No description provided for @rcOwesNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer owes'**
+  String get rcOwesNow;
+
+  /// No description provided for @rcNotSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this terminal, not yet synced'**
+  String get rcNotSynced;
+
+  /// No description provided for @rcThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for shopping with us'**
+  String get rcThanks;
+
+  /// No description provided for @rcStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'PAID'**
+  String get rcStatusCompleted;
+
+  /// No description provided for @rcStatusPartialRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'PARTIAL REFUND'**
+  String get rcStatusPartialRefund;
+
+  /// No description provided for @rcStatusRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'REFUNDED'**
+  String get rcStatusRefunded;
+
+  /// No description provided for @rcStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCELLED'**
+  String get rcStatusCancelled;
+
+  /// No description provided for @rcStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'PENDING'**
+  String get rcStatusPending;
+
+  /// No description provided for @rcStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'FAILED'**
+  String get rcStatusFailed;
+
+  /// No description provided for @rcPayCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get rcPayCash;
+
+  /// No description provided for @rcPayBankak.
+  ///
+  /// In en, this message translates to:
+  /// **'Bankak'**
+  String get rcPayBankak;
+
+  /// No description provided for @rcPayCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get rcPayCard;
+
+  /// No description provided for @rcPaySplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get rcPaySplit;
+
+  /// No description provided for @rcPayCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'On account'**
+  String get rcPayCredit;
+
+  /// No description provided for @rcShareImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as image'**
+  String get rcShareImage;
+
+  /// No description provided for @rcSharePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as PDF'**
+  String get rcSharePdf;
+
+  /// No description provided for @rcPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Print'**
+  String get rcPrint;
+
+  /// No description provided for @rcLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the receipt'**
+  String get rcLoadFailed;
+
+  /// No description provided for @rcTaxNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ({name} {rate}%)'**
+  String rcTaxNamed(String name, String rate);
+
+  /// No description provided for @rcTaxRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ({rate}%)'**
+  String rcTaxRated(String rate);
+
+  /// No description provided for @rcTaxInclNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Incl. {name} {rate}%'**
+  String rcTaxInclNamed(String name, String rate);
+
+  /// No description provided for @rcTaxInclRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax incl. {rate}%'**
+  String rcTaxInclRated(String rate);
+
+  /// No description provided for @rcLineDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount −{amount}'**
+  String rcLineDiscount(String amount);
+
+  /// No description provided for @rcReturnedQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned {qty}'**
+  String rcReturnedQty(String qty);
 }
 
 class _AppLocalizationsDelegate

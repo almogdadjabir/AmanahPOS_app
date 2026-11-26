@@ -4,7 +4,7 @@ import 'package:amana_pos/features/sales_history/data/models/sale_history_item.d
 import 'package:amana_pos/features/sales_history/presentation/bloc/sales_history_bloc.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_detail/sale_detail_parts.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sale_format.dart';
-import 'package:amana_pos/features/sales_history/services/sale_receipt_pdf_service.dart';
+import 'package:amana_pos/features/receipt/presentation/receipt_view.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
@@ -48,7 +48,6 @@ class SaleDetailScreen extends StatefulWidget {
 
 class _SaleDetailScreenState extends State<SaleDetailScreen> {
   late SaleHistoryItem _sale = widget.item;
-  bool _sharing = false;
 
   Future<void> _copyRef() async {
     HapticFeedback.selectionClick();
@@ -58,20 +57,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   }
 
   Future<void> _share() async {
-    if (_sharing) return;
-    setState(() => _sharing = true);
-    try {
-      await SaleReceiptPdfService.sharePdf(
-        _sale,
-        strings: SaleReceiptPdfStrings.fromContext(context),
-      );
-    } catch (_) {
-      if (mounted) {
-        GlobalSnackBar.showError(message: context.tr.shReceiptFailed);
-      }
-    } finally {
-      if (mounted) setState(() => _sharing = false);
-    }
+    await showReceiptSheet(context, _sale.clientSaleId);
   }
 
   Future<void> _return() async {
@@ -115,7 +101,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         bottom: false,
         child: Column(
           children: [
-            _NavBar(sharing: _sharing, onShare: _share),
+            _NavBar(sharing: false, onShare: _share),
             Expanded(
               child: ListView(
                 physics: const BouncingScrollPhysics(

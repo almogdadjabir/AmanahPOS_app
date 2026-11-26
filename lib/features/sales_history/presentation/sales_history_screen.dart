@@ -13,11 +13,10 @@ import 'package:amana_pos/features/sales_history/presentation/widgets/sales_filt
 import 'package:amana_pos/features/sales_history/presentation/widgets/sales_filter_sheets.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sales_row.dart';
 import 'package:amana_pos/features/sales_history/presentation/widgets/sales_states.dart';
-import 'package:amana_pos/features/sales_history/services/sale_receipt_pdf_service.dart';
+import 'package:amana_pos/features/receipt/presentation/receipt_view.dart';
 import 'package:amana_pos/theme/app_spacing.dart';
 import 'package:amana_pos/theme/app_theme_colors.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
-import 'package:amana_pos/utilities/global_snackbar.dart';
 import 'package:amana_pos/widgets/app_large_title.dart';
 import 'package:amana_pos/widgets/app_search_field.dart';
 import 'package:amana_pos/widgets/app_swipe_actions.dart';
@@ -141,17 +140,8 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     if (mounted && widget.pickMode) Navigator.of(context).pop();
   }
 
-  Future<void> _shareReceipt(SaleHistoryItem sale) async {
-    final tr = context.tr;
-    try {
-      await SaleReceiptPdfService.sharePdf(
-        sale,
-        strings: SaleReceiptPdfStrings.fromContext(context),
-      );
-    } catch (_) {
-      GlobalSnackBar.showError(message: tr.shReceiptFailed);
-    }
-  }
+  Future<void> _shareReceipt(SaleHistoryItem sale) =>
+      showReceiptSheet(context, sale.clientSaleId);
 
   List<AppSwipeAction> _swipeActions(SaleHistoryItem sale) {
     final colors = context.appColors;

@@ -166,7 +166,18 @@ class LocalSalesHistory {
     if (rows.isEmpty) return null;
     final lines = await _lines(db, [id]);
     final refunds = await _refunds(db, [id]);
-    return _item(rows.single, lines[id] ?? const [], refunds[id] ?? const []);
+    final payments = await db.query(
+      'sale_payments',
+      where: 'sale_id = ?',
+      whereArgs: [id],
+      orderBy: 'position ASC',
+    );
+    return _item(
+      rows.single,
+      lines[id] ?? const [],
+      refunds[id] ?? const [],
+      payments,
+    );
   }
 
   /// Refund rows per sale id, newest first. A `rejected` row is kept (the
@@ -217,8 +228,9 @@ class LocalSalesHistory {
   static SaleHistoryItem _item(
     Map<String, Object?> r,
     List<Map<String, Object?>> lines,
-    List<Map<String, Object?>> refunds,
-  ) {
+    List<Map<String, Object?>> refunds, [
+    List<Map<String, Object?>> payments = const [],
+  ]) {
     final returned = _returned(refunds);
     final syncState = r['sync_state'] as String? ?? 'pending';
     final receipt = (r['receipt_number'] as String?)?.isNotEmpty == true
@@ -257,9 +269,19 @@ class LocalSalesHistory {
             quantity: _d(l['quantity']),
             unitPrice: _d(l['unit_price']),
             subtotal: _d(l['line_total']),
+            discount: _d(l['discount']),
           ),
       ],
       discount: _d(r['discount']),
+      subtotal: _d(r['subtotal']),
+      taxName: (r['tax_name'] as String?) ?? '',
+      payments: [
+        for (final p in payments)
+          SaleHistoryPayment(
+            method: (p['method'] as String?) ?? '',
+            amount: _d(p['amount']),
+          ),
+      ],
       refunds: [
         for (final f in refunds)
           SaleHistoryRefund(
@@ -271,6 +293,7 @@ class LocalSalesHistory {
             syncState: (f['sync_state'] as String?) ?? 'synced',
             errorMessage: (f['error_message'] as String?) ??
                 (f['error_code'] as String?),
+            method: (f['method'] as String?) ?? '',
           ),
       ],
     );

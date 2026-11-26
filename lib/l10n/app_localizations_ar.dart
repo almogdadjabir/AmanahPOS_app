@@ -4627,4 +4627,118 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get userChangeReactivate => 'إعادة تفعيل العضو';
+
+  @override
+  String get rcNumber => 'رقم الإيصال';
+
+  @override
+  String get rcDate => 'التاريخ';
+
+  @override
+  String get rcCashier => 'الكاشير';
+
+  @override
+  String get rcCustomer => 'العميل';
+
+  @override
+  String get rcSubtotal => 'المجموع الفرعي';
+
+  @override
+  String get rcDiscount => 'الخصم';
+
+  @override
+  String get rcTax => 'الضريبة';
+
+  @override
+  String get rcTotal => 'الإجمالي';
+
+  @override
+  String get rcPaid => 'مدفوع';
+
+  @override
+  String get rcRefund => 'استرداد';
+
+  @override
+  String get rcOwesNow => 'المستحق على العميل';
+
+  @override
+  String get rcNotSynced => 'محفوظ على هذا الجهاز، لم تتم مزامنته بعد';
+
+  @override
+  String get rcThanks => 'شكراً لتسوقكم معنا';
+
+  @override
+  String get rcStatusCompleted => 'مدفوع';
+
+  @override
+  String get rcStatusPartialRefund => 'مرتجع جزئياً';
+
+  @override
+  String get rcStatusRefunded => 'مرتجع';
+
+  @override
+  String get rcStatusCancelled => 'ملغي';
+
+  @override
+  String get rcStatusPending => 'قيد المزامنة';
+
+  @override
+  String get rcStatusFailed => 'فشل';
+
+  @override
+  String get rcPayCash => 'نقدًا';
+
+  @override
+  String get rcPayBankak => 'بنكك';
+
+  @override
+  String get rcPayCard => 'بطاقة';
+
+  @override
+  String get rcPaySplit => 'دفع مقسّم';
+
+  @override
+  String get rcPayCredit => 'على الحساب';
+
+  @override
+  String get rcShareImage => 'مشاركة كصورة';
+
+  @override
+  String get rcSharePdf => 'مشاركة كملف PDF';
+
+  @override
+  String get rcPrint => 'طباعة';
+
+  @override
+  String get rcLoadFailed => 'تعذر تحميل الإيصال';
+
+  @override
+  String rcTaxNamed(String name, String rate) {
+    return 'الضريبة ($name $rate%)';
+  }
+
+  @override
+  String rcTaxRated(String rate) {
+    return 'الضريبة ($rate%)';
+  }
+
+  @override
+  String rcTaxInclNamed(String name, String rate) {
+    return 'شامل $name $rate%';
+  }
+
+  @override
+  String rcTaxInclRated(String rate) {
+    return 'شامل الضريبة $rate%';
+  }
+
+  @override
+  String rcLineDiscount(String amount) {
+    return 'خصم −$amount';
+  }
+
+  @override
+  String rcReturnedQty(String qty) {
+    return 'مُرتجع $qty';
+  }
 }

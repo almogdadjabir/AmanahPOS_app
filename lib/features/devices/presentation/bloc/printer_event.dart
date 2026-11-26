@@ -56,3 +56,13 @@ class PrinterReceiptPrintRequested extends PrinterEvent {
   @override
   List<Object?> get props => [receipt];
 }
+
+/// Prints a receipt already turned into ESC/POS raster bytes.
+class PrinterRawPrintRequested extends PrinterEvent {
+  final List<int> bytes;
+
+  const PrinterRawPrintRequested(this.bytes);
+
+  @override
+  List<Object?> get props => [bytes];
+}

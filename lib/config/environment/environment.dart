@@ -29,7 +29,7 @@ String get baseUrl {
     case Flavor.prod:
       return prodBaseURL;
     case Flavor.dev:
-      return devBaseURL;
+      return prodBaseURL;
     default:
       return prodBaseURL;
   }
