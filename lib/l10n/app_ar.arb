@@ -1716,5 +1716,17 @@
   "sfErrReason": "اكتب سبباً قصيراً.",
   "sfErrSave": "تعذّر الحفظ. حاول مرة أخرى.",
   "sfLoadFailed": "تعذّر تحميل الورديات.",
-  "sfTryAgain": "حاول مرة أخرى"
+  "sfTryAgain": "حاول مرة أخرى",
+  "spOption": "مجزأ",
+  "spTitle": "الدفع المجزأ",
+  "spTotal": "الإجمالي",
+  "spLeft": "المتبقي",
+  "spPaid": "تم الدفع كاملاً",
+  "spOver": "زيادة بمقدار",
+  "spInvalid": "راجع المبالغ",
+  "spFillRest": "املأ الباقي",
+  "spConfirm": "تأكيد التجزئة",
+  "spEdit": "تعديل",
+  "spBankakSetup": "أعد حساب بنكك أولاً",
+  "spMismatch": "تغيرت السلة. عدّل التجزئة."
 }

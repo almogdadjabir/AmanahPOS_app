@@ -5003,4 +5003,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sfTryAgain => 'Try again';
+
+  @override
+  String get spOption => 'Split';
+
+  @override
+  String get spTitle => 'Split payment';
+
+  @override
+  String get spTotal => 'Total';
+
+  @override
+  String get spLeft => 'Left';
+
+  @override
+  String get spPaid => 'Paid in full';
+
+  @override
+  String get spOver => 'Over by';
+
+  @override
+  String get spInvalid => 'Check the amounts';
+
+  @override
+  String get spFillRest => 'Fill rest';
+
+  @override
+  String get spConfirm => 'Confirm split';
+
+  @override
+  String get spEdit => 'Edit';
+
+  @override
+  String get spBankakSetup => 'Set up your Bankak account first';
+
+  @override
+  String get spMismatch => 'The cart changed. Edit the split.';
 }

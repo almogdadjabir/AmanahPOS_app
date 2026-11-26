@@ -7,6 +7,12 @@ class PosState extends Equatable {
   final String searchQuery;
   final String? selectedCategoryId;
   final String paymentMethod;
+
+  /// Confirmed split parts (only meaningful while [paymentMethod] is 'split').
+  final List<SalePaymentPart> splitParts;
+
+  /// Parts of the sale just finished, for its receipt.
+  final List<SalePaymentPart> lastSplitParts;
   final PosSubmitStatus submitStatus;
   final String? submitError;
 
@@ -39,6 +45,8 @@ class PosState extends Equatable {
     this.searchQuery = '',
     this.selectedCategoryId,
     this.paymentMethod = 'cash',
+    this.splitParts = const [],
+    this.lastSplitParts = const [],
     this.submitStatus = PosSubmitStatus.idle,
     this.submitError,
     this.removedUnavailable = const [],
@@ -99,6 +107,8 @@ class PosState extends Equatable {
     String? selectedCategoryId,
     bool clearSelectedCategory = false,
     String? paymentMethod,
+    List<SalePaymentPart>? splitParts,
+    List<SalePaymentPart>? lastSplitParts,
     PosSubmitStatus? submitStatus,
     String? submitError,
     List<String>? removedUnavailable,
@@ -128,6 +138,8 @@ class PosState extends Equatable {
           ? null
           : (selectedCategoryId ?? this.selectedCategoryId),
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      splitParts: splitParts ?? this.splitParts,
+      lastSplitParts: lastSplitParts ?? this.lastSplitParts,
       submitStatus: submitStatus ?? this.submitStatus,
       submitError: submitError,
       removedUnavailable: removedUnavailable ?? const [],
@@ -161,6 +173,8 @@ class PosState extends Equatable {
     searchQuery,
     selectedCategoryId,
     paymentMethod,
+    [for (final x in splitParts) '${x.method}:${x.amount}'],
+    [for (final x in lastSplitParts) '${x.method}:${x.amount}'],
     submitStatus,
     submitError,
     removedUnavailable,

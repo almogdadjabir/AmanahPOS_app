@@ -1854,5 +1854,17 @@
   "sfErrReason": "Write a short reason.",
   "sfErrSave": "It could not be saved. Try again.",
   "sfLoadFailed": "Could not load the shifts.",
-  "sfTryAgain": "Try again"
+  "sfTryAgain": "Try again",
+  "spOption": "Split",
+  "spTitle": "Split payment",
+  "spTotal": "Total",
+  "spLeft": "Left",
+  "spPaid": "Paid in full",
+  "spOver": "Over by",
+  "spInvalid": "Check the amounts",
+  "spFillRest": "Fill rest",
+  "spConfirm": "Confirm split",
+  "spEdit": "Edit",
+  "spBankakSetup": "Set up your Bankak account first",
+  "spMismatch": "The cart changed. Edit the split."
 }

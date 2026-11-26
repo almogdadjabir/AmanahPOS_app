@@ -27,6 +27,14 @@ class PosPaymentMethodChanged extends PosEvent {
   List<Object?> get props => [paymentMethod];
 }
 
+/// The split sheet was confirmed: the sale is paid by these parts.
+class PosSplitConfirmed extends PosEvent {
+  final List<SalePaymentPart> parts;
+  const PosSplitConfirmed(this.parts);
+  @override
+  List<Object?> get props => [for (final p in parts) '${p.method}:${p.amount}'];
+}
+
 final class PosAddProduct extends PosEvent {
   final ProductData product;
   final bool ignoreStockLimit;

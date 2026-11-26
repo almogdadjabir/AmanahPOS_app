@@ -1,5 +1,6 @@
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/data/model/pos_submit_result.dart';
+import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/domain/repositories/pos_repository.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:fpdart/fpdart.dart';
@@ -16,6 +17,7 @@ class PosUseCase {
     required List<PosCartItem> items,
     String discountAmount = '0',
     TaxConfig taxConfig = const TaxConfig.disabled(),
+    List<SalePaymentPart>? payments,
   }) {
     return repository.submitSale(
       shopId: shopId,
@@ -24,6 +26,7 @@ class PosUseCase {
       items: items,
       discountAmount: discountAmount,
       taxConfig: taxConfig,
+      payments: payments,
     );
   }
 }

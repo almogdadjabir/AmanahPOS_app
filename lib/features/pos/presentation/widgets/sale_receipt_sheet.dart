@@ -80,6 +80,7 @@ class SaleReceiptSheet extends StatelessWidget {
     'cash' => 'Cash',
     'bankak' => 'Bankak',
     'card' => 'Card',
+    'split' => 'Split',
     'bank_transfer' => 'Bank Transfer',
     'mobile_wallet' => 'Mobile Wallet',
     _ => paymentMethod,

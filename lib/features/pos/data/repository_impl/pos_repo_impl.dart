@@ -22,6 +22,7 @@ class PosRepoImpl extends PosRepository {
     required List<PosCartItem> items,
     String discountAmount = '0',
     TaxConfig taxConfig = const TaxConfig.disabled(),
+    List<SalePaymentPart>? payments,
   }) async {
     final validationError = _validateSaleInput(
       shopId: shopId,
@@ -40,6 +41,7 @@ class PosRepoImpl extends PosRepository {
       items: items,
       discountAmount: discountAmount,
       taxConfig: taxConfig,
+      payments: payments,
     );
   }
 
@@ -50,6 +52,7 @@ class PosRepoImpl extends PosRepository {
     required List<PosCartItem> items,
     required String discountAmount,
     required TaxConfig taxConfig,
+    List<SalePaymentPart>? payments,
   }) async {
     final draft = SaleDraft(
       shopId: shopId.trim(),
@@ -59,6 +62,7 @@ class PosRepoImpl extends PosRepository {
       paymentMethod: paymentMethod.trim(),
       discountAmount: discountAmount,
       taxConfig: taxConfig,
+      payments: payments,
       lines: [for (final item in items) _draftLine(item)],
     );
     try {

@@ -4,6 +4,8 @@ import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
 import 'package:amana_pos/features/pos/domain/sale.dart';
+import 'package:amana_pos/features/pos/domain/split_payment.dart';
+import 'package:amana_pos/features/shifts/domain/cash_expectation.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
 import 'package:amana_pos/features/pos/domain/usecases/pos_usecase.dart';
 import 'package:amana_pos/features/products/data/model/response/category_products_response_dto.dart';
@@ -37,6 +39,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     on<PosSearchChanged>(_onSearchChanged);
     on<PosCategoryChanged>(_onCategoryChanged);
     on<PosPaymentMethodChanged>(_onPaymentMethodChanged);
+    on<PosSplitConfirmed>(_onSplitConfirmed);
     on<PosAddProduct>(_onAddProduct);
     on<PosAddCustomAmount>(_onAddCustomAmount);
     on<PosIncrementItem>(_onIncrementItem);
@@ -151,7 +154,16 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     PosPaymentMethodChanged event,
     Emitter<PosState> emit,
   ) {
-    emit(state.copyWith(paymentMethod: event.paymentMethod));
+    emit(
+      state.copyWith(
+        paymentMethod: event.paymentMethod,
+        splitParts: event.paymentMethod == 'split' ? null : const [],
+      ),
+    );
+  }
+
+  void _onSplitConfirmed(PosSplitConfirmed event, Emitter<PosState> emit) {
+    emit(state.copyWith(paymentMethod: 'split', splitParts: event.parts));
   }
 
   void _onAddProduct(PosAddProduct event, Emitter<PosState> emit) {
@@ -265,7 +277,24 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     final salePreviewTax = state.taxAmount;
     final saleTotal = state.total;
     final saleTaxConfig = state.taxConfig;
-    final salePaymentMethod = state.paymentMethod;
+    var salePaymentMethod = state.paymentMethod;
+    List<SalePaymentPart>? salePayments;
+    if (salePaymentMethod == 'split') {
+      final parts = state.splitParts;
+      final cents = Cents.parse(state.total.toStringAsFixed(2));
+      if (parts.isEmpty || cents == null || !SplitPayment.matches(parts, cents)) {
+        // The cart changed after the split was confirmed.
+        emit(
+          state.copyWith(
+            submitStatus: PosSubmitStatus.failure,
+            submitError: 'The split no longer matches the total. Edit it.',
+          ),
+        );
+        return;
+      }
+      salePayments = parts;
+      if (parts.length == 1) salePaymentMethod = parts.single.method;
+    }
     final soldQuantities = state.currentSoldQuantities;
 
     emit(
@@ -277,7 +306,8 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         () => useCase.submitSale(
           shopId: event.shopId,
           customerId: event.customerId,
-          paymentMethod: state.paymentMethod,
+          paymentMethod: salePaymentMethod,
+          payments: salePayments,
           items: state.items,
           discountAmount: '0',
           taxConfig: saleTaxConfig,
@@ -330,6 +360,11 @@ class PosBloc extends Bloc<PosEvent, PosState> {
                   double.tryParse(result.taxRate ?? '') ?? saleTaxConfig.rate,
               lastTaxInclusive: resolvedInclusive,
               lastPaymentMethod: salePaymentMethod,
+              lastSplitParts: salePayments ?? const [],
+              paymentMethod: state.paymentMethod == 'split'
+                  ? 'cash'
+                  : state.paymentMethod,
+              splitParts: const [],
               lastSaleWasOffline: result.queued,
               submitError: result.queued
                   ? 'Sale saved offline. Will sync when internet is restored.'

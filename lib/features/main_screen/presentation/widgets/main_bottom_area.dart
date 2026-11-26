@@ -85,7 +85,9 @@ class _MainBottomAreaState extends State<MainBottomArea> {
     try {
       final posState = posBloc.state;
 
-      if (posState.paymentMethod == 'bankak') {
+      if (posState.paymentMethod == 'bankak' ||
+          (posState.paymentMethod == 'split' &&
+              posState.splitParts.any((p) => p.method == 'bankak'))) {
         final bankakAccount =
         authBloc.state.profile?.bankakAccount?.accountNumber?.trim();
 

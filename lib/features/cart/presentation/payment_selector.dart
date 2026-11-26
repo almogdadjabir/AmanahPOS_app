@@ -10,6 +10,13 @@ import 'package:amana_pos/utilities/format.dart';
 import 'package:amana_pos/widgets/app_amount.dart';
 import 'package:amana_pos/widgets/app_segmented.dart';
 import 'package:amana_pos/widgets/pressable.dart';
+import 'package:amana_pos/core/features/business_features.dart';
+import 'package:amana_pos/features/pos/domain/sale.dart';
+import 'package:amana_pos/features/pos/presentation/widgets/split_payment_sheet.dart';
+import 'package:amana_pos/features/pos/domain/split_payment.dart';
+import 'package:amana_pos/features/shifts/domain/cash_expectation.dart';
+import 'package:amana_pos/features/shifts/presentation/shift_format.dart';
+import 'package:amana_pos/utilities/dependencies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amana_pos/theme/phosphor_icons.dart';
@@ -29,10 +36,42 @@ class PaymentSelector extends StatelessWidget {
   final String paymentMethod;
   final EdgeInsetsGeometry padding;
 
+  Future<void> _openSplit(BuildContext context, {required bool bankakReady}) async {
+    final bloc = context.read<PosBloc>();
+    final total = Cents.parse(bloc.state.total.toStringAsFixed(2));
+    if (total == null || total <= BigInt.zero) return;
+    final parts = await showSplitPaymentSheet(
+      context,
+      total: total,
+      bankakReady: bankakReady,
+      initial: bloc.state.splitParts,
+    );
+    if (parts != null) bloc.add(PosSplitConfirmed(parts));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final features = getIt<BusinessFeaturesService>();
+    return StreamBuilder<BusinessFeatures>(
+      stream: features.changes,
+      initialData: features.current,
+      builder: (context, snap) =>
+          _build(context, snap.data?.splitPayments ?? true),
+    );
+  }
+
+  Widget _build(BuildContext context, bool splitOn) {
     final colors = context.appColors;
     final isBankak = paymentMethod == 'bankak';
+    final isSplit = paymentMethod == 'split';
+    if (isSplit && !splitOn) {
+      // The owner switched Split off while it was picked.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.read<PosBloc>().add(const PosPaymentMethodChanged('cash'));
+        }
+      });
+    }
 
     final bankakAccount = context.select<AuthBloc, String?>((bloc) {
       final account = bloc.state.profile?.bankakAccount?.accountNumber?.trim();
@@ -53,9 +92,16 @@ class PaymentSelector extends StatelessWidget {
           ),
           const SizedBox(height: AppDims.s2),
           AppSegmented<String>(
-            selected: isBankak ? 'bankak' : 'cash',
-            onChanged: (value) =>
-                context.read<PosBloc>().add(PosPaymentMethodChanged(value)),
+            selected: isSplit && splitOn
+                ? 'split'
+                : (isBankak ? 'bankak' : 'cash'),
+            onChanged: (value) {
+              if (value == 'split') {
+                _openSplit(context, bankakReady: bankakAccount != null);
+              } else {
+                context.read<PosBloc>().add(PosPaymentMethodChanged(value));
+              }
+            },
             segments: [
               AppSegment(
                 value: 'cash',
@@ -75,9 +121,25 @@ class PaymentSelector extends StatelessWidget {
                   foreground: colors.digitalInk,
                 ),
               ),
+              if (splitOn)
+                AppSegment(
+                  value: 'split',
+                  label: context.tr.spOption,
+                  leading: _MethodChip(
+                    icon: PhosphorIconsRegular.arrowsLeftRight,
+                    background: colors.surfaceSoft,
+                    foreground: colors.textSecondary,
+                  ),
+                ),
             ],
           ),
-          if (isBankak) ...[
+          if (isSplit && splitOn) ...[
+            const SizedBox(height: AppDims.s3),
+            _SplitSummary(
+              onEdit: () =>
+                  _openSplit(context, bankakReady: bankakAccount != null),
+            ),
+          ] else if (isBankak) ...[
             const SizedBox(height: AppDims.s3),
             if (bankakAccount != null)
               _BankakReadyRow(account: bankakAccount)
@@ -306,6 +368,83 @@ class _BankakSetupRow extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SplitSummary extends StatelessWidget {
+  const _SplitSummary({required this.onEdit});
+
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final text = Theme.of(context).textTheme;
+    final tr = context.tr;
+    final state = context.watch<PosBloc>().state;
+    final total = Cents.parse(state.total.toStringAsFixed(2));
+    final stale =
+        state.splitParts.isEmpty ||
+        total == null ||
+        !SplitPayment.matches(state.splitParts, total);
+
+    String name(SalePaymentPart p) => p.method == 'bankak' ? tr.bankak : tr.cash;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: stale ? colors.warningContainer : colors.surfaceSoft,
+        borderRadius: AppDims.borderMd,
+      ),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(AppDims.s3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (stale)
+              Text(
+                tr.spMismatch,
+                style: text.bodyMedium!.copyWith(color: colors.textPrimary),
+              )
+            else
+              for (final p in state.splitParts)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name(p),
+                        style: text.bodyMedium!.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      shiftMoney(Cents.parse(p.amount) ?? BigInt.zero),
+                      textDirection: TextDirection.ltr,
+                      style: text.bodyMedium!.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+            const SizedBox(height: AppDims.s2),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Pressable(
+                onTap: onEdit,
+                child: Text(
+                  tr.spEdit,
+                  style: text.labelLarge!.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

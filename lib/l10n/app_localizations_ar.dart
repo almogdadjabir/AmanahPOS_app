@@ -4965,4 +4965,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sfTryAgain => 'حاول مرة أخرى';
+
+  @override
+  String get spOption => 'مجزأ';
+
+  @override
+  String get spTitle => 'الدفع المجزأ';
+
+  @override
+  String get spTotal => 'الإجمالي';
+
+  @override
+  String get spLeft => 'المتبقي';
+
+  @override
+  String get spPaid => 'تم الدفع كاملاً';
+
+  @override
+  String get spOver => 'زيادة بمقدار';
+
+  @override
+  String get spInvalid => 'راجع المبالغ';
+
+  @override
+  String get spFillRest => 'املأ الباقي';
+
+  @override
+  String get spConfirm => 'تأكيد التجزئة';
+
+  @override
+  String get spEdit => 'تعديل';
+
+  @override
+  String get spBankakSetup => 'أعد حساب بنكك أولاً';
+
+  @override
+  String get spMismatch => 'تغيرت السلة. عدّل التجزئة.';
 }

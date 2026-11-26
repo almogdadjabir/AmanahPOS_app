@@ -59,6 +59,7 @@ String salePaymentName(BuildContext context, String method) {
     'card' => tr.shPayCard,
     'bank_transfer' => tr.bankTransfer,
     'mobile_wallet' => tr.wallet,
+    'split' => tr.spOption,
     _ => method,
   };
 }

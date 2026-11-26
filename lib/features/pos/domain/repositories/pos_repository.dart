@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/pos/domain/sale.dart';
 import 'package:amana_pos/features/pos/data/model/pos_cart_item.dart';
 import 'package:amana_pos/features/pos/data/model/pos_submit_result.dart';
 import 'package:amana_pos/features/pos/domain/tax_config.dart';
@@ -11,5 +12,6 @@ abstract class PosRepository {
     required List<PosCartItem> items,
     String discountAmount,
     TaxConfig taxConfig,
+    List<SalePaymentPart>? payments,
   });
 }

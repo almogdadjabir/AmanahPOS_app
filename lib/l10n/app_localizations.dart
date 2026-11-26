@@ -9007,6 +9007,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get sfTryAgain;
+
+  /// No description provided for @spOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get spOption;
+
+  /// No description provided for @spTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Split payment'**
+  String get spTitle;
+
+  /// No description provided for @spTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get spTotal;
+
+  /// No description provided for @spLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get spLeft;
+
+  /// No description provided for @spPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid in full'**
+  String get spPaid;
+
+  /// No description provided for @spOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over by'**
+  String get spOver;
+
+  /// No description provided for @spInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the amounts'**
+  String get spInvalid;
+
+  /// No description provided for @spFillRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill rest'**
+  String get spFillRest;
+
+  /// No description provided for @spConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm split'**
+  String get spConfirm;
+
+  /// No description provided for @spEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get spEdit;
+
+  /// No description provided for @spBankakSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your Bankak account first'**
+  String get spBankakSetup;
+
+  /// No description provided for @spMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The cart changed. Edit the split.'**
+  String get spMismatch;
 }
 
 class _AppLocalizationsDelegate
