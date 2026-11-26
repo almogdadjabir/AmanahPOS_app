@@ -360,7 +360,13 @@ void main() {
   }
 
   test('every registered applier has a contract item and vice versa', () {
-    expect(registry.all.map((a) => a.entity).toSet(), _items.keys.toSet());
+    expect(
+      registry.all
+          .map((a) => a.entity)
+          .where((e) => !pushOnlyEntities.contains(e))
+          .toSet(),
+      _items.keys.toSet(),
+    );
     expect(_order.toSet(), _items.keys.toSet());
   });
 

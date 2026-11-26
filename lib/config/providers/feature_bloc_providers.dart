@@ -1,3 +1,5 @@
+import 'package:amana_pos/features/shifts/presentation/shifts_cubit.dart';
+import 'package:amana_pos/features/shifts/presentation/shifts_scope.dart';
 import 'package:amana_pos/core/sync/sync_state_store.dart';
 import 'package:amana_pos/barcode_scanner/data/services/barcode_permission_service.dart';
 import 'package:amana_pos/barcode_scanner/presentation/bloc/barcode_scanner_bloc.dart';
@@ -221,6 +223,13 @@ class FeatureBlocProviders {
   static Widget salesReports({required Widget child}) {
     return BlocProvider(
       create: (_) => SalesReportBloc(useCase: getIt<SalesHistoryUseCase>()),
+      child: child,
+    );
+  }
+
+  static Widget shifts({required Widget child}) {
+    return BlocProvider<ShiftsCubit>(
+      create: (context) => buildShiftsCubit(context),
       child: child,
     );
   }

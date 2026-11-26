@@ -28,7 +28,7 @@ Map<String, Object?> _row(String mid, String entityId, String? dep) => {
 
 void main() {
   test('fresh onCreate is v14 with outbox.depends_on_json', () async {
-    expect(OfflineDb.schemaVersion, 14);
+    expect(OfflineDb.schemaVersion, greaterThanOrEqualTo(14));
     final odb = await openTestDb();
     final db = await odb.database;
     addTearDown(db.close);

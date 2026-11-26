@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/shifts/presentation/shifts_screen.dart';
 import 'dart:io' show Platform;
 import 'package:amana_pos/common/motion/motion.dart';
 import 'package:amana_pos/barcode_scanner/presentation/screens/barcode_scanner_screen.dart';
@@ -168,6 +169,12 @@ class AppRouter {
             create: (_) => getIt<PendingSyncBloc>(),
             child: const PendingSyncScreen(),
           ),
+          settings,
+        );
+
+      case RouteStrings.shiftsScreen:
+        return _buildRoute(
+          FeatureBlocProviders.shifts(child: const ShiftsScreen()),
           settings,
         );
 

@@ -31,7 +31,7 @@ class OfflineDb {
   }
 
   static const String _dbName = 'amana_pos_offline.db';
-  static const int _dbVersion = 14;
+  static const int _dbVersion = 15;
 
   static const int schemaVersion = _dbVersion;
 
@@ -138,6 +138,60 @@ class OfflineDb {
     if (oldVersion < 14 && newVersion >= 14) {
       await createV14Schema(db);
     }
+
+    // v15 (Phase 3 of the desktop parity work): shifts and cash movements.
+    if (oldVersion < 15 && newVersion >= 15) {
+      await createV15Schema(db);
+    }
+  }
+
+  /// Shifts and the pay-in/pay-out rows of the cash drawer. `sync_state` is
+  /// `pending|synced|rejected` like local refunds. Money is a decimal string.
+  /// Safe to run on a fresh or an upgraded database.
+  static Future<void> createV15Schema(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS shifts (
+        id TEXT PRIMARY KEY,
+        shop_id TEXT NOT NULL,
+        opened_at TEXT NOT NULL,
+        closed_at TEXT,
+        opened_by TEXT,
+        opened_by_name TEXT,
+        closed_by TEXT,
+        closed_by_name TEXT,
+        opening_cash TEXT NOT NULL DEFAULT '0',
+        expected_cash TEXT,
+        counted_cash TEXT,
+        note TEXT,
+        origin TEXT NOT NULL DEFAULT 'manual',
+        sync_state TEXT NOT NULL DEFAULT 'pending',
+        error_code TEXT,
+        error_message TEXT
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_shifts_shop_opened '
+      'ON shifts(shop_id, opened_at)',
+    );
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cash_movements (
+        id TEXT PRIMARY KEY,
+        shift_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        amount TEXT NOT NULL,
+        reason TEXT NOT NULL DEFAULT '',
+        occurred_at TEXT NOT NULL,
+        user_id TEXT,
+        user_name TEXT,
+        sync_state TEXT NOT NULL DEFAULT 'pending',
+        error_code TEXT,
+        error_message TEXT
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_cash_movements_shift '
+      'ON cash_movements(shift_id, occurred_at)',
+    );
   }
 
   /// Phase 3 (catalog writes) additions, safe to run on a fresh or an
@@ -472,6 +526,8 @@ class OfflineDb {
     await createV12Schema(db);
 
     await createV14Schema(db);
+
+    await createV15Schema(db);
   }
 
   Future<int> countRows(String table) async {

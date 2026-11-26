@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:amana_pos/core/features/business_features.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/common/localization/app_localizations_extension.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
@@ -66,6 +69,8 @@ class _MoreScreen extends StatefulWidget {
 
 class _MoreScreenState extends State<_MoreScreen> {
   bool _pinEnrolled = false;
+  bool _shiftsOn = false;
+  StreamSubscription<BusinessFeatures>? _featuresSub;
 
   String? get _userId => widget.profile.id;
 
@@ -73,6 +78,19 @@ class _MoreScreenState extends State<_MoreScreen> {
   void initState() {
     super.initState();
     _loadPin();
+    final features = getIt<BusinessFeaturesService>();
+    _featuresSub = features.changes.listen((f) {
+      if (mounted) setState(() => _shiftsOn = f.shiftsEnabled);
+    });
+    features.load().then((f) {
+      if (mounted) setState(() => _shiftsOn = f.shiftsEnabled);
+    });
+  }
+
+  @override
+  void dispose() {
+    _featuresSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadPin() async {
@@ -124,6 +142,13 @@ class _MoreScreenState extends State<_MoreScreen> {
           icon: PhosphorIconsRegular.addressBook,
           title: tr.mrCustomers,
           onTap: () => nav.pushNamed(RouteStrings.customersScreen),
+        ),
+      if (_shiftsOn && perms.canAccessSalesHistory)
+        SettingsRow(
+          tile: SettingsTile.blue,
+          icon: PhosphorIconsRegular.clock,
+          title: tr.sfTitle,
+          onTap: () => nav.pushNamed(RouteStrings.shiftsScreen),
         ),
       if (perms.canAccessReports)
         SettingsRow(

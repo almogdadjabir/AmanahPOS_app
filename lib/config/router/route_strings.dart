@@ -22,6 +22,7 @@ class RouteStrings {
   static const String pendingSyncScreen = 'pendingSyncScreen';
   // New
   static const String salesHistoryScreen = 'salesHistoryScreen';
+  static const String shiftsScreen = 'shiftsScreen';
   static const String returnsScreen = 'returnsScreen';
   static const String reportsScreen = 'reportsScreen';
   static const String printerSettingsScreen = 'printerSettingsScreen';

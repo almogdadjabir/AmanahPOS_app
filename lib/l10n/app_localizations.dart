@@ -8593,6 +8593,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Returned {qty}'**
   String rcReturnedQty(String qty);
+
+  /// No description provided for @sfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts'**
+  String get sfTitle;
+
+  /// No description provided for @sfChipOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {time}'**
+  String sfChipOpen(String time);
+
+  /// No description provided for @sfChipNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift'**
+  String get sfChipNone;
+
+  /// No description provided for @sfChipNeedsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs count'**
+  String get sfChipNeedsCount;
+
+  /// No description provided for @sfCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current shift'**
+  String get sfCurrent;
+
+  /// No description provided for @sfExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash that should be in the drawer'**
+  String get sfExpected;
+
+  /// No description provided for @sfOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening cash'**
+  String get sfOpening;
+
+  /// No description provided for @sfCashSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash sales'**
+  String get sfCashSales;
+
+  /// No description provided for @sfDebtPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt payments (cash)'**
+  String get sfDebtPayments;
+
+  /// No description provided for @sfPayIns.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay in'**
+  String get sfPayIns;
+
+  /// No description provided for @sfRefunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds and cancels (cash)'**
+  String get sfRefunds;
+
+  /// No description provided for @sfPayOuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay out'**
+  String get sfPayOuts;
+
+  /// No description provided for @sfOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Also taken, not in the drawer: {list}'**
+  String sfOther(String list);
+
+  /// No description provided for @sfOpenedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Open since {time} · opened by {name}'**
+  String sfOpenedBy(String time, String name);
+
+  /// No description provided for @sfOpenedAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Open since {time} · started automatically'**
+  String sfOpenedAuto(String time);
+
+  /// No description provided for @sfSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get sfSales;
+
+  /// No description provided for @sfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get sfTotal;
+
+  /// No description provided for @sfDrawerOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash drawer tracking is off. Counting and pay in/out are not used.'**
+  String get sfDrawerOff;
+
+  /// No description provided for @sfActOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open shift'**
+  String get sfActOpen;
+
+  /// No description provided for @sfActClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close shift'**
+  String get sfActClose;
+
+  /// No description provided for @sfActCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter count'**
+  String get sfActCount;
+
+  /// No description provided for @sfActPayIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay in'**
+  String get sfActPayIn;
+
+  /// No description provided for @sfActPayOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay out'**
+  String get sfActPayOut;
+
+  /// No description provided for @sfHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier shifts'**
+  String get sfHistory;
+
+  /// No description provided for @sfHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier shifts yet.'**
+  String get sfHistoryEmpty;
+
+  /// No description provided for @sfShowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get sfShowMore;
+
+  /// No description provided for @sfNeedsCountBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts waiting for a cash count: {count}'**
+  String sfNeedsCountBanner(int count);
+
+  /// No description provided for @sfOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts are off'**
+  String get sfOffTitle;
+
+  /// No description provided for @sfOffHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The owner can turn shifts on in the dashboard. Sales work the same either way.'**
+  String get sfOffHelp;
+
+  /// No description provided for @sfNoShiftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift is open'**
+  String get sfNoShiftTitle;
+
+  /// No description provided for @sfNoShiftHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'You can keep selling. Sales made now are not part of a shift.'**
+  String get sfNoShiftHelp;
+
+  /// No description provided for @sfWOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open shift'**
+  String get sfWOpen;
+
+  /// No description provided for @sfWClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close shift'**
+  String get sfWClose;
+
+  /// No description provided for @sfWCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the cash count'**
+  String get sfWCount;
+
+  /// No description provided for @sfWPayIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay in'**
+  String get sfWPayIn;
+
+  /// No description provided for @sfWPayOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay out'**
+  String get sfWPayOut;
+
+  /// No description provided for @sfLOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening cash'**
+  String get sfLOpening;
+
+  /// No description provided for @sfLCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted cash'**
+  String get sfLCounted;
+
+  /// No description provided for @sfLExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Should be'**
+  String get sfLExpected;
+
+  /// No description provided for @sfLAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get sfLAmount;
+
+  /// No description provided for @sfLReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get sfLReason;
+
+  /// No description provided for @sfLNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get sfLNote;
+
+  /// No description provided for @sfCarryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried over from the last count. Change it if the drawer is different.'**
+  String get sfCarryHint;
+
+  /// No description provided for @sfOverNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is more than the drawer should hold. You can continue.'**
+  String get sfOverNote;
+
+  /// No description provided for @sfDiffEven.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get sfDiffEven;
+
+  /// No description provided for @sfDiffShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short {amount}'**
+  String sfDiffShort(String amount);
+
+  /// No description provided for @sfDiffOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over {amount}'**
+  String sfDiffOver(String amount);
+
+  /// No description provided for @sfOriginAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get sfOriginAuto;
+
+  /// No description provided for @sfOriginManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get sfOriginManual;
+
+  /// No description provided for @sfBtnSaveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Save count'**
+  String get sfBtnSaveCount;
+
+  /// No description provided for @sfDoneOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift opened'**
+  String get sfDoneOpen;
+
+  /// No description provided for @sfDoneClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift closed'**
+  String get sfDoneClose;
+
+  /// No description provided for @sfDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count saved'**
+  String get sfDoneCount;
+
+  /// No description provided for @sfDonePayIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay in saved'**
+  String get sfDonePayIn;
+
+  /// No description provided for @sfDonePayOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay out saved'**
+  String get sfDonePayOut;
+
+  /// No description provided for @sfErrNoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in first.'**
+  String get sfErrNoSession;
+
+  /// No description provided for @sfErrNoShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a shop first.'**
+  String get sfErrNoShop;
+
+  /// No description provided for @sfErrNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not allowed to do this. Ask the owner.'**
+  String get sfErrNotAllowed;
+
+  /// No description provided for @sfErrDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts are turned off.'**
+  String get sfErrDisabled;
+
+  /// No description provided for @sfErrDrawerOff.
+  ///
+  /// In en, this message translates to:
+  /// **'The cash drawer is turned off.'**
+  String get sfErrDrawerOff;
+
+  /// No description provided for @sfErrAlreadyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'A shift is already open.'**
+  String get sfErrAlreadyOpen;
+
+  /// No description provided for @sfErrNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift is open.'**
+  String get sfErrNotOpen;
+
+  /// No description provided for @sfErrNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'That shift no longer exists.'**
+  String get sfErrNotFound;
+
+  /// No description provided for @sfErrNotCountable.
+  ///
+  /// In en, this message translates to:
+  /// **'This shift already has a count.'**
+  String get sfErrNotCountable;
+
+  /// No description provided for @sfErrAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount, like 250.00.'**
+  String get sfErrAmount;
+
+  /// No description provided for @sfErrReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a short reason.'**
+  String get sfErrReason;
+
+  /// No description provided for @sfErrSave.
+  ///
+  /// In en, this message translates to:
+  /// **'It could not be saved. Try again.'**
+  String get sfErrSave;
+
+  /// No description provided for @sfLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the shifts.'**
+  String get sfLoadFailed;
+
+  /// No description provided for @sfTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get sfTryAgain;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,4 @@
+import 'package:amana_pos/features/shifts/presentation/shift_chip.dart';
 import 'package:amana_pos/common/auth_bloc/auth_bloc.dart';
 import 'package:amana_pos/core/offline/presentation/bloc/offline_status_bloc.dart';
 import 'package:amana_pos/features/main_screen/presentation/widgets/location_chip.dart';
@@ -42,6 +43,7 @@ class PosAppBar extends StatelessWidget {
               ),
             ),
           ),
+          const ShiftChip(),
           BlocBuilder<OfflineStatusBloc, OfflineStatusState>(
             bloc: getIt<OfflineStatusBloc>(),
             buildWhen: (p, c) =>

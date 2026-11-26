@@ -19,6 +19,29 @@ void main() {
       expect(f.shiftsMode, ShiftsMode.off);
       expect(f.shiftsEnabled, isFalse);
       expect(f.cashDrawer, isFalse);
+      expect(f.shiftsAutoOpen, const ShiftTime(8, 0));
+      expect(f.shiftsAutoClose, const ShiftTime(22, 0));
+    });
+
+    test('reads the business time zone', () {
+      expect(BusinessFeatures.fromJson(const {'timezone': 'Africa/Khartoum'}).timezone, 'Africa/Khartoum');
+      expect(BusinessFeatures.fromJson(const {}).timezone, isNull);
+    });
+
+    test('bad times fall back to 08:00 and 22:00', () {
+      final f = BusinessFeatures.fromJson(const {
+        'shifts_auto_open': '25:99',
+        'shifts_auto_close': 'late',
+      });
+      expect(f.shiftsAutoOpen, const ShiftTime(8, 0));
+      expect(f.shiftsAutoClose, const ShiftTime(22, 0));
+    });
+
+    test('the backend may send seconds', () {
+      final f = BusinessFeatures.fromJson(const {
+        'shifts_auto_open': '06:05:00',
+      });
+      expect(f.shiftsAutoOpen, const ShiftTime(6, 5));
     });
 
     test('reads every switch', () {
@@ -30,8 +53,8 @@ void main() {
         'stock_count_enabled': false,
         'shifts_mode': 'manual',
         'cash_drawer_enabled': true,
-        'shifts_auto_open': true,
-        'shifts_auto_close': true,
+        'shifts_auto_open': '07:30',
+        'shifts_auto_close': '23:15',
         'shifts_cashiers_may_operate': true,
       });
       expect(f.splitPayments, isFalse);
@@ -40,8 +63,8 @@ void main() {
       expect(f.saleDiscount, isFalse);
       expect(f.stockCount, isFalse);
       expect(f.shiftsMode, ShiftsMode.manual);
-      expect(f.shiftsAutoOpen, isTrue);
-      expect(f.shiftsAutoClose, isTrue);
+      expect(f.shiftsAutoOpen, const ShiftTime(7, 30));
+      expect(f.shiftsAutoClose, const ShiftTime(23, 15));
       expect(f.cashiersMayOperateShifts, isTrue);
       expect(f.cashDrawer, isTrue);
     });

@@ -5,6 +5,7 @@ import 'package:amana_pos/core/sync/db_change_notifier.dart';
 import 'package:amana_pos/core/sync/local_writer.dart';
 import 'package:amana_pos/core/sync/outbox/outbox_store.dart';
 import 'package:amana_pos/core/sync/reachability.dart';
+import 'package:amana_pos/core/sync/sync_appliers.dart' show pushOnlyEntities;
 import 'package:amana_pos/core/sync/sync_coordinator.dart';
 import 'package:amana_pos/core/sync/sync_device_registrar.dart';
 import 'package:amana_pos/core/sync/sync_engine.dart';
@@ -77,7 +78,10 @@ void main() {
       reason: 'sync has its own Dio, never the app Dio with AppInterceptors',
     );
     expect(getIt<ServerReachability>(), isA<ServerReachability>());
-    expect(getIt<ChangeApplierRegistry>().all.map((a) => a.entity), [
+    expect(
+        getIt<ChangeApplierRegistry>().all
+            .map((a) => a.entity)
+            .where((e) => !pushOnlyEntities.contains(e)), [
       'business',
       'shop',
       'category',

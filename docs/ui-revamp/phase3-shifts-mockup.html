@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phase 3 mockup: Shifts and cash drawer</title>
+<style>
+:root{--p:#0F766E;--pd:#0B5D56;--pl:#E8F5F2;--sec:#B7791F;--bg:#F6F4EF;--s100:#EEEBE4;--s200:#E5E1D8;--s300:#CFC9BC;--s400:#958E80;--s500:#716B60;--s700:#3A3630;--s900:#1C1A17;--ok:#0E6B4E;--okl:#E5F3EB;--bad:#B3261E;--badl:#FBE9E7;--warn:#9A4508;--warnl:#FCEDE0;--info:#2D5B88;--infol:#E7EEF6}
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:#ddd9cf;color:var(--s900);padding:28px}
+h1{font-size:26px;margin-bottom:4px}h2{font-size:18px;margin:34px 0 4px}h2 small{font-weight:400;color:var(--s500);font-size:13px}
+.lead{color:var(--s500);max-width:760px;margin-bottom:6px}
+.row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:14px}
+.cap{font-size:12px;color:var(--s500);text-align:center;margin-top:8px;max-width:300px}
+.cap b{color:var(--s900)}
+.phone{width:300px;height:620px;background:var(--bg);border-radius:34px;border:9px solid #1c1a17;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 10px 30px #0003}
+.phone.rtl{direction:rtl}
+.sb{height:22px;font-size:10px;display:flex;justify-content:space-between;padding:6px 16px 0;color:var(--s700);flex:none}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 14px;flex:none}
+.bar .t{font-weight:700;font-size:18px;flex:1}
+.back{width:30px;height:30px;border-radius:10px;background:#fff;border:1px solid var(--s200);display:grid;place-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:11px;font-weight:600;border:1px solid var(--s200);background:#fff;color:var(--s700)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--s300)}
+.chip.on{background:var(--okl);border-color:#bfe0cf;color:var(--ok)}.chip.on i{background:var(--ok)}
+.chip.warn{background:var(--warnl);border-color:#f0d3b8;color:var(--warn)}.chip.warn i{background:var(--warn)}
+.body{flex:1;overflow:hidden;padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.card{background:#fff;border:1px solid var(--s200);border-radius:16px;padding:14px}
+.card.wash{background:var(--pl);border-color:#c7e5df}
+.lbl{font-size:11px;color:var(--s500)}
+.big{font-size:30px;font-weight:700;letter-spacing:-.5px;direction:ltr;unicode-bidi:isolate}
+.sub{font-size:12px;color:var(--s500)}
+.ln{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--s200);font-size:13px}
+.ln:last-child{border:0}.ln b{direction:ltr;unicode-bidi:isolate;font-weight:600}.neg b{color:var(--bad)}
+.btn{display:block;text-align:center;padding:13px;border-radius:14px;font-weight:600;background:var(--p);color:#fff;font-size:14px}
+.btn.sec{background:#fff;color:var(--p);border:1px solid var(--s300)}
+.btn.dng{background:#fff;color:var(--bad);border:1px solid #e8b9b4}
+.btns{display:flex;gap:8px}.btns .btn{flex:1;padding:11px}
+.banner{display:flex;gap:8px;padding:10px 12px;border-radius:12px;font-size:12px}
+.banner.warn{background:var(--warnl);color:var(--warn)}.banner.info{background:var(--infol);color:var(--info)}
+.empty{text-align:center;padding:30px 10px}
+.ico{width:54px;height:54px;border-radius:16px;background:var(--pl);color:var(--p);display:grid;place-items:center;margin:0 auto 12px;font-size:24px}
+.pill{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:99px;display:inline-block}
+.pill.ok{background:var(--okl);color:var(--ok)}.pill.bad{background:var(--badl);color:var(--bad)}.pill.warn{background:var(--warnl);color:var(--warn)}.pill.mut{background:var(--s100);color:var(--s500)}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--s100)}
+.item:last-child{border:0}.item .a{font-weight:600}
+.scrim{position:absolute;inset:0;background:#0007}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:10px 16px 18px}
+.grab{width:38px;height:4px;border-radius:9px;background:var(--s300);margin:0 auto 12px}
+.sheet h3{font-size:17px;margin-bottom:10px}
+.field{border:1px solid var(--s300);border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.field.f{border-color:var(--p);box-shadow:0 0 0 3px #0f766e22}
+.field .lbl{display:block}.field .v{font-size:19px;font-weight:600;direction:ltr;unicode-bidi:isolate}
+.field .v.ph{color:var(--s400);font-weight:400;font-size:15px}
+.slot{min-height:34px;font-size:12px;margin-bottom:8px}
+.diff{display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;font-weight:600;font-size:13px}
+.diff.short{background:var(--badl);color:var(--bad)}.diff.exact{background:var(--okl);color:var(--ok)}.diff.over{background:var(--infol);color:var(--info)}
+.nav{height:54px;border-top:1px solid var(--s200);background:#fff;display:flex;justify-content:space-around;align-items:center;font-size:10px;color:var(--s500);flex:none}
+.nav b{color:var(--p)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;font-size:13px}
+.tbl th,.tbl td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--s100);vertical-align:top}
+.tbl th{background:var(--s100);font-size:12px}
+.note{background:#fff;border-left:4px solid var(--p);border-radius:10px;padding:12px 14px;max-width:760px;margin-top:10px}
+.q{background:var(--warnl);border-left:4px solid var(--warn)}
+ul{padding-left:20px}li{margin:3px 0}
+</style>
+</head>
+<body>
+<h1>Phase 3: Shifts and cash drawer</h1>
+<p class="lead">Mobile mockup for approval. It follows the desktop behaviour (opening cash, expected cash, count, pay in/out, history) in the app's own style. Nothing is built until you approve. Items marked <b>Your call</b> at the end need an answer.</p>
+
+<h2>1. Where it lives <small>entry points</small></h2>
+<div class="row">
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="t">Sales</div><span class="chip on"><i></i>Shift 08:00</span></div>
+    <div class="body"><div class="card"><div class="lbl">POS screen</div><div class="sub">Products and cart as today.</div></div>
+      <div class="card" style="display:flex;justify-content:space-between"><span>Chip states</span><span></span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip on"><i></i>Shift 08:00</span><span class="chip"><i></i>No shift</span><span class="chip warn"><i></i>1 needs count</span></div>
+      <div class="sub">Shifts off: the chip is not shown at all. Tap the chip: opens the Shifts screen.</div>
+    </div>
+    <div class="nav"><span>Sales</span><span>Products</span><span>Home</span><b>More</b></div>
+  </div><div class="cap"><b>Top bar chip</b> (same idea as the desktop top bar). Quiet, never blocks a sale.</div></div>
+
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="t" style="font-size:24px">More</div></div>
+    <div class="body">
+      <div class="card" style="padding:4px 14px">
+        <div class="item"><span>Sales &amp; returns</span><span>›</span></div>
+        <div class="item"><span>Customers</span><span>›</span></div>
+        <div class="item" style="background:var(--pl);margin:0 -14px;padding:11px 14px"><span class="a">Shifts</span><span><span class="pill warn">1 needs count</span> ›</span></div>
+        <div class="item"><span>Reports</span><span>›</span></div>
+        <div class="item"><span>Team</span><span>›</span></div>
+      </div>
+      <div class="sub">The Shifts row only appears when the owner turned shifts on.</div>
+    </div>
+    <div class="nav"><span>Sales</span><span>Products</span><span>Home</span><b>More</b></div>
+  </div><div class="cap"><b>More list</b> gets a Shifts row, with a badge when a closed shift waits for its count.</div></div>
+</div>
+
+<h2>2. Shifts screen <small>three states</small></h2>
+<div class="row">
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div>
+    <div class="body">
+      <div class="card empty"><div class="ico">◔</div><div style="font-weight:700;font-size:16px">No shift is open</div><div class="sub" style="margin:6px 0 14px">You can keep selling. Sales made now are not part of a shift.</div><div class="btn">Open shift</div></div>
+      <div class="sub" style="font-weight:600">Earlier shifts</div>
+      <div class="card" style="padding:2px 14px"><div class="item"><div><div class="a">Yesterday, 08:00–22:05</div><div class="sub">Auto · counted by Sara</div></div><span class="pill ok">Exact</span></div>
+      <div class="item"><div><div class="a">Mon, 08:00–21:40</div><div class="sub">Manual · counted by Omar</div></div><span class="pill bad">Short 5.00</span></div></div>
+    </div>
+  </div><div class="cap"><b>No shift open.</b> Cashier sees the button only if the owner allowed cashiers.</div></div>
+
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="back">‹</div><div class="t">Shifts</div><span class="chip on"><i></i>Open</span></div>
+    <div class="body">
+      <div class="card wash"><div class="lbl">Cash that should be in the drawer</div><div class="big">1,285.00</div><div class="sub">Open since 08:00 · opened by Sara</div></div>
+      <div class="card" style="padding:6px 14px">
+        <div class="ln"><span>Opening cash</span><b>500.00</b></div>
+        <div class="ln"><span>Cash sales</span><b>940.00</b></div>
+        <div class="ln"><span>Debt payments (cash)</span><b>0.00</b></div>
+        <div class="ln"><span>Pay in</span><b>50.00</b></div>
+        <div class="ln neg"><span>Refunds and cancels (cash)</span><b>−80.00</b></div>
+        <div class="ln neg"><span>Pay out</span><b>−125.00</b></div>
+      </div>
+      <div class="sub">Also taken, not in the drawer: Card 320.00, Bankak 180.00</div>
+      <div class="btns"><div class="btn sec">Pay in</div><div class="btn sec">Pay out</div></div>
+      <div class="btn">Close shift</div>
+    </div>
+  </div><div class="cap"><b>Shift open, drawer on.</b> Same maths as desktop: opening + cash sales + debt payments + pay in − refunds − pay out.</div></div>
+
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="back">‹</div><div class="t">Shifts</div><span class="chip on"><i></i>Open</span></div>
+    <div class="body">
+      <div class="card wash"><div class="lbl">Current shift</div><div class="sub">Open since 08:00 · opened by Sara</div>
+        <div style="display:flex;gap:18px;margin-top:10px"><div><div class="lbl">Sales</div><div style="font-weight:700;font-size:20px">34</div></div><div><div class="lbl">Total</div><div class="big" style="font-size:20px">1,440.00</div></div></div></div>
+      <div class="card" style="padding:6px 14px">
+        <div class="ln"><span>Cash</span><b>940.00</b></div>
+        <div class="ln"><span>Card</span><b>320.00</b></div>
+        <div class="ln"><span>Bankak</span><b>180.00</b></div>
+      </div>
+      <div class="banner info">Cash drawer tracking is off. Counting and pay in/out are not used.</div>
+      <div class="btn">Close shift</div>
+    </div>
+  </div><div class="cap"><b>Shift open, drawer off.</b> Just a work period with a sales summary. No cash counting, no pay in/out.</div></div>
+</div>
+<div class="row">
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div>
+    <div class="body">
+      <div class="banner warn">⚠ 1 shift is waiting for a cash count.</div>
+      <div class="card" style="padding:2px 14px">
+        <div class="item"><div><div class="a">Today, 08:00–22:00</div><div class="sub">Auto · closed by schedule</div></div><span class="pill warn">Needs count</span></div>
+        <div class="item"><div><div class="a">Yesterday, 08:00–22:05</div><div class="sub">Auto · counted by Sara</div></div><span class="pill ok">Exact</span></div>
+        <div class="item"><div><div class="a">Mon, 08:00–21:40</div><div class="sub">Manual · counted by Omar</div></div><span class="pill bad">Short 5.00</span></div>
+        <div class="item"><div><div class="a">Sun, 09:00–20:00</div><div class="sub">Manual · counted by Omar</div></div><span class="pill ok">Over 2.00</span></div>
+      </div>
+      <div class="btn sec">Show more</div>
+    </div>
+  </div><div class="cap"><b>History.</b> Tap a row to see its figures. A "Needs count" row opens the count sheet.</div></div>
+
+  <div><div class="phone">
+    <div class="sb"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div>
+    <div class="body"><div class="card empty" style="margin-top:60px"><div class="ico">◔</div><div style="font-weight:700;font-size:16px">Shifts are off</div><div class="sub" style="margin-top:6px">The owner can turn shifts on in the dashboard. Sales work the same either way.</div></div></div>
+  </div><div class="cap"><b>Shifts off.</b> Only reachable by an old shortcut; normally the row is hidden.</div></div>
+
+  <div><div class="phone rtl">
+    <div class="sb" style="direction:ltr"><span>9:41</span><span>●●●</span></div>
+    <div class="bar"><div class="back">›</div><div class="t">الورديات</div><span class="chip on"><i></i>مفتوحة</span></div>
+    <div class="body">
+      <div class="card wash"><div class="lbl">النقد المفترض في الدرج</div><div class="big">1,285.00</div><div class="sub">مفتوحة منذ 08:00 · فتحها سارة</div></div>
+      <div class="card" style="padding:6px 14px">
+        <div class="ln"><span>رصيد الافتتاح</span><b>500.00</b></div>
+        <div class="ln"><span>مبيعات نقدية</span><b>940.00</b></div>
+        <div class="ln neg"><span>سحب</span><b>−125.00</b></div>
+      </div>
+      <div class="btns"><div class="btn sec">إيداع</div><div class="btn sec">سحب</div></div>
+      <div class="btn">إغلاق الوردية</div>
+    </div>
+  </div><div class="cap"><b>Arabic / RTL.</b> Numbers stay Latin and left-to-right, like the receipt.</div></div>
+</div>
+
+<h2>3. Action sheets <small>one sheet, five modes like desktop</small></h2>
+<div class="row">
+  <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div><div class="scrim"></div>
+    <div class="sheet"><div class="grab"></div><h3>Open shift</h3>
+      <div class="field f"><span class="lbl">Opening cash</span><span class="v">500.00</span></div>
+      <div class="slot sub">Carried over from the last count. Change it if the drawer is different.</div>
+      <div class="btn">Open shift</div></div></div><div class="cap"><b>Open.</b> Pre-filled with last count (or last expected if never counted).</div></div>
+
+  <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div><div class="scrim"></div>
+    <div class="sheet"><div class="grab"></div><h3>Close shift</h3>
+      <div class="ln"><span>Should be</span><b>1,285.00</b></div>
+      <div class="field f" style="margin-top:8px"><span class="lbl">Counted cash</span><span class="v">1,280.00</span></div>
+      <div class="slot"><div class="diff short"><span>Short</span><span style="direction:ltr">5.00</span></div></div>
+      <div class="field"><span class="lbl">Note (optional)</span><span class="v ph">Add a note</span></div>
+      <div class="btn">Close shift</div></div></div><div class="cap"><b>Close.</b> Difference shows as you type. It never blocks closing.</div></div>
+
+  <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div><div class="scrim"></div>
+    <div class="sheet"><div class="grab"></div><h3>Pay out</h3>
+      <div class="field f"><span class="lbl">Amount</span><span class="v">2,000.00</span></div>
+      <div class="field"><span class="lbl">Reason</span><span class="v" style="font-size:15px;font-weight:500">Supplier delivery</span></div>
+      <div class="slot"><div class="banner warn">This is more than the drawer should hold. You can continue.</div></div>
+      <div class="btn">Pay out</div></div></div><div class="cap"><b>Pay in / out.</b> Reason is required. A big pay-out only warns.</div></div>
+
+  <div><div class="phone"><div class="sb"><span>9:41</span><span>●●●</span></div><div class="bar"><div class="back">‹</div><div class="t">Shifts</div></div><div class="scrim"></div>
+    <div class="sheet"><div class="grab"></div><h3>Enter the cash count</h3>
+      <div class="ln"><span>Should be</span><b>1,410.00</b></div>
+      <div class="field f" style="margin-top:8px"><span class="lbl">Counted cash</span><span class="v">1,412.00</span></div>
+      <div class="slot"><div class="diff over"><span>Over</span><span style="direction:ltr">2.00</span></div></div>
+      <div class="btn">Save count</div></div></div><div class="cap"><b>Count</b> a shift that auto-closed and has no count yet.</div></div>
+</div>
+
+<h2>4. Rules I will build to</h2>
+<table class="tbl" style="max-width:900px;margin-top:10px">
+<tr><th>Topic</th><th>Behaviour</th></tr>
+<tr><td>Switches</td><td><code>shifts_mode</code> off/auto/manual and <code>cash_drawer_enabled</code> from the dashboard (Phase 2 service). Off hides the chip, the More row and all shift screens.</td></tr>
+<tr><td>Who can do what</td><td>Owner and manager always. Cashiers open/close/count only when <code>shifts_cashiers_may_operate</code> is on. Pay in and pay out: any signed-in user (same as desktop).</td></tr>
+<tr><td>Sales and shifts</td><td>A sale is never blocked or delayed by a shift. Cash sales, refunds and debt payments are counted into the shift whose time range contains them (same as desktop).</td></tr>
+<tr><td>Auto mode</td><td>Opens and closes by schedule in business time, using the desktop's window maths. On mobile it runs only while the app is open (and on app start), so a shift may open or close late when the phone was closed. Closed shifts without a count show "Needs count".</td></tr>
+<tr><td>Offline</td><td>Everything works offline and syncs later as <code>shift.*</code> and <code>cash_movement.create</code>. A rejected push shows in the existing sync conflicts list.</td></tr>
+<tr><td>Several tills</td><td>One open shift per till. Two tills in one shop only see each other's shifts once the backend sends shifts in pull (BE gap G5). Until then each phone shows its own.</td></tr>
+<tr><td>Receipt / reports</td><td>Not changed in this phase.</td></tr>
+</table>
+
+<h2>5. Your call</h2>
+<div class="note q"><b>1. Drawer off but shifts on.</b> I propose the shift is just a work period with a sales summary (second Open-shift mockup). Opening cash, counting and pay in/out all need the drawer switch. Desktop today always counts cash; with the new switch it would become optional too. OK?</div>
+<div class="note q"><b>2. Auto shifts on a phone.</b> Because the app cannot run a clock when closed, I propose the auto schedule is applied on app start, on return to foreground and every 30 s while open (like desktop). Late opens are stamped with the scheduled time, as desktop does. OK?</div>
+<div class="note q"><b>3. Where to put the chip.</b> Next to the location chip in the POS top bar (shown above), or only inside More &gt; Shifts and a badge? I recommend the top bar chip.</div>
+<div class="note"><b>Needs the backend first (G1/G2):</b> the <code>cash_drawer_enabled</code> field and a running <code>shift.*</code> / <code>cash_movement.create</code>. I will build against the sync contract and test with fakes, but cannot prove it against the real server until it is up.</div>
+</body>
+</html>

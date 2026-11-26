@@ -17,6 +17,38 @@ enum ShiftsMode {
   };
 }
 
+/// A clock time in business time, `HH:MM`. Used by the auto shift schedule.
+class ShiftTime {
+  const ShiftTime(this.hour, this.minute);
+
+  final int hour;
+  final int minute;
+
+  int get minutes => hour * 60 + minute;
+
+  /// Parses `HH:MM` or `HH:MM:SS`; null when it is not a valid time.
+  static ShiftTime? tryParse(Object? v) {
+    if (v is! String) return null;
+    final m = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?$').firstMatch(v.trim());
+    if (m == null) return null;
+    final h = int.parse(m.group(1)!);
+    final min = int.parse(m.group(2)!);
+    if (h > 23 || min > 59) return null;
+    return ShiftTime(h, min);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is ShiftTime && other.hour == hour && other.minute == minute;
+
+  @override
+  int get hashCode => Object.hash(hour, minute);
+
+  @override
+  String toString() =>
+      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+}
+
 /// What the owner switched on for this business, read from the business row
 /// that sync already stores. A switch the server does not send yet takes the
 /// default listed in `docs/BE_GAPS_PARITY.md` G1, so the till keeps working
@@ -29,10 +61,11 @@ class BusinessFeatures {
     this.saleDiscount = true,
     this.stockCount = true,
     this.shiftsMode = ShiftsMode.off,
-    this.shiftsAutoOpen = false,
-    this.shiftsAutoClose = false,
+    this.shiftsAutoOpen = const ShiftTime(8, 0),
+    this.shiftsAutoClose = const ShiftTime(22, 0),
     this.cashiersMayOperateShifts = false,
     bool cashDrawerFlag = false,
+    this.timezone,
   }) : _cashDrawerFlag = cashDrawerFlag;
 
   final bool splitPayments;
@@ -41,10 +74,13 @@ class BusinessFeatures {
   final bool saleDiscount;
   final bool stockCount;
   final ShiftsMode shiftsMode;
-  final bool shiftsAutoOpen;
-  final bool shiftsAutoClose;
+  final ShiftTime shiftsAutoOpen;
+  final ShiftTime shiftsAutoClose;
   final bool cashiersMayOperateShifts;
   final bool _cashDrawerFlag;
+
+  /// Business time zone name (`Africa/Khartoum`), for shift times.
+  final String? timezone;
 
   bool get shiftsEnabled => shiftsMode != ShiftsMode.off;
 
@@ -64,10 +100,13 @@ class BusinessFeatures {
       saleDiscount: on('sale_discount_enabled', true),
       stockCount: on('stock_count_enabled', true),
       shiftsMode: ShiftsMode.parse(j['shifts_mode']),
-      shiftsAutoOpen: on('shifts_auto_open', false),
-      shiftsAutoClose: on('shifts_auto_close', false),
+      shiftsAutoOpen:
+          ShiftTime.tryParse(j['shifts_auto_open']) ?? const ShiftTime(8, 0),
+      shiftsAutoClose:
+          ShiftTime.tryParse(j['shifts_auto_close']) ?? const ShiftTime(22, 0),
       cashiersMayOperateShifts: on('shifts_cashiers_may_operate', false),
       cashDrawerFlag: on('cash_drawer_enabled', false),
+      timezone: j['timezone'] is String ? j['timezone'] as String : null,
     );
   }
 }
@@ -154,7 +193,8 @@ class BusinessFeaturesService {
       a.shiftsAutoOpen == b.shiftsAutoOpen &&
       a.shiftsAutoClose == b.shiftsAutoClose &&
       a.cashiersMayOperateShifts == b.cashiersMayOperateShifts &&
-      a.cashDrawer == b.cashDrawer;
+      a.cashDrawer == b.cashDrawer &&
+      a.timezone == b.timezone;
 
   Future<void> dispose() async {
     await _sub?.cancel();

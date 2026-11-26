@@ -4741,4 +4741,228 @@ class AppLocalizationsAr extends AppLocalizations {
   String rcReturnedQty(String qty) {
     return 'مُرتجع $qty';
   }
+
+  @override
+  String get sfTitle => 'الورديات';
+
+  @override
+  String sfChipOpen(String time) {
+    return 'وردية $time';
+  }
+
+  @override
+  String get sfChipNone => 'لا توجد وردية';
+
+  @override
+  String get sfChipNeedsCount => 'بانتظار العدّ';
+
+  @override
+  String get sfCurrent => 'الوردية الحالية';
+
+  @override
+  String get sfExpected => 'النقد المفترض في الدرج';
+
+  @override
+  String get sfOpening => 'رصيد الافتتاح';
+
+  @override
+  String get sfCashSales => 'مبيعات نقدية';
+
+  @override
+  String get sfDebtPayments => 'سداد الديون (نقداً)';
+
+  @override
+  String get sfPayIns => 'إيداع';
+
+  @override
+  String get sfRefunds => 'المرتجعات والإلغاءات (نقداً)';
+
+  @override
+  String get sfPayOuts => 'سحب';
+
+  @override
+  String sfOther(String list) {
+    return 'مقبوض أيضاً وليس في الدرج: $list';
+  }
+
+  @override
+  String sfOpenedBy(String time, String name) {
+    return 'مفتوحة منذ $time · فتحها $name';
+  }
+
+  @override
+  String sfOpenedAuto(String time) {
+    return 'مفتوحة منذ $time · بدأت تلقائياً';
+  }
+
+  @override
+  String get sfSales => 'المبيعات';
+
+  @override
+  String get sfTotal => 'الإجمالي';
+
+  @override
+  String get sfDrawerOff =>
+      'تتبّع درج النقد متوقف. لا يُستخدم العدّ ولا الإيداع والسحب.';
+
+  @override
+  String get sfActOpen => 'فتح وردية';
+
+  @override
+  String get sfActClose => 'إغلاق الوردية';
+
+  @override
+  String get sfActCount => 'إدخال العدّ';
+
+  @override
+  String get sfActPayIn => 'إيداع';
+
+  @override
+  String get sfActPayOut => 'سحب';
+
+  @override
+  String get sfHistory => 'ورديات سابقة';
+
+  @override
+  String get sfHistoryEmpty => 'لا توجد ورديات سابقة بعد.';
+
+  @override
+  String get sfShowMore => 'عرض المزيد';
+
+  @override
+  String sfNeedsCountBanner(int count) {
+    return 'ورديات بانتظار عدّ النقد: $count';
+  }
+
+  @override
+  String get sfOffTitle => 'الورديات متوقفة';
+
+  @override
+  String get sfOffHelp =>
+      'يمكن للمالك تفعيل الورديات من لوحة التحكم. المبيعات تعمل بنفس الطريقة في الحالتين.';
+
+  @override
+  String get sfNoShiftTitle => 'لا توجد وردية مفتوحة';
+
+  @override
+  String get sfNoShiftHelp =>
+      'يمكنك متابعة البيع. المبيعات الآن ليست ضمن وردية.';
+
+  @override
+  String get sfWOpen => 'فتح وردية';
+
+  @override
+  String get sfWClose => 'إغلاق الوردية';
+
+  @override
+  String get sfWCount => 'إدخال عدّ النقد';
+
+  @override
+  String get sfWPayIn => 'إيداع';
+
+  @override
+  String get sfWPayOut => 'سحب';
+
+  @override
+  String get sfLOpening => 'رصيد الافتتاح';
+
+  @override
+  String get sfLCounted => 'النقد المعدود';
+
+  @override
+  String get sfLExpected => 'المفترض';
+
+  @override
+  String get sfLAmount => 'المبلغ';
+
+  @override
+  String get sfLReason => 'السبب';
+
+  @override
+  String get sfLNote => 'ملاحظة (اختياري)';
+
+  @override
+  String get sfCarryHint => 'منقول من آخر عدّ. غيّره إذا كان الدرج مختلفاً.';
+
+  @override
+  String get sfOverNote => 'هذا أكثر مما يجب أن يحتويه الدرج. يمكنك المتابعة.';
+
+  @override
+  String get sfDiffEven => 'مطابق';
+
+  @override
+  String sfDiffShort(String amount) {
+    return 'عجز $amount';
+  }
+
+  @override
+  String sfDiffOver(String amount) {
+    return 'زيادة $amount';
+  }
+
+  @override
+  String get sfOriginAuto => 'تلقائي';
+
+  @override
+  String get sfOriginManual => 'يدوي';
+
+  @override
+  String get sfBtnSaveCount => 'حفظ العدّ';
+
+  @override
+  String get sfDoneOpen => 'تم فتح الوردية';
+
+  @override
+  String get sfDoneClose => 'تم إغلاق الوردية';
+
+  @override
+  String get sfDoneCount => 'تم حفظ العدّ';
+
+  @override
+  String get sfDonePayIn => 'تم حفظ الإيداع';
+
+  @override
+  String get sfDonePayOut => 'تم حفظ السحب';
+
+  @override
+  String get sfErrNoSession => 'سجّل الدخول أولاً.';
+
+  @override
+  String get sfErrNoShop => 'اختر متجراً أولاً.';
+
+  @override
+  String get sfErrNotAllowed => 'غير مسموح لك بهذا. اسأل المالك.';
+
+  @override
+  String get sfErrDisabled => 'الورديات متوقفة.';
+
+  @override
+  String get sfErrDrawerOff => 'درج النقد متوقف.';
+
+  @override
+  String get sfErrAlreadyOpen => 'توجد وردية مفتوحة بالفعل.';
+
+  @override
+  String get sfErrNotOpen => 'لا توجد وردية مفتوحة.';
+
+  @override
+  String get sfErrNotFound => 'هذه الوردية لم تعد موجودة.';
+
+  @override
+  String get sfErrNotCountable => 'هذه الوردية لها عدّ بالفعل.';
+
+  @override
+  String get sfErrAmount => 'أدخل مبلغاً، مثل 250.00.';
+
+  @override
+  String get sfErrReason => 'اكتب سبباً قصيراً.';
+
+  @override
+  String get sfErrSave => 'تعذّر الحفظ. حاول مرة أخرى.';
+
+  @override
+  String get sfLoadFailed => 'تعذّر تحميل الورديات.';
+
+  @override
+  String get sfTryAgain => 'حاول مرة أخرى';
 }

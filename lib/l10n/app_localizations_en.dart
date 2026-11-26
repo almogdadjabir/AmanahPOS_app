@@ -4776,4 +4776,231 @@ class AppLocalizationsEn extends AppLocalizations {
   String rcReturnedQty(String qty) {
     return 'Returned $qty';
   }
+
+  @override
+  String get sfTitle => 'Shifts';
+
+  @override
+  String sfChipOpen(String time) {
+    return 'Shift $time';
+  }
+
+  @override
+  String get sfChipNone => 'No shift';
+
+  @override
+  String get sfChipNeedsCount => 'Needs count';
+
+  @override
+  String get sfCurrent => 'Current shift';
+
+  @override
+  String get sfExpected => 'Cash that should be in the drawer';
+
+  @override
+  String get sfOpening => 'Opening cash';
+
+  @override
+  String get sfCashSales => 'Cash sales';
+
+  @override
+  String get sfDebtPayments => 'Debt payments (cash)';
+
+  @override
+  String get sfPayIns => 'Pay in';
+
+  @override
+  String get sfRefunds => 'Refunds and cancels (cash)';
+
+  @override
+  String get sfPayOuts => 'Pay out';
+
+  @override
+  String sfOther(String list) {
+    return 'Also taken, not in the drawer: $list';
+  }
+
+  @override
+  String sfOpenedBy(String time, String name) {
+    return 'Open since $time · opened by $name';
+  }
+
+  @override
+  String sfOpenedAuto(String time) {
+    return 'Open since $time · started automatically';
+  }
+
+  @override
+  String get sfSales => 'Sales';
+
+  @override
+  String get sfTotal => 'Total';
+
+  @override
+  String get sfDrawerOff =>
+      'Cash drawer tracking is off. Counting and pay in/out are not used.';
+
+  @override
+  String get sfActOpen => 'Open shift';
+
+  @override
+  String get sfActClose => 'Close shift';
+
+  @override
+  String get sfActCount => 'Enter count';
+
+  @override
+  String get sfActPayIn => 'Pay in';
+
+  @override
+  String get sfActPayOut => 'Pay out';
+
+  @override
+  String get sfHistory => 'Earlier shifts';
+
+  @override
+  String get sfHistoryEmpty => 'No earlier shifts yet.';
+
+  @override
+  String get sfShowMore => 'Show more';
+
+  @override
+  String sfNeedsCountBanner(int count) {
+    return 'Shifts waiting for a cash count: $count';
+  }
+
+  @override
+  String get sfOffTitle => 'Shifts are off';
+
+  @override
+  String get sfOffHelp =>
+      'The owner can turn shifts on in the dashboard. Sales work the same either way.';
+
+  @override
+  String get sfNoShiftTitle => 'No shift is open';
+
+  @override
+  String get sfNoShiftHelp =>
+      'You can keep selling. Sales made now are not part of a shift.';
+
+  @override
+  String get sfWOpen => 'Open shift';
+
+  @override
+  String get sfWClose => 'Close shift';
+
+  @override
+  String get sfWCount => 'Enter the cash count';
+
+  @override
+  String get sfWPayIn => 'Pay in';
+
+  @override
+  String get sfWPayOut => 'Pay out';
+
+  @override
+  String get sfLOpening => 'Opening cash';
+
+  @override
+  String get sfLCounted => 'Counted cash';
+
+  @override
+  String get sfLExpected => 'Should be';
+
+  @override
+  String get sfLAmount => 'Amount';
+
+  @override
+  String get sfLReason => 'Reason';
+
+  @override
+  String get sfLNote => 'Note (optional)';
+
+  @override
+  String get sfCarryHint =>
+      'Carried over from the last count. Change it if the drawer is different.';
+
+  @override
+  String get sfOverNote =>
+      'This is more than the drawer should hold. You can continue.';
+
+  @override
+  String get sfDiffEven => 'Exact';
+
+  @override
+  String sfDiffShort(String amount) {
+    return 'Short $amount';
+  }
+
+  @override
+  String sfDiffOver(String amount) {
+    return 'Over $amount';
+  }
+
+  @override
+  String get sfOriginAuto => 'Auto';
+
+  @override
+  String get sfOriginManual => 'Manual';
+
+  @override
+  String get sfBtnSaveCount => 'Save count';
+
+  @override
+  String get sfDoneOpen => 'Shift opened';
+
+  @override
+  String get sfDoneClose => 'Shift closed';
+
+  @override
+  String get sfDoneCount => 'Count saved';
+
+  @override
+  String get sfDonePayIn => 'Pay in saved';
+
+  @override
+  String get sfDonePayOut => 'Pay out saved';
+
+  @override
+  String get sfErrNoSession => 'Sign in first.';
+
+  @override
+  String get sfErrNoShop => 'Pick a shop first.';
+
+  @override
+  String get sfErrNotAllowed =>
+      'You are not allowed to do this. Ask the owner.';
+
+  @override
+  String get sfErrDisabled => 'Shifts are turned off.';
+
+  @override
+  String get sfErrDrawerOff => 'The cash drawer is turned off.';
+
+  @override
+  String get sfErrAlreadyOpen => 'A shift is already open.';
+
+  @override
+  String get sfErrNotOpen => 'No shift is open.';
+
+  @override
+  String get sfErrNotFound => 'That shift no longer exists.';
+
+  @override
+  String get sfErrNotCountable => 'This shift already has a count.';
+
+  @override
+  String get sfErrAmount => 'Enter an amount, like 250.00.';
+
+  @override
+  String get sfErrReason => 'Write a short reason.';
+
+  @override
+  String get sfErrSave => 'It could not be saved. Try again.';
+
+  @override
+  String get sfLoadFailed => 'Could not load the shifts.';
+
+  @override
+  String get sfTryAgain => 'Try again';
 }
