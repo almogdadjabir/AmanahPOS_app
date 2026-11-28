@@ -24,14 +24,13 @@ class LocaleBloc extends Bloc<LocaleEvent, LocaleState> {
   }
 
   void _onLocaleLoaded(OnLocaleLoaded event, Emitter<LocaleState> emit) {
-    emit(state.copyWith(
-      locale: Locale(event.languageCode),
-      isLoaded: true,
-    ));
+    emit(state.copyWith(locale: Locale(event.languageCode), isLoaded: true));
   }
 
   Future<void> _onLocaleChanged(
-      OnLocaleChanged event, Emitter<LocaleState> emit) async {
+    OnLocaleChanged event,
+    Emitter<LocaleState> emit,
+  ) async {
     await cacheStorage.save(Constants.appLocale, event.languageCode);
     emit(state.copyWith(locale: Locale(event.languageCode)));
   }

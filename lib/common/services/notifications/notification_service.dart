@@ -11,7 +11,7 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   final FlutterLocalNotificationsPlugin _plugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   static const String _channelId = 'amana_pos_default_channel';
   static const String _channelName = 'AmanaPOS Notifications';
@@ -40,7 +40,7 @@ class NotificationService {
       settings,
       onDidReceiveNotificationResponse: _onNotificationTap,
       onDidReceiveBackgroundNotificationResponse:
-      notificationTapBackgroundHandler,
+          notificationTapBackgroundHandler,
     );
 
     const androidChannel = AndroidNotificationChannel(
@@ -54,7 +54,8 @@ class NotificationService {
 
     await _plugin
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     _initialized = true;
@@ -126,7 +127,8 @@ class NotificationService {
   }
 
   int _buildNotificationId(Map<String, dynamic> payload) {
-    final rawId = payload['notification_id'] ??
+    final rawId =
+        payload['notification_id'] ??
         payload['notificationId'] ??
         payload['id'] ??
         payload['entity_id'];

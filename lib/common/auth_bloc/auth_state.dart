@@ -1,6 +1,7 @@
 part of 'auth_bloc.dart';
 
 enum AuthStatus { initial, loading, success, failure }
+
 enum BusinessStatus { initial, loading, success, failure }
 
 class AuthStateUpdate {
@@ -62,7 +63,7 @@ class AuthState extends Equatable {
       authStatus: u.authStatus ?? authStatus,
       profile: u.profile ?? profile,
       isLoggedIn: u.isLoggedIn ?? isLoggedIn,
-      responseError: u.responseError,         // null clears the error
+      responseError: u.responseError, // null clears the error
       businessStatus: u.businessStatus ?? businessStatus,
       defaultBusiness: u.defaultBusiness ?? defaultBusiness,
       sessionId: u.sessionId ?? sessionId,

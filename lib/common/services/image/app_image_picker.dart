@@ -29,10 +29,7 @@ class ImagePickResult {
   final PickedAppImage? image;
   final ImagePickFailureReason? failureReason;
 
-  const ImagePickResult._({
-    this.image,
-    this.failureReason,
-  });
+  const ImagePickResult._({this.image, this.failureReason});
 
   factory ImagePickResult.success(PickedAppImage image) {
     return ImagePickResult._(image: image);

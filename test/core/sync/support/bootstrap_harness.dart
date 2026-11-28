@@ -275,6 +275,7 @@ class BootHarness {
     AuthedCall Function(String scope)? authedFor,
     int maxPagesPerEntity = Bootstrapper.defaultMaxPagesPerEntity,
     Set<String>? capabilities,
+    Future<void> Function(Duration)? sleep,
   }) {
     final b = Bootstrapper(
       db: odb,
@@ -296,6 +297,7 @@ class BootHarness {
       authedFor: authedFor ?? (engine ?? buildEngine()).authedFor,
       maxPagesPerEntity: maxPagesPerEntity,
       pageSize: pageSize,
+      sleep: sleep,
       now: now,
     );
     _boots.add(b);

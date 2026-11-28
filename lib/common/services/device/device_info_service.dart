@@ -50,9 +50,7 @@ class DeviceInfoService {
 
   DeviceInfoData? _cachedDeviceInfo;
 
-  Future<DeviceInfoData> getDeviceInfo({
-    bool forceRefresh = false,
-  }) async {
+  Future<DeviceInfoData> getDeviceInfo({bool forceRefresh = false}) async {
     if (!forceRefresh && _cachedDeviceInfo != null) {
       return _cachedDeviceInfo!;
     }

@@ -3,6 +3,9 @@ enum AppBusinessType { restaurant, shop, unknown }
 enum AppUserRole { owner, manager, cashier, unknown }
 
 class AppPermissions {
+  /// Plan feature key, kept for display only. The backend no longer enforces
+  /// it (it reports `enforced: false`), so it must NOT gate any screen: inbound,
+  /// vendors, expiry and the premium summary depend on role + business type.
   static const inventoryInboundReceivingFeature = 'inventory_inbound_receiving';
 
   final AppBusinessType businessType;
@@ -34,23 +37,22 @@ class AppPermissions {
     return true;
   }
 
-  bool get canUseInventoryInboundReceiving {
-    final featureEnabled =
-        enabledFeatures[inventoryInboundReceivingFeature] == true;
+  /// SINGLE SWITCH for the full (premium) inventory: inbound receiving,
+  /// vendors, receipts and the premium dashboard. Disabled for every business
+  /// type until pharmacy support ships; the code, blocs and API calls are
+  /// kept. Set to true to bring the full version back. Not plan-gated.
+  static const bool fullInventoryEnabled = false;
 
+  /// Role + business-type rule for the full inventory (manager/owner, never
+  /// restaurants), independent of the switch above.
+  bool get inboundAllowedByRole {
     final allowedRole =
         role == AppUserRole.owner || role == AppUserRole.manager;
-
-    return canAccessInventory && featureEnabled && allowedRole;
+    return canAccessInventory && allowedRole;
   }
 
-  bool get canSeeInboundPremiumCard {
-    final allowedRole =
-        role == AppUserRole.owner || role == AppUserRole.manager;
-    return canAccessInventory &&
-        allowedRole &&
-        !canUseInventoryInboundReceiving;
-  }
+  bool get canUseInventoryInboundReceiving =>
+      fullInventoryEnabled && inboundAllowedByRole;
 
   bool get canAccessCustomers {
     if (!_hasSession) return false;
@@ -100,6 +102,7 @@ class AppPermissions {
       case 'retail':
       case 'store':
       case 'general':
+      case 'pharmacy': // backend type; stock + expiry behave like a shop
         return AppBusinessType.shop;
       default:
         return AppBusinessType.unknown;

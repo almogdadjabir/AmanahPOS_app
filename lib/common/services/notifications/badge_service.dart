@@ -8,7 +8,7 @@ class BadgeService {
 
   /// Set badge to a specific count (from API unread count).
   static Future<void> setBadge(int count) async {
-    await _storage.save( _key,  count.toString());
+    await _storage.save(_key, count.toString());
     try {
       await _channel.invokeMethod('setBadge', {'count': count});
     } catch (_) {}
@@ -22,7 +22,7 @@ class BadgeService {
 
   /// Clear badge to 0 (when user views notifications).
   static Future<void> clearBadge() async {
-    await _storage.save(_key,'0');
+    await _storage.save(_key, '0');
     try {
       await _channel.invokeMethod('clearBadge');
     } catch (_) {}

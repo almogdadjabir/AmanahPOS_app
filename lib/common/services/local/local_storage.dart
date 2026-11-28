@@ -87,11 +87,29 @@ class CacheStorage {
       if (_fastKeys.contains(key)) {
         return await _prefsGet(key);
       }
-      return await storage.read(key: key);
+      return await _readSecure(key);
     } catch (e) {
       if (kDebugMode) log('Error reading data: $e');
       return null;
     }
+  }
+
+  /// Token keys get one retry: a keychain/keystore read can fail or return
+  /// null transiently right after a cold start, and must not look like
+  /// "logged out".
+  Future<String?> _readSecure(String key) async {
+    final retry = key == Constants.authToken || key == Constants.refreshToken;
+    String? value;
+    try {
+      value = await storage.read(key: key);
+    } catch (_) {
+      if (!retry) rethrow;
+    }
+    if (value == null && retry) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      value = await storage.read(key: key);
+    }
+    return value;
   }
 
   Future<String?> getValue(String key) async => await read(key);
@@ -205,7 +223,8 @@ class CacheStorage {
         log('CacheStorage: Fresh install — stale Keychain data cleared.');
       }
     } catch (e) {
-      if (kDebugMode) log('CacheStorage: clearStaleKeychainOnFreshInstall failed: $e');
+      if (kDebugMode)
+        log('CacheStorage: clearStaleKeychainOnFreshInstall failed: $e');
     }
   }
 

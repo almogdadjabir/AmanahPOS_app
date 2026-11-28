@@ -14,12 +14,11 @@ class FcmNotificationData {
     this.notificationId,
   });
 
-
   const FcmNotificationData.empty()
-      : category = null,
-        type = null,
-        level = null,
-        notificationId = null;
+    : category = null,
+      type = null,
+      level = null,
+      notificationId = null;
 
   /// Parses from FCM [message.data]. Never throws — returns [FcmNotificationData.empty]
   factory FcmNotificationData.fromMap(Map<String, dynamic> data) {
@@ -51,5 +50,5 @@ class FcmNotificationData {
   @override
   String toString() =>
       'FcmNotificationData(category: $category, type: $type, '
-          'level: $level, notificationId: $notificationId)';
+      'level: $level, notificationId: $notificationId)';
 }

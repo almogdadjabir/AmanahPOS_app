@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 
 import '../../common/services/local/local_storage.dart';
 import '../../config/constants.dart';
+import '../../features/pin/data/pin_vault_service.dart';
+import '../../utilities/dependencies_provider.dart' show getIt;
 import 'sync_engine.dart' show RefreshOutcome;
 
 /// Refreshes the access token for the sync engine (its `refreshToken`
@@ -139,6 +141,15 @@ class SyncTokenRefresher {
       if (refresh is String && refresh.isNotEmpty)
         _storage.save(Constants.refreshToken, refresh),
     ]);
+    if (refresh is String && refresh.isNotEmpty) {
+      try {
+        await getIt<PinVaultService>().updateTokens(
+          oldRefresh: sent,
+          access: access,
+          refresh: refresh,
+        );
+      } catch (_) {} // vault unavailable (e.g. background isolate)
+    }
     return RefreshOutcome.refreshed;
   }
 

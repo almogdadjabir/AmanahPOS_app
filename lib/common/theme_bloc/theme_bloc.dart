@@ -39,27 +39,34 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       cacheStorage.getBool(Constants.isDarkTheme),
       cacheStorage.getBool(Constants.isBigFontSize),
     ]);
-    add(OnThemeLoadedEvent(
-      isDarkTheme: results[0] ?? false,
-      isBigFontSize: results[1] ?? false,
-    ));
+    add(
+      OnThemeLoadedEvent(
+        isDarkTheme: results[0] ?? false,
+        isBigFontSize: results[1] ?? false,
+      ),
+    );
   }
 
-  Future<void> _onThemeLoaded(OnThemeLoadedEvent event, Emitter<ThemeState> emit) async {
+  Future<void> _onThemeLoaded(
+    OnThemeLoadedEvent event,
+    Emitter<ThemeState> emit,
+  ) async {
     final modeString = await cacheStorage.getValue(Constants.appTheme);
 
     final mode = ScreenMode.values.firstWhere(
-          (e) => e.name == modeString,
+      (e) => e.name == modeString,
       orElse: () => ScreenMode.device,
     );
 
     add(OnThemeChangeEvent(mode: mode));
 
-    emit(state.copyWith(
-      isDarkTheme: event.isDarkTheme,
-      isBigFontSize: event.isBigFontSize,
-      isLoaded: true,
-    ));
+    emit(
+      state.copyWith(
+        isDarkTheme: event.isDarkTheme,
+        isBigFontSize: event.isBigFontSize,
+        isLoaded: true,
+      ),
+    );
   }
 
   void _changeTheme(OnThemeChangeEvent event, Emitter<ThemeState> emit) {
@@ -75,8 +82,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         break;
 
       case ScreenMode.device:
-        final brightness =
-            PlatformDispatcher.instance.platformBrightness;
+        final brightness = PlatformDispatcher.instance.platformBrightness;
         isDarkTheme = brightness == Brightness.dark;
         break;
     }
@@ -87,7 +93,10 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     emit(state.copyWith(isDarkTheme: isDarkTheme, mode: event.mode));
   }
 
-  void _onChangeFontSizeEvent(OnChangeFontSizeEvent event, Emitter<ThemeState> emit) {
+  void _onChangeFontSizeEvent(
+    OnChangeFontSizeEvent event,
+    Emitter<ThemeState> emit,
+  ) {
     cacheStorage.setBool(Constants.isBigFontSize, event.isBigFontSize);
     emit(state.copyWith(isBigFontSize: event.isBigFontSize));
   }
@@ -98,8 +107,9 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       (e) => e.name == stored,
       orElse: () => AnimationPreference.auto,
     );
-    final memMb =
-        pref == AnimationPreference.auto ? await memoryProbe.totalMemoryMb() : null;
+    final memMb = pref == AnimationPreference.auto
+        ? await memoryProbe.totalMemoryMb()
+        : null;
     final enabled = resolveAnimationsEnabled(pref, memMb);
     add(OnAnimationsLoadedEvent(preference: pref, animationsEnabled: enabled));
   }
@@ -128,7 +138,10 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     Emitter<ThemeState> emit,
   ) async {
     _userAnimationPreferenceSet = true;
-    await cacheStorage.save(Constants.animationPreference, event.preference.name);
+    await cacheStorage.save(
+      Constants.animationPreference,
+      event.preference.name,
+    );
     final memMb = event.preference == AnimationPreference.auto
         ? await memoryProbe.totalMemoryMb()
         : null;

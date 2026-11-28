@@ -289,10 +289,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final response = await businessUseCase.getBusinessList();
-      final error = response.getLeft().toNullable();
       final business = response.getRight().toNullable();
 
-      if (error != null) {
+      // Left(null) = expired session / failed refresh: a failure, never an
+      // empty business list (that routes the user to "add business").
+      if (response.isLeft()) {
         if (cachedBusiness != null) {
           if (!emit.isDone) {
             emit(

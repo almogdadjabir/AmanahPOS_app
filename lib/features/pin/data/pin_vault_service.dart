@@ -131,6 +131,43 @@ class PinVaultService {
     await _write(vault);
   }
 
+  /// Keeps enrolled records on the live token pair. Refresh tokens rotate, so
+  /// the pair saved at enrolment is blacklisted after the first refresh;
+  /// restoring it on unlock would end the session. Matches by the refresh
+  /// token that was just replaced.
+  Future<void> updateTokens({
+    required String oldRefresh,
+    required String access,
+    required String refresh,
+  }) async {
+    final vault = await _read();
+    final users = _users(vault);
+    var changed = false;
+    for (var i = 0; i < users.length; i++) {
+      final u = users[i];
+      if (u.refreshToken != oldRefresh) continue;
+      users[i] = PinUserRecord(
+        userId: u.userId,
+        businessId: u.businessId,
+        tenantId: u.tenantId,
+        fullName: u.fullName,
+        role: u.role,
+        phone: u.phone,
+        pinSalt: u.pinSalt,
+        pinHash: u.pinHash,
+        accessToken: access,
+        refreshToken: refresh,
+        profileJson: u.profileJson,
+        enrolledAt: u.enrolledAt,
+        lastUnlockAt: u.lastUnlockAt,
+      );
+      changed = true;
+    }
+    if (!changed) return;
+    vault['users'] = users.map((e) => e.toJson()).toList();
+    await _write(vault);
+  }
+
   Future<void> clearVault() async {
     await _cache.saveObject(_key, null);
   }

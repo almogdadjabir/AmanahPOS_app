@@ -20,8 +20,11 @@ class _RealGateway implements NotificationPermissionGateway {
   bool get isIOS => Platform.isIOS;
   @override
   Future<void> requestIos() async {
-    await FirebaseMessaging.instance
-        .requestPermission(alert: true, badge: true, sound: true);
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
   }
 
   @override

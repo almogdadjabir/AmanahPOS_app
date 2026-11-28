@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 ///   await FcmTopicService.instance.unsubscribeAll(); // on logout
 class FcmTopicService {
   FcmTopicService._({required CacheStorage cacheStorage})
-      : _cacheStorage = cacheStorage;
+    : _cacheStorage = cacheStorage;
 
   static FcmTopicService? _instance;
 
@@ -31,13 +31,12 @@ class FcmTopicService {
   static const String topicPromotions = 'marketing_promotions';
   static const String topicCampaigns = 'marketing_campaigns';
   static const List<String> _defaultTopics = [
-   // topicTest,  ///INFO: For testing only, Don't forget to remove on Release.
+    // topicTest,  ///INFO: For testing only, Don't forget to remove on Release.
     topicAllUsers,
     topicAnnouncements,
     topicPromotions,
     topicCampaigns,
   ];
-
 
   Future<void> subscribeToMarketingTopics() async {
     for (final topic in _defaultTopics) {
@@ -76,9 +75,9 @@ class FcmTopicService {
   }
 
   Future<void> _unsubscribeFromTopic(
-      String topic, {
-        bool updateCache = true,
-      }) async {
+    String topic, {
+    bool updateCache = true,
+  }) async {
     try {
       await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
       if (updateCache) await _removeFromCache(topic);

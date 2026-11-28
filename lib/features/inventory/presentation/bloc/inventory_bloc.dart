@@ -1,6 +1,7 @@
 import 'package:amana_pos/core/offline/data/offline_local_cache.dart';
 import 'package:amana_pos/common/app_progress/app_progress_cubit.dart';
 import 'package:amana_pos/core/errors/friendly_error.dart';
+import 'package:amana_pos/core/sync/sync_flags.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/add_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/adjust_stock_request_dto.dart';
 import 'package:amana_pos/features/inventory/data/models/requests/transfer_stock_request_dto.dart';
@@ -60,6 +61,29 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     if (state.status == InventoryStatus.loading) return;
 
     var emittedCachedData = false;
+
+    // With the sync engine on, the local `stock` table is complete and
+    // authoritative (bootstrap + pull keep it current, local edits are folded
+    // in). Do NOT replace it with the first REST page (20 rows) and page the
+    // rest in: that made the totals jump (8 -> 4 -> 2) and the list rebuild.
+    if (kSyncEngineEnabled) {
+      var local = await offlineLocalCache.getStock();
+      if (local.isEmpty) {
+        local = await offlineLocalCache.getStockFallbackFromProducts();
+      }
+      if (emit.isDone) return;
+      emit(
+        state.copyWith(
+          status: InventoryStatus.success,
+          stockList: local,
+          currentPage: 1,
+          totalPages: 1,
+          isFromCache: true,
+          clearResponseError: true,
+        ),
+      );
+      return;
+    }
 
     // try {
     final cachedStock = await offlineLocalCache.getStock();

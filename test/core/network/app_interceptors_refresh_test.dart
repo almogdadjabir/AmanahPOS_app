@@ -84,6 +84,11 @@ void main() {
     getIt.registerSingleton<Dio>(dio);
     dio.interceptors.add(AppInterceptors(dio));
     AppInterceptors.isLoggingOut = false;
+    AppInterceptors.backoffOverride = const [
+      Duration.zero,
+      Duration.zero,
+      Duration.zero,
+    ];
   });
 
   tearDown(() async {
@@ -108,7 +113,8 @@ void main() {
       );
       final r = await call();
       expect(r, isA<DioException>());
-      expect((r as DioException).response?.statusCode, 401);
+      expect((r as DioException).type, DioExceptionType.connectionError);
+      expect(r.response, isNull);
       expect(AppInterceptors.isSessionExpiredError(r), isFalse);
       expect(storage.resetCalls, 0);
       expect(storage.values[Constants.refreshToken], 'old-refresh');
@@ -122,14 +128,16 @@ void main() {
       type: DioExceptionType.receiveTimeout,
     );
     final r = await call();
-    expect((r as DioException).response?.statusCode, 401);
+    expect(AppInterceptors.isSessionExpiredError(r as DioException), isFalse);
+    expect(r.response, isNull);
     expect(storage.resetCalls, 0);
   });
 
   test('refresh 5xx: no logout, original error', () async {
     adapter.refreshReply = () async => _json500();
     final r = await call();
-    expect((r as DioException).response?.statusCode, 401);
+    expect(AppInterceptors.isSessionExpiredError(r as DioException), isFalse);
+    expect(r.response, isNull);
     expect(storage.resetCalls, 0);
     expect(storage.values[Constants.refreshToken], 'old-refresh');
   });
@@ -137,15 +145,65 @@ void main() {
   test('refresh 429: no logout', () async {
     adapter.refreshReply = () async => adapter._json(429, {'detail': 'slow'});
     final r = await call();
-    expect((r as DioException).response?.statusCode, 401);
+    expect(AppInterceptors.isSessionExpiredError(r as DioException), isFalse);
+    expect(r.response, isNull);
     expect(storage.resetCalls, 0);
   });
 
-  test('refresh 400 other code: no logout', () async {
+  test('refresh 400 any body: logout (backend contract)', () async {
     adapter.refreshReply = () async => adapter._json(400, {'code': 'bad'});
     await call();
-    expect(storage.resetCalls, 0);
+    expect(storage.resetCalls, 1);
   });
+
+  test('transient refresh failure is retried 3 times then surfaces', () async {
+    adapter.refreshReply = () async => _json500();
+    await call();
+    expect(adapter.refreshCalls, 4);
+  });
+
+  test('refresh succeeds after a transient failure', () async {
+    var n = 0;
+    adapter.refreshReply = () async => n++ == 0
+        ? _json500()
+        : adapter._json(200, {'access': 'new-access', 'refresh': 'r2'});
+    final r = await call();
+    expect((r as Response).statusCode, 200);
+    expect(storage.values[Constants.refreshToken], 'r2');
+    expect(storage.values[Constants.authToken], 'new-access');
+  });
+
+  test(
+    'stale isLoggingOut flag does not block refresh of new session',
+    () async {
+      AppInterceptors.isLoggingOut = true;
+      adapter.refreshReply = () async =>
+          adapter._json(200, {'access': 'new-access', 'refresh': 'r2'});
+      final r = await call();
+      expect((r as Response).statusCode, 200);
+    },
+  );
+
+  test(
+    'access token expiring in <2 min refreshes before the request',
+    () async {
+      String jwt(int exp) {
+        String b(Object o) =>
+            base64Url.encode(utf8.encode(jsonEncode(o))).replaceAll('=', '');
+        return '${b({'alg': 'none'})}.${b({'exp': exp})}.sig';
+      }
+
+      storage.values[Constants.authToken] = jwt(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000 + 30,
+      );
+      adapter.refreshReply = () async =>
+          adapter._json(200, {'access': 'new-access', 'refresh': 'r2'});
+      final r = await call();
+      expect((r as Response).statusCode, 200);
+      expect(adapter.refreshCalls, 1);
+      expect(adapter.dataCalls, 1); // no 401 round-trip
+    },
+  );
 
   test('refresh 401: logout exactly once', () async {
     adapter.refreshReply = () async => adapter._json(401, {'detail': 'no'});
@@ -216,9 +274,13 @@ void main() {
         type: DioExceptionType.connectionError,
       );
       final res = await Future.wait([call(), call(), call()]);
-      expect(adapter.refreshCalls, 1);
+      expect(adapter.refreshCalls, 4); // one single-flight, 1+3 retries
       for (final r in res) {
-        expect((r as DioException).response?.statusCode, 401);
+        expect(
+          AppInterceptors.isSessionExpiredError(r as DioException),
+          isFalse,
+        );
+        expect(r.response, isNull);
       }
       expect(storage.resetCalls, 0);
     },

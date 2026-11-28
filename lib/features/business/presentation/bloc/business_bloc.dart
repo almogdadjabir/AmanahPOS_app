@@ -80,7 +80,10 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       final error = response.getLeft().toNullable();
       final business = response.getRight().toNullable();
 
-      if (error != null) {
+      // `Left(null)` is how an expired session / failed refresh is reported:
+      // it is a FAILURE, not "this user has no businesses" (which would show
+      // the add-business screen and cache an empty list).
+      if (response.isLeft()) {
         emit(
           state.copyWith(
             isLoading: false,

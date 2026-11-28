@@ -38,7 +38,9 @@ class CategoryApplier implements ChangeApplier {
   Future<void> apply(Transaction txn, PullChange change) async {
     final id = change.id;
     if (id.isEmpty) return logSkip(entity, id, 'empty id');
-    if (change.op == 'delete') {
+    // Upcoming backend: bootstrap rows carry a `deleted` marker instead of
+    // being omitted. Treat it exactly like a delete op.
+    if (change.op == 'delete' || change.data?['deleted'] == true) {
       await txn.delete('categories', where: 'id = ?', whereArgs: [id]);
       await unregisterAssets(txn, entity, id);
       return;

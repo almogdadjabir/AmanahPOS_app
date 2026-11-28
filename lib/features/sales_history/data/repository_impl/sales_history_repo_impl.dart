@@ -1,3 +1,4 @@
+import 'package:amana_pos/core/time/business_day.dart';
 import 'package:amana_pos/core/api/request_handler.dart';
 import 'package:amana_pos/core/network/network_monitor.dart';
 import 'package:amana_pos/features/sales_history/data/local/local_sales_history.dart';
@@ -108,7 +109,7 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
     String? timezone,
   }) {
     final buf = StringBuffer(
-      'api/v1/sales/reports/?date_from=${_formatDate(from)}&date_to=${_formatDate(to)}',
+      'api/v1/sales/reports/?date_from=${BusinessDay.restDateParam(from)}&date_to=${BusinessDay.restDateParam(to)}',
     );
     // The reports endpoint uses 'shop_id'; the list endpoint uses 'shop'.
     if (shopId?.isNotEmpty == true) buf.write('&shop_id=$shopId');
@@ -117,7 +118,4 @@ class SalesHistoryRepoImpl extends SalesHistoryRepository {
     }
     return buf.toString();
   }
-
-  String _formatDate(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }

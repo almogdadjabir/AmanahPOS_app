@@ -110,6 +110,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _receive(bool premium) async {
+    // Full inbound flow: disabled until pharmacy support ships.
     if (premium) {
       showInboundSheet(context);
       return;
@@ -219,9 +220,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
                           AppLargeTitle(title: tr.navInventory),
-                          _ReceiveCard(
+                          _QuickActions(
                             premium: premium,
-                            onTap: () => _receive(premium),
+                            onAdd: () => _receive(premium),
                           ),
                           const SizedBox(height: 14),
                           const _Tiles(),
@@ -229,7 +230,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             productFor: _productFor,
                             knownProduct: _knownProduct,
                           ),
-                          const _CountEntry(),
+                          // Vendors / Receipts: disabled until pharmacy support
+                          // ships (AppPermissions.fullInventoryEnabled).
                           if (premium) const _MoreGroup(),
                         ]),
                       ),
@@ -238,84 +240,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiveCard extends StatelessWidget {
-  final bool premium;
-  final VoidCallback onTap;
-
-  const _ReceiveCard({required this.premium, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final tr = context.tr;
-
-    return Pressable(
-      onTap: onTap,
-      scale: 1,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: AppDims.borderLg,
-          border: Border.all(color: colors.border),
-        ),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 68),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppDims.s4),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: Icon(
-                    PhosphorIconsRegular.package,
-                    size: 20,
-                    color: colors.onPrimary,
-                  ),
-                ),
-                const SizedBox(width: AppDims.s3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        premium ? tr.stReceive : tr.stAddStock,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w500,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      if (premium)
-                        Text(
-                          tr.stReceiveHint,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colors.textHint,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                DirectionalIcon(
-                  icon: PhosphorIconsRegular.caretRight,
-                  size: 16,
-                  color: colors.borderStrong,
-                ),
-              ],
-            ),
           ),
         ),
       ),
@@ -675,14 +599,13 @@ class _AttentionSkeleton extends StatelessWidget {
   }
 }
 
-/// Premium only: Vendors, Receipts, Expiry report.
+/// Vendors and Receipts, only when the full inventory is enabled.
 class _MoreGroup extends StatelessWidget {
   const _MoreGroup();
 
   @override
   Widget build(BuildContext context) {
     final tr = context.tr;
-
     return Padding(
       padding: const EdgeInsets.only(top: 22),
       child: AppGroup(
@@ -700,57 +623,120 @@ class _MoreGroup extends StatelessWidget {
             title: tr.stReceipts,
             onTap: () => showInboundHistorySheet(context),
           ),
-          AppGroupRow(
-            icon: PhosphorIconsRegular.clock,
-            tint: AppTint.warning,
-            title: tr.stExpiryReport,
-            onTap: () => showExpiryReportSheet(context),
-          ),
         ],
       ),
     );
   }
 }
 
+/// Actions pinned at the top: Add stock, Expiry report, Stock count.
+class _QuickActions extends StatelessWidget {
+  final bool premium;
+  final VoidCallback onAdd;
+  const _QuickActions({required this.premium, required this.onAdd});
 
-/// "Stock count" row, shown while the business has it switched on.
-class _CountEntry extends StatelessWidget {
-  const _CountEntry();
+  void _openCount(BuildContext context) {
+    final shop =
+        context.read<PosBloc>().state.selectedShopId ??
+        context.read<AuthBloc>().state.profile?.defaultShopId;
+    if (shop == null || shop.isEmpty) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => StockCountScreen(shopId: shop)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final tr = context.tr;
     final features = getIt<BusinessFeaturesService>();
     return StreamBuilder<BusinessFeatures>(
       stream: features.changes,
       initialData: features.current,
       builder: (context, snap) {
-        if (!(snap.data?.stockCount ?? true)) return const SizedBox.shrink();
-        final tr = context.tr;
-        return Padding(
-          padding: const EdgeInsets.only(top: 22),
-          child: AppGroup(
-            children: [
-              AppGroupRow(
-                icon: PhosphorIconsRegular.list,
-                tint: AppTint.neutral,
-                title: tr.scEntry,
-                subtitle: tr.scEntrySub,
-                onTap: () {
-                  final shop =
-                      context.read<PosBloc>().state.selectedShopId ??
-                      context.read<AuthBloc>().state.profile?.defaultShopId;
-                  if (shop == null || shop.isEmpty) return;
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => StockCountScreen(shopId: shop),
-                    ),
-                  );
-                },
-              ),
-            ],
+        final showCount = snap.data?.stockCount ?? true;
+        final tiles = <Widget>[
+          _ActionTile(
+            icon: PhosphorIconsRegular.package,
+            label: premium ? tr.stReceive : tr.stAddStock,
+            primary: true,
+            onTap: onAdd,
           ),
+          _ActionTile(
+            icon: PhosphorIconsRegular.clock,
+            label: tr.stExpiryReport,
+            onTap: () => showExpiryReportSheet(context),
+          ),
+          if (showCount)
+            _ActionTile(
+              icon: PhosphorIconsRegular.list,
+              label: tr.scEntry,
+              onTap: () => _openCount(context),
+            ),
+        ];
+        return Row(
+          children: [
+            for (var i = 0; i < tiles.length; i++) ...[
+              if (i > 0) const SizedBox(width: 10),
+              Expanded(child: tiles[i]),
+            ],
+          ],
         );
       },
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool primary;
+  final VoidCallback onTap;
+  const _ActionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.primary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final bg = primary ? colors.primary : colors.surface;
+    final fg = primary ? colors.onPrimary : colors.textPrimary;
+    return Pressable(
+      onTap: onTap,
+      scale: 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: AppDims.borderLg,
+          border: Border.all(color: primary ? colors.primary : colors.border),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 76),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 24, color: fg),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:amana_pos/config/constants.dart';
+import 'package:amana_pos/core/network/app_interceptors.dart';
 import 'package:amana_pos/config/router/app_router.dart';
 import 'package:amana_pos/config/router/route_strings.dart';
 import 'package:amana_pos/features/pin/data/pin_vault_service.dart';
@@ -39,6 +40,8 @@ class _AppLockObserverState extends State<AppLockObserver>
         state == AppLifecycleState.inactive) {
       _backgroundedAt ??= DateTime.now();
     } else if (state == AppLifecycleState.resumed) {
+      // Refresh an expired/expiring session token before the first request.
+      AppInterceptors.refreshIfExpiring().catchError((_) {});
       _maybeLock();
     }
   }

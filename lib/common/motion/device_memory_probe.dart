@@ -14,8 +14,8 @@ class SystemMemoryProbe implements DeviceMemoryProbe {
     try {
       // system_info_plus returns physical memory in MB.
       return await SystemInfoPlus.physicalMemory;
-    // PlatformException / MissingPluginException both map to null so the
-    // resolver falls back to the safe default (animations on).
+      // PlatformException / MissingPluginException both map to null so the
+      // resolver falls back to the safe default (animations on).
     } catch (_) {
       return null;
     }

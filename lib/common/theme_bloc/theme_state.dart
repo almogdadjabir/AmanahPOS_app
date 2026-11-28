@@ -48,11 +48,11 @@ class ThemeState extends Equatable {
 
   @override
   List<Object?> get props => [
-        mode,
-        isDarkTheme,
-        isBigFontSize,
-        isLoaded,
-        animationPreference,
-        animationsEnabled,
-      ];
+    mode,
+    isDarkTheme,
+    isBigFontSize,
+    isLoaded,
+    animationPreference,
+    animationsEnabled,
+  ];
 }

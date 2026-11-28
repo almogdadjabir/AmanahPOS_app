@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:amana_pos/core/network/multipart_file_extended.dart';
 import 'package:amana_pos/common/services/local/local_storage.dart';
@@ -20,6 +21,18 @@ class AppInterceptors extends Interceptor {
   static const String _sessionExpiredSentinel = '__session_expired__';
   static const String _refreshPath = 'api-public/v1/auth/token/refresh/';
   static bool _lastRefreshRejected = false;
+  static DioException? _lastRefreshError;
+  static const _refreshBackoff = [
+    Duration(milliseconds: 500),
+    Duration(milliseconds: 1500),
+    Duration(seconds: 3),
+  ];
+  static const _proactiveWindow = Duration(minutes: 2);
+
+  /// Test hook: zero backoff.
+  @visibleForTesting
+  static List<Duration> backoffOverride = _refreshBackoff;
+  static int _logoutEpoch = 0;
 
   AppInterceptors(this._dio);
 
@@ -36,6 +49,9 @@ class AppInterceptors extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    if (_shouldRefreshProactively(options)) {
+      await _refreshIfExpiring();
+    }
     await _addHeaders(options);
     handler.next(options);
   }
@@ -63,7 +79,9 @@ class AppInterceptors extends Interceptor {
       return;
     }
 
-    if (isLoggingOut) {
+    // Tokens are wiped during logout. If a new session has stored a refresh
+    // token since, this 401 is legitimate and must be allowed to refresh.
+    if (isLoggingOut && !await _hasRefreshToken()) {
       handler.reject(_makeExpiredError(err.requestOptions));
       return;
     }
@@ -115,8 +133,19 @@ class AppInterceptors extends Interceptor {
         handler.reject(_makeExpiredError(err.requestOptions));
       } else {
         // Network error, timeout, 5xx, 429 or malformed reply: the session
-        // is not proven dead. Keep tokens and fail only this request.
-        handler.next(err);
+        // is not proven dead. Keep tokens; fail only this request with a
+        // network-style error so the UI offers retry, not the login screen.
+        final cause = _lastRefreshError;
+        handler.reject(
+          DioException(
+            requestOptions: err.requestOptions,
+            type: cause != null && cause.response == null
+                ? cause.type
+                : DioExceptionType.connectionError,
+            error: cause?.error ?? 'Could not refresh session (transient)',
+            message: 'Session refresh failed transiently',
+          ),
+        );
       }
       return;
     }
@@ -150,74 +179,165 @@ class AppInterceptors extends Interceptor {
 
   Future<bool> _refreshMainToken() async {
     _lastRefreshRejected = false;
-    final refreshToken = await _cacheStorage.getValue(Constants.refreshToken);
+    _lastRefreshError = null;
+    final refreshToken = await _readRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
       // No refresh token at all: there is no session left to keep.
       _lastRefreshRejected = true;
       return false;
     }
 
-    try {
-      final response = await _dio.post<dynamic>(
-        _refreshPath,
-        data: {'refresh': refreshToken},
-        options: Options(headers: {'Accept': 'application/json'}),
-      );
+    final delays = backoffOverride;
+    for (var attempt = 0; attempt <= delays.length; attempt++) {
+      try {
+        final response = await _dio.post<dynamic>(
+          _refreshPath,
+          data: {'refresh': refreshToken},
+          options: Options(headers: {'Accept': 'application/json'}),
+        );
 
-      if (response.statusCode == 200) {
         final data = response.data;
         final newAccess = data is Map ? data['access'] as String? : null;
         final newRefresh = data is Map ? data['refresh'] as String? : null;
+        if (response.statusCode != 200 ||
+            newAccess == null ||
+            newAccess.isEmpty) {
+          // Odd 2xx/3xx or malformed body: not proof the session is dead.
+          if (attempt < delays.length) {
+            await Future<void>.delayed(delays[attempt]);
+            continue;
+          }
+          return false;
+        }
 
-        if (newAccess == null) return false;
-
-        // Write both atomically so a partial write never leaves the app
-        // with a valid access token but an expired refresh token.
+        // Replaying an old refresh within the grace window is idempotent
+        // server-side, so retrying after a lost response is safe.
         await Future.wait([
           _cacheStorage.save(Constants.authToken, newAccess),
-          if (newRefresh != null)
+          if (newRefresh != null && newRefresh.isNotEmpty)
             _cacheStorage.save(Constants.refreshToken, newRefresh),
         ]);
-        return true;
-      }
-      return false;
-    } on DioException catch (e) {
-      if (_isExplicitRejection(e)) {
-        // Rotation + blacklist: our token may be refused only because
-        // another party (the sync refresher) already rotated the pair.
-        // A different non-empty stored token means the session is healthy.
-        final now = await _cacheStorage.getValue(Constants.refreshToken);
-        if (now != null && now.isNotEmpty && now != refreshToken) {
-          return true;
+        if (newRefresh != null && newRefresh.isNotEmpty) {
+          try {
+            await getIt<PinVaultService>().updateTokens(
+              oldRefresh: refreshToken,
+              access: newAccess,
+              refresh: newRefresh,
+            );
+          } catch (_) {}
         }
-        _lastRefreshRejected = true;
+        return true;
+      } on DioException catch (e) {
+        if (_isExplicitRejection(e)) {
+          // Rotation + blacklist: our token may be refused only because
+          // another party (the sync refresher) already rotated the pair.
+          final now = await _cacheStorage.getValue(Constants.refreshToken);
+          if (now != null && now.isNotEmpty && now != refreshToken) {
+            return true;
+          }
+          _lastRefreshRejected = true;
+          return false;
+        }
+        _lastRefreshError = e;
+        if (kDebugMode) {
+          debugPrint(
+            '[AppInterceptors] refresh transient: ${e.type.name} '
+            '${e.response?.statusCode ?? ''}',
+          );
+        }
+        if (attempt < delays.length) {
+          await Future<void>.delayed(delays[attempt]);
+          continue;
+        }
+        return false;
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[AppInterceptors] refresh error: ${e.runtimeType}');
+        }
+        return false;
       }
-      if (kDebugMode) {
-        debugPrint('[AppInterceptors] _refreshMainToken error: $e');
-      }
-      return false;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[AppInterceptors] _refreshMainToken error: $e');
-      }
-      return false;
+    }
+    return false;
+  }
+
+  Future<String?> _readRefreshToken() async {
+    var t = await _cacheStorage.getValue(Constants.refreshToken);
+    if (t == null || t.isEmpty) {
+      // A transient secure-storage miss must not read as "logged out".
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      t = await _cacheStorage.getValue(Constants.refreshToken);
+    }
+    return t;
+  }
+
+  Future<bool> _hasRefreshToken() async {
+    final t = await _cacheStorage.getValue(Constants.refreshToken);
+    return t != null && t.isNotEmpty;
+  }
+
+  bool _shouldRefreshProactively(RequestOptions options) {
+    if (options.path.contains('auth/token/refresh')) return false;
+    return options.path.startsWith('api/') || options.path.startsWith('/api/');
+  }
+
+  /// Decodes the `exp` claim (no signature check). Null if unreadable.
+  @visibleForTesting
+  static DateTime? tokenExpiry(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      final json = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
+      final exp = json is Map ? json['exp'] : null;
+      if (exp is! num) return null;
+      return DateTime.fromMillisecondsSinceEpoch(exp.toInt() * 1000);
+    } catch (_) {
+      return null;
     }
   }
+
+  /// Single-flight refresh when the access token expires within 2 minutes.
+  /// Failure here is ignored: the request goes out and the 401 path decides.
+  Future<void> _refreshIfExpiring() async {
+    if (_refreshTokenFuture == null) {
+      final token = await _cacheStorage.getValue(Constants.authToken);
+      if (token == null) return;
+      final exp = tokenExpiry(token);
+      if (exp == null || exp.difference(DateTime.now()) > _proactiveWindow) {
+        return;
+      }
+    }
+    final own = _refreshTokenFuture == null;
+    _refreshTokenFuture ??= _refreshMainToken();
+    final f = _refreshTokenFuture!;
+    try {
+      final ok = await f;
+      if (!ok && own && _lastRefreshRejected) {
+        await _triggerForcedLogout();
+      }
+    } catch (_) {
+    } finally {
+      if (identical(_refreshTokenFuture, f)) _refreshTokenFuture = null;
+    }
+  }
+
+  /// Call on AppLifecycleState.resumed.
+  static Future<void> refreshIfExpiring() =>
+      AppInterceptors(getIt<Dio>())._refreshIfExpiring();
 
   /// HTTP 401, or 400 with `token_not_valid`, from the refresh endpoint.
   static bool _isExplicitRejection(DioException e) {
     final status = e.response?.statusCode;
     if (status == 401) return true;
-    if (status != 400) return false;
-    final body = e.response?.data;
-    if (body is! Map) return false;
-    final nested = body['error'] is Map ? body['error'] as Map : null;
-    return (nested?['code'] ?? body['code']) == 'token_not_valid';
+    // Backend contract: 400/401 from the refresh endpoint = dead token.
+    return status == 400;
   }
 
   Future<void> _triggerForcedLogout() async {
     if (isLoggingOut) return;
     isLoggingOut = true;
+    final epoch = ++_logoutEpoch;
 
     try {
       await _cacheStorage.resetTokens();
@@ -237,7 +357,7 @@ class AppInterceptors extends Interceptor {
         debugPrint('[AppInterceptors] _triggerForcedLogout error: $e');
     } finally {
       Future.delayed(const Duration(seconds: 4), () {
-        isLoggingOut = false;
+        if (epoch == _logoutEpoch) isLoggingOut = false;
         if (kDebugMode) debugPrint('[AppInterceptors] isLoggingOut reset');
       });
     }

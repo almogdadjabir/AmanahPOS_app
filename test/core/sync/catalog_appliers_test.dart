@@ -85,6 +85,13 @@ void main() {
       'updated_at': '2026-11-16T10:00:00Z',
     };
 
+    test('a `deleted: true` row is removed like a delete op', () async {
+      await run(applier, _up('product', 'p1', 1, p()));
+      expect(await row('products', 'p1'), isNotNull);
+      await run(applier, _up('product', 'p1', 2, {...p(), 'deleted': true}));
+      expect(await row('products', 'p1'), isNull);
+    });
+
     test('upsert inserts typed columns and legacy json', () async {
       await run(applier, _up('product', 'p1', 1, p()));
       final r = (await row('products', 'p1'))!;

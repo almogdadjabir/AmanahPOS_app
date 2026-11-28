@@ -47,8 +47,11 @@ const String _kTimeout = 'The connection timed out. Please try again.';
 
 String _statusMessage(int? statusCode) {
   switch (statusCode) {
-    case 401:
     case 403:
+      // Role check on the backend (e.g. a cashier refunding): not a dead
+      // session. The server's own message is preferred upstream.
+      return 'You don\'t have permission to do this.';
+    case 401:
       return 'Your session has expired. Please sign in again.';
     case 404:
       return 'We couldn\'t find what you were looking for.';

@@ -40,7 +40,11 @@ class AppSearchField extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: AppDims.s3),
-          Icon(PhosphorIconsRegular.magnifyingGlass, size: 18, color: colors.textHint),
+          Icon(
+            PhosphorIconsRegular.magnifyingGlass,
+            size: 18,
+            color: colors.textHint,
+          ),
           const SizedBox(width: AppDims.s2),
           Expanded(
             child: TextField(

@@ -4,7 +4,6 @@ import 'package:amana_pos/common/services/local/local_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
-
 class FcmTokenService {
   final CacheStorage _cacheStorage;
 
@@ -18,10 +17,8 @@ class FcmTokenService {
   bool _isInitialized = false;
   StreamSubscription<String>? _tokenRefreshSubscription;
 
-  FcmTokenService({
-    required CacheStorage cacheStorage,
-  }) : _cacheStorage = cacheStorage;
-
+  FcmTokenService({required CacheStorage cacheStorage})
+    : _cacheStorage = cacheStorage;
 
   Future<void> initialize() async {
     if (_isInitialized) {
@@ -48,14 +45,15 @@ class FcmTokenService {
         }
       }
 
-      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen(
-        _handleTokenRefresh,
-        onError: (error) {
-          if (kDebugMode) {
-            log('FCM Token refresh error: $error');
-          }
-        },
-      );
+      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh
+          .listen(
+            _handleTokenRefresh,
+            onError: (error) {
+              if (kDebugMode) {
+                log('FCM Token refresh error: $error');
+              }
+            },
+          );
 
       _isInitialized = true;
     } catch (e) {
@@ -72,7 +70,8 @@ class FcmTokenService {
       try {
         // On iOS, wait for APNs token first
         if (defaultTargetPlatform == TargetPlatform.iOS) {
-          final apnsToken = await FirebaseMessaging.instance.getAPNSToken()
+          final apnsToken = await FirebaseMessaging.instance
+              .getAPNSToken()
               .timeout(const Duration(seconds: 10));
 
           if (apnsToken == null) {
@@ -90,10 +89,10 @@ class FcmTokenService {
           }
         }
 
-        final token = await FirebaseMessaging.instance.getToken()
-            .timeout(const Duration(seconds: 10));
+        final token = await FirebaseMessaging.instance.getToken().timeout(
+          const Duration(seconds: 10),
+        );
         if (token != null) return token;
-
       } catch (e) {
         if (kDebugMode) {
           log('FCM Token fetch attempt ${attempt + 1} failed: $e');

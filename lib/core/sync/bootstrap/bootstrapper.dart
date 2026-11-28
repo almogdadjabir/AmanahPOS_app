@@ -132,6 +132,7 @@ class Bootstrapper {
     DateTime Function()? now,
     Duration lockTtl = const Duration(minutes: 2),
     Uuid? uuid,
+    Future<void> Function(Duration)? sleep,
   }) : _db = db,
        _transport = transport,
        _state = state,
@@ -145,6 +146,7 @@ class Bootstrapper {
        _pageSize = pageSize,
        _now = now ?? DateTime.now,
        _lockTtl = lockTtl,
+       _sleep = sleep ?? Future<void>.delayed,
        _holder = (uuid ?? const Uuid()).v4();
 
   static const int defaultPageSize = 500;
@@ -194,6 +196,31 @@ class Bootstrapper {
   final int _pageSize;
   final DateTime Function() _now;
   final Duration _lockTtl;
+  final Future<void> Function(Duration) _sleep;
+
+  /// A 429 during first setup is waited out (Retry-After, else 2s, 4s, 8s...
+  /// capped at [maxRateLimitWait]) instead of failing the whole download.
+  /// After [maxRateLimitRetries] the run is interrupted and resumes later
+  /// from the stored cursor; nothing is lost.
+  static const int maxRateLimitRetries = 6;
+  static const Duration maxRateLimitWait = Duration(seconds: 60);
+
+  Future<T> _call<T>(Future<T> Function() call) async {
+    for (var attempt = 0; ; attempt++) {
+      try {
+        return await _authed(call);
+      } on SyncTransportException catch (e) {
+        if (e.httpStatus != 429 || attempt >= maxRateLimitRetries) rethrow;
+        if (_cancelRequested) throw _Stop(BootstrapOutcome.interrupted);
+        var wait = e.retryAfterSeconds != null
+            ? Duration(seconds: e.retryAfterSeconds!)
+            : Duration(seconds: 2 << attempt);
+        if (wait > maxRateLimitWait) wait = maxRateLimitWait;
+        _log('rate limited; waiting ${wait.inSeconds}s (try ${attempt + 1})');
+        await _sleep(wait);
+      }
+    }
+  }
   final String _holder;
 
   /// Synchronous so the run's last event is delivered before [run]
@@ -283,7 +310,7 @@ class Bootstrapper {
           await _ensureLock();
           await _assertScope();
           final sent = p.pageCursor;
-          final page = await _authed(
+          final page = await _call(
             () => _transport.bootstrapPage(
               entity: entity,
               pageCursor: sent,
@@ -354,7 +381,7 @@ class Bootstrapper {
   /// Takes the snapshot (the ONLY manifest call of a bootstrap) and stores
   /// the ordered entity list.
   Future<BootstrapProgress> _start() async {
-    final manifest = await _authed(
+    final manifest = await _call(
       () => _transport.bootstrapManifest(scope: _scope),
     );
     for (final e in manifest.entities) {

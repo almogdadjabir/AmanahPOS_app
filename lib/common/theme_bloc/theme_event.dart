@@ -23,7 +23,7 @@ class OnThemeLoadedEvent extends ThemeEvent {
 
   const OnThemeLoadedEvent({
     required this.isDarkTheme,
-    required this.isBigFontSize
+    required this.isBigFontSize,
   });
 }
 

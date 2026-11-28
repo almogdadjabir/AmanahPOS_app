@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart';
 class Motion {
   Motion._();
 
-  static final ValueNotifier<bool> animationsEnabled = ValueNotifier<bool>(true);
+  static final ValueNotifier<bool> animationsEnabled = ValueNotifier<bool>(
+    true,
+  );
 
   static bool get on => animationsEnabled.value;
 

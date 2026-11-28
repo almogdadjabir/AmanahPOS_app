@@ -83,6 +83,16 @@ class BusinessDay {
     return s.substring(0, 19);
   }
 
+  /// The ONE place a user-picked calendar day becomes a REST `date_from` /
+  /// `date_to` value. The backend reads these as UTC calendar days (it does
+  /// not convert to the business time zone), so the picked y/m/d is sent
+  /// as-is. Limitation: a local day that straddles two UTC days cannot be
+  /// expressed (zones east of UTC lose their first hours, zones west gain
+  /// extra ones). See docs/date-ranges.md; the fix is backend ISO-datetime
+  /// bounds. Local (SQLite) queries use [utcTextRange] and are exact.
+  static String restDateParam(DateTime pickedDay) =>
+      BusinessDay.fromDate(pickedDay).iso;
+
   /// `YYYY-MM-DD`.
   String get iso =>
       '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}'

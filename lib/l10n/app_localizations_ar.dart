@@ -90,7 +90,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsCashiers => 'الكاشيرات';
 
   @override
-  String get settingsCashiersSubtitle => 'صلاحيات الموظفين والمناوبات';
+  String get settingsCashiersSubtitle => 'صلاحيات الموظفين والورديات';
 
   @override
   String get settingsCustomers => 'العملاء';
@@ -457,7 +457,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bankakPosNote =>
-      'عندما يختار الكاشير بنكك في نقطة البيع، تسجّل أمانة البيعة تحت هذا الحساب.';
+      'عندما يختار الكاشير بنكك في نقطة البيع، تسجّل أمانة عملية البيع تحت هذا الحساب.';
 
   @override
   String get bankakCardTitle => 'مدفوعات بنكك';
@@ -497,7 +497,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يُعدَّ حساب بنكك. اذهب إلى الإعدادات وأضف رقم حسابك أولاً.';
 
   @override
-  String get posCashierNotAssigned => 'لم تُعيَّن لمتجر. تواصل مع مديرك.';
+  String get posCashierNotAssigned => 'لم تُعيَّن لفرع. تواصل مع مديرك.';
 
   @override
   String get posCharge => 'تحصيل';
@@ -512,19 +512,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posNoShopFound =>
-      'لم يتم العثور على متجر. حدّث الصفحة وحاول مجدداً.';
+      'لم يتم العثور على فرع. حدّث الصفحة وحاول مجدداً.';
 
   @override
-  String get posSaleCompleted => 'تمت البيعة بنجاح';
+  String get posSaleCompleted => 'تمت عملية البيع بنجاح';
 
   @override
-  String get posFailedSale => 'فشل إتمام البيعة';
+  String get posFailedSale => 'فشل إتمام عملية البيع';
 
   @override
   String get posBankakRequired => 'يرجى إضافة رقم حساب بنكك في الإعدادات.';
 
   @override
-  String get posShopMismatch => 'لست مُعيَّناً لهذا المتجر. تواصل مع مديرك.';
+  String get posShopMismatch => 'لست مُعيَّناً لهذا الفرع. تواصل مع مديرك.';
 
   @override
   String posItemsUnavailable(String names) {
@@ -605,7 +605,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saveChanges => 'حفظ التغييرات';
 
   @override
-  String get stockByShop => 'المخزون حسب المتجر';
+  String get stockByShop => 'المخزون حسب الفرع';
 
   @override
   String get productPhotoSubtitle => 'اضغط لتغيير صورة المنتج';
@@ -735,7 +735,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get selectBranch => 'اختر الفرع';
 
   @override
-  String get businessWorkspace => 'مساحة العمل';
+  String get businessWorkspace => 'النشاط التجاري';
 
   @override
   String get productDeletedSuccessfully => 'تم حذف المنتج بنجاح';
@@ -945,7 +945,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fieldRole => 'الدور';
 
   @override
-  String get fieldAssignedShop => 'المتجر المُعيَّن';
+  String get fieldAssignedShop => 'الفرع المُعيَّن';
 
   @override
   String get createUser => 'إنشاء مستخدم';
@@ -987,10 +987,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managerAccess => 'صلاحيات المدير';
 
   @override
-  String get shopRequired => 'المتجر مطلوب';
+  String get shopRequired => 'الفرع مطلوب';
 
   @override
-  String get shopAssigned => 'تم تعيين المتجر';
+  String get shopAssigned => 'تم تعيين الفرع';
 
   @override
   String get unassignedCashier => 'كاشير غير معيَّن';
@@ -1008,7 +1008,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerStatInactive => 'غير نشط';
 
   @override
-  String get customerStatCredit => 'الائتمان';
+  String get customerStatCredit => 'على الحساب';
 
   @override
   String get customerStatPhone => 'الهاتف';
@@ -1184,7 +1184,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get returnFindSale => 'ابحث عن بيعة للإرجاع';
+  String get returnFindSale => 'ابحث عن عملية بيع للإرجاع';
 
   @override
   String get returnFindSaleSubtitle => 'أدخل رقم الإيصال أو المبلغ أعلاه';
@@ -1220,13 +1220,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saleReceiptFailure => 'فشل إنشاء ملف الإيصال';
 
   @override
-  String get returnItemsAction => 'إرجاع عناصر من هذه البيعة';
+  String get returnItemsAction => 'إرجاع عناصر من عملية البيع هذه';
 
   @override
   String get salesCouldNotLoad => 'تعذّر تحميل المبيعات';
 
   @override
-  String get saleComplete => 'تمت البيعة!';
+  String get saleComplete => 'تمت عملية البيع!';
 
   @override
   String get savedOffline => 'محفوظ بلا إنترنت';
@@ -1244,7 +1244,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareVia => 'مشاركة عبر...';
 
   @override
-  String get newSale => 'بيعة جديدة';
+  String get newSale => 'عملية بيع جديدة';
 
   @override
   String get receiptCopied => 'تم نسخ رقم الإيصال';
@@ -1396,7 +1396,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invFieldNotes => 'الملاحظات';
 
   @override
-  String get invAdjustStock => 'تعديل المخزون';
+  String get invAdjustStock => 'تصحيح المخزون';
 
   @override
   String get invTransferTo => 'نقل إلى';
@@ -1426,7 +1426,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bizQuickLinksLabel => 'روابط سريعة';
 
   @override
-  String get bizShopsTitle => 'المتاجر';
+  String get bizShopsTitle => 'الفروع';
 
   @override
   String get live => 'مباشر';
@@ -1557,7 +1557,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterValidPhoneNumber => 'أدخل رقم هاتف صحيح';
 
   @override
-  String get editShop => 'تعديل المتجر';
+  String get editShop => 'تعديل الفرع';
 
   @override
   String get status => 'الحالة';
@@ -1758,11 +1758,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cashierNotAssignedToShopMessage =>
-      'أنت غير مخصص لأي متجر. تواصل مع المدير.';
+      'أنت غير مخصص لأي فرع. تواصل مع المدير.';
 
   @override
   String get noShopFoundRefreshMessage =>
-      'لم يتم العثور على متجر. يرجى التحديث والمحاولة مرة أخرى.';
+      'لم يتم العثور على فرع. يرجى التحديث والمحاولة مرة أخرى.';
 
   @override
   String get clearCartQuestion => 'مسح السلة؟';
@@ -2103,13 +2103,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تأكد من مزامنة كل المبيعات قبل تسجيل الخروج. المبيعات غير المتزامنة قد يتم فقدانها.';
 
   @override
-  String get noBusinessesYet => 'لا توجد أعمال بعد';
+  String get noBusinessesYet => 'لا توجد أنشطة تجارية بعد';
 
   @override
   String get createFirstBusinessToGetStarted => 'أنشئ أول عمل لك للبدء.';
 
   @override
-  String get addBusiness => 'إضافة عمل';
+  String get addBusiness => 'إضافة نشاط تجاري';
 
   @override
   String get noStockEntriesYet => 'لا توجد إدخالات مخزون بعد';
@@ -2568,7 +2568,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String homePlanLimits(String shops, String products, String users) {
-    return 'المتاجر $shops · المنتجات $products · المستخدمون $users';
+    return 'الفروع $shops · المنتجات $products · المستخدمون $users';
   }
 
   @override
@@ -2587,7 +2587,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homePayLoyalty => 'نقاط الولاء';
 
   @override
-  String get homePayCredit => 'آجل';
+  String get homePayCredit => 'على الحساب';
 
   @override
   String get homePaySplit => 'دفع مقسّم';
@@ -3867,17 +3867,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bsAddress => 'العنوان';
 
   @override
-  String get bsShops => 'المتاجر';
+  String get bsShops => 'الفروع';
 
   @override
   String bsShopsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count متجرًا',
-      few: '$count متاجر',
-      two: 'متجران',
-      one: 'متجر واحد',
+      other: '$count فرعًا',
+      few: '$count فروع',
+      two: 'فرعان',
+      one: 'فرع واحد',
     );
     return '$_temp0';
   }
@@ -3899,7 +3899,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bsTaxFootOff =>
-      'تُطبق على كل عملية بيع في جميع المتاجر. تظهر الضريبة في الإيصال.';
+      'تُطبق على كل عملية بيع في جميع الفروع. تظهر الضريبة في الإيصال.';
 
   @override
   String get bsTaxFootOn =>
@@ -3915,16 +3915,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shInactive => 'غير نشط';
 
   @override
-  String get shAdd => 'إضافة متجر';
+  String get shAdd => 'إضافة فرع';
 
   @override
-  String get shNew => 'متجر جديد';
+  String get shNew => 'فرع جديد';
 
   @override
-  String get shEdit => 'تعديل المتجر';
+  String get shEdit => 'تعديل الفرع';
 
   @override
-  String get shName => 'اسم المتجر';
+  String get shName => 'اسم الفرع';
 
   @override
   String get shAddress => 'العنوان';
@@ -3937,7 +3937,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shOpenFoot =>
-      'أوقفه لإخفاء المتجر عن البيع وعن الكاشير. تبقى مبيعاته في السجل.';
+      'أوقفه لإخفاء الفرع عن البيع وعن الكاشير. تبقى مبيعاته في السجل.';
 
   @override
   String get shSwipeDeactivate => 'إيقاف';
@@ -3961,10 +3961,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shDeactivateAction => 'إيقاف';
 
   @override
-  String get shSaved => 'تم حفظ المتجر.';
+  String get shSaved => 'تم حفظ الفرع.';
 
   @override
-  String get shAdded => 'تمت إضافة المتجر.';
+  String get shAdded => 'تمت إضافة الفرع.';
 
   @override
   String get nfTitle => 'الإشعارات';
@@ -4191,7 +4191,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get obCreateFoot =>
-      'بعد ذلك تضيف متجرك الأول. الضريبة والفريق يمكن أن ينتظرا.';
+      'بعد ذلك تضيف فرعك الأول. الضريبة والفريق يمكن أن ينتظرا.';
 
   @override
   String get obExpiredTitle => 'انتهت باقتك';
@@ -4207,13 +4207,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get obExpiredSignOut => 'تسجيل الخروج';
 
   @override
-  String get shpTitle => 'المتاجر';
+  String get shpTitle => 'الفروع';
 
   @override
-  String get shpEmptyTitle => 'لا توجد متاجر بعد';
+  String get shpEmptyTitle => 'لا توجد فروع بعد';
 
   @override
-  String get shpEmptyBody => 'المتجر هو مكان البيع. أضف متجرك الأول للبدء.';
+  String get shpEmptyBody => 'الفرع هو مكان البيع. أضف فرعك الأول للبدء.';
 
   @override
   String posBarcodeNotFound(String barcode) {
@@ -4928,7 +4928,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sfErrNoSession => 'سجّل الدخول أولاً.';
 
   @override
-  String get sfErrNoShop => 'اختر متجراً أولاً.';
+  String get sfErrNoShop => 'اختر فرعاً أولاً.';
 
   @override
   String get sfErrNotAllowed => 'غير مسموح لك بهذا. اسأل المالك.';
@@ -5003,7 +5003,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spMismatch => 'تغيرت السلة. عدّل التجزئة.';
 
   @override
-  String get dtAccount => 'آجل';
+  String get dtAccount => 'على الحساب';
 
   @override
   String get dtOnAccount => 'على الحساب';
